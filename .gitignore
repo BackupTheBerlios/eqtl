@@ -10,3 +10,7 @@ echoservice.o
 libeqtlarc.a
 libtool
 stamp-h1
+arched_eqtl.xml~
+eqtlservice.cpp~
+eqtlservice.h~
+eqtlservice.o
