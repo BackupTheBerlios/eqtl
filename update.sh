@@ -60,6 +60,8 @@ if [ -z "$nopull" ]; then
 	git pull
 fi
 
+#TODO:
+#modify that the script accepts all projectnames
 internal_projectname=""
 case "$projectname" in
 	"mus"|"mouse")
