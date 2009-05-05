@@ -14,3 +14,9 @@ arched_eqtl.xml~
 eqtlservice.cpp~
 eqtlservice.h~
 eqtlservice.o
+.libs/
+Makefile.am~
+arched.log
+eqtlservice.lo
+libeqtlarc.la
+.DS_Store

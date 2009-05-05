@@ -1,0 +1,5 @@
+unter
+http://www.ensembl.org/das/Rattus_norvegicus.RGSC3.4.karyotype/features?segment=1:1,100000000
+sieht man DAS mit xsl stylesheet
+
+http://www.ensembl.org/das/sources

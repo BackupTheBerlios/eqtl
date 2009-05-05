@@ -1,35 +1,37 @@
-<?xml version="1.0" encoding="UTF-8"?><wsdl:definitions name="eqtl_arc" targetNamespace="http://uni-luebeck.de/eqtl/arc" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:eqtl="http://uni-luebeck.de/eqtl/arc">
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="wsdl-viewer.xsl"?>
+<wsdl:definitions name="eqtl_arc" targetNamespace="http://uni-luebeck.de/eqtl/arc" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:eqtl="http://uni-luebeck.de/eqtl/arc">
     <wsdl:types><xsd:schema targetNamespace="http://uni-luebeck.de/eqtl/arc" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:eqtl="http://uni-luebeck.de/eqtl/arc">
 	<xsd:complexType name="FilterParameters">
                 <xsd:sequence maxOccurs="1" minOccurs="1">
-                	<xsd:element name="LodScore" type="eqtl:DoubleRange"
+                	<xsd:element name="lodScore" type="eqtl:DoubleRange"
                 		maxOccurs="1" minOccurs="0">
                 		<xsd:annotation>
                 			<xsd:documentation>
-                				which lod ranges to search if none
-                				specified search all
+                				which lod ranges to search. if not
+                				specified search all. a higher lod means there is a higher propability of an effect between locus and gene expression.
                 			</xsd:documentation>
                 		</xsd:annotation>
                 	</xsd:element>
-                	<xsd:element name="Position"
+                	<xsd:element name="position"
                 		type="eqtl:RangeOnChromosome" maxOccurs="unbounded"
                 		minOccurs="0">
                 		<xsd:annotation>
-                			<xsd:documentation>
-                				if none specified then search everywhere
+                			<xsd:documentation>an optional list of chromosomes regions to search.
+                				if not specified then search everywhere
                 			</xsd:documentation>
                 		</xsd:annotation>
                 	</xsd:element>
-                	<xsd:element name="SameChromosome" type="xsd:int"
+                	<xsd:element name="sameChromosome" type="xsd:int"
                 		maxOccurs="1" minOccurs="0">
                 		<xsd:annotation>
-                			<xsd:documentation>
+                			<xsd:documentation>do the gene and the locus need to be on the same chromosome?
                 				1 = need same chr 0 or missing = dont
                 				care -1 = may not be same chr
                 			</xsd:documentation>
                 		</xsd:annotation>
                 	</xsd:element>
-                	<xsd:element name="LocusToGeneDistance"
+                	<xsd:element name="locusToGeneDistance"
                 		type="eqtl:LongRange" maxOccurs="1" minOccurs="0">
                 		<xsd:annotation>
                 			<xsd:documentation>
@@ -41,7 +43,7 @@
                 			</xsd:documentation>
                 		</xsd:annotation>
                 	</xsd:element>
-                	<xsd:element name="OrderBy" type="xsd:string"
+                	<xsd:element name="orderBy" type="xsd:string"
                 		maxOccurs="1" minOccurs="0">
                 		<xsd:annotation>
                 			<xsd:documentation>
@@ -49,7 +51,7 @@
                 			</xsd:documentation>
                 		</xsd:annotation>
                 	</xsd:element>
-                	<xsd:element name="MaxResults" type="xsd:int"
+                	<xsd:element name="maxNumResults" type="xsd:int"
                 		maxOccurs="1" minOccurs="0">
                 		<xsd:annotation>
                 			<xsd:documentation>
@@ -65,12 +67,18 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="DoubleRange">
-		<xsd:attribute name="from" type="xsd:double"></xsd:attribute>
+                <xsd:annotation>
+                	<xsd:documentation></xsd:documentation>
+                </xsd:annotation>
+                <xsd:attribute name="from" type="xsd:double"></xsd:attribute>
 		<xsd:attribute name="to" type="xsd:double"></xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="RangeOnChromosome">
-		<xsd:attribute name="chromosome" type="xsd:string"></xsd:attribute>
+                <xsd:annotation>
+                	<xsd:documentation>this specifies a base pair range on a chromosome</xsd:documentation>
+                </xsd:annotation>
+                <xsd:attribute name="chromosome" type="xsd:string"></xsd:attribute>
 		<xsd:attribute name="fromBP" type="xsd:long"></xsd:attribute>
 		<xsd:attribute name="toBP" type="xsd:long"></xsd:attribute>
 	</xsd:complexType>
@@ -79,34 +87,91 @@
 		<xsd:attribute name="from" type="xsd:long"></xsd:attribute>
 		<xsd:attribute name="to" type="xsd:long"></xsd:attribute>
 	</xsd:complexType>
-	<xsd:element name="QTL_FindGenesByLocusPosition">
+	<xsd:element name="QTL_FindByPosition">
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:element name="in" type="xsd:string"></xsd:element>
+                        <xsd:element name="searchType" type="xsd:string" maxOccurs="1" minOccurs="0">
+                        	<xsd:annotation>
+                        		<xsd:documentation>specify what needs to be in the searched area:"marker", "gene" or "both"</xsd:documentation>
+                        	</xsd:annotation></xsd:element>
+                        <xsd:element name="searchRequest"
+					type="eqtl:FilterParameters" maxOccurs="1" minOccurs="1">
+                            <xsd:annotation>
+                            	<xsd:documentation>this specifies which interactions we want, how many of them, and in which region they need to be</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+			</xsd:sequence>
+			
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="QTL_FindByPositionResponse">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="qtls" type="eqtl:expressionQTL"
+					maxOccurs="unbounded" minOccurs="0">
+                            <xsd:annotation>
+                            	<xsd:documentation>a list of expression qtls found by your search request</xsd:documentation>
+                            </xsd:annotation>
+				</xsd:element>
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>
-	<xsd:element name="QTL_FindGenesByLocusPositionResponse">
+	<xsd:element name="QTL_FindByGenePosition"
+		type="eqtl:FilterParameters">
+	</xsd:element>
+	<xsd:element name="QTL_FindByGenePositionResponse">
 		<xsd:complexType>
-			<xsd:sequence>
-				<xsd:element name="out" type="xsd:string"></xsd:element>
-			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>
-	<xsd:element name="QTL_FindLociByGenePosition">
-		<xsd:complexType>
-			<xsd:sequence>
-				<xsd:element name="in" type="xsd:string"></xsd:element>
-			</xsd:sequence>
-		</xsd:complexType>
-	</xsd:element>
-	<xsd:element name="QTL_FindLociByGenePositionResponse">
-		<xsd:complexType>
-			<xsd:sequence>
-				<xsd:element name="out" type="xsd:string"></xsd:element>
-			</xsd:sequence>
-		</xsd:complexType>
-	</xsd:element>
+
+        
+        
+	<xsd:complexType name="expressionQTL">
+                <xsd:annotation>
+                	<xsd:documentation>this type specifies a single expression qtl. </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence maxOccurs="1" minOccurs="1">
+			<xsd:element name="marker" type="eqtl:NamedLocus"
+				maxOccurs="1" minOccurs="1">
+                        <xsd:annotation>
+                        	<xsd:documentation>the marker or locus which affects the gene expression</xsd:documentation>
+                        </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="genePosition"
+				type="eqtl:RangeOnChromosome" maxOccurs="1" minOccurs="1">
+                        <xsd:annotation>
+                        	<xsd:documentation>the position of the affected gene on the genome</xsd:documentation>
+                        </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="statistics"
+				type="eqtl:ExpressionStatistics" maxOccurs="1" minOccurs="1">
+                        <xsd:annotation>
+                        	<xsd:documentation>statistical information about the gene expression as seen on all subjects.</xsd:documentation>
+                        </xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="lod" type="xsd:double">
+			<xsd:annotation>
+				<xsd:documentation>how much evidence is there to suggest an effect?</xsd:documentation>
+			</xsd:annotation></xsd:attribute>
+		<xsd:attribute name="geneEntrezID" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>the entrez id of the gene which is being expressed. you can search ensembl for this.</xsd:documentation>
+			</xsd:annotation></xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="NamedLocus">
+		<xsd:attribute name="name" type="xsd:string"></xsd:attribute>
+		<xsd:attribute name="chromosome" type="xsd:string"></xsd:attribute>
+		<xsd:attribute name="positionBP" type="xsd:long"></xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="ExpressionStatistics">
+                <xsd:attribute name="mean" type="xsd:double"></xsd:attribute>
+                <xsd:attribute name="median" type="xsd:double"></xsd:attribute>
+		<xsd:attribute name="sd" type="xsd:double"></xsd:attribute>
+                <xsd:attribute name="variance" type="xsd:double"></xsd:attribute>
+	</xsd:complexType>
 </xsd:schema>
 </wsdl:types>
     <wsdl:message name="FindQtlByLocusPositionRequest">
@@ -115,26 +180,23 @@
     <wsdl:message name="FindQtlByLocusPositionResponse">
     	<wsdl:part name="parameters" element="eqtl:FindQtlByLocusPositionResponse"></wsdl:part>
     </wsdl:message>
-    <wsdl:message name="QTL_FindGenesByLocusPositionRequest">
-    	<wsdl:part name="parameters" element="eqtl:QTL_FindGenesByLocusPosition"></wsdl:part>
+    <wsdl:message name="QTL_FindByPositionRequest">
+    	<wsdl:part name="parameters" element="eqtl:QTL_FindByPosition"></wsdl:part>
     </wsdl:message>
-    <wsdl:message name="QTL_FindGenesByLocusPositionResponse">
-    	<wsdl:part name="parameters" element="eqtl:QTL_FindGenesByLocusPositionResponse"></wsdl:part>
+    <wsdl:message name="QTL_FindByPositionResponse">
+    	<wsdl:part name="parameters" element="eqtl:QTL_FindByPositionResponse"></wsdl:part>
     </wsdl:message>
-    <wsdl:message name="QTL_FindLociByGenePositionRequest">
-    	<wsdl:part name="parameters" element="eqtl:QTL_FindLociByGenePosition"></wsdl:part>
+    <wsdl:message name="QTL_FindByGenePositionRequest">
+    	<wsdl:part name="parameters" element="eqtl:QTL_FindByGenePosition"></wsdl:part>
     </wsdl:message>
-    <wsdl:message name="QTL_FindLociByGenePositionResponse">
-    	<wsdl:part name="parameters" element="eqtl:QTL_FindLociByGenePositionResponse"></wsdl:part>
+    <wsdl:message name="QTL_FindByGenePositionResponse">
+    	<wsdl:part name="parameters" element="eqtl:QTL_FindByGenePositionResponse"></wsdl:part>
     </wsdl:message>
     <wsdl:portType name="eqtl_arc_porttype">
-        <wsdl:operation name="QTL_FindGenesByLocusPosition">
-        	<wsdl:input message="eqtl:QTL_FindGenesByLocusPositionRequest"></wsdl:input>
-        	<wsdl:output message="eqtl:QTL_FindGenesByLocusPositionResponse"></wsdl:output>
-        </wsdl:operation>
-        <wsdl:operation name="QTL_FindLociByGenePosition">
-        	<wsdl:input message="eqtl:QTL_FindLociByGenePositionRequest"></wsdl:input>
-        	<wsdl:output message="eqtl:QTL_FindLociByGenePositionResponse"></wsdl:output>
+        <wsdl:operation name="QTL_FindByPosition">
+        	<wsdl:documentation>find expression qtls. an expression qtl is a location on the genome which affects the expression of a certain gene. this process may also be affected by covariates.</wsdl:documentation>
+        	<wsdl:input message="eqtl:QTL_FindByPositionRequest"></wsdl:input>
+        	<wsdl:output message="eqtl:QTL_FindByPositionResponse"></wsdl:output>
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="eqtl_arc_binding"
@@ -151,7 +213,7 @@
     			<soap:body use="literal" />
     		</wsdl:output>
     	</wsdl:operation>
-    	<wsdl:operation name="QTL_FindGenesByLocusPosition">
+    	<wsdl:operation name="QTL_FindByPosition">
     		<soap:operation
     			soapAction="http://uni-luebeck.de/eqtl/arc/QTL_FindGenesByLocusPosition" />
     		<wsdl:input>
@@ -161,7 +223,7 @@
     			<soap:body use="literal" />
     		</wsdl:output>
     	</wsdl:operation>
-    	<wsdl:operation name="QTL_FindLociByGenePosition">
+    	<wsdl:operation name="QTL_FindByGenePosition">
     		<soap:operation
     			soapAction="http://uni-luebeck.de/eqtl/arc/QTL_FindLociByGenePosition" />
     		<wsdl:input>
