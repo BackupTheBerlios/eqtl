@@ -1,4 +1,43 @@
 1. Database
+-------------------
+-------------------
+
+   The database is the core unit of the whole dataflow.
+   It is storing the results and is used by the website
+   to present the results. And it is controlling the
+   computation of the data.
+   For the description of the tables of the database,
+   see the database description file which is not there
+   yet but will be soon...
+   I am not sure if there is an upload script to create
+   the database but if not there will be one soon...
+   The name of the database is irrelevant, as long as
+   you write it to the config files. The database itself
+   needs to contain the following tables:
+
+   +--------------------+
+   | Tables_in_Database |
+   +--------------------+
+   | BEARatChip         |
+   | computation        |
+   | locus              |
+   | locusInteraction   |
+   | map                |
+   | qtl                |
+   | trait              |
+   +--------------------+
+
+   BEARatChip:
+   
+   this table contains all information
+   about the expression data.
+   This is the only table where the name should
+   be choosen dependent from the data, but we haven't
+   included this to to be a config parameter so at the
+   moment this name needs to be used
+
+
+
 2. Website
 3. Config files and template files
 4. Data Computation
