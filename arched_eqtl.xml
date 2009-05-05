@@ -6,18 +6,19 @@
   xmlns:echo="urn:echo_config"
 >
 	<Server>
-	<Pidfile>/var/run/arched.pid</Pidfile>
-	<Logger level="VERBOSE">/var/log/arched.log</Logger>
+	<Pidfile>arched.pid</Pidfile>
+	<Logger level="VERBOSE">arched.log</Logger>
 	</Server>
 	<ModuleManager>
-		<Path>./</Path>
+		<Path>./.libs</Path>
 		<Path>/usr/lib/arc/</Path>
 	</ModuleManager>
 	<Plugins><Name>mcctcp</Name></Plugins>
 	<Plugins><Name>mcctls</Name></Plugins>
 	<Plugins><Name>mcchttp</Name></Plugins>
 	<Plugins><Name>mccsoap</Name></Plugins>
-	<Plugins><Name>echoservice</Name></Plugins>
+	<Plugins><Name>eqtlarc</Name></Plugins>
+	<Plugins><Name>hopi</Name></Plugins>
 	<Chain>
 		<Component name="tcp.service" id="tcp">
 			<next id="http"/>
@@ -25,17 +26,18 @@
 		</Component>
 		<Component name="http.service" id="http">
 			<next id="soap">POST</next>
+			<next id="hopi">GET</next>
 		</Component>
 		<Component name="soap.service" id="soap">
 			<next id="plexer"/>
 		</Component>
 		<Plexer name="plexer.service" id="plexer">
-			<next id="echo">^/echo$</next>
+			<next id="eqtl">^/eqtl$</next>
 		</Plexer>
-		<Service name="echo" id="echo">
-			<next id="echo"/>
-			<echo:prefix>[ </echo:prefix><!--(@*\label{lst_code:echo_hed_configuration_xml_pre}*@)-->
-			<echo:suffix> ]</echo:suffix><!--(@*\label{lst_code:echo_hed_configuration_xml_suf}*@)-->
+		<Service name="eQTL" id="eqtl">
+		</Service>
+		<Service name="hopi" id="hopi">
+			<DocumentRoot>./</DocumentRoot>
 		</Service>
 	</Chain>
 </ArcConfig>

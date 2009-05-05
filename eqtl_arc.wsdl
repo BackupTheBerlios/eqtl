@@ -1,38 +1,169 @@
-<?xml version="1.0" encoding="UTF-8"?><wsdl:definitions name="eqtl_arc" targetNamespace="http://www.example.org/eqtl_arc/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://www.example.org/eqtl_arc/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
-    <wsdl:types><xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/eqtl_arc/">
-	<xsd:element name="NewOperation">
+<?xml version="1.0" encoding="UTF-8"?><wsdl:definitions name="eqtl_arc" targetNamespace="http://uni-luebeck.de/eqtl/arc" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:eqtl="http://uni-luebeck.de/eqtl/arc">
+    <wsdl:types><xsd:schema targetNamespace="http://uni-luebeck.de/eqtl/arc" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:eqtl="http://uni-luebeck.de/eqtl/arc">
+	<xsd:complexType name="FilterParameters">
+                <xsd:sequence maxOccurs="1" minOccurs="1">
+                	<xsd:element name="LodScore" type="eqtl:DoubleRange"
+                		maxOccurs="1" minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				which lod ranges to search if none
+                				specified search all
+                			</xsd:documentation>
+                		</xsd:annotation>
+                	</xsd:element>
+                	<xsd:element name="Position"
+                		type="eqtl:RangeOnChromosome" maxOccurs="unbounded"
+                		minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				if none specified then search everywhere
+                			</xsd:documentation>
+                		</xsd:annotation>
+                	</xsd:element>
+                	<xsd:element name="SameChromosome" type="xsd:int"
+                		maxOccurs="1" minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				1 = need same chr 0 or missing = dont
+                				care -1 = may not be same chr
+                			</xsd:documentation>
+                		</xsd:annotation>
+                	</xsd:element>
+                	<xsd:element name="LocusToGeneDistance"
+                		type="eqtl:LongRange" maxOccurs="1" minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				the distance in BP between the locus and
+                				the gene position needs to be in this
+                				range. if the positions are on different
+                				genomes, the distance is considered to
+                				be infinite.
+                			</xsd:documentation>
+                		</xsd:annotation>
+                	</xsd:element>
+                	<xsd:element name="OrderBy" type="xsd:string"
+                		maxOccurs="1" minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				default is "LodScore"
+                			</xsd:documentation>
+                		</xsd:annotation>
+                	</xsd:element>
+                	<xsd:element name="MaxResults" type="xsd:int"
+                		maxOccurs="1" minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				if missing or less than or equal to
+                				zero, return all results
+                			</xsd:documentation>
+                		</xsd:annotation>
+                	</xsd:element>
+                </xsd:sequence>
+
+
+
+	</xsd:complexType>
+
+	<xsd:complexType name="DoubleRange">
+		<xsd:attribute name="from" type="xsd:double"></xsd:attribute>
+		<xsd:attribute name="to" type="xsd:double"></xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="RangeOnChromosome">
+		<xsd:attribute name="chromosome" type="xsd:string"></xsd:attribute>
+		<xsd:attribute name="fromBP" type="xsd:long"></xsd:attribute>
+		<xsd:attribute name="toBP" type="xsd:long"></xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="LongRange">
+		<xsd:attribute name="from" type="xsd:long"></xsd:attribute>
+		<xsd:attribute name="to" type="xsd:long"></xsd:attribute>
+	</xsd:complexType>
+	<xsd:element name="QTL_FindGenesByLocusPosition">
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:element name="in" type="xsd:string"></xsd:element>
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>
-	<xsd:element name="NewOperationResponse">
+	<xsd:element name="QTL_FindGenesByLocusPositionResponse">
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:element name="out" type="xsd:string"></xsd:element>
 			</xsd:sequence>
 		</xsd:complexType>
-	</xsd:element></xsd:schema></wsdl:types>
-    <wsdl:message name="NewOperationRequest">
-    	<wsdl:part name="parameters" element="tns:NewOperation"></wsdl:part>
+	</xsd:element>
+	<xsd:element name="QTL_FindLociByGenePosition">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="in" type="xsd:string"></xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="QTL_FindLociByGenePositionResponse">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="out" type="xsd:string"></xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>
+</wsdl:types>
+    <wsdl:message name="FindQtlByLocusPositionRequest">
+    	<wsdl:part name="parameters" element="eqtl:NewOperation"></wsdl:part>
     </wsdl:message>
-    <wsdl:message name="NewOperationResponse">
-    	<wsdl:part name="parameters" element="tns:NewOperationResponse"></wsdl:part>
+    <wsdl:message name="FindQtlByLocusPositionResponse">
+    	<wsdl:part name="parameters" element="eqtl:FindQtlByLocusPositionResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="QTL_FindGenesByLocusPositionRequest">
+    	<wsdl:part name="parameters" element="eqtl:QTL_FindGenesByLocusPosition"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="QTL_FindGenesByLocusPositionResponse">
+    	<wsdl:part name="parameters" element="eqtl:QTL_FindGenesByLocusPositionResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="QTL_FindLociByGenePositionRequest">
+    	<wsdl:part name="parameters" element="eqtl:QTL_FindLociByGenePosition"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="QTL_FindLociByGenePositionResponse">
+    	<wsdl:part name="parameters" element="eqtl:QTL_FindLociByGenePositionResponse"></wsdl:part>
     </wsdl:message>
     <wsdl:portType name="eqtl_arc_porttype">
-    	<wsdl:operation name="NewOperation">
-    		<wsdl:input message="tns:NewOperationRequest"></wsdl:input>
-    		<wsdl:output message="tns:NewOperationResponse"></wsdl:output>
-    	</wsdl:operation>
+        <wsdl:operation name="QTL_FindGenesByLocusPosition">
+        	<wsdl:input message="eqtl:QTL_FindGenesByLocusPositionRequest"></wsdl:input>
+        	<wsdl:output message="eqtl:QTL_FindGenesByLocusPositionResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="QTL_FindLociByGenePosition">
+        	<wsdl:input message="eqtl:QTL_FindLociByGenePositionRequest"></wsdl:input>
+        	<wsdl:output message="eqtl:QTL_FindLociByGenePositionResponse"></wsdl:output>
+        </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="eqtl_arc_binding"
-    	type="tns:eqtl_arc_porttype">
+    	type="eqtl:eqtl_arc_porttype">
     	<soap:binding style="document"
     		transport="http://schemas.xmlsoap.org/soap/http" />
-    	<wsdl:operation name="NewOperation">
+    	<wsdl:operation name="FindQtlByLocusPosition">
     		<soap:operation
-    			soapAction="http://www.example.org/eqtl_arc/NewOperation" />
+    			soapAction="http://www.example.org/eqtl_arc/FindQtlByLocusPosition" />
+    		<wsdl:input>
+    			<soap:body use="literal" />
+    		</wsdl:input>
+    		<wsdl:output>
+    			<soap:body use="literal" />
+    		</wsdl:output>
+    	</wsdl:operation>
+    	<wsdl:operation name="QTL_FindGenesByLocusPosition">
+    		<soap:operation
+    			soapAction="http://uni-luebeck.de/eqtl/arc/QTL_FindGenesByLocusPosition" />
+    		<wsdl:input>
+    			<soap:body use="literal" />
+    		</wsdl:input>
+    		<wsdl:output>
+    			<soap:body use="literal" />
+    		</wsdl:output>
+    	</wsdl:operation>
+    	<wsdl:operation name="QTL_FindLociByGenePosition">
+    		<soap:operation
+    			soapAction="http://uni-luebeck.de/eqtl/arc/QTL_FindLociByGenePosition" />
     		<wsdl:input>
     			<soap:body use="literal" />
     		</wsdl:input>
@@ -42,7 +173,7 @@
     	</wsdl:operation>
     </wsdl:binding>
     <wsdl:service name="eqtl_arc">
-		<wsdl:port name="eqtl_arc_port" binding="tns:eqtl_arc_binding">
+		<wsdl:port name="eqtl_arc_port" binding="eqtl:eqtl_arc_binding">
 			<soap:address location="http://localhost:60000/eqtl" />
 		</wsdl:port>
 	</wsdl:service></wsdl:definitions>

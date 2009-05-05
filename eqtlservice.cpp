@@ -35,7 +35,7 @@ namespace ArcService
 	ExpressionQtlService::ExpressionQtlService(Arc::Config *cfg) : Service(cfg),logger(Logger::rootLogger, "eQTL") 
 	{
 		// synchronize this with eqtl_arc.wsdl
-		ns_["tns"]="http://www.example.org/eqtl_arc/";
+		ns_["eqtl"]="http://www.example.org/eqtl_arc/";
 
 		//read config like this: prefix_=(std::string)((*cfg)["prefix"]);
 	}
