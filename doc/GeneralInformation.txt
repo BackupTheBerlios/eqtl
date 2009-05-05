@@ -28,6 +28,7 @@
    +--------------------+
 
    BEARatChip:
+   --------------------
    
    this table contains all information
    about the expression data.
@@ -37,6 +38,7 @@
    moment this name needs to be used.
 
    computation:
+   --------------------
 
    this table controls all computations:
    all jobs that need to be computed are one entry in this
@@ -57,9 +59,53 @@
    For a more precisely description of this table please 
    apply to the seperated database documentation.
 
+   locus:
+   --------------------
+
+   This table gives information about the determined loci,
+   for example like the chromosome and the centiMorgan
+   position.
+
+   locusInteraction:
+   --------------------
+
+   This table contains all results from the scantwo analyses.
+   It tells which two loci are interacting for a specific
+   probeset_id and specific covariates. There is also information
+   about the 95 percentile, the LOD score and much more given.
+   For a detailed description please see the database documentation.
+
+   map:
+   --------------------
+
+   This table stores the marker information from the 
+   experment.
+
+   qtl:
+   --------------------
+
+   Table representing the results of the scanone analysis.
+   Locus, Probeset_ids, LOD-scores, cMorgan positions and
+   much more information are given.
+
+   trait:
+   --------------------
+
+   This table contains information about every single probeset
+   like expression high, variance, standarddeviaten.
+   
+
 
 2. Website
+--------------------
+--------------------
+
+
 3. Config files and template files
+--------------------
+--------------------
+
+
 4. Data Computation
 --------------------
 --------------------
@@ -124,4 +170,10 @@
    - make sure that the pathes to the files in the config 
      files are right
    
-5. data uplaod
+5. Data Uplaod
+--------------------
+--------------------
+
+
+--------------------
+--------------------
