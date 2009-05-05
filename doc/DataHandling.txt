@@ -166,12 +166,12 @@ This document summarises on how to submit jobs to the grid.
    1. Log in to a machine that has access to the collection of results.
       This is needed for the sorting, the latest, but just do it now.
 
-	   ssh pc26
+	   ssh youruploadnode # might not be required for your setup
 
    2. Change the working directory to the root of the project directory
       (the directory that you checked out from the git source code repository)
 
-	   cd git(however your git directory is called....)
+	   cd eqtlGitSourceTree
 
    3. Start the script to upload the files, resultDir is the directory
       where the results are stored:
@@ -189,9 +189,9 @@ This document summarises on how to submit jobs to the grid.
    probably not today.
 
    This may take some days, but once it is done, sort the file to the
-   local disc on pc26 to keep all the data:
+   local disc on youruploadnode to keep all the data:
 
-	   ./scripts/sort.pl directory /local/kobaum/results
+	   ./scripts/sort.pl recentResultDirectory longTermResultDirectory
 
 7. CHECK IF ALL JOBS ARE UPLOADED
 
@@ -210,15 +210,6 @@ This document summarises on how to submit jobs to the grid.
    there is no data left to upload, you need to recalculate those again
    and start from the beginning.
 
-HAVE FUN!!!
-
 
 Ann-Kristin Grimm and Steffen Möller, Lübeck, 2009
-
- 
-
-
-
-
- 
 
