@@ -174,23 +174,11 @@
 	</xsd:complexType>
 </xsd:schema>
 </wsdl:types>
-    <wsdl:message name="FindQtlByLocusPositionRequest">
-    	<wsdl:part name="parameters" element="eqtl:NewOperation"></wsdl:part>
-    </wsdl:message>
-    <wsdl:message name="FindQtlByLocusPositionResponse">
-    	<wsdl:part name="parameters" element="eqtl:FindQtlByLocusPositionResponse"></wsdl:part>
-    </wsdl:message>
-    <wsdl:message name="QTL_FindByPositionRequest">
+       <wsdl:message name="QTL_FindByPositionRequest">
     	<wsdl:part name="parameters" element="eqtl:QTL_FindByPosition"></wsdl:part>
     </wsdl:message>
     <wsdl:message name="QTL_FindByPositionResponse">
     	<wsdl:part name="parameters" element="eqtl:QTL_FindByPositionResponse"></wsdl:part>
-    </wsdl:message>
-    <wsdl:message name="QTL_FindByGenePositionRequest">
-    	<wsdl:part name="parameters" element="eqtl:QTL_FindByGenePosition"></wsdl:part>
-    </wsdl:message>
-    <wsdl:message name="QTL_FindByGenePositionResponse">
-    	<wsdl:part name="parameters" element="eqtl:QTL_FindByGenePositionResponse"></wsdl:part>
     </wsdl:message>
     <wsdl:portType name="eqtl_arc_porttype">
         <wsdl:operation name="QTL_FindByPosition">
@@ -203,17 +191,7 @@
     	type="eqtl:eqtl_arc_porttype">
     	<soap:binding style="document"
     		transport="http://schemas.xmlsoap.org/soap/http" />
-    	<wsdl:operation name="FindQtlByLocusPosition">
-    		<soap:operation
-    			soapAction="http://www.example.org/eqtl_arc/FindQtlByLocusPosition" />
-    		<wsdl:input>
-    			<soap:body use="literal" />
-    		</wsdl:input>
-    		<wsdl:output>
-    			<soap:body use="literal" />
-    		</wsdl:output>
-    	</wsdl:operation>
-    	<wsdl:operation name="QTL_FindByPosition">
+        	<wsdl:operation name="QTL_FindByPosition">
     		<soap:operation
     			soapAction="http://uni-luebeck.de/eqtl/arc/QTL_FindGenesByLocusPosition" />
     		<wsdl:input>
@@ -223,17 +201,7 @@
     			<soap:body use="literal" />
     		</wsdl:output>
     	</wsdl:operation>
-    	<wsdl:operation name="QTL_FindByGenePosition">
-    		<soap:operation
-    			soapAction="http://uni-luebeck.de/eqtl/arc/QTL_FindLociByGenePosition" />
-    		<wsdl:input>
-    			<soap:body use="literal" />
-    		</wsdl:input>
-    		<wsdl:output>
-    			<soap:body use="literal" />
-    		</wsdl:output>
-    	</wsdl:operation>
-    </wsdl:binding>
+    	    </wsdl:binding>
     <wsdl:service name="eqtl_arc">
 		<wsdl:port name="eqtl_arc_port" binding="eqtl:eqtl_arc_binding">
 			<soap:address location="http://localhost:60000/eqtl" />

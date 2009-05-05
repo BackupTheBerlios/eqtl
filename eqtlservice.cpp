@@ -32,8 +32,9 @@ using namespace Arc;
 namespace ArcService
 {
 
-	ExpressionQtlService::ExpressionQtlService(Arc::Config *cfg) : Service(cfg),logger(Logger::rootLogger, "eQTL") 
+	ExpressionQtlService::ExpressionQtlService(Arc::Config *cfg) : Service(cfg),logger(Logger::rootLogger, "eQTL")
 	{
+
 		// synchronize this with eqtl_arc.wsdl
 		ns_["eqtl"]="http://www.example.org/eqtl_arc/";
 
