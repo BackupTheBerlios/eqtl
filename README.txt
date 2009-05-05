@@ -1,13 +1,17 @@
 This directory holds all the sources to prepare
 for the analysis of expression QTL.
 
-conf        files for the configuration of a local project
+conf_template        template files for the configuration of a local project
 scripts     commands of general applicability
 website     Web interface to the generated data
 
 
 install.pl
 ==========
+Is removed at the moment because the information in the file is specific for a certain project
+Will be added as editable template late
+Is removed at the moment because the information in the file is specific for a certain project
+Will be added as editable template later
 Is used to set up both path.conf and param.conf in conf folder.
 Can be called on its own but will be called by update.sh if:
 (a) conf/path.conf | conf/param.conf is|are missing
