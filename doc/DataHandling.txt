@@ -149,7 +149,8 @@ This document summarises on how to submit jobs to the grid.
 
    The easiest thing is to move all files into one directory. If the job
    FAILED, then the data is in the myTmp folder, otherwise you should
-   unpack the evaluatedQueries.tar.  For all files, please change the
+   unpack the evaluatedQueries.tar and remove the tar files before uploading.
+   For all files, please change the
    group to bio
 
 	   chgrp -R bio .
@@ -214,6 +215,7 @@ HAVE FUN!!!
 
 Ann-Kristin Grimm and Steffen Möller, Lübeck, 2009
 
+ 
 
 
 
