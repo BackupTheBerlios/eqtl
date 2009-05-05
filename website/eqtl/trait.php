@@ -1,0 +1,363 @@
+<?php
+	require_once("header.php");
+	show_small_header("Selection of eTraits",TRUE);
+	
+	foreach(array("direct",
+			"submitted",
+			"MeanMin","MeanMax","SdMin","SdMax","MedianMin", "MedianMax", "VarianceMin", "VarianceMax",
+			"traitlist", "traits",
+			"limit","order") as $vname)
+	{
+		if (isset($_POST[$vname])) {
+			$$vname = $_POST[$vname];
+		}
+		elseif(isset($_GET[$vname])) {
+			$$vname = $_GET[$vname];
+		}
+	}
+
+	// specification of attributes to be shown in table
+// 	$a=array("Trait"=>1, "genes_associated"=>1, "MMSV_data"=>1, "LocusOfGene"=>1, "swissprot_ID"=>1);
+	$a=array("Trait"=>1, "Rat_gene_associated"=>1, "Human_ontholog_gene"=>1, "transcript"=>1, "mean"=>1, "median"=>1, "sd"=>1, "variance"=>1, "Chromosome"=>1, "start"=>1, "stop"=>1);
+
+	foreach ($a as $vname =>$v) {
+		$vname = "show_".$vname;
+		if (isset($_POST[$vname])) {
+			$$vname = $_POST[$vname];
+		}
+		elseif(isset($_GET[$vname])) {
+			$$vname = $_GET[$vname];
+		}
+	}
+
+
+	if (!empty($direct)) {
+		foreach($a as $i=>$v) {
+			$n="show_".$i;
+			$$n=$v;
+		}
+	}
+	if (!empty($traitlist)) {
+		if (is_array($traitlist)) {
+			$traits=join(",",$traitlist);
+		}
+		else {
+			$traits=$traitlist;
+		}
+	}
+
+	if (empty($limit)) {
+		$limit=10;
+	}
+		
+	if (empty($direct) and empty($submitted)) {
+?>
+		<form action=trait.php method=get>
+		<input type=hidden name=submitted value=1>
+		<table><tr><td valign=top>
+			<table cellspacing=5>
+			<tr><th align=right class=r>Trait ID:</th>
+			    <td><input type=text name=traits lenth=70<?php if (!empty($traits)) echo " value=$traits"; ?>>
+			    </td>
+			</tr>
+<!--			<tr><th align=right>Description:</th>
+			    <td><input type=text name=description lenth=70>
+			    </td>
+			</tr>-->
+			<tr><th align=right>Mean:</th>
+						<td>
+							<input type=text name=MeanMin size=7>
+						-
+							<input type=text name=MeanMax size=7>
+						</td></tr>
+			<tr><th align=right>Median:</th>
+						<td>
+							<input type=text name=MedianMin size=7>
+						-
+							<input type=text name=MedianMax size=7>
+						</td></tr>
+			<tr><th align=right>Sd:</th>
+						<td>
+							<input type=text name=SdMin size=7>
+						-
+							<input type=text name=SdMax size=7>
+						</td></tr>
+			<tr><th align=right>Variance:</th>
+						<td>
+							<input type=text name=VarianceMin size=7>
+						-
+							<input type=text name=VarianceMax size=7>
+						</td></tr>
+			<tr><th align=right>order by:</th><td>
+						<select name=order>
+						<option value=probeset_id>Trait Number</option>
+						<option value="mean DESC">Mean</option>
+						<option value="median DESC">Median</option>
+						<option value="sd DESC">Standard deviation</option>
+						<option value="variance DESC">Variance</option>
+						</select>
+						</td></tr>
+			<tr><th align=right>Limit lines shown:</th><td><input type=t_id limit 150 ext name=limit value=150></td></tr>
+			<tr><td>&nbsp;</td><td></td></tr>
+			<tr><td class=r><input type=submit></td><td align=left><input type=reset></td></tr>
+			</table>
+		</td><td align=center>
+			<small><small>
+			<table border=0>
+			<tr><th bgcolor=black align=left><font color=orange><small>Show Field</small></font></th></tr>
+<?php
+			foreach($a as $i=>$v) {
+				echo "<tr><td align=left><input type=checkbox name=show_"
+					.$i.(empty($v)?"":" checked").">$i</td></tr>\n";
+			}
+?>
+			</table>
+		</tr>
+		</table>
+		</form>
+<?php
+	}
+	else {
+		require_once("func_connect.php");
+		require_once("func_species.php");
+
+		if (empty($linkLocal)) {
+			echo "<p>Could not create link to database.</p>";
+			exit;
+		}
+		
+		$whereB=FALSE;
+		$where = 'WHERE ';
+		$from = 'FROM BEARatChip ';
+		$query  = "SELECT probeset_id AS Trait ";
+		
+		if( !empty($show_Rat_gene_associated) || !empty($show_Human_ontholog_gene) ) {
+			$query .= ", gene_stable_id_rat Rat_gene_associated, hum_onth_ens Human_ontholog_gene ";
+		}
+
+		if( !empty( $show_transcript) ) {
+			$query .= ", gene_assignment AS transcript ";
+		}
+
+		$joinedTrait = false;
+		if( !empty($show_mean) ) {
+			$query .= ", mean ";
+			if( !$joinedTrait ) {
+				$from .= " LEFT JOIN trait ON (trait.trait_id=BEARatChip.probeset_id) ";
+				$joinedTrait = true;
+			}
+		}
+
+		if( !empty($show_median) ) {
+			$query .= ", median ";
+			if( !$joinedTrait ) {
+				$from .= " LEFT JOIN trait ON (trait.trait_id=BEARatChip.probeset_id) ";
+				$joinedTrait = true;
+			}
+		}
+
+		if( !empty($show_sd) ) {
+			$query .= ", sd ";
+			if( !$joinedTrait ) {
+				$from .= " LEFT JOIN trait ON (trait.trait_id=BEARatChip.probeset_id) ";
+				$joinedTrait = true;
+			}
+		}
+
+		if( !empty($show_variance) ) {
+			$query .= ", variance ";
+			if( !$joinedTrait ) {
+				$from .= " LEFT JOIN trait ON (trait.trait_id=BEARatChip.probeset_id) ";
+				$joinedTrait = true;
+			}
+		}
+
+		if( !empty($show_Chromosome) ) {
+			$query .= ", seqname AS Chromosome ";
+		}
+
+		if( !empty( $show_start ) ) {
+			$query .= ", start ";
+		}
+
+		if( !empty( $show_stop ) ) {
+			$query .= ", stop ";
+		}
+
+		if( !empty($show_swissprot_ID) ) {
+			$query .= ", swissprot_ID ";
+		}
+
+		if (!empty($traits)) {
+			$traitsArray=preg_split("/[, \t\n]+/",$traits);
+			if ($whereB) $where .= " AND ";
+			else {
+				$whereB = TRUE;
+			}
+			$where .= " BEARatChip.probeset_id IN ('".join("','",$traitsArray)."') ";
+		}
+
+		if( !empty($MedianMin) ) {
+			if ($whereB) $where .= " AND ";
+			else {
+				$whereB = TRUE;
+			}
+			$where .= " median >= ".$MedianMin;
+		}
+
+		if( !empty($MedianMax) ) {
+			if ($whereB) $where .= " AND ";
+			else {
+				$whereB = TRUE;
+			}
+			$where .= " median <= ".$MedianMax;	
+		}
+
+		if( !empty($MeanMin) ) {
+			if ($whereB) $where .= " AND ";
+			else {
+				$whereB = TRUE;
+			}
+			$where .= " mean >= ".$MeanMin;	
+		}
+
+		if( !empty($MeanMax) ) {
+			if ($whereB) $where .= " AND ";
+			else {
+				$whereB = TRUE;
+			}
+			$where .= " mean <= ".$MeanMax;
+		}
+
+		if( !empty($SdMin) ) {
+			if ($whereB) $where .= " AND ";
+			else {
+				$whereB = TRUE;
+			}
+			$where .= " sd >= ".$SdMin;
+		}
+
+		if( !empty($SdMax) ) {
+			if ($whereB) $where .= " AND ";
+			else {
+				$whereB = TRUE;
+			}
+			$where .= " sd <= ".$SdMax;
+		}
+
+		if( !empty($VarianceMin) ) {
+			if ($whereB) $where .= " AND ";
+			else {
+				$whereB = TRUE;
+			}
+			$where .= " variance >= ".$VarianceMin;
+		}
+
+		if( !empty($VarianceMax) ) {
+			if ($whereB) $where .= " AND ";
+			else {
+				$whereB = TRUE;
+			}
+			$where .= " variance <= ".$VarianceMax;
+		}
+
+		if( !$whereB ) {
+			$query .= $from;
+		} else {
+			$query .= $from .$where;
+		}
+// 		$query  .= " group by trait_id, name, mean, sd";
+
+		if (!empty($order)) {
+			$query .= " ORDER BY ".$order." ";
+		}
+		if (!empty($limit)) {
+			$query .= " LIMIT ".$limit." ";
+		}
+
+		echo "query: $query<br>";
+
+		$result = mysql_query($query,$linkLocal);
+		if (empty($result)) {
+			echo "<p>".mysql_error($linkLocal)."</p>";
+			mysql_close($linkLocal);
+			exit;
+		}
+		$firstRow=true;
+		echo "<small><table border=1>\n";
+		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			if ($firstRow) {
+				$firstRow=FALSE;
+				echo "<tr bgcolor=yellow>";
+				foreach($line as $n=>$l) {
+					$f="show_".$n;
+					if (!empty($$f)) {
+						echo "<th><small>$n</small></th>";
+						if ("LocusOfGene"==$n && !empty($show_LocusOfGene)) {
+							echo "<th colspan=3><small>Locus chr,start,stop</small></th>";
+						}
+					}
+				}
+// 				echo "<td>Images</td>\n";
+				echo "</tr>\n";
+			}
+			echo "<tr>";
+			foreach($line as $n=>$l) {
+				$f="show_".$n;
+				if (!empty($$f)) {
+// 					echo "$n => $l\t!\t";
+					if (!isset($l)||""==$l) echo "<td>&nbsp;</td>";
+					else switch($n) {
+					case "liNo":
+					case "liA":
+					case "liB":
+					case "AlNo":
+					case "BlNo":
+					case "AlName":
+					case "BlName":
+						break;
+					case "Trait":
+						echo "<td align=right nowrap>"
+						."<a href=\"".probe2ensemblUrl($l,$species_name_ensembl_core)
+						."\">$l</a> ["
+						."<a href=\"qtl.php?traitlist=$l\">q</a>"
+						."<a href=\"interaction.php?traitlist=$l&type=X\">i</a>"
+						."<a href=\"interaction.php?traitlist=$l&type=Y\">j</a>"
+						."]</td>";
+							break;
+// 					case "LocusOfGene":
+// 						echo "<td>".$line["Chr"]."</td><td>".$line["start"]."</td><td>".$line["stop"]."</td>";
+// 						break;
+					case "transcript":
+						$b=explode(".",$l);
+						echo "<td><a href=\""
+							.gene2ensemblUrl($b[0],$species_name_ensembl_core)
+							."\">$l</a></td>";
+						break;
+// 					case "MMSV_data":
+// 						echo "<td>".$line["mean"]."</td><td>".$line["median"]."</td><td>".$line["sd"]."</td><td>".$line["variance"]."</td>";
+// 						break;
+// 					case "":
+// 						echo "</td>".$line["gene_stable_id_rat"]."</td><td>".$line["hum_onth_ens"]."<td>";
+// 						break;
+					default:
+						if (!isset($l)||""==$l) $l="<td>&nbsp;</td>";
+						else echo "<td>$l</td>";
+					}
+				}
+			}
+// 			echo "<td>"
+// 			 . "<a href=\"images/".$line["Trait"]."_onescan.pdf\">one</a>"
+// 			 ." <a href=\"images/".$line["Trait"]."_nosex_twoscan.pdf\">two</a>"
+// 			 ." <a href=\"images/".$line["Trait"]."_sex_twoscan.pdf\">two-sex</a>"
+// 			 ."</td>\n";
+			echo "</tr>\n";
+		}
+		echo "</table></small>";
+		mysql_free_result($result);
+		mysql_close($linkLocal);
+	}
+	include("footer.php");
+?>
+    </body>
+</html>

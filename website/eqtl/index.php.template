@@ -1,0 +1,83 @@
+<?php 
+	TEMPLATEWARNINGHASH
+
+/**
+	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
+	Copyright: Universities of Rostock and Lübeck, 2003-2009
+*/
+
+	require_once("header.php");
+	show_large_header("Investigation of complex traits of a mouse model of Multiple Sclerosis",true,'INTROPREFIX');
+?>
+<br>
+<table border=0 summary="separation of an introduction to the background of the analysis to the left and the results to the right" cellpadding=15>
+<tr><td valign=top bgcolor=lightyellow width=35%>
+<h2>Background</h2>
+INTROBACKGROUND
+<h2>Availability</h2>
+<p class="block">
+All data from which the here presented eQTL were determined are available on
+<?php echo "<a href=\"$htmlroot/downloads\">$htmlroot/download</a>"?>.,
+This web interface and the scripts that filled it with contents
+are available at <a href="URLSCMPROJECT">URLSCMPROJECT</a>.
+</p>
+</td><td valign=top>
+<h2>Expression QTLs for EAE</h2>
+INTROSYNOPSIS
+
+<p class=BLOCK>Several web query forms have been created to help browsing through the
+QTLs. A "trait" is referred to as a property measured and
+investigated for a correlation with a particular genotype. For
+eQTLs this refers to a particular gene or, as here, to an invidual
+probe of the chip.
+</p>
+
+<?php
+$forms=array();
+$forms[]=array(href=>"qtl.php", title=>"QTL", description=>"Filter for single loci influencing the expression of at least one gene.");
+$forms[]=array(href=>"interaction.php", title=>"Interactions", description=>"Filter for pairs of loci contributing to the control of the expression of at least one gene.");
+$forms[]=array(href=>"trait.php", title=>"Traits", description=>"Filter for all information on particular genes.");
+$forms[]=array(href=>"locus.php", title=>"Loci", description=>"Do not show the genes but only the loci and the number of genes thes control. This is supposed to determine a preferences for further investigation within the genome.");
+$forms[]=array(href=>"marker.php", title=>"Marker", description=>"Link the cMorgan positions assigned to markers to base pairs.");
+$forms[]=array(href=>"parental_expression.php", title=>"Expression data", description=>"See expression level of genes 30 days post immunisation.");
+$forms[]=array(href=>"expression_trait_correlation.php", title=>"Correlation of classical and expresssion traits", description=>"For any trait this answers the question to what extend a gene's expression is correlating with the severity of the disease.");
+
+echo "<table>\n";
+foreach($forms as $f) {
+	echo "<tr><td><a href=\"".$f["href"]."\">".$f["title"]."</a></td><td>".$f["description"]."</td></tr>\n";
+}
+echo "</table>\n";
+?>
+
+<h2>Analyses</h2>
+<?php
+$analyses=array();
+$analyses[]=array(href=>"analyses/SingleQTL/index.php", title=>"Density of QTLs");
+$analyses[]=array(href=>"analyses/Interactions/", title=>"Density of Interactions");
+$analyses[]=array(href=>"analyses/Interactions_Selection/index.php", title=>"Density of Interactions (selected traits)");
+echo "<table>\n";
+foreach($analyses as $a) {
+	echo "<tr><td><a href=\"".$a["href"]."\">".$a["title"]."</a></td>".$a["description"]."<td></td></tr>\n";
+}
+echo "</table>\n";
+?>
+
+<h2>Methods (Supplementary)</h2>
+INTROMETHODS
+<h2>Acknowlegements</h2>
+INTROACKNOWLEDGEMENTS
+</td></tr></table>
+<?php
+	require_once("footer.php");
+?>
+<h4>TODO</h4>
+<small>
+<ul>
+<!-- <li>locus.php seems to have non-understood problems -->
+<!-- <li>continue investigation to substitute links via the query page by direct ones -->
+<li>allow for dynamic generation of R/qtl images
+<!-- <li>Find Robert to revive his iHOP pages -->
+</small>
+</body>
+</html>
+

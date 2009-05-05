@@ -1,0 +1,48 @@
+#!/bin/sh
+
+TEMPLATEWARNINGHASH
+
+set -e
+
+#dbhost_eqtl=${DBHOSTEQTL:-DATABASEHOSTLOCAL}
+#dbhost_qtl=${DBHOSTQTL:-DATABASEHOSTLOCAL}
+usereqtl=${DBUSEREQTL:-DATABASEEQTLUSER}
+userqtl=${DBUSERQTL:-DATABASEQTLUSER}
+nameeqtl=${DBNAMEEQTL:-DATABASEEQTLNAME}
+nameqtl=${DBNAMEQTL:-DATABASEQTLNAME}
+
+d=$(date +"%Y%m%d")
+
+fileeqtl="backup_db_${nameeqtl}_$d.sql.gz"
+fileqtl="backup_db_${nameqtl}_$d.sql.gz"
+
+if [ ! -r "$fileeqtl" ]; then
+	echo "Could not find backup file with expression QTL expected at '$fileeqtl'."
+	exit 1
+fi
+
+if [ ! -r "$fileqtl" ]; then
+	echo "Could not find backup file with classical QTL expected at '$fileqtl'."
+	exit 1
+fi
+
+mysql=$(which mysql)
+if [ -z "$mysql" ]; then
+	echo "Please install the mysql-client package. The 'mysql' binary was not found."
+	exit 1
+fi
+
+mysql="$mysql -u root"
+
+echo -n "Uploading database '$nameeqtl'"
+echo "create database $nameeqtl;" | $mysql
+zcat backup_db_${nameeqtl}_$d.sql.gz | $mysql $nameeqtl
+echo "grant select on * to $usereqtl;" | $mysql $nameeqtl
+
+echo -n "Uploading database '$nameqtl'"
+echo "create database $nameqtl;" | $mysql
+zcat backup_db_${nameqtl}_$d.sql.gz | $mysql $nameqtl
+echo "grant select on * to $userqtl;" | $mysql $nameqtl
+
+echo "done."
+

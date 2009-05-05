@@ -1,0 +1,41 @@
+#!/usr/bin/perl -w
+
+TEMPLATEWARNINGHASH
+
+=head1 NAME
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 AUTHORS
+
+Jan Kolbaum
+2008-09-01
+
+=cut
+
+use strict;
+use FCGI;
+use CGI::Carp qw(fatalsToBrowser);
+# use IPC::Shareable;
+
+my $request = FCGI::Request();
+
+#gobal prior known vraiables
+my $base="BASEDIR";		#base directory of this project
+
+while (FCGI::accept >= 0) {
+
+	my @params = split(/&/, $ENV{'QUERY_STRING'});
+
+	if( $#params != 0 ){ die "Usage: needs parameter file: file=FILENAME.SUFFIX\n"; }
+	
+	@params = split( /=/, @params[0] );
+
+	open( FILE, $base."website/".$params[1] ) or open( FILE, $base."website/eqtl/".$params[1] ) or open( FILE, $base."scripts/".$params[1] ) or die "No such file ".$params[1];
+
+	print	"Content-type: text/plain\n\n";				#sign page-type as plain
+	print	<FILE>;
+	close( FILE );
+}

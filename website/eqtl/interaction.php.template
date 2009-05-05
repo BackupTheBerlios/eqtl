@@ -1,0 +1,773 @@
+<?php
+	TEMPLATEWARNINGHASH
+
+/**
+	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
+	Copyright: Universities of Rostock and Lübeck, 2003-2009
+*/
+
+	require_once("header.php");
+	require_once("func_covariates.php");
+	show_small_header("Selection of eInteractions",TRUE);
+	$err=array();
+
+	$conditionList=array(
+		"Equal Chromosomes" => "(cis=1)",
+		"Unequal Chromosomes" => "(cis=0)"
+	);
+
+	$a=array(
+		"LocusOfGene"=>1, "Trait"=>1, "li_type" => 1, "Name_A"=>1, "Chr_A"=>1, "cMorgan_A"=>1, "Name_B"=>1, "Chr_B"=>1, "cMorgan_B"=>1, "lod_full"=>1, "qlod_full"=>1,"unigene"=>0, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1, "Definition"=>1, "ProbeSequence"=>0,
+		"Analysis"=>0,"Covariates"=>0,"lod_fv1"=>0,"lod_int"=>0,"lod_add"=>0,"lod_av1"=>0,"qlod_fv1"=>0,"qlod_int"=>0,"qlod_add"=>0,"qlod_av1"=>0, "cis"=>1
+	);
+
+	$bea_array = array( "unigene", "swissport_ID", "gene_assignment", "first_symbol", "Definition", "ProbeSequence", "Analysis", "Covariates" );
+	$locus_array = array( "Chr_", "cMorgan_" );
+	
+
+	foreach(array_merge(array(
+		"direct","submitted","debug",
+		"show_unigene","show_ProbeSequence","show_Description",
+		"show_swissprot_ID","show_first_symbol","show_gene_assignment",
+		"show_LocusOfGene","chrlist","traitlist","type","locComb",
+		"chrlist","cMmin","cMmax","LODmin","LODmax",
+		"quantilemin","quantilemax","condition","LODdiffmin",
+		"limit","order"),
+		convert_string_to_covariates_array(strtolower("locusInteraction"))
+		)
+	as $vname) {
+		if (isset($_POST[$vname])) {
+			$$vname=$_POST[$vname];
+		}
+		elseif (isset($_GET[$vname])) {
+			$$vname=$_GET[$vname];
+		}
+// 		echo $$vname . " = " . $vname ."<br>";
+	}
+
+	if (!empty($direct)) {
+		foreach($a as $i=>$v) {
+			$n="show_".$i;
+			$$n=$v;
+		}
+	}else{
+		foreach($a as $i=>$v) {
+			$vname="show_".$i;
+			if (isset($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			}
+			elseif (isset($_GET[$vname])) {
+				$$vname=$_GET[$vname];
+			}
+		}
+	}
+
+	if (empty($direct) and empty($submitted)) {
+?>
+		<form action=interaction.php method=get>
+		<input type=hidden name=submitted value=1>
+		<table>
+		<tr><td valign=top>
+		<table>
+			<tr>
+				<th valign=top align=right>Covariates:</th>
+				<td valign=top>
+					<?php select_covariates("locusInteraction"); ?>
+				</td>
+			</tr>
+			<?php echo "<!-- type='$type' -->\n"; ?>
+			<tr><th align=right>Type:</th><td><select name=type>
+						<option value="" <?php echo empty($type)?" selected":""; ?>>Don't care, show either</option>
+						<option value="int" <?php echo "X" == $type?" selected":""; ?>>LOD int</option>
+						<option value="joint" <?php echo "Y" == $type?" selected":""; ?>>LOD joint</option>
+						</td></tr>
+			<tr><th align=right>LOD-score span:</th>
+						<td>
+							<input type=text name=LODmin size=4 value= <?php echo isset($LODmin)?$LODmin:"12.0"; ?>>
+						-
+							<input type=text name=LODmax size=4<?php if (!empty($LODmax)) echo " value=$LODmax";?>>
+						</td></tr>
+			<tr><th align=right>95% quantile span:</th>
+						<td>
+							<input type=text name=quantilemin size=4 value= <?php echo empty($quantilemin)?$quantilemin:""; ?>>
+						-
+							<input type=text name=quantilemax size=4<?php if (!empty($quantilemax)) echo " value=$quantilemax";?>>
+						</td></tr>
+			<tr><th align=right>Min diff of LOD score<br>to 95% quantile:</th>
+						<td>
+							<input type=text name=LODdiffmin size=4 value= <?php echo empty($LODdiffmin)?"0":$LODdiffmin; ?>>
+						</td></tr>
+			<tr><th>Chromosomes<br>of interest:</th><td><input type=text name=chrlist size=25 maxsize=70
+<?php
+			if (!empty($chrlist)) {
+				echo "value=";
+				if (is_array($chrlist)) {
+					echo "\"".join(",",$chrlist)."\"";
+				}
+				else {
+					echo "\"$chrlist\"";
+				}
+			}
+?>
+			></td></tr>
+			<tr><th align=right>centi-Morgan span:</th>
+				<td>
+					<input type=text name=cMmin size=4<?php if (isset($cMmin)) echo " value=$cMmin";?>>
+					-
+					<input type=text name=cMmax size=4<?php if (isset($cMmax)) echo " value=$cMmax";?>>
+				</td></tr>
+			<tr><th align=right>Trait names:</th><td><input type=text name=traitlist size=30 maxsize=255
+<?php
+	if (!empty($traitlist)) {
+		if (is_array($traitlist)) {
+			echo "value=\"".join(",",$traitlist)."\"";
+		}
+		else {
+			echo "value=\"$traitlist\"";
+		}
+	}
+?>
+		></td></tr>
+		<tr><th align=right>order by:</th><td>
+						<select name=order>
+						<option value=A>1st locus</option>
+						<option value=B>2nd locus</option>
+						<option value="lod_full DESC" selected>LOD score</option>
+<!--						<option value="LODdiff DESC">LOD-Quantile diff</option>
+						<option value=li.Type>int/jnt</option>
+						<option value=Sex>Sex-dependency</option>
+						<option value=AUC>AUC score</option>
+						<option value=AUC>AUCbinary</option>
+						<option value=Severity>Severity</option>-->
+						<option value="cis ASC">cis (ascending)</option>
+						<option value="cis DESC">cis (descending)</option>
+						</select>
+						</td></tr>
+		<tr><th align=right>Limit lines shown:</th><td><input type=text name=limit value=150></td></tr>
+		<tr><td>&nbsp;</td><td></td></tr>
+		<tr><td align=right><input type=submit></td><td align=left><input type=reset></td></tr>
+<?php
+	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+		echo "<tr><th align=right>Debug:</th><td><input type=text name=debug value=\"$debug\"></td></tr>\n";
+	}
+?>
+		</table>
+
+		<p>Select from the following constraints:<br>
+		<?php
+		foreach($conditionList as $n=>$c) {
+			echo "<input type=checkbox name=condition[] value=\"$n\"> $n<br>\n";
+		}
+		?>
+		</p>
+
+		</td><td align=center valign=top>
+		<small><small>
+		<table border=0>
+			<tr bgcolor=black><th colspan=2 align=left><small><font color=orange>Show Field</font></small></th></tr>
+<?php
+		foreach($a as $i=>$v) {
+			echo "<tr><td align=left colspan=2><input type=checkbox name=show_".$i.(empty($v)?"":" checked").">"
+			    //."</td><td>"
+			    ." $i</td></tr>\n";
+		}
+?>
+		</table>
+		</small></small>
+		</td><td valign=top>
+			<table border=0>
+			<tr bgcolor="black"><th class=c colspan=4><font color=red>QTLs - Select Locus</font></th></tr>
+			<tr><th class=sub><small>Name</small></th><th class=sub><small>Chr</small></th><th class=sub><small>bp From</small></th><th class=sub><small>bp To</small></th></tr>
+<?php
+		include_once("func_public_qtl.php"); // sets variable qtls
+		foreach ($qtls as $q) {
+			echo "<tr><td><small>".$q["name"]."</small></td>";
+			echo "<td class=r><small><a href=interaction.php?chrlist=".$q["chr"].">"
+			                 .$q["chr"]."</a></small></td>";
+			echo "<td class=r><small><small>".$q["start_bps"]."</small></small></td>";
+			echo "<td class=r><small><small>".$q["stop_bps"]."</small></small></td>";
+			echo "</tr>\n";
+		}
+?>
+			</table>
+		</td>
+		</tr>
+		</table>
+		</form>
+<?php
+	}
+	else {
+
+		require_once("func_dbconfig.php");
+		require_once("func_conversion_".$ensemblversionLocal.".php");
+		require_once("func_public_qtl.php");
+		require_once("func_connect.php");
+
+		$where=FALSE;
+		$from = " FROM locusInteraction  AS li ";
+		$query = "SELECT DISTINCT li.Trait,li.A AS Name_A, li.B AS Name_B, li.locComb AS li_type, li.lod_full, li.lod_fv1, li.lod_int, li.lod_add, li.lod_av1";
+		$needinglocusA=FALSE;
+		$needinglocusB=FALSE;
+		foreach($locus_array as $x) {
+			$tmpA = "show_".$x."A";
+			$tmpB = "show_".$x."B";
+			if( !empty($$tmpA) ) $needinglocusA=TRUE;
+			if( !empty($$tmpB) ) $needinglocusB=TRUE;
+			if( $needingA && $needingB ) break;
+		}
+		$needingBEA=FALSE;
+		foreach($bea_array as $x) {
+			$tmp = "show_".$x;
+			if( !empty($$tmp) ){
+				$needingBEA=TRUE;
+				break;
+			}
+		}
+		if( $needinglocusA ) {
+			$from  .= " JOIN locus AS A ON (A=A.Name) ";
+			$query .= ", A.Chr AS Chr_A, A.cMorgan AS cMorgan_A";
+		}
+		if( $needinglocusB ) {
+			$from  .= " JOIN locus AS B ON (B=B.Name) ";
+			$query .= ", B.Chr AS Chr_B, B.cMorgan AS cMorgan_B";
+		}
+		if( $needingBEA ) {
+			$from  .= " JOIN BEARatChip AS BEA ON Trait=BEA.probeset_id ";
+			$query .= ", BEA.seqname AS Trait_Chr, BEA.strand AS Trait_band, BEA.start AS Trait_start, BEA.entrez_gene_ID, BEA.mrna_assignments, BEA.gene_assignment, BEA.first_symbol, BEA.crosshyb_type AS cType, BEA.first_name AS Definition, BEA.ProbeSequence";
+		}
+		$query .= ",li.qlod_full, li.qlod_fv1, li.qlod_int, li.qlod_add, li.qlod_av1, cis" .  $from;
+
+
+// 		$where=FALSE;
+// 		$query = "SELECT DISTINCT li.Trait, c.seqname AS Trait_Chr, c.strand AS Trait_band, c.start AS Trait_start, A.Name AS Name_A, B.Name AS Name_B, Analysis, covariates AS Covariates, A.Chr AS Chr_A, B.Chr AS Chr_B, A.cMorgan AS cMorgan_A, B.cMorgan AS cMorgan_B, c.unigene, li.lod_full, li.lod_fv1, li.lod_int, li.lod_add, li.lod_av1";
+// 		if (FALSE) {
+// 			$query .= ",A.No AS AlNo,A.Name AS AlName,A.Chr AS AlChr,A.cMorgan AS AlcMorgan"
+// 			.         ",B.No AS BlNo,B.Name AS BlName,B.Chr AS BlChr,B.cMorgan AS BlcMorgan";
+// 		}
+// 		$query .= ",li.qlod_full, li.qlod_fv1, li.qlod_int, li.qlod_add, li.qlod_av1, cis"
+// 		;
+// 		
+// // 		if (!(empty($show_GID)&&empty($show_ProbeSequence)&&empty($show_Description)&&empty($show_Transcript)&&empty($show_Symbol)&&empty($show_Accession))) {
+// 		if(true){
+// // 			$query .= ",c.mrna_assignments,c.gene_assignment,c.first_symbol,c.Definition,c.ProbeSequence";
+// 			$query .= ",c.entrez_gene_ID,c.mrna_assignments,c.gene_assignment,c.first_symbol,c.crosshyb_type AS cType,c.first_name AS Definition, c.ProbeSequence";
+// 		}
+// // 		if (!empty($show_LocusOfGene)) {
+// // 		        $query .= ", b.chr_name,b.band,b.gene_chrom_start,b.gene_chrom_end ";
+// // 		}
+// 		$query .= " FROM locusInteraction  AS li "
+// 			. " JOIN locus AS A ON (A=A.Name) "
+// 			. " JOIN locus AS B ON (B=B.Name) "
+// 			. " JOIN BEARatChip AS c ON Trait=c.probeset_id "
+// 			;
+// 
+// // 		if (!(empty($show_GID)&&empty($show_ProbeSequence)&&empty($show_Description)&&empty($show_Transcript)&&empty($show_Symbol)&&empty($show_gene_assignment))) {
+// // 			$query .= " JOIN BEARatChip AS c ON Trait=c.probeset_id ";
+// // 		}
+
+		$needingMart=!empty($show_LocusOfGene);
+		if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
+			$needingMart=TRUE;
+		}
+
+//		if ($needingMart) {
+ 		if( false ){
+		        $query .= " JOIN ensembl_mart_${ensemblversion}";
+			if ($ensemblversion<27) $query .= "_1";
+			$query .= ".";
+			if ($ensemblversion<30) {
+				$query .= "rnorvegicus_ensemblgene_xref_RefSeq_dm";
+			}
+			else {
+				$query .= "rnorvegicus_gene_ensembl__xref_refseq_dna__dm";
+			}
+			$query .= " AS a ON a.";
+			if ($ensemblversion<30) {
+				$query .= "display_id";
+			}
+			else {
+				$query .= "dbprimary_id";
+			}
+			$query .= "=LEFT(gene_assignment,(INSTR(gene_assignment,'.') - 1)) "
+		        .          " JOIN ensembl_mart_${ensemblversion}";
+			if ($ensemblversion<19) $query .= "_1";
+			$query .= ".";
+			if ($ensemblversion<30) {
+				$query .= "rnorvegicus_ensemblgene_main";
+			}
+			else {
+				$query .= "rnorvegicus_gene_ensembl__gene__main";
+			}
+			$query .= " AS b USING (";
+			if ($ensemblversion<30) {
+				$query .= "gene_id";
+			}
+			else {
+				$query .= "gene_id_key";
+			}
+			$query .= ")";
+		}
+		if (!empty($locComb)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " li.locComb = ". $locComb ." ";
+		}
+		if (!empty($chrlist)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " (A.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+			$query .= "  OR B.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."')) ";
+			#$query .= " (AlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+			#$query .= "  or BlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."')) ";
+		}
+
+		if (!empty($traitlist)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " Trait in ('".join("','",preg_split("/[, ;]/",$traitlist))."') ";
+		}
+
+		// FIXME
+		$firstCovariateInWhere=true;
+		foreach(convert_string_to_covariates_array(strtolower("COVARIATESINTERACTINGQTL")) as $c) {
+			//echo "testing covariate $c for relevance to query: \n";
+			if (!empty($$c)) {
+				//echo "relevant<br>\n";
+				if (!is_array($$c)) {
+					echo "<p>Attention: ".$c. " must be an array of the values 'none', 'add' (additive) and 'int' (interacting).</p>";
+					print_r($$c);
+				}
+				else if (count($$c)>0) {
+					if ($firstCovariateInWhere) {
+						if ($where) $query .= " AND ";
+						else {
+							$query .= " WHERE ";
+							$where = TRUE;
+						}
+						$firstCovariateInWhere=false;
+					}
+					else {
+						$query .= " OR ";
+					}
+					if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
+						if (1==count($$c)) {
+							$a=$$c;
+							$query .= " Covariates='".$c."_".$a[0]."'";
+						}
+						else {
+							$query .= " Covariates in ('${c}_". join("','${c}_",$$c)."') ";
+						}
+					}
+					else {
+						if (1==count($$c)) {
+							$a=$$c;
+							$query .= " $c = '".$a[0]."' ";
+						}
+						else {
+							$query .= " $c in ('".join("','",$$c)."') ";
+						}
+					}
+				}
+			}
+			else {
+				//echo "failed.<br>\n";
+			}
+		}
+
+/*		foreach(array("eae","auc","aucbin","severity") as $c) {
+			if (!empty($$c)) {
+				if (!is_array($$c)) {
+					echo "<p>Attention: ".$c. " must be an array of the values 'none','additive' and 'interacting'.</p>";
+					print_r($$c);
+				}
+				else if (count($$c)>0) {
+					if ($where) $query .= " AND ";
+					else {
+					$query .= " WHERE ";
+							$where = TRUE;
+					}
+					if (1==count($$c)) {
+						$a=$$c;
+						$query .= " $c = '".$a[0]."' ";
+					}
+					else {
+						$query .= " $c in ('".join("','",$$c)."') ";
+					}
+				}
+			}
+		} */
+
+		if (!empty($type)) {
+			if ("joint"!=$sex && "int" != $sex) array_push($err,"The type of epistatic effect must be either 'int' or 'joint' ($type).");
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " li.Type ='$type' ";
+		}
+
+		if (!empty($cMmin) && !empty($cMmax)) {
+			if (!is_numeric($cMmin)) array_push($err,"The lower boundary in cMorgan positions for loci under investigation must be numeric ($cMmin).\n");
+			if (!is_numeric($cMmax)) array_push($err,"The upper boundary in cMorgan positions for loci under investigation must be numeric ($cMmax).\n");
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " (("
+			        .       "(A.cMorgan BETWEEN ".$cMmin." AND ".$cMmax.") ";
+			if (!empty($chrlist)) {
+			  		$query .= " AND A.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+			  		#$query .= " AND AlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+			}
+			$query .= ") OR (";
+			$query .= " (B.cMorgan BETWEEN ".$cMmin." AND ".$cMmax.")";
+			if (!empty($chrlist)) {
+				$query .= " AND B.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+				#$query .= " AND BlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+			}
+			$query .= ")) ";
+		}
+		else {
+			if (!empty($cMmin)) {
+				if (!is_numeric($cMmin)) array_push($err,"The lower boundary in cMorgan positions for loci under investigation must be numeric ($cMmin).\n");
+				if ($where) $query .= " AND ";
+				else {
+					$query .= " WHERE ";
+					$where = TRUE;
+				}
+				$query .= " ((A.cMorgan >= ".$cMmin." ";
+				if (!empty($chrlist)) {
+					$query .= " AND A.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+					#$query .= " AND AlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+				}
+				$query .= ") OR (";
+				$query .= " B.cMorgan >= ".$cMmin." ";
+				if (!empty($chrlist)) {
+					$query .= " AND B.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+					#$query .= " AND BlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+				}
+				$query .= "))";
+			}
+			if (!empty($cMmax)) {
+				if (!is_numeric($cMmax)) array_push($err,"The upper boundary in cMorgan positions for loci under investigation must be numeric ($cMmax).\n");
+				if ($where) $query .= " AND ";
+				else {
+					$query .= " WHERE ";
+					$where = TRUE;
+				}
+				$query .= " ((A.cMorgan <= ".$cMmax." ";
+				if (!empty($chrlist)) {
+					$query .= " AND A.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+				}
+				$query .= ") OR (";
+				$query .= " B.cMorgan <= ".$cMmax." ";
+				if (!empty($chrlist)) {
+					$query .= " AND B.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+				}
+				echo ") ";
+			}
+		}
+		if (!empty($LODmin)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " lod_full >= ".$LODmin." ";
+		}
+		if (!empty($LODmax)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " lod_full <= ".$LODmax." ";
+		}
+		if (!empty($quantilemin)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " qlod_full >= ".$quantilemin." ";
+		}
+		if (!empty($quantilemax)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " qlod_full <= ".$quantilemax." ";
+		}
+		if (!empty($LODdiffmin)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " qlod_full >= ".$LODdiffmin." ";					#!!!!!!!!!!!!!!!!!!!
+		}
+		if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " ".$conditionList[$c]." ";
+		}
+		if (!empty($order)) {
+			$query .= " ORDER BY ".$order." ";
+		}
+		if (!empty($limit)) {
+			$query .= " LIMIT ".$limit." ";
+		}
+
+		if ($debug) {
+			echo "query: $query<br>";
+		}
+
+		$result = mysql_query($query,$link);
+		if (empty($result)) {
+			echo "<p>".mysql_error()."</p>";
+			mysql_close($link);
+			exit;
+		}
+
+		$rowno=0;
+		echo "<small><table border=1>\n<thead>\n";
+		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+// 			if (!empty($_POST["debug"])) {
+// 				echo "1; "; print_r($line); echo "<br>";
+// 				echo "2; "; print_r($line); echo "<br>";
+// 			}
+			$copyOfLine=$line;
+
+			#foreach($line as $myLine)echo $myLine." ";
+			$rowno++;
+			if (1==$rowno) {
+				$firstRow=FALSE;
+				echo "<tr bgcolor=yellow>";
+				foreach($copyOfLine as $n=>$l) {
+					$f="show_".$n;
+// 					echo $f ."<br>";
+					if (!empty($$f)) {
+						echo "<th rowspan=2 class=c><small>$n</small></th>";
+						if ("Trait"==$n && !empty($show_LocusOfGene)) {
+							echo "<th rowspan=2 colspan=3 class=c><small>Trait<br>chr,band,start</small></th>";
+						}
+					}
+				}
+				echo "<th colspan=2 class=c>Public QTLs</th>";
+				echo "<th rowspan=2 class=c>Plots</th>\n";
+				#echo "<th rowspan=2 class=c>Images</th>\n";
+				echo "<tr><th bgcolor=orange>A</th><th bgcolor=orange>B</th></tr>";
+				echo "</tr></thead>\n<tbody>\n";
+			}
+
+
+// 			echo "3; "; print_r($line); echo "<br>";
+			$ca=$line["AChr"];
+			#$ca=$line["Chr_A"];
+// 			if (empty($ca)) {ism&id
+// 				$ca = $line["AlChr"];
+// 			}
+			if (empty($ca)) {
+				$ca = $line["Chr_A"];
+			}
+			if (empty($ca)) {
+				$ca = $line[5];
+			}
+// 			if (empty($ca)) {
+// 				echo "<br>Could not retrieve value for Chromosome A, line is '";
+// 				echo "4; "; print_r($line);
+// 				echo "'<br>\n";
+// 				exit;
+// 			}10705225
+			else if (!empty($_POST["debug"])) {
+				echo "ca=$ca<br>\n";
+			}
+
+			$cb=$line["BChr"];
+// 			if (empty($cb)) {
+// 				$cb = $line["BlChr"];
+// 			}
+			if (empty($cb)) {
+				$cb = $line["Chr_B"];
+			}
+// 			if (empty($cb)) {
+// 				echo "<br>Could not retrieve value for Chromosome B, line is '";
+// 				print_r($line);
+// 				echo "'<br>\n";
+// 				exit;
+// 			}
+
+			echo "<tr>";
+			foreach($line as $n=>$l) {
+				$f="show_".$n;
+// 				echo $n." => ".$l."<br>";
+				if (!empty($$f)) {
+					if (!isset($l)||""==$l) echo "<td>&nbsp;</td>";
+					else switch($n) {
+						case "li_type":
+							echo "<td><a href=\"interaction_collapsed?submitted=1&locComb=".$l."&type=&limit=150&show_LocusInteraction=on&show_LocusInteractionTrait=on&show_Affected_genes=on&show_Covariates=on&show_lod_full_span=on&show_qlod_full_span=on&show_LOD_Diff=on&show_seqname=on\">".$l."</a></td>";
+							break;
+						case "No":
+						case "Name_A":
+						case "Name_B":
+							echo "<td><a href=\"locus.php?Name=$l\">$l</a></td>";
+							break;
+						case "AlNo":
+						case "BlNo":
+						#case "AlName":
+						#case "BlName":
+							break;
+			#.         ",A.lNo as AlNo,A.lName as AlName,A.lChr as AlChr,A.cMorgan as AlMorgan"
+			#.         ",B.lNo as BlNo,B.lName as BlName,B.lChr as BlChr,B.cMorgan as BlMorgan";
+						case "Trait":
+							echo "<td align=right nowrap>"
+							."<a href=\"trait.php?direct=1&traitlist=$l\">$l</a> ["
+							."<a href=\"qtl.php?direct=1&traitlist=$l\">q</a>"
+							."<a href=\"interaction.php?direct=1&traitlist=$l&type=X\">i</a>"
+							."<a href=\"interaction.php?direct=1&traitlist=$l&type=Y\">j</a>"
+							."]</td>";
+							if (!empty($show_LocusOfGene)) {
+								echo "<td>".$line["Trait_Chr"]."</td><td>"
+								   .$line["Trait_band"]."</td><td>"
+								   .$line["Trait_start"]
+								   ."</td>";
+							}
+							break;
+						case "Chr_A":
+							echo "<td><a href=\"http://www.ensembl.org/$ensemblorganism/mapview?chr=$ca\">$l</a>";
+							echo " <a href=\"http://www.ensembl.org/$ensemblorganism/syntenyview?otherspecies=Homo_sapiens&chr=$ca\">Hs</a></td>";
+							break;
+						case "Name_A":
+						case "cMorgan_A":
+						case "AlMorgan":
+							echo "<td>";
+							$cmA = $line["cMorgan_A"];
+							if (empty($cb) || empty($cmA)) {
+								echo "error";
+							}
+							else {
+								echo 	"<a href=\"http://www.ensembl.org/".$ensemblorganism."/contigview?chr=".$ca
+									."&vc_start=".cM2bp($ca,$cmA-100000)
+									."&vc_end=".cM2bp($ca,$cmA+100000)
+									."\">"
+										.round($l,4)
+									."</a>";
+							}
+							echo "</td>";
+							break;
+						case "Chr_B":
+							echo "<td>";
+							if (empty($cb)) {
+								echo "error";
+							}
+							else {
+								echo "<a href=\"http://www.ensembl.org/$ensemblorganism/mapview?chr=$cb\">$l</a>";
+								echo " <a href=\"http://www.ensembl.org/$ensemblorganism/syntenyview?otherspecies=Homo_sapiens&chr=$cb\">Hs</a>";
+							}
+							echo "</td>";
+							break;
+						case "Name_B":
+						case "cMorgan_B":
+						case "BlMorgan":
+							echo "<td>";
+							$cmB = $line["cMorgan_B"];
+							if (empty($cb) || empty($cmB)) {
+								echo "error";
+							}
+							else {
+								echo 	"<a href=\"http://www.ensembl.org/".$ensemblorganism."/contigview?chr=".$cb
+									."&vc_start=".cM2bp($cb,$cmB-100000)
+									."&vc_end=".cM2bp($cb,$cmB+100000)
+									."\">"
+										.round($l,4)
+									."</a>";
+							}
+							echo "</td>";
+							break;
+						case "Accession":
+							$b=explode(".",$l);
+							echo "<td><a href=\"http://www.ensembl.org/$ensemblorganism/textview?species=$ensemblorganism&idx=Gene&q=".$b[0]."\">$l</a></td>";
+							break;
+						case "ProbeSequence":
+							echo "<td><small><small>$l</small></small></td>";
+							break;
+						case "LOD":
+						case "LODdiff":
+							echo "<td>".round($l,4)."</td>";
+							break;
+						case "gene_assignment":
+							$b=explode(".",$l);
+							echo "<td class=small><a href=\"http://www.ensembl.org/$ensemblorganism/textview?species=$ensemblorganism&idx=Gene&q="
+								.$b[0]
+								."\">$l</a></td>";
+							break;
+						default:
+							echo "<td>$l</td>";
+					}
+				}
+			}
+			#print_r($line);
+			foreach (
+				array("Chr_A"=>"cMorgan_A","Chr_B"=>"cMorgan_B")
+				#array("AlChr"=>"AcMorgan","BlChr"=>"BcMorgan")
+				as $a1=>$a2)
+			{
+				$c=$line[$a1];
+				#echo "c=$c";
+				$bp=cM2bp($line[$a1],$line[$a2]);
+				echo "<td>";
+				$qs=withinthefollowingqtls($line[$a1],$bp);
+				if (0==count($qs)) {
+					echo "&nbsp;";
+				}
+				else {
+					echo join(",",$qs);
+				}
+				echo "</td>";
+			}
+			echo "<td class=small><small>";
+			foreach (array("none","EAE","MAX","SUM") as $cov) {
+				echo "<a href=\"interaction_dynamic.php?"
+				    ."traitlist=".$line["Trait"]
+				    ."&analysis=$cov\">$cov</a> ";
+			}
+			echo "</small></td>";
+			if (FALSE) echo "<td>"
+			 . "<a href=\"images/".$line["Trait"]."_onescan.pdf\">one</a>"
+			 ." <a href=\"images/".$line["Trait"]."_nosex_twoscan.pdf\">two</a>"
+			 ." <a href=\"images/".$line["Trait"]."_sex_twoscan.pdf\">two-sex</a>"
+			 ."</td>\n";
+			echo "</tr>\n";
+		}
+		echo "</tbody></table>";
+		if (0==$rowno) {
+			echo "<p>No records found matching criteria.</p>";
+		}
+		else {
+			echo "<p>$rowno record".($rowno>1?"s":"")." found matching criteria.</p>";
+		}
+		echo "</small>";
+		mysql_free_result($result);
+		mysql_close($link);
+	}
+
+	include("footer.php");
+
+?>
+</body>
+</html>

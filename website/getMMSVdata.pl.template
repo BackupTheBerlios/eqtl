@@ -1,0 +1,117 @@
+#!/usr/bin/perl -w
+
+TEMPLATEWARNINGHASH
+
+=head1 NAME
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 AUTHORS
+
+Jan Kolbaum
+2008-09-10, University of Lübeck
+
+=cut
+
+use strict;
+use FCGI;
+#use CGI;
+use CGI::Carp qw(fatalsToBrowser);
+use POSIX;
+
+#start CGI and get parameter keys
+#my $request = CGI->new;
+#my @params = $request->param()
+my $request = FCGI::Request();
+
+#gobal prior known vraiables
+my $phenfile="PHENOFILE";		#the pheno-file
+my $base="BASEDIR";		#base directory of this project
+my $genofile="GENOFILE";
+my $csvdatas="CSVDATABASE";
+
+
+while (FCGI::accept >= 0) {
+
+	my $recalc;
+	my @params = split(/&/, $ENV{'QUERY_STRING'});
+	foreach my $key (@params){
+		my @value = split(/=/,$params[$key]);
+		if( $key =~ m/recalc/ ){
+			$recalc = $value[1];
+		}
+	}
+
+	my @out;
+	#if( (defined($recalc)) || !(-e "BASEDIRDOWNLOADDIRgene_expr.csv") ){
+#                open( GEN, "${base}${csvdatas}${phenfile}" ) or die "No such genofile ${base}${csvdatas}${phenfile}: $!";
+#                open( PHE, "$base$csvdatas$genofile" ) or die "No such ohenofile $base$csvdatas$genofile: $!";
+ 
+	if( (defined($recalc)) || !(-e "DOWNLOADDIRgene_expr.csv") ){	
+		open( GEN, $csvdatas.$phenfile ) or die "No such genofile ".$base.$csvdatas.$phenfile.": " . $!;
+		open( PHE, $csvdatas.$genofile ) or die "No such phenofile ".$base.$csvdatas.$genofile.": " . $!;
+	
+		my @phen= <PHE>;
+		
+		close( PHE );
+		my $line1;
+		my $line2;
+		my $line3;
+		my $line4;
+		my $line5;
+	
+		@out = "probesetid, mean, median, sd, variance\n";
+	
+		my @tmp = split(/,/,$phen[$#phen]);
+		my $nind = $tmp[0];
+	
+		my $medianIndex = floor( $nind / 2 );
+		my $medianIndic = (($nind % 2) == 0);
+		
+		<GEN>;
+		<GEN>;	#first two lines do not contain important data (scope of following operations)
+	
+	
+		while( <GEN> ){
+			my @line = split(/,/, $_);
+			my $mean = 0;
+			my $median = 0;
+			my $sd = 0;
+			my $variance = 0;
+			my @toSortLine;
+			for( my $i=1; $i<=$nind; $i++ ){
+				$mean += $line[$i];
+				push( @toSortLine, $line[$i]);
+			}
+			$mean /= $nind;				# == ew
+			my @sortLine = sort{$a<=>$b}( @toSortLine );
+			for( my $i=0; $i<$nind; $i++ ){
+				$variance += ($sortLine[$i] - $mean)**2;
+				if( $i == $medianIndex-1 ){ $median = $sortLine[$i]; }
+				if( ($i == $medianIndex ) && $medianIndic ){ $median += $sortLine[$i]; $median /= 2; }
+			}
+			$variance /= $nind;
+			$sd = sqrt( $variance );
+			my $add = "$line[0], $mean, $median, $sd, $variance\n";
+			push( @out, $add );
+		}
+	
+		close( GEN );
+	
+#		open( OUT, ">BASEDIRDOWNLOADDIRgene_expr.csv" );
+		open( OUT, ">DOWNLOADDIRgene_expr.csv" );
+		print OUT join("", @out);
+		close(OUT);
+
+	}else{
+#		open( EXPRDATA, "BASEDIRDOWNLOADDIRgene_expr.csv") || die "Cannot open file BASEDIRDOWNLOADDIRgene_expr.csv $!";
+		open( EXPRDATA, "DOWNLOADDIRgene_expr.csv") || die "Cannot open file DOWNLOADDIRgene_expr.csv $!";
+		@out = <EXPRDATA>;
+		close(EXPRDATA);
+	}
+
+	print	"Content-type: text/plain\n\n";
+	print	join("", @out);
+}

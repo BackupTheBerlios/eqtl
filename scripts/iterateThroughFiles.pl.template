@@ -1,0 +1,198 @@
+#!/usr/bin/perl -w
+
+TEMPLATEWARNINGHASH
+
+BEGIN {
+	push @INC,"./scripts";
+}
+
+use strict;
+use File::Path;
+use File::Copy;
+use Getopt::Long;
+use DBI;
+
+use insertQTLDataToSql;
+
+
+my ($force, $help, $unlink, $verbose, $dryrun) = (undef, 0, undef, 0, 0, $0);
+
+GetOptions(
+	"force" => \$force,
+	"f" => \$force,
+	"help" => \$help,
+	"verbose" => \$verbose,
+	"unlink" => \$unlink,
+	"dryrun" => \$dryrun
+) or die("Could not parse options: $@\n");
+
+if( !(@ARGV) || $#ARGV < 0 ){
+	die "Usage: ./SCRIPTNAME <list of folders or files to upload>";
+}
+
+if ( $help or "-h" eq "$ARGV[0]" or "--help" eq "$ARGV[0]" ) {
+	print <<EOHELP;
+NAME
+	iterateThroughFiles  -  inspect returned result files and upload to DB when appropriate
+
+SYNOPSIS
+
+	iterateThroughFiles <path to storage folder>
+
+DESCRIPTION
+
+	Once the computations have been performed, all data needs to be transferred to
+	a machine from which this script is executed. It will inspect these files and upload
+	the findings to the results database. It is that database from which all analyses
+	are performed and without this script, no data will get there.
+
+	The only argument is the folder that contains the results.
+
+OPTIONS
+
+	verbose
+
+	unlink
+
+AUTHORS
+
+	Ann-Kristin Grimm <grimm\@inb.uni-luebeck.de>
+	Jan Kolbaum
+	Steffen Möller
+
+	University of Lübeck, 2009
+
+EOHELP
+
+}
+
+my $dbh = DBI->connect( DATABASECON ) or die "Could not open connection to database.\n";
+
+if ( -z "$ENV{'HOME'}" ) {
+	die "Could not find indication of HOME directory.";
+}
+
+my $strangefiles=$ENV{'HOME'}."/manuallyinspect/strangefiles";
+if ( ! -d "$strangefiles" ) {
+	mkpath($strangefiles);
+	if ($@) {
+		die "Could not create dir '$strangefiles': $@\n";
+	}
+}
+
+my $brokenfiles=$ENV{'HOME'}."/manuallyinspect/brokenfiles";
+if ( ! -d "$brokenfiles" ) {
+	mkpath($brokenfiles);
+	if ($@) {
+		die "Could not create dir '$brokenfiles': $@\n";
+	}
+}
+
+my $donefiles=$ENV{'HOME'}."/manuallyinspect/donefiles";
+if ( ! -d "$donefiles" ) {
+	mkpath($donefiles);
+	if ($@) {
+		die "Could not create dir '$donefiles': $@\n";
+	}
+}
+
+my $start = time;
+my $count_success = 0;
+my $count_done = 0;
+my $count_queued = 0;
+my $count_broken = 0;
+my $count_reprocess = 0;
+my $count_noresult = 0;
+
+sub findFiles {
+	my @r;
+	foreach my $a (@_) {
+		if ( -d "$a" ) {
+			push @r, findFiles(<$a/*>);	
+		}
+		elsif ( -r "$a" ) {
+			if ( $a =~ /.csv.gz$/ ) {;
+				push @r, "$a";
+			}
+			elsif ( $a =~ /.tar/ ) {
+				my $unpackdir = "$a.unpacked";
+				if ( ! -d "$unpackdir" ) {
+					mkdir("$unpackdir",0775)
+						or die "Could not create directory '$unpackdir': $!\n";
+				}
+				if ( 0 == system("tar -C '$unpackdir' -xvf '$a'") ) {
+					print STDERR "Untaring to '$unpackdir' was successful.\n";
+					print STDERR "Tar file '$a' can possibly be deleted.\n";
+					push @r, findFiles($unpackdir);
+					unlink("$a") if $unlink;
+				}
+				else {
+					print STDERR "Problem with untaring '$a'.\n";
+					exit -1;
+				}
+			}
+			else {
+				#print "Skipping '$a'.\n" if $verbose;
+			}
+		}
+		else {
+			print STDERR "Could not access file '$a'.\n";
+		}
+	}
+	return @r;
+}
+
+my @storage = findFiles(@ARGV);
+my $number = ($#storage+1);
+print join("\n", @storage) if $verbose and $number<=50;
+
+my $storageFileNo=0;
+foreach my $file (@storage) {
+	$storageFileNo++;
+	print "File #".$storageFileNo." of $number ('$file').\n";
+	my $indicator = perform($dbh, $file, $force, $verbose, $dryrun);
+	print STDERR "\tReturn Value Upload: $indicator\n" if $verbose;
+	if( $indicator == -2 ) {
+		print STDERR "\tMoving file '$file' to broken files.\n";
+		move("$file","$brokenfiles/")
+			or die "Could not move file '$file' to dir '$brokenfiles': $!\n";
+		$count_broken++;
+	}
+	elsif( $indicator == -3  ){
+		die "ABORTING DUE TO PREVIOUS ERROR "
+	}
+	elsif( $indicator == -1  ){
+		$count_reprocess++;
+		print "Please inspect file '$file' manually.\n";
+		print STDERR "\tMoving file to strange files.\n" if $verbose;
+		move("$file","$strangefiles/")
+			or die "Could not move file '$file' to dir '$strangefiles': $!\n";
+	}
+	elsif( $indicator == 0  ){
+		$count_success++;
+	}
+	elsif( $indicator == 1  ){
+		$count_queued++;
+	}
+	elsif( $indicator == 2  ){
+		$count_done++;
+		print STDERR "\tMoving file to done files.\n" if $verbose;
+		move("$file","$donefiles/")
+			or die "Could not move file '$file' to dir '$donefiles': $!\n";
+	}
+	elsif( $indicator == 3){
+		$count_noresult++;
+	}
+}
+
+print "SUMMARY:\n\n";
+print "\tfiles uploaded: $count_success\n";
+print "\tfiles status done (uploaded if force is set): $count_done\n";
+print "\tfiles in queue not set processing (uploaded if force is set) : $count_queued\n";
+print "\tfiles with no result : $count_noresult\n";
+print "\tfiles with some database error: $count_reprocess\n";
+print "\tbroken files: $count_broken\n";
+
+my $stop = time - $start;
+
+print "\tRUNTIME: $stop sec.\n";

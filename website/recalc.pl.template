@@ -1,0 +1,183 @@
+#!/usr/bin/perl -w
+
+TEMPLATEWARNINGHASH
+
+=head1 NAME
+
+recalc.pl - select job to be computed and return R script
+
+=head1 SYNOPSIS
+
+The script is called from Apache. It expects not arguments.
+It can be started from the comand line and should print
+HTML that would otherwise be shown via the webserver.
+
+=head1 DESCRIPTION
+
+The database is contacted for data that needs to be computed.
+Another script is then contacted to prepare an R script that
+would perform the exact computation. That script is the output
+of this dynamic web page.
+
+=head1 AUTHORS
+
+Jan Kolbaum
+Ann-Kristin Grimm
+Steffen Möller
+
+2008-2009  University of Lübeck
+
+=cut
+
+use strict;
+use FCGI;
+use CGI::Carp qw(fatalsToBrowser);
+use LWP::Simple;
+use Fcntl ':flock';
+use Cwd;
+use DBI;
+
+#
+# series of preparations to contact the expression QTL database
+#
+
+my $dbh = DBI->connect( DATABASECON ) 
+	or die "Database connection not established: $DBI::errstr";
+
+# queries
+
+my $query_lock     = "LOCK TABLES computation WRITE;";
+my $query_select   = "SELECT computation_id, jobname FROM computation WHERE status='QUEUED' LIMIT 1;";
+my $query_update   = "UPDATE computation SET status='PROCESSING' WHERE computation_id =?;";
+my $query_unlock   = "UNLOCK TABLES;"; 
+my $query_reselect = "SELECT computation_id, jobname FROM computation WHERE status='RECALCULATE' limit 1;";
+
+# and their executable counterparts
+
+my $sth_lock = $dbh->prepare($query_lock)         or die $DBI::errstr;
+my $sth_select = $dbh->prepare($query_select)     or die $DBI::errstr;
+my $sth_update = $dbh->prepare($query_update)     or die $DBI::errstr;
+my $sth_unlock = $dbh->prepare($query_unlock)     or die $DBI::errstr;
+my $sth_reselect = $dbh->prepare($query_reselect) or die $DBI::errstr;
+
+my $request = FCGI::Request();
+
+
+#
+# the main loop that is invocated for every web page
+#
+
+while (FCGI::accept >= 0) {
+
+	#
+	# Making sure that error messages are appearing, should they appear
+	#
+
+	print "Content-type: text/plain\n\n";
+
+	#
+	# default content - lets the R shells quit when there
+	#                   is no more job to do.
+	#
+
+	my $content = "q(\"no\")\n";
+
+
+	#
+	# lock database
+	#
+
+	$sth_lock->execute() or die "# $DBI::errstr\n";
+
+	#
+	# Check for job to be CALCULATED
+	#
+
+	$sth_select->execute() or die "# $DBI::errstr\n";
+	
+	my $compute_id = undef;
+	my $jobname = undef;
+	while( my @data = $sth_select->fetchrow_array() ){
+        	$compute_id = $data[0];
+        	$jobname = $data[1];
+	}
+	$sth_select->finish();
+
+	#
+	# Check if job to compute is existing
+	#
+
+	unless(defined($compute_id)){
+
+		#
+		# There is none, doing jobs that need a recalculation
+		#
+
+		$sth_reselect->execute() or die "# $DBI::errstr\n";
+		while( my @data = $sth_reselect->fetchrow_array() ){
+                	$compute_id = $data[0];
+                	$jobname = $data[1];
+
+        	}
+		$sth_reselect->finish();
+	}	
+
+	#
+	# check if now a job was found to work on
+	#
+
+	if (defined($compute_id)) {
+
+		#
+		# flaggin job as 'PROCESSING'
+		#
+
+		$sth_update->execute($compute_id) or die "# $DBI::errstr\n";
+		$sth_update->finish();
+
+	}
+
+	#
+	# unlocking databases
+	#
+
+	$sth_unlock->execute() or die "# $DBI::errstr\n";
+	$sth_update->finish();
+
+	if(defined($compute_id)){
+
+		# 
+		# retrieve covariates and probeset ID from jobname
+		# 
+		#       example jobname to match:
+		#       "scanone_10700001_3.5_1000_(EAE).csv.gz"
+		#
+
+		my @fields;
+		if (@fields=$jobname=~/^([^_]+)_([^_]+)_([^_]+)_([^_]+)_\(([^)]+)\)/) {
+			
+			my $mode = $fields[0];
+			my $probesetid = $fields[1];
+			my $covars = $fields[4];
+
+			#
+			# the retrieval
+			#
+
+			$content = get "URLGETSCRIPT"
+				."?"."mode=".$mode
+				."&"."probesetid=" .$probesetid
+				."&"."covar=$covars&num=1&of=1"
+				."&h=RECALCHOST&p=RECALCPORT&d=RECALCDIR&phenocol=PHENOCOL";
+		}
+		else {
+			#
+			# presenting an explanation for the exit
+			#
+			print STDERR "# Could not parse jobname '$jobname'.\n";
+		}
+	}
+
+	print $content;
+}
+

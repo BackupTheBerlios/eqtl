@@ -1,0 +1,65 @@
+#!/usr/bin/perl -w
+
+use strict;
+use Cwd;
+use DBI;
+
+my $dbh = DBI->connect( DATABASECON ) || die "Database connection not made: $DBI::errstr";
+open( TODO, "MISCDATABASEToDo" ) or die "Cannot open file: MISCDATABASEToDo";
+
+my $mode;
+my $dir;
+if( $#ARGV != 0 ){
+	die "Usage: ./createExpectedFiles [scanone | scantwo | both] [directory where results are stored]\n";
+	if( $mode ne 'scanone' && $mode ne 'scantwo' && $mode ne 'both' ){
+		die "Usage: ./createExpectedFiles [scanone | scantwo | both] [directory where results are stored]\nYou used: ".$mode."\n";
+	}
+}
+
+$mode = $ARGV[0];
+#$dir = $ARGV[1];
+my @file = <TODO>;
+
+#my @covar = ('EAE', 'MAX', 'none', 'SUM', 'SUD', 'cross', 'weight', 'D12G1', 'D12G2B', 'D12G2C', 'D35G1', 'D35G2B', 'D35G2C','t12p','t35p', 'BD', 'ONS', 'DUD', 'dpw', 'SUD,dpw', 'ONS,dpw' );
+	my @covar = ('DUD_add,cross_int');
+#has to be in correct order
+
+print "\tCREATING EXPECTED FILE INDEX\t\t\t\t\t\t\t\t\t";
+for( my $i=0; $i<=$#covar; $i++ ){
+	for( my $j=0; $j<=$#file; $j++ ){
+		my $line = $file[$j];
+		$line =~ s/\n//g;
+		if( $mode eq 'both' || $mode eq 'scanone' ){	
+			#push( @out1, "scanone_".$line."_3.5_1000_(".$covar[$i].").csv.gz" );
+			my $jobname = "scanone_".$line."_3.5_1000_(".$covar[$i].").csv.gz";
+			#testn ob jobname schon existiert
+			my $test_query = "select computation_id from computation where jobname=\"$jobname\";";
+                        #test ausführen
+                        my $sth_test = $dbh->prepare($test_query) || die $DBI::errstr;
+			$sth_test->execute() || die $DBI::errstr;	
+			my $query ="";
+ 			my @a = $sth_test->fetchrow_array();
+			if(@a){
+				$query ="UPDATE computation SET status=\"RECALCULATE\" where jobname =\"$jobname\";"
+			}
+			else{
+				$query = "INSERT INTO computation(status, application, trait_id, jobname, filename) VALUES('QUEUED', 'SCANONE', $line, '$jobname', '$jobname');";
+			}
+			#erst mal abragen ob der eintrag schon existiert...
+			my $sth = $dbh->prepare($query) || die $DBI::errstr;
+			$sth->execute() || die $DBI::errstr;
+		}
+		if( $mode eq 'both' || $mode eq 'scantwo' ){
+			#push( @out2, "scantwo_".$line."_3.5_1000_(".$covar[$i].").csv.gz" );
+			my $jobname = "scantwo_".$line."_3.5_1000_(".$covar[$i].").csv.gz";
+			my $query = "INSERT INTO computation(status, application, trait_id, jobname, filename) VALUES('QUEUED', 'SCANTWO', $line, '$jobname', '$jobname');";
+			my $sth = $dbh->prepare($query) || die $DBI::errstr;
+			$sth->execute() || die $DBI::errstr;
+		}
+	}
+}
+print "[DONE]\n";
+#print "\tCREATING EXISTING FILE INDEX\t\t\t\t\t\t\t\t\t";
+#if( $mode eq 'both'){ $mode = ''; }
+#system( "ls -R $dir/".$mode." | grep .csv.gz > /nfshome/kolbaum/gitEqtl/data/misc/isThere" );
+#print "[DONE]\n";

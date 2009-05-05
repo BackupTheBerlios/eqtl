@@ -1,0 +1,222 @@
+This document summarises on how to submit jobs to the grid.
+
+1. SET JOBS TO RECALCULATE
+
+   The MySQL server hosts a database with all the expression QTL data. In there,
+   the table 'computation' is holding information on the progress of the
+   calculations for a particular gene and a particular set of covariates.
+
+   Those jobs that should be sent to the grid or to a local cluster, should
+   have their status field set to 'RECALCULATE'. The job submission script
+   will fine all these entries and submit them.
+
+   The status change can be performed with the following mysql statement, which
+   would change the status of all those scanones that are at the moment marked
+   as 'PROCESSING'. This could for example be the case if some results could
+   not be obtained because a cluster deleted these jobs or remains unavailable:
+   
+	use eQTL_Stockholm;
+	UPDATE computation SET status="RECALCULATE" WHERE 
+		status="PROCESSING" AND application="SCANONE";
+  
+   To set the focus on a particular set of covariates, you may want to constrain
+   the set of jobs to run:
+
+	UPDATE computation SET status="RECALCULATE"
+	 WHERE status="PROCESSING" AND application="SCANONE"
+	   AND jobname like '%(none)%';
+
+   For an overview on the status of the jobs, do
+
+	SELECT NOW(),application,status,COUNT(*) FROM computation 
+		GROUP BY application,status;
+
+   To show the time next to the data with NOW() is rather helpful to monitor
+   the progress and be pointed to sudden increases or delays in throuput.
+   Either may be indicative of some problem.
+
+
+2. START SINGLE JOBS ON REGULAR COMPUTERS
+
+   The script 'scripts/evaluateQuery.R' performs the sequential request of jobs
+   and their execution. It can be executed locally or remotely, here the instructions
+   to run it locally.
+
+   1. Log in to the machine that shall execute the job
+
+   2. Make sure the evaluateQuery.R is available on that machine. This may be via an
+      NFS mounted directory or a direct copy from the source code repository.
+
+   3. Start the script and disappear
+
+	nohup nice -19 R CMD BATCH evaluateQuery.R    
+
+   The script has a series of attributes that are read in as enviroment variables.
+   One is the TIMEOUT, specified in hours, that shall stop the computations once
+   that a certain runtime was reached. The other is JOBNOMAX, that informs on the
+   maximal number of jobs that shall be computed.
+
+3. START JOBS IN QUEUEING SYSTEM
+
+   1. Make sure the R/qtl package is installed on all machines of the queue
+
+   2. Make sure all machine have access to a shared folder where to store results
+
+   3. Directly use (or adapt) the script 'scripts/submitToTorqueLocally.sh'
+      for your purpose.
+
+   The command to start 300 jobs that each run as much as they can in 6 hours is
+
+	NODES=any ./submitToTorqueLocally.sh 6 300   
+
+
+4. START JOBS ON THE NORDUGRID
+
+   For a general introduction on how to use a computational grid for
+   your purposes, please follow the documentation on http://www.nordugrid.org .
+   Firstly, prepare a time-limited certificate with which to introduce
+   yourself to other grid nodes:
+
+
+   If there is this config file, then use it
+
+	. /etc/profile.d/nordugrid.sh
+
+   Crete certificate
+
+	grid-proxy-init
+
+   which will look like this
+
+		Your identity: /O=GermanGrid/OU=UniLuebeck/CN=Steffen Moeller
+		Enter GRID pass phrase for this identity:
+		Creating proxy ..................................... Done
+		Your proxy is valid until: Sun Mar 22 04:38:04 2009
+   
+
+   To start the grid jobs you need the job.xrsl file, for which a
+   template is located in the root of the git repository.
+   It references two scripts in the 'download' subdirectory of the
+   web page. Please ensure, that their versions are to your liking.
+   Then
+
+	cp job.template.xrsl job.xrsl
+
+   perform modifications as required, in particular the time allowed
+   by the shell script and the time reserved on the grid should concur.
+   To submit the job, run
+
+	ngsub -d 1 -f job.xrsl -c benedict.grid.aau.dk 
+
+   Site administrators will worry less about the number of jobs that 
+   are submitted than about about jobs that take awfully long to
+   complete. Please take that into account.
+
+   Two more clusters with the R/qtl runtime environment are:
+
+	   fyrgrid.grid.aau.dk
+	   kiniini.csc.fi
+
+   At the moment, kiniini is needed for something else (Olli will tell
+   when we can use it again) and fyrgrid is not very trust-worthy at
+   the moment, so I would just use benedict.
+
+   You can start the job with a script (which I will probably add to git)
+   but for the moment I would advice to do it manually, as I don't know
+   what the spare capacities of the clusters are, and you should check
+   how many jobs are running and how many are queued and see in this
+   way how many you can start.  I can't give you an exact number for
+   benedict.... for kiniini its 30.
+
+   To learn more about the individual cluster and inspect the jobs
+   of yours that are running, this information is available on
+   http://www.nordugrid.org/monitor .
+
+5. DOWNLOAD GRID JOBS
+
+   When the jobs are done, you can retrieve them all with
+
+	   ngget -a
+
+   or select those you want to download.
+   
+   I haven't defined a storage element to move the results to (but maybe I
+   will do it before I leave) so take care that you are fast enough with
+   starting the downloads before they are deleted by the remote server.
+   And think about the time this download needs. This can be up to one
+   day or more if there are a lot of data. The situation has now been 
+   brought some relief since grid jobs are terminating regularly.
+
+   The easiest thing is to move all files into one directory. If the job
+   FAILED, then the data is in the myTmp folder, otherwise you should
+   unpack the evaluatedQueries.tar.  For all files, please change the
+   group to bio
+
+	   chgrp -R bio .
+
+   and give those groups the right to write
+
+	   chmod -R g+w .
+
+6. UPLOAD THE DATA TO THE DATABASE:
+
+   FIRSTLY, CHECK IF YOUR GIT REPOSITORY IS UP TO DATE!
+
+   1. Log in to a machine that has access to the collection of results.
+      This is needed for the sorting, the latest, but just do it now.
+
+	   ssh pc26
+
+   2. Change the working directory to the root of the project directory
+      (the directory that you checked out from the git source code repository)
+
+	   cd git(however your git directory is called....)
+
+   3. Start the script to upload the files, resultDir is the directory
+      where the results are stored:
+
+	   ./scripts/iterateThroughFiles_new.pl resultDir
+
+   Files that were already uploaded are moved to a fallback directory
+   for subsequent manual inspection. For the time writing, this is hard 
+   coded as my home directory.
+
+   As I am not sure if you have the rights to write there, you might
+   want to change the hard-coded paths to the brokenfiles, donefiles
+   and so on in the iterateThroughFiles_new.pl script. I know, I
+   should have used a template file. And I will, promised, but
+   probably not today.
+
+   This may take some days, but once it is done, sort the file to the
+   local disc on pc26 to keep all the data:
+
+	   ./scripts/sort.pl directory /local/kobaum/results
+
+7. CHECK IF ALL JOBS ARE UPLOADED
+
+   When everything is uploaded, have a look at the status of the database:
+
+	   select status, application, count(*) from computation group by application, status;
+
+   This information is also shown on the project's home page.
+   
+   Don't be irritated by the 18 SCANTWOS that are marked as
+   processing. Those are the probeset which has no data and therefore
+   the calculations fail. We should possibly remove those one day or
+   improve the script or R/qtl to spot this issue.
+
+   If there are SCANONES left with status processing and you are sure
+   there is no data left to upload, you need to recalculate those again
+   and start from the beginning.
+
+HAVE FUN!!!
+
+
+Ann-Kristin Grimm and Steffen Möller, Lübeck, 2009
+
+
+
+
+
+ 
+

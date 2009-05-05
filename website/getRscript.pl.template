@@ -1,0 +1,494 @@
+#!/usr/bin/perl -w
+
+TEMPLATEWARNINGHASH
+
+=head1 NAME
+
+getRscript.pl - should better be named 'prepare R/qtl input data'
+
+=head1 SYNOPSIS
+
+getRescript.pl
+
+=head1 DESCRIPTION
+
+The script is called from the web server but may also be invoked from the shell
+e.g. for testing purposes.
+
+=head1 AUTHORS
+
+Jan Kolbaum
+Ann-Kristin Grimm
+Steffen Möller <moeller@inb.uni-luebeck.de>
+
+2008-2009, University of Lübeck
+
+=cut
+
+use strict;
+
+use FCGI;
+use CGI::Carp qw(fatalsToBrowser);
+use Cwd;
+
+my $request = FCGI::Request();
+
+
+# gobal prior known variables
+
+my $src="PHENOFILE";		#the pheno-file
+my $base="BASEDIR";		#base directory of this project
+my $database="URLCSVDEPOT";	#storage cotaining miscellaneous data
+my $covbase="CSVDATABASEGENOFILE";
+my $phenocol;
+
+if( system( "ps -e | grep prepareRqtl" ) == 0 ){
+	system( "./synchronizer.pl" );
+}
+
+=head2 errorMessage
+
+Upon error, the script should not end, unless if the error is completely
+erroneous and indicates that the whole setup is broken. The error
+detected is only passed to the script, which will then take appropriate
+action.
+
+In the current implementation, the client will terminate itself. Some
+better idea is needed, still.
+
+=cut
+
+sub errorMessage($) {
+	my $msg = shift;
+	# the error appears as a comment in the text, which should always work
+	print STDOUT "# $msg\n";
+	# the error appears as an output of the program, which might or might not work.
+	print STDOUT "cat(\"$msg\")\n";
+	# the error appears as an error in the apache.log, which should work
+	print STDERR "cat(\"$msg\")\n";
+
+	# tell the client to exit
+	print "q(save=\"no\")\n"
+}
+
+#
+# A counter of the number of tasks prepared
+#
+my $probeCNT = 0;
+
+my @covars;
+
+while (FCGI::accept >= 0) {
+
+	# 
+	# The early setting of the content type ensures that the error
+	# messages correctly appear on the web page. Otherwise they
+	# are possibly not forwarded to the end user.
+	#
+
+	print "Content-type: text/plain\n\n";
+
+	#
+	# A counter of the number of tasks prepared
+	#
+	$probeCNT++;
+
+
+	my @params;
+	my $pc;
+	my $mode = 'scanone';
+
+	my %execParams = (
+				'perms' => PERMS,
+				'alpha' => ALPHA,
+				'stepsSO' => STEPSSO,
+				'stepsST' => STEPSST,
+				'epsilon' => EPSILON,
+				'errorP' => ERRORP,
+				'draws' => DRAWS,
+				'threshold' => THRESHOLD,
+				'method' => 'hk',
+				'cov_meth' => 'int',
+				'd'=>'RECALCDIR',
+				'h'=>'RECALCHOST',
+				'p'=>'RECALCPORT'
+	);
+
+	#
+	# Read parameters from website
+	#
+
+	if (exists($ENV{'QUERY_STRING'})) {
+		@params = split(/&/, $ENV{'QUERY_STRING'});
+	}
+	else {
+		print STDERR "getRscript.pl: Presuming to be run from the command line - testing only.\n";
+		@params=(
+			"covar=EAE",
+			"probesetid=007",
+			"phenocol=3",
+			"mode=scanone"
+		);
+	}
+	
+	#
+	# probe set ID of gene to be analysed for controlling loci
+	#
+
+	my $probeID;
+	
+	# get value to params
+	# [ covar=X1,X2,X3,... | probesetid=X | perms=X | alpha=X | steps=X | epsilon=X | errorP=X | draws=X | threshold=X | method=X ]
+	# at parameter covar  use FCGI;X1 will always be main covariate
+	foreach my $paramElement (@params){
+		my @value = split(/=/,$paramElement);
+		if( $value[0] =~ m/covar/ ){
+			if( $value[1] !~ m/none/ ) {
+				@covars = split( ",", $value[1] );
+			}
+			else {
+				@covars = ();
+			}
+		}elsif( $value[0] =~ m/probesetid/ ){
+			$probeID = $value[1];
+		}elsif( $value[0] =~ m/phenocol/ ){
+			$pc = $value[1];
+		}elsif( $value[0] =~ m/mode/ ){
+			$mode = $value[1];
+			if( $mode ne 'scanone' && $mode ne 'scantwo' ){
+				errorMessage("Wrong value at parameter mode, only scanone or scantwo are allowed!\n"
+				            ."You used '$mode'\n");
+				next;
+			}
+		}else{
+			$execParams{$value[0]}=$value[1];
+		}
+	}
+
+	#
+	# Stop if we don't have a probeID
+	#
+
+	if( !defined( $probeID ) ){
+		errorMessage("getRscript.pl: Spotted probeID to be undefined.");
+		next;
+	}
+	
+	#
+	# The 'keyData' variable determines the file name and shall be easily parseable 
+	# to retrieve the most essential information directly from it.
+	#
+
+	my $keyData = '';
+	if( defined( $probeID ) ){
+		$probeID =~ s/\n//;
+		$keyData = $mode."_".$probeID."_".$execParams{'threshold'}."_".$execParams{'perms'};
+		if( @covars ){
+			$keyData = "$keyData" . "_(".join(",",@covars).")";
+		}else{
+			$keyData = "$keyData"."_(none)";
+		}
+	}
+	
+	#
+	# 'pc' denotes the column at which to expect the phenotype that should be
+	# modelled. It should be set to 3 for regular expression QTL analyses.
+	#
+
+	if( !defined($pc) ){
+		if( $probeID eq 'none' ){
+			errorMessage("getRscript.pl: demanding classical QTL analyses, not yet implemented (probeID='none').");
+			next;
+		}else{
+			errorMessage("getRscript.pl: column with major phenotype "
+				."(most likely the expression level) "
+				."not indicated (probeID='$probeID').");
+			next;
+			#$phenocol = "pheno.col=3,";
+			#$pc = $probeID;
+		}
+	}else{
+		$phenocol = "pheno.col=$pc,";
+	}
+	
+	my @rScript;
+	my $covStr = '';
+
+	#
+	#  Covariates can either look like cov_int, cov_add or cov 
+	#  cov_int means this covariate is use interactiv
+	#  cov_add uses this covariate just additive
+	#  cov uses this covariate as given in cov_meth, either int or add
+	
+	my @covars_int = ();
+	my @covars_add = ();
+	if( @covars ){
+		print "covars: @covars\n";
+		foreach my $cov (@covars){
+			if($cov =~ s/_int//){
+			   push(@covars_int, $cov);
+			   push(@covars_add, $cov);
+			}
+			elsif($cov =~ s/_add//){
+			   push(@covars_add, $cov);
+			}
+			else{
+			   if( $execParams{'cov_meth'} eq 'int' ){
+			      push(@covars_int, $cov);
+			      push(@covars_add, $cov);
+			      	
+			   }
+			   elsif( $execParams{'cov_meth'} eq 'add' ){
+			      push(@covars_add, $cov);
+			   }
+			   else{
+                              errorMessage($execParams{'cov_meth'}." is not a vaild option for cov_meth [add (=additive) | int (=interactiv)]");
+			      next;
+                           } 
+			}
+		}
+
+		if(@covars_add){
+			if(@covars_int){
+				$covStr = ", addcov=cov_add, intcov=cov_int";
+			}
+			else{
+				$covStr = ", addcov=cov_add";
+			}
+		}	
+	}
+	
+
+	my $steps;
+	if( $mode eq 'scanone' ){ $steps = $execParams{'stepsSO'}; }
+	else{ $steps = $execParams{'stepsST'}; }
+
+
+	my $writeToDisk = <<EOWRITETODISK;
+writeToDisk <- function( toWrite ){
+	my.file <- gzfile(description=paste("$execParams{'d'}/$keyData.csv.gz",sep=""),
+				open = "a", encoding = getOption("encoding"),compression = 6)
+	if( is.list(toWrite) ){
+		vert <- labels( toWrite )
+EOWRITETODISK
+	if( $mode eq 'scanone' ){
+		$writeToDisk .= <<EOWRITETODISK;
+write.table( print(toWrite), file=my.file, append=TRUE )
+EOWRITETODISK
+	}
+	else{
+		$writeToDisk .= <<EOWRITETODISK;
+write.table( print(toWrite), file=my.file, append=TRUE )
+EOWRITETODISK
+
+	}
+	$writeToDisk .= <<EOWRITETODISK;
+	}else if( is.vector( toWrite ) ){
+		label <- labels( toWrite )
+		if( label[1] != 1 ){
+			header <- label[1]
+			for( i in 2:length(label)){
+				if( is.na(toWrite[i]) ){break}
+				header <- paste(header, label[i], sep=",")
+			}
+			write( header, file=my.file, append=TRUE )
+		}
+		out <- toWrite[1]
+		for(i in 2:length(toWrite)){
+			if( is.na(toWrite[i]) ){break}
+			out <- paste( out, toWrite[i], sepalpha=",")
+		}
+		write( out, file=my.file, append=TRUE )
+	}else if( is.numeric( toWrite ) ){
+		tmplabel <- labels( toWrite )
+		label = tmplabel[1]
+		for( i in 2:length(tmplabel)){
+			label <- paste( label, tmplabel[i], sep="," )
+		}
+		write( label, file=my.file, append=TRUE, sep="," )
+		write( toWrite, file=my.file, append=TRUE, sep="," )
+	}else{
+		write( toWrite, file=my.file, append=TRUE, sep="," )
+	}
+	close( my.file )
+}
+EOWRITETODISK
+
+	my $getData = <<EOWRITETODISK;
+my.cross <- read.cross( "csv",dir="",file="URLGETDATA?probesetid=$probeID", genotypes=NULL, alleles=c("D","P"), convertXdata=TRUE )
+my.cross <- calc.genoprob( my.cross, step=$steps, error.prob=$execParams{'errorP'} )
+EOWRITETODISK
+	if( $mode eq 'scantwo' ){
+		$getData .= <<EOWRITETODISK;
+my.cross <- sim.geno(my.cross, step=$steps, n.draws=$execParams{'draws'})
+EOWRITETODISK
+	}
+
+	my $tryPermutations = <<EOWRITETODISK;
+print( paste(date(), ": Doing first ",n.perm=$execParams{'perms'}/100, " permutations:", sep="") )
+my.$mode.P <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, n.perm=$execParams{'perms'}/100, verbose=FALSE )
+my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, verbose=FALSE )
+my.quants <- summary(my.$mode.P,alpha=1-$execParams{'epsilon'})
+perms.done <- $execParams{'perms'}
+thresh = my.quants[[1]];
+EOWRITETODISK
+	if( $mode eq 'scantwo' ){
+		$tryPermutations .= <<EOWRITETODISK;
+for( i in 2:5 ){
+	thresh = c(thresh, my.quants[[i]])
+}
+EOWRITETODISK
+	}
+	$tryPermutations .= <<EOWRITETODISK;
+my.$mode.S.summary <- summary( my.$mode.S, threshold=thresh )
+my.$mode.P.summary <- summary( my.$mode.P )
+EOWRITETODISK
+	if( $mode eq 'scanone' ){
+		$tryPermutations .= <<EOWRITETODISK;
+if( max(my.$mode.S\$lod) > my.quants[1] ){
+EOWRITETODISK
+	}else{
+		$tryPermutations .= <<EOWRITETODISK;
+if( max(my.$mode.S)\$lod.full > my.quants[['full']] ){
+EOWRITETODISK
+	}
+	$tryPermutations .= <<EOWRITETODISK;
+	print( paste(date(), ": Candidate found, doing remaining permutations!", sep="") )
+	for ( i in 2:10 ){
+		my.$mode.P <- c(my.$mode.P,$mode( my.cross, method="$execParams{'method'}", n.perm=$execParams{'perms'}/100, verbose=FALSE ))
+	}
+}else{
+	print( paste(date(),": No candidate found, aborting.", sep="") )
+	perms.done = $execParams{'perms'}/100
+}
+my.$mode.S.P.summary <- summary( my.$mode.S, perms=my.$mode.P, alpha=$execParams{'alpha'}, pvalues=TRUE)
+my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
+EOWRITETODISK
+
+
+#^^my.quants <- summary(my.$mode.P,alpha=1-c(0,0.25,0.5,0.75,0.9,0.9,0.95,0.99,1))
+#^^my.quants <- quantile(my.$mode.P, $execParams{'epsilon'})
+#^^my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
+
+	my $printCov_add ="";
+	if( @covars_add ){
+		my $concat = "\"".join("\",\"",@covars_add)."\"";
+		# The covariate 'none' should have been removed before to yield
+		# an empty list of covariates.
+		$printCov_add = <<EOWRITETODISK;
+cov_add <- my.cross\$pheno[,c($concat)]
+EOWRITETODISK
+	}
+	my $printCov_int ="";
+	if( @covars_int ){
+		my $concat_int = "\"".join("\",\"",@covars_int)."\"";
+		# The covariate 'none' should have been removed before to yield
+		# an empty list of covariates.
+		$printCov_int = <<EOWRITETODISK;
+cov_int <- my.cross\$pheno[,c($concat_int)]
+EOWRITETODISK
+	}
+
+	my $doPermutations = <<EOWRITETODISK;
+print( paste(date(), ": Doing ", n.perm=$execParams{'perms'}/100, " permutations:", sep="") )
+my.$mode.P <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, n.perm=$execParams{'perms'}, verbose=FALSE )
+my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, verbose=FALSE )
+my.quants <- summary(my.$mode.P,alpha=1-$execParams{'epsilon'})
+thresh = my.quants[[1]];
+for( i in 2:length(my.quants) ){
+	thresh = c(thresh, my.quants[[i]])
+}
+my.$mode.S.summary <- summary( my.$mode.S, threshold=thresh )
+my.$mode.P.summary <- summary( my.$mode.P )
+my.$mode.S.P.summary <- summary( my.$mode.S, perms=my.$mode.P, alpha=$execParams{'alpha'}, pvalues=TRUE)
+my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
+EOWRITETODISK
+
+	my $noPermutations = <<EOWRITETODISK;
+my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr )
+my.$mode.S.summary <- summary( my.$mode.S, threshold=$execParams{'threshold'} )
+EOWRITETODISK
+
+	my $c = join(",", @covars);
+	my $toDisk = <<EOWRITETODISK;
+my.success <- length(my.$mode.S.P.summary[[1]])
+writeToDisk( paste("<=$mode($probeID) success(",my.success,") method($execParams{'method'}) permutations($execParams{'perms'}) threshold($execParams{'threshold'}) covariates($c) cov_meth($execParams{'cov_meth'}) alpha($execParams{'alpha'}) offset($execParams{'epsilon'}) steps($steps) errorP($execParams{'errorP'}) draws($execParams{'draws'}) phenocol($pc) permsDone(",perms.done,") qtlversion(",qtlversion(),") R.Version(",R.Version()[["major"]],".",R.Version()[["minor"]],") platform(",R.Version()[["platform"]],")=>", sep="") )
+writeToDisk( "<ENV>" )
+writeToDisk( system("hostname -f") )
+writeToDisk( Sys.info() )
+writeToDisk( Sys.time() )
+writeToDisk( "</ENV>" )
+writeToDisk( "<SUMMARY::$mode.S>" )
+writeToDisk( my.$mode.S.summary )
+writeToDisk( "</SUMMARY>" )
+EOWRITETODISK
+
+	if( PERMS > 0 ){
+		$toDisk .= <<EOWRITETODISK;
+writeToDisk( "<SUMMARY::$mode.P>" )
+writeToDisk( my.$mode.P.summary )
+writeToDisk( "</SUMMARY>" )
+writeToDisk( "<SUMMARY::$mode.S.P>" )
+writeToDisk( my.$mode.S.P.summary )
+writeToDisk( "</SUMMARY>" )
+writeToDisk( "<SUMMARY::quants>" )
+writeToDisk( my.quants )
+writeToDisk( "</SUMMARY>" )
+EOWRITETODISK
+	}
+
+	$toDisk .= <<EOWRITETODISK;
+writeToDisk( "<DATA::$mode.S>" )
+writeToDisk( my.$mode.S )
+writeToDisk( "</DATA>" )
+writeToDisk( "<WARNINGS>" )
+writeToDisk( "</WARNINGS>" )
+EOWRITETODISK
+
+	my $status = " print( \"\" ) \n";
+
+	if ($execParams{'num'}) {
+		$status .= "print( \"!-Case: $execParams{'num'} of $execParams{'of'}\" )\n";
+	}
+	else {
+		$status .= "print( \"!-Case: $probeCNT\" )\n";
+	}
+
+	if( @covars ){
+		$status .= "print( \"!-using covariates: ".join(",",@covars)."\" )\n";
+	}
+
+	$status .=  <<EOWRITETODISK;
+print( paste("!-",date(),sep="") )
+print( "" )
+EOWRITETODISK
+
+	print $status;
+	print $writeToDisk;
+	print $getData;
+
+	if( @covars_add ){
+		print $printCov_add;
+	}
+	if( @covars_int ){
+		print $printCov_int;
+	}
+
+	if( $execParams{'perms'} > 0 ){
+		if( $execParams{'perms'} >= 1000 ){
+			print $tryPermutations;
+		}else{
+			print $doPermutations;
+		}
+	}else{
+		print $noPermutations;
+	}
+
+	print $toDisk;
+
+	if (!exists($ENV{'QUERY_STRING'})) {
+		print STDERR "getRscript.pl: Presuming to be run from the command line: exiting.\n";
+		last;
+	}
+
+}

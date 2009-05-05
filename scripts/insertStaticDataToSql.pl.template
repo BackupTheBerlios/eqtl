@@ -1,0 +1,122 @@
+#!/usr/bin/perl -w
+
+TEMPLATEWARNINGHASH
+#FIXME:
+#extend comments
+use DBI;
+
+my $dbh = DBI->connect( DATABASECON ) || die "\tERROR: Database connection not made: $DBI::errstr\n";
+
+#------------------------insertMarker--------------------------------------------------------------------------------------
+
+my @marker;
+my @chromo;
+my @positi;
+my @insert;
+
+my $start = time;
+
+open(FILE, "BASEDIRCSVDATABASEGENOFILE");
+my $tmp = <FILE>;
+@marker = split(/,/,$tmp );
+$tmp = <FILE>;
+@chromo = split(/,/,$tmp );
+<FILE>;
+$tmp = <FILE>;
+close( FILE );
+@positi = split(/,/,$tmp );
+
+for( my $i=0; $i<$#marker; $i++ ){
+	if( $marker[$i] =~ m/^D*/ && $chromo[$i] ne "" ){
+		push( @insert, [$marker[$i], "NULL", $positi[$i], "NULL", $chromo[$i]] );
+	}
+}
+
+
+my $sql = qq{insert into  map (marker,bp,cmorgan_rqtl,cmorgan_ensembl,chr) values (?,NULL,?,?,?)};
+my $sth = $dbh->prepare( $sql );
+foreach my $m (@insert){
+	my ($inMarker,$inBP,$inPos,$ePos,$inChr)=@$m;
+	$inPos =~ s/\"//g;					#"
+	$inMarker =~ s/\"//g;					#"
+	$sth->execute($inMarker,$inPos,$inPos,$inChr);
+}
+
+#--------------------------insertTraits------------------------------------------------------------------------------------------
+
+open( PHENFILE, "BASEDIRCSVDATABASEPHENOFILE" );
+open( MMSVFILE, "BASEDIRDOWNLOADDIRMMSVDATA" );
+<PHENFILE>;
+<MMSVFILE>;
+my $phenNameCol;
+my @phen = split( /,/, <PHENFILE> );
+my $indName = $phen[1];
+for( my $i=2; $i<=150; $i++ ){
+	$indName = "$indName,$phen[$i]";
+}
+
+#insertBEARatChip
+my ( $startCol );
+
+for( my $i=0; $i<$#phen; $i++ ){
+	if( $phen[$i] =~ m/first_representative_public_id/ ){
+		$phenNameCol = $i;
+	}
+	if( $phen[$i] =~ m/probeset_id/ ){
+		$startCol = $i;
+	}
+}
+if( !defined( $phenNameCol ) ){ die "\tERROR: No name coloumn found in BASEDIRCSVDATABASEPHENOFILE\n"; }
+
+my $secSql = qq{insert into BEARatChip (probeset_id,seqname,strand,start,stop,total_probes,gene_assignment,first_representative_public_id,first_symbol,first_name,first_location,entrez_gene_ID,mrna_assignments,swissprot_ID,swissprot_link,unigene,unigene_link,GO_biological_process,GO_cellular_component,GO_molecular_function,pathway,protein_domains,crosshyb_type,category) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)};
+my $secSth = $dbh->prepare( $secSql );
+$sql = qq{insert into  trait (trait_id,name,mean,sd,vals,individuals, median, variance) values (?,?,?,?,?,?,?,?)};
+$sth = $dbh->prepare( $sql );
+
+while( @phen = split( /,/,<PHENFILE> ) ){
+	@mmsv = split( /,/,<MMSVFILE> );
+	my $vals = $phen[1];
+	for( my $i=2; $i<=150; $i++ ){
+		$vals = "$vals,$phen[$i]";
+	}
+	if( ($phen[0] eq $mmsv[0]) || ($phen[0] == $mmsv[0]) ){
+		if( !($phen[$phenNameCol] =~ /---/) ){
+			$sth->execute($phen[0], $phen[$phenNameCol], $mmsv[1], $mmsv[3], $vals, $indName, $mmsv[2], $mmsv[4] );
+		}else{
+			$sth->execute($phen[0], '', $mmsv[1], $mmsv[3], $vals, $indName, $mmsv[2], $mmsv[4] );
+		}
+		my @addToBeaRatChip = ();
+		for( my $i=$startCol; $i<=$startCol+23; $i++ ){
+			my $temp = $phen[$i];
+			if( $temp =~ /HYPERLINK/ ){
+				my @xx = split(/"/,$temp );			#"
+				$temp = $xx[1];
+			}
+			push( @addToBeaRatChip, $temp );
+		}
+		for( my $i=0; $i<=$#addToBeaRatChip; $i++ ){
+			my $yet = $addToBeaRatChip[$i];
+			if( $yet =~ /---/ ){$yet = '';}
+			$yet =~ s/\"//g;			#"
+			if( $yet =~ /^chr/ ){
+				my @xx = split( /r/, $yet );
+				$yet = $xx[1];
+			}
+			if( $yet =~ /ENSR/ ){
+				my @xx = split( /ENSR/, $yet );
+				@xx = split( / /, $xx[1] );
+				$yet = 'ENSR'.$xx[0];
+			}
+			$addToBeaRatChip[$i] = $yet;
+		}
+		$secSth->execute( @addToBeaRatChip );
+	}else{
+		die "\tERROR: No matching probesetids\n";
+	}
+}
+$sth->finish();
+$dbh->disconnect();
+
+my $stop = time-$start;
+
+print "\tRUNTIME: $stop sec.\n";

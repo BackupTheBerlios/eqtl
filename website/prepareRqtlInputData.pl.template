@@ -1,0 +1,154 @@
+#!/usr/bin/perl -w
+
+TEMPLATEWARNINGHASH
+
+=head1 NAME
+
+
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 AUTHORS
+
+Jan Kolbaum with some contribution by Steffen Moeller
+2008-08-27
+
+=cut
+
+use CGI::Carp qw(fatalsToBrowser);
+use strict;
+use FCGI;
+use Cwd;
+
+my $request = FCGI::Request();
+
+my %data = 	(
+		'genofile' => 'GENOFILE',
+		'phenofile' => 'PHENOFILE'
+		);
+
+my $base="BASEDIR";
+my $database="URLCSVDEPOT";
+
+
+
+while (FCGI::accept >= 0) {
+	#check if argument has been given
+	my @params = split(/&/, $ENV{'QUERY_STRING'});
+	my $probeID;
+
+	foreach my $key (@params){
+		if( $key =~ m/probesetid/ ){
+			my @tmp = split(/=/,$key);
+			$probeID = $tmp[1];
+		}
+	}
+	
+	if( !defined( $probeID ) && $#ARGV == 2 ){
+		$probeID = $ARGV[2];				#id of probset to insert
+	}elsif( !defined( $probeID ) && $#ARGV == 0 ){
+		$probeID = $ARGV[0];				#id of probset to insert
+	}
+
+	
+	
+	if( !defined( $probeID) ){
+		print	"Content-type: text/plain\n\n",
+				"Usage when accessed via web address : \t<url>?probesetid=\"probesetid\"\n",
+				"      When accessed via command line: \tinsertProbe_online.pl gene-file pheno-file probesetid\n";
+		exit(-1);
+	}
+
+#	die $database.$data{'phenofile'};#."\n".cwd()."\n";
+
+	#open files, read them to memory, close them
+#	open(getFrom, "$base$database$data{'phenofile'}") || open(INSERT,$data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
+	open(getFrom, $database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at ".$database.$data{'phenofile'}.cwd().$@;		#insert-file will  be expaneded by probe-column
+#	open(INSERT, "$base$database$data{'genofile'}") || open(getFrom,$data{'genofile'}) || die "No such gene-file at $database$data{'genofile'}: $@";		#open the file wich contains probe-data
+	open(INSERT, $database.$data{'genofile'}) || open(INSERT,$data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
+	
+	my @insertionFile = <INSERT>;
+	
+	if( $probeID eq 'none' ){
+		my $length = @insertionFile;			
+		for( my $i=0; $i<$length; $i++ ){		#here the later returned file is splitted up to insert probeinformations, using insert subroutine
+			if( $i==0 ){ 				# as some lines have to be omitted, some indexshifting is required
+				$insertionFile[$i] = $insertionFile[$i];
+			}			
+			elsif( $i > 3 ){ 
+				$insertionFile[$i-1] = $insertionFile[$i];
+			}
+			elsif( $i==2 ){  }
+			elsif( $i==1 ){
+				$insertionFile[$i] = $insertionFile[$i];
+			}
+			elsif( $i==3 ){
+				$insertionFile[$i-1] =  $insertionFile[$i];
+			}
+		}
+	}else{
+		my @line;
+		
+		#in the following lines we will be searching for the given probeId assuming probeID in front of each line
+		while( <getFrom> ){
+			if( m/^$probeID/ ){		#if probeID has been found
+				@line = split( /,/,$_ );
+				last;				#stop searching
+			}
+		}
+		
+		if( !@line ){ die "No such probesetID: $probeID"; }
+		
+		my $length = @insertionFile;			
+		for( my $i=0; $i<$length; $i++ ){		#here the later returned file is splitted up to insert probeinformations, using insert subroutine
+			if( $i==0 ){ 				# as some lines have to be omitted, some indexshifting is required
+				my @iline = split(/,/, $insertionFile[$i]);
+				my $ret = '';
+				for( my $j=0; $j<@iline; $j++ ){				#reassamble the (now exanded) line
+					if( $j<2 ){ $ret =  $ret . ',' . $iline[$j]; }
+					elsif( $j==2 ){ $ret = $ret . ',' . $line[$i]; }
+					else{ $ret =  $ret . ',' . $iline[$j-1]; }
+				}
+				$ret =~ s/,//;						#delete leading comma
+				$insertionFile[$i] = $ret . "\n";
+			}elsif( $i > 3 ){
+				my @iline = split(/,/, $insertionFile[$i]);
+				my $ret = '';
+				for( my $j=0; $j<@iline; $j++ ){				#reassamble the (now exanded) line
+					if( $j<2 ){ $ret =  $ret . ',' . $iline[$j]; }
+					elsif( $j==2 ){ $ret = $ret . ',' . $line[$i-3]; }
+					else{ $ret =  $ret . ',' . $iline[$j-1]; }
+				}
+				$ret =~ s/,//;						#delete leading comma
+				$insertionFile[$i-1] = $ret . "\n";
+			}elsif( $i==2 ){  }
+			elsif( $i==1 ){
+				my @iline = split(/,/, $insertionFile[$i]);
+				my $ret = '';
+				for( my $j=0; $j<@iline; $j++ ){				#reassamble the (now exanded) line
+					if( $j<2 ){ $ret =  $ret . ',' . $iline[$j]; }
+					elsif( $j==2 ){ $ret = $ret . ',' . ''; }
+					else{ $ret =  $ret . ',' . $iline[$j-1]; }
+				}
+				$ret =~ s/,//;						#delete leading comma
+				$insertionFile[$i] = $ret . "\n";
+			}elsif( $i==3 ){
+				my @iline = split(/,/, $insertionFile[$i]);
+				my $ret = '';
+				for( my $j=0; $j<@iline; $j++ ){				#reassamble the (now exanded) line
+					if( $j<2 ){ $ret =  $ret . ',' . $iline[$j]; }
+					elsif( $j==2 ){ $ret = $ret . ',' . ''; }
+					else{ $ret =  $ret . ',' . $iline[$j-1]; }
+				}
+				$ret =~ s/,//;						#delete leading comma
+				$insertionFile[$i-1] = $ret . "\n";;
+			}
+		}
+	}
+	$insertionFile[$#insertionFile] = "";
+
+	print	"Content-type: text/plain\n\n",					#sign page-type as plain
+		join("",@insertionFile);					#print expanded file to page
+}

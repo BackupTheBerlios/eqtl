@@ -1,0 +1,389 @@
+<html>
+TEMPLATEWARNINGXML
+<head>
+<title>PROJECTTITLE</title>
+        <link href="http://www.ihop-net.org/UniPub/html/css/general.css" rel="stylesheet" media="screen"/>
+	<link href="http://www.ihop-net.org/UniPub/html/css/unipub_hop.css" rel="stylesheet" media="screen"/>
+	<link href="URLPORTALROOT/stylesheets/eqtl.css" rel="stylesheet" media="screen"/>
+</head>
+<body>
+<table width="100%">
+<tr>
+<td align="center"><img src="URLPORTALROOT/PATHLOGOLEFTNORMAL" width=WIDTHLOGOLEFT ALT="Logo left"></td>
+<td align="center"><h1>PROJECTNAME - Technical Summary Page</h1></td>
+<td align="center"><img src="URLPORTALROOT/PATHLOGORIGHTNORMAL" width=WIDTHLOGORIGHT ALT="Logo right"></td>
+</table>
+<hr>
+<?php
+
+$link = mysql_connect('DATABASEHOSTLOCAL', 'DATABASEEQTLUSER')
+    or die('Could not connect: ' . mysql_error());
+mysql_select_db('DATABASEEQTLNAME') or die('Could not select database');
+
+#
+# STATUS INFO
+#
+
+echo "<table align=\"center\" border=\"0\" width=\"100%\">";
+echo "<tr>";
+echo "<th valign=top width = \"10\">";
+echo "Calculations:";
+echo "</th>";
+echo "<td valign=top align=\"center\">";
+
+$enter = !file_exists("status.txt");
+if (!$enter) $enter=((time()-filemtime("status.txt"))>(60*1));
+
+if ($enter) {
+    if ($handle=@fopen("status.txt","w")) {
+	$query="select status,application,count(*) from computation group by status,application;";
+	$result = mysql_query($query) or die('Query failed: ' . mysql_error());
+	#$vals_single=array();
+	fwrite($handle, "<table>");
+	fwrite($handle, "<tr><th>status</th><th>application</th><th>jobs</th></tr>\n");
+	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		fwrite($handle, "<tr>");
+		foreach ($line as $col_value) {
+			if( !isset($col_value) || $col_value == '' ){ $col_value = 'none'; }
+			#$vals_single[]=$col_value;
+			fwrite($handle, "<td>$col_value</td>");
+		}
+		fwrite($handle, "</tr>\n");
+	}
+	fwrite($handle, "</table>\n");
+	fclose($handle);
+	mysql_free_result($result);
+    }
+    else {
+	echo "<small>Could not create status.txt file.</small>";
+    }
+}
+
+if( file_exists("status.txt") ){
+	$data = file_get_contents("status.txt");
+	echo $data;
+}else{
+	echo "Could not read status.txt. ";
+	echo getcwd();
+}
+
+echo "<th valign=top>Resources:</th>\n";
+echo "<td valign=top>";
+
+if (file_exists("resources.txt")) {
+	$data = file_get_contents("resources.txt");
+	echo $data;
+}
+else {
+	echo "Could not read resources.txt";
+}
+echo "</td>";
+echo "<th valign=top>Work in progress:</th>\n";
+echo "<td valign=top>";
+	if (file_exists("progress.txt")) {
+		$data = file_get_contents("progress.txt");
+		echo $data;
+	}
+	else {
+		echo "Could not read progess.txt";
+	}
+echo "</td>\n";
+echo "<th align=\"center\" valign=bottom width=\"50\">\n";
+	#$last_modified = filemtime("status.txt");
+	$last_modified = time();
+echo "<small>".date( "F d Y h:i:s", $last_modified )."</th>";
+echo "</th>\n";
+echo "</TR>\n";
+echo "</TABLE>\n";
+
+?>
+<hr>
+<p class="block">
+This page represents a mere technical assitance to the collaborators on this project for the determination
+of expression QTL.  It is due to disappear once this poject has been completed.  The public should access the
+data only via this project's <a href="URLPORTALROOT/index.php" target="_blank">eQTL portal</a>.
+</p>
+<p class="block">
+The analysis is performed in a series of partially independent events. Each is performed with a set of scripts. Those sections and associated scripts are explained below.
+</p>
+<h2>Preparation of input data</h2>
+<div class=floatRight><a href="URLPORTALROOT/graphics/controllingloci.png"><img src="URLPORTALROOT/graphics/controllingloci.png" width=150 border=0/></a></div>
+<p class=block>
+Input to the analysis are expression data across all mice, the genotype of all these individuals and their
+disease scores. For each of these kinds of inputs, a script was prepared to read out the data. To understand
+how the scripts are working, click on the links indicating the presentation of the source code.
+Scripts may (technically) be executed anywhere in the world where R with R/qtl is installed, data is made accessible via the web, access constrained to L&uuml;beck and Karolinska.
+</p>
+<ul>
+<li><small>prepareRqtlInputData.pl</small> - Retrieve expression and genotype data of gene across all individuals<br>
+<i>The analysis always requires the complete genotyping information for all individuals. No further selection is performed at this level. The R scripts may however perform additional filtering. Inspect the referenced URL for usage information.
+</i>
+<br>
+[<a href="showSRC?file=prepareRqtlInputData.pl">Perl source code</a> | example output: <a href="prepareRqtlInputData?probesetid=none">classical only</a>, <a href="prepareRqtlInputData?probesetid=10700001">probesetid=10700001</a>, <a href="prepareRqtlInputData?probesetid=10700001">gene inbetween</a>, <a href="prepareRqtlInputData?probesetid=10940690">last gene</a>]
+</ul>
+<ul>
+<li><small>getMMSVdata.pl</small> - Calculate mean, median, standart deviation and variance of all gene expression levels<br>
+<i>These data a required to do calculations like: <a href="http://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient">Spearman's rank correlation coefficient</a>.
+</i>
+<br>
+[<a href="showSRC?file=getMMSVdata.pl">Perl source code</a> | <a href="getMMSVdata">link to example output</a>]
+</ul>
+
+<h2><a name="OneScan">Calculation of single QTL</a></h2>
+
+<?php
+$query = 'SELECT DISTINCT covariates FROM qtl';
+$result = mysql_query($query) or die('Query failed: ' . mysql_error());
+
+$vals_single=array();
+while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+    foreach ($line as $col_value) {
+	if( !isset($col_value) || $col_value == '' ){ $col_value = 'none'; }
+	$vals_single[]=$col_value;
+    }
+}
+
+mysql_free_result($result);
+
+$query = 'SELECT DISTINCT covariates FROM locusInteraction';
+$result = mysql_query($query) or die('Query failed: ' . mysql_error());
+
+$vals_interacting=array();
+while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+    foreach ($line as $col_value) {
+	if( !isset($col_value) || $col_value == '' ){ $col_value = 'none'; }
+	$vals_interacting[]=$col_value;
+    }
+}
+mysql_free_result($result);
+mysql_close($link);
+?>
+
+<?php
+if (0<count($vals_single)) {
+	echo "<b><i>Single QTLs with covariates in database:</i></b> ";
+	$first=1;
+	foreach ($vals_single as $vs) {
+		if (!$first) {
+			echo ", ";
+		}
+		else {
+			$first=0;
+		}
+		if ("none" == "$vs") {
+			echo "<a href=\"URLPORTALROOT/qtl.php?";
+			$ffirst=1;
+			foreach ($vals_single as $vss) {
+				if(!$ffirst) {
+					echo "&";
+				}
+				else {
+					$ffirst=0;
+				}
+				$pair=preg_split("/_/","$vss");
+				echo strtolower($pair[0])."[]=none";
+			}
+		}
+		else {
+			echo "<a href=\"URLPORTALROOT/qtl.php?";
+			$multipleCovars=preg_split("/,/",$vs);
+			foreach ($multipleCovars as $n=>$m) {
+				if ($n>0) {
+					echo "&";
+				}
+				$pair=preg_split("/_/","$m");
+				echo strtolower($pair[0])."[]=".$pair[1];
+			}
+		}
+		echo "\">$vs</a>";
+	}
+	echo "<br>\n";
+}
+else {
+	echo "<b><i>No QTLs currently in database.</i></b> ";
+}
+?>
+
+
+<p class=block>
+The calculation of a QTL shall be addressed in two ways: 
+<ul>
+<li>the expression level shall be explained by the genotype information plus disease data: clarification of disease-associated gene regulation
+<li>the disease score shall be modeled by the genotype information plus the expression level data: clarification of gene-regulation of disease scores
+</ul>
+It is not expected these analyses to yield the same kind of loci and to investigate the difference between the two will be interesting. The prior analyses are expected to be closer to the disease ethiology.
+
+The following scripts contributed directly to the QTL analysis:
+</p>
+<ul>
+<li><small>evaluateQuery.R</small> - control unit<br>
+<i>This script is executed once on every compute node. It fetches an R script to execute, performs the computation and then requests the next. This script is independent from the challenge addressed.</i>
+<br>
+[<a href="showSRC?file=evaluateQuery.R">R source code</a> | <small>file ref should go here</small>]
+<li><small>getRscript.pl</small> - R script generator<br>
+<i>The data required for the analysis was made available via the web by the scripts in the first above section. This script generates an R script that is requested by the the control script. With every invocation of that script, another gene is offered for the analysis, until all genes have been worked on.</i>
+<br>
+[<a href="showSRC?file=getRscript.pl">Perl to source code</a> | <a href="getRscript?mode=scanone">R script fetched for execution</a>]
+<li><small>insertQTLDataToSql.pl</small> - result upload to database<br>
+<i>The raw files are copied back from the compute nodes. This script is running over these and prepares SQL database statements that are directly understood by the MySQL DB server.</i>
+<br>
+[<a href="showSRC?file=insertQTLDataToSql.pl">Perl source code</a> | <small><i>the filled database is the output</i></small>]
+</ul>
+
+<h2><a name="TwoScan">Calculation of interacting QTL</a></h2>
+<div class=floatRight><a href="URLPORTALROOT/graphics/densityqtls.png"><img src="URLPORTALROOT/graphics/densityqtls.png" width=150 border=0/></a></div>
+
+<?php
+if (0<count($vals_interacting)) {
+	echo "<b><i>Interacting QTLs with covariates in database:</i></b> ";
+	$first=1;
+	foreach ($vals_interacting as $vs) {
+		if (!$first) {
+			echo ", ";
+		}
+		else {
+			$first=0;
+		}
+		if ("none" == "$vs") {
+			echo "<a href=\"URLPORTALROOT/interaction.php?";
+			$ffirst=1;
+			foreach ($vals_single as $vss) {
+				if(!$ffirst) {
+					echo "&";
+				}
+				else {
+					$ffirst=0;
+				}
+				$pair=preg_split("/_/","$vss");
+				echo strtolower($pair[0])."[]=none";
+			}
+		}
+		else {
+			$pair=preg_split("/_/","$vs");
+			echo "<a href=\"URLPORTALROOT/interaction.php?".strtolower($pair[0])."[]=".$pair[1];
+		}
+		echo "\">$vs</a>";
+	}
+	echo "<br>\n";
+}
+else {
+	echo "<b><i>No interacting QTLs currently in database.</i></b> ";
+}
+?>
+
+<p class="block">
+The control script is the same as for single QTL effects. Problematic: large memory
+requirements for permutations.
+</p>
+<ul>
+<li><small>getRscipt.pl</small> - R script generator<br>
+<i>Working in analogy to the Single QTL effects, but preparing a script for a two locus analysis.</i>
+<br>
+[<a href="showSRC?file=getRscript.pl">link to source</a> | <a href="getRscript?mode=scantwo">R script for two locus analysis</a>]
+</ul>
+
+<h2>Analysis of collected data</h2>
+<p class="block">
+For the analysis, a series of means are available. First
+to mention is the web interface, aka <a href="URLPORTALROOT/index.php"
+target="_blank">eQTL portal</a>, to the database that collects all the
+data, which supports the manual inspection. However, the database can
+also be accessed by algorithms directly.
+The challenge for the analysis is to combine the manual interference
+with the data with the automated 
+</p>
+
+
+<h3>Manual inspection</h3>
+
+<p class=block>
+The interface allows the user to move from one entity (a locus, a
+locus with an effect on a trait (QTL), combined effects of two loci
+(interaction), a probe of the chip (trait)) to another. However, the
+destination of objects are not addresses directly: the click on an object
+only leads to another pre-filled query form. The user then needs to
+submit that query, with all the opportunity to amend the entries
+to thus accomodate for one's scientific curiosities.
+</p>
+
+<p class=block>
+Starting point to the analyses may be a locus of particular interest
+or pre-defined queries:
+
+<ul>
+<li>Most important QTL for a particular disease trait as cofactor
+<li>Most important interactions for a disease trait that involves a particular locus
+<li>Cis-acting eQTLs within classical QTLs
+</ul>
+</p>
+
+</p>
+
+
+<h3>Automated Analyses</h3>
+<div class=floatRight><a href="URLPORTALROOT/graphics/3dviewinteraction.png"><img src="URLPORTALROOT/graphics/3dviewinteraction.png" width=150 border=0/></a></div>
+
+<p class="block">
+Any data that is tapped into for the analysis that is not
+a product of a manual interference with the static data of the QTL analyses
+but that may influence the thinking of the prior is listed in this section.
+However, the distinction between these two blocks is fluent and is possibly
+soon given up.
+</p>
+
+<h4>Gene-centric</h4>
+
+<ul>
+<li>Most disease-associated genes<br>
+	<i>Strongly correlated genes are of lower interest for molecular investigations,
+	   otherwise the disease would not be complex. However,
+	   as a biological trait for disease monitoring some may be of clinical interset.</i>
+	<ul>
+	<li>a "classical" analyses of expression data (t-test)
+	<li>gene set enrichments (molecularly associated genes appearing together)
+	<li>Correlation with disease score (Pearson, Spearman)
+	</ul>
+<li>Reduce number of genes inspected<br>
+	<i>Of more academic value, but genes should have a minimal standard deviation
+	   and expression level to be considered reliable to test against in the verification.</i>
+	<ul>
+	<li>Dimension reduction via Principle or Independent Component Analysis
+	<li>Rank genes by their standard deviation<br>
+	<i>If such mean something, then they have a strong distance to noise</i>
+	<li>Determine genes most co-regulated across individuals
+	</ul>
+</ul>
+
+<h4>Locus-centric</h4>
+<div class=floatRight><a href="http://dimer.tamu.edu/simplog/images/gallery/jim/graphs/bfi_html.jpg"><img src="http://dimer.tamu.edu/simplog/images/gallery/jim/graphs/bfi_html.jpg" width=150 border=0/></a></div>
+<ul>
+<li>Distribution of QTL in genome for any set of traits, possibly
+	<ul>
+	<li>subsets of the gene-centric analyses
+	<li>association with genes in molecular pathways
+	</ul>
+</ul>
+
+<h4>Interaction-centric</h4>
+<ul>
+<li>Triplet analyses to identify Quantitative Trait Genes
+</ul>
+
+<h2>Aims</h2>
+<p class="block">
+For a priorisation of the above and the elucidation of the best workflows
+interacting with these data, it may at times be helpful to bring the
+final aims of this project:
+<ul>
+<li>yield a model of non-clinical sub-phenotypes of the disease
+<li>wet-lab proofs for these
+<li>drugs for their normalisation
+</ul>
+</p>
+
+
+<hr>
+Contact <a href="MAINTAINEREMAIL">MAINTAINEREMAIL</a> for any arising issue or concern.
+The latest source code is (or will be) managed at <a href="URLSCMPROJECT">URLSCMPROJECT</a>.
+</body>
+<html>

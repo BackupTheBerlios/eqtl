@@ -1,0 +1,1062 @@
+<?php
+	TEMPLATEWARNINGHASH
+
+/**
+	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
+	Copyright: Universities of Rostock and Lübeck, 2003-2009
+*/
+
+	require_once("header.php");
+	require_once("func_covariates.php");
+	show_small_header("Selection of eQTL",TRUE);
+	$err=array();
+	$conditionList=array(
+		"Equal Chromosomes" => array(
+			"constraint"=>"seqname = Chromosome",
+			"description"=>"The QTL and the gene it controls are on the same chromosome"
+		),
+		"Unequal Chromosomes" => array(
+			"constraint"=>"seqname != Chromosome",
+			"description"=>"The QTL and the gene it controls are on different chromosomes"
+		),
+		"Within classical QTL" => array(
+			"constraint"=>"manual",
+			"description"=>"The peak of the e-QTL overlaps with a classical QTL"
+		),
+	);
+
+
+	$database="DATABASEEQTLNAME";
+	include_once("func_connect.php");
+
+	$dataSelectionFieldsQTL = array(
+		"show_LocusOfGene", "show_Covariates",
+		"Chromosome","ensemblversion",
+		"cM_within","LODmax","LODmin",
+		"quantilemin","quantilemax",
+		"covariates",
+		"LODdiffmin","LODdiffmax",
+		"cM_Peak_Min","cM_Peak_Max",
+		"MeanMin","MeanMax","SdMin","SdMax",
+		"locus","chrlist", "condition"
+	);
+
+	$accessible_fields_in_POST_or_GET = array_merge(
+		$dataSelectionFieldsQTL,
+
+		array(  "direct",
+			"debug",
+			"submitted",
+			"onlyNumbers",
+			"onlyNumbersGrouped"
+		),
+
+		array(  "show_Trait",
+			"show_LocusOfGene",
+			"show_ExpressionOfGene",
+			"show_Locus",
+			"show_LOD",
+			"show_LODdiff",
+			"show_Quantile",
+			"show_Covariates",
+			"show_Chromosome",
+			
+			"show_name",
+			"show_mean",
+			"show_sd",
+			"show_unigene",
+			"show_swissprot_ID",
+			"show_gene_assignment",
+			"show_first_symbol",
+			"show_Description",
+			"show_ProbeSequence",
+
+			"traits",
+			"traitlist",
+			"limit","order"
+		),
+		
+			convert_string_to_covariates_array(strtolower("qtl"))
+		);
+
+	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+		echo "<br>Retrieving info for: "; print_r($accessible_fields_in_POST_or_GET); echo "<br>\n";
+	}
+			
+	foreach($accessible_fields_in_POST_or_GET as $vname)
+	{
+		if (isset($_POST[$vname])) {
+			$$vname = $_POST[$vname];
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+		elseif(isset($_GET[$vname])) {
+			$$vname = $_GET[$vname];
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+	}
+
+	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+		echo "<br>\n";
+		echo "eae: "; print_r($eae);
+		echo "sum: "; print_r($sum);
+		echo "<br>\n";
+	}
+
+	$a=array("Trait"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
+		"LOD"=>1,"LODdiff"=>1,"Quantile"=>1,
+		//"Sex"=>1,"AUC"=>1,
+			//"AUCbinary"=>1,
+		//"Severity"=>1,
+		"Covariates"=>1,
+		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>1, "cMorgan_Max"=>1,
+		"Analysis"=>1, "Gid"=>0, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1,
+		"Definition"=>1, "ProbeSequence"=>0);
+
+	if (!empty($direct)) {
+		foreach($a as $i=>$v) {
+			$n="show_".$i;
+			$$n=$v;
+		}
+	}
+
+	if (empty($direct) and empty($submitted))
+	{
+?>
+		<form action=qtl.php method=post>
+		<input type=hidden name=submitted value=1>
+		<table width=100%><tr><td>
+			<table>
+			<tr><th class=r>Locus:</th><td colspan=3><input type=text name=locus size=40 maxsize=700
+<?php
+			if (!empty($locus)) {
+				echo "value=";
+				if (is_array($locus)) {
+					echo "\"".join(",",$locus)."\"";
+				}
+				else {
+					echo "\"$locus\"";
+					$locus = preg_split("/[ ,;\t\n]+/",$locus);
+				}
+			}
+?>
+			></td></tr>
+			<tr><th class=r>Chromosomes:</th><td colspan=3><input type=text name=chrlist size=40 maxsize=700
+<?php
+			if (!empty($chrlist)) {
+				echo "value=";
+				if (is_array($chrlist)) {
+					echo "\"".join(",",$chrlist)."\"";
+				}
+				else {
+					echo "\"$chrlist\"";
+				}
+			}
+?>
+			></td></tr>
+			<tr><th class=r valign=top>Covariates:<br>
+	<font size=-3><i>
+	<?php
+		$cvs=get_covars_on_your_own_from_qtl($linkLocal);
+		foreach ($cvs as $n=>$c) {
+			if ($n>0) {
+				echo "; ";
+				if (0== $n%2) {
+					echo "<br>\n";
+				}
+			}
+			echo "$c";
+		}
+	?>
+	</i></font>
+			</th><td colspan=3>
+	<?php
+					select_covariates($linkLocal, "qtl");
+	?>
+			</td></tr>
+			
+			<tr><th class=r>LOD-score span:</th>
+			    <td colspan=3>
+				<input type=text name=LODmin size=4 value=<?php echo empty($LODmin)?"3.9":$LODmin;?>>
+				-
+				<input type=text name=LODmax size=4<?php if (!empty($LODmax)) echo " value=$LODmax";?>>
+			    </td></tr>
+			<tr><th class=r>95% quantile span:</th>
+			    <td colspan=3>
+				<input type=text name=quantilemin size=4 value= <?php echo empty($quantilemin)?"":$quantilemin; ?>>
+				-
+				<input type=text name=quantilemax size=4<?php if (!empty($quantilemax)) echo " value=$quantilemax";?>>
+			    </td></tr>
+			<tr><th class=r>Min diff of LOD score to 95% quantile:</th>
+			    <td colspan=3>
+				<input type=text name=LODdiffmin size=4 value= <?php echo empty($LODdiffmin)?"0":$LODdiffmin; ?>>
+			    </td></tr>
+			<tr><th class=r>centi-Morgan span for peak:</th>
+			    <td colspan=3>
+				<input type=text name=cM_Peak_Min size=4<?php if (!empty($cM_Peak_Min)) echo " value=$cM_Peak_Min";?>>
+				-
+				<input type=text name=cM_Peak_Max size=4<?php if (!empty($cM_Peak_Max)) echo " value=$cM_Peak_Max";?>>
+			    </td>
+			</tr>
+			<tr><th class=r>centi-Morgan position<br>within flanking positions</th>
+			    <td colspan=3>
+				<input type=text name=cM_within size=4<?php if (isset($cM_within)) echo " value=$cM_within";?>>
+			    </td>
+			</tr>
+			<tr><th class=r>Trait names:</th>
+			    <td colspan=3>
+			      <input type=text name=traitlist size=30 maxsize=255
+<?php
+	if (!empty($traitlist)) {
+		if (is_array($traitlist)) {
+			echo "value=\"".join(",",$traitlist)."\"";
+		}
+		else {
+			echo "value=\"$traitlist\"";
+		}
+	}
+?>
+			></td></tr>
+			<tr><th class=r>Expression level mean min:</th>
+			    <td><input type=text name=MeanMin size=6 maxsize=6
+<?php
+	if (!empty($MeanMin)) {
+		echo "value=\"$MeanMin\"";
+	}
+?>
+			></td> &nbsp;
+			    <th class=r>Mean max:</th>
+			    <td><input type=text name=MeanMax size=6 maxsize=6
+<?php
+	if (!empty($MeanMax)) {
+		echo "value=\"$MeanMax\"";
+	}
+?>
+			></td></tr>
+			<tr><th class=r>Expression level standard deviation min:</th>
+			    <td><input type=text name=SdMin size=6 maxsize=6
+<?php
+	if (!empty($SdMin)) {
+		echo "value=\"$SdMin\"";
+	}
+?>
+			></td> &nbsp;
+			    <th class=r>SD max:</th>
+			    <td><input type=text name=trait_sd_max size=6 maxsize=6
+<?php
+	if (!empty($SdMax)) {
+		if (is_array($SdMax)) {
+			echo "value=\"".join(",",$SdMax)."\"";
+		}
+		else {
+			echo "value=\"$SdMax\"";
+		}
+	}
+?>
+			></td></tr>
+			<tr><th class=r>Order by:</th><td colspan=3>
+						<select name=order>
+						<option value=Chromosome>Chromosome</option>
+						<option value="LOD DESC" selected>LOD score</option>
+						<option value="LODdiff DESC">LOD-Quantile diff</option>
+						<option value=cMorgan_Peak>cMorgan</option>
+						<option value=Sex>Sex-dependency</option>
+						<option value=AUC>AUC score</option>
+						<!--<option value=AUCbinary>AUCbinary score</option> -->
+						<option value=Severity>Severity score</option>
+						</select>
+						</td></tr>
+			<tr><th class=r>Limit lines shown</th>
+			    <td colspan=3><input type=text name=limit value=500></td></tr>
+			<tr><td>&nbsp;</td><td></td></tr>
+			<tr><td align=right><input type=submit></td><td align=left><input type=reset></td></tr>
+			</table>
+
+			<p>Check for presenting the number of QTLs only:
+			   <input type="checkbox" name="onlyNumbers"<?php
+				echo empty($onlyNumbers)?"":" value=\"$onlyNumbers\""; ?>>
+			   <br />
+			&nbsp;
+			   <input type="radio" name="onlyNumbersGrouped" value="totals" <?php ((empty($onlyNumbersGrouped) or "totals"=="$onlyNumbersGrouped")?" checked=TRUE":"")?>>Totals only<br />
+			&nbsp;
+			   <input type="radio" name="onlyNumbersGrouped" value="seqname" <?php ("seqname"=="$onlyNumbersGrouped"?" checked":"")?>>Trait's Chromosome<br />
+			&nbsp;
+			   <input type="radio" name="onlyNumbersGrouped" value="Chromosome" <?php ("Chromosome"=="$onlyNumbersGrouped"?" checked":"")?>>eQTL's Chromosome<br />
+			</p>
+
+			<p>Select from the following constraints:<br>
+			<?php
+			echo "<table>";
+			foreach($conditionList as $n=>$c) {
+				//print_r($c);
+				echo "<tr><td><input type=checkbox name=condition[] value=\"$n\"> $n :</td><td><i>".$c["description"]."</i></td</tr>\n";
+			}
+			echo "</table>\n";
+			?>
+			</p>
+		
+		</td><td align=right valign=top>
+			<small><small>
+			<table border=0>
+			<tr bgcolor=black><th class=c><small><font color=orange>Show</font></small></th><th><small><font color=orange>Field</font></small></th></tr>
+<?php
+			foreach($a as $i=>$v) {
+				echo "<tr><td align=right><input type=checkbox name=show_".$i.(empty($v)?"":" checked")."></td><td><small><i>$i</i></small></td></tr>\n";
+			}
+?>
+			</table>
+			</small></small>
+		</td><td valign=top>
+			<table border=0>
+			<tr bgcolor="red"><th colspan=4 class=c>QTLs - Select Locus</th></tr>
+			<tr bgcolor="orange"><th>Name</th><th>Chromosome</th><th><small>bp From</small></th><th><small>bp To</small></th></tr>
+<?php
+		include_once("func_public_qtl.php");
+		$qtls = get_public_qtls($linkLocal);
+
+		foreach ($qtls as $q) {
+			echo "<tr><td><small>".$q["name"]."</small></td>";
+			echo "<td align=right><small><a href=qtl.php?chrlist=".$q["chr"].">".$q["chr"]."</a></small></td>";
+			echo "<td align=right><small><small>".$q["start_bps"]."</small></small></td>";
+			echo "<td align=right><small><small>".$q["stop_bps"]."</small></small></td>";
+			echo "</tr>\n";
+		}
+?>
+			</table>
+		</td></tr>
+		</table>
+		</form>
+<?php
+	}
+	else {
+		include_once("func_species.php");
+		include_once("func_conversion_$ensemblversion.php");
+		include_once("func_expressionview.php");
+		include_once("func_public_qtl.php");
+
+		$where=FALSE;
+		$query = "SELECT ";
+		if ($onlyNumbers and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
+		#if ($onlyNumbers and !(isset($condition) and is_array($condition))) {
+			if (!empty($onlyNumbersGrouped) and !("totals"==$onlyNumbersGrouped)) {
+				if ("Chromosome"=="$onlyNumbersGrouped" or "seqname" == "$onlyNumbersGrouped") {
+					$query .= "$onlyNumbersGrouped,";
+				}
+				else {
+					errorMessage("Unknown attribute to group for: '$onlyNumbersGrouped'.");
+					exit;
+				}
+			}
+			$query .= "COUNT(*)";
+		}
+		else {
+			#$query .= "DISTINCT ";
+			$query .= "Trait, Locus, LOD";
+			if (!empty($show_Covariates)) {
+				$query .= ", covariates";
+			}
+			#, l.Name as lName, 
+			#. ", l.Chr, l.cMorgan "
+			$query .= ", Chromosome"
+				. ", cMorgan_Peak, cMorgan_Min, cMorgan_Max"
+				. ", Analysis";
+			$query .= ", Quantile"
+				. ", (LOD-Quantile) as LODdiff "
+				. ", unigene, swissprot_ID, gene_assignment"
+				. ", first_symbol, first_name, ProbeSequence";
+
+			if (!empty($show_LocusOfGene)) {
+				$query .= ", seqname as chr_name, strand"
+					. ", start as gene_chrom_start,stop as gene_chrom_end";
+			}
+
+			if (!empty($show_ExpressionOfGene)) {
+				$query .= ", trait.mean, trait.sd";
+			}
+		}
+
+		$query  .= " FROM qtl ";
+
+		# The counting of QTLs should now be influencing the numbers of QTLs shown
+		# These extra joins are not needed for every kind of query, some optimisation
+		# would help to speed things up!
+
+			# FIXME: In a later version, the specification of loci should be identical
+			#	 for both qtl and locus tables
+				#.  " left join locus as l on concat('loc',qtl.Locus)=l.Name "
+			$query .=  " left join BEARatChip as c on Trait=c.probeset_id ";
+
+			$needingMart=!empty($show_LocusOfGene);
+			if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
+				$needingMart=TRUE;
+			}
+			$needingMart=FALSE;
+		if (!(empty($MeanMin) and empty($MeanMax) and empty($SdMin) and empty($SdMax) and empty($show_ExpressionOfGene))) {
+			$query .= " join trait on qtl.Trait=trait.trait_id ";
+		}
+
+		if ($needingMart) {
+		        $query .= "left join ensembl_mart_${ensemblversion}";
+			if ($ensemblversion<27) $query .= "_1";
+			$query .= ".";
+			if (""=="EXTERNALGENEDB") {
+				if ($ensemblversion<=30) {
+					$query .= "${species_name_ensembl_mart}_ensemblgene_xref_RefSeq_dm";
+				}
+				else {
+					$query .= "${species_name_ensembl_mart}_gene_ensembl__xref_refseq_dna__dm";
+				}
+				$query .= " as a on a.dbprimary_id=LEFT(gene_assignment,(INSTR(gene_assignment,'.') - 1)) ";
+				$query .= " left join ensembl_mart_${ensemblversion}";
+				if ($ensemblversion<27) $query .= "_1";
+				$query .= ".";
+				if ($ensemblversion<30) {
+					$query .= "${species_name_ensembl_mart}_ensemblgene_main";
+				}
+				else {
+					#$query .= "${species_name_ensembl_mart}_gene_ensembl__gene__main";
+					$query .= "${species_name_ensembl_mart}_gene_ensembl__transcript__main";
+				}
+				$query .= " as b using (";
+				if ($ensemblversion<30) {
+					$query .= "gene_id";
+				}
+				else {
+					$query .= "gene_id_key";
+				}
+				$query .= ") ";
+			}
+			else if ("ensembl transcript"=="EXTERNALGENEDB" or "ensembl gene" == "EXTERNALGENEDB") {
+				$query .= "${species_name_ensembl_mart}_gene_ensembl__transcript__main";
+				if ("ensembl transcript"=="EXTERNALGENEDB") {
+					$query .= " on transcript_stable_id=gene_assignment";
+				}
+				else {
+					$query .= " on gene_stable_id=gene_assignment";
+				}
+			}
+			else {
+				echo "Unknown external db: 'EXTERNALGENEDB'.\n";
+				exit;
+			}
+		}
+
+		if (!empty($locus)) {
+			if (is_array($locus)) {
+				$loci=$locus;
+			}
+			else {
+				$loci=preg_split("/[ ,;\t\n\r]+/",$locus);
+			}
+			if (count($loci)>0) {
+				if ($where) $query .= " AND ";
+				else {
+					$query .= " WHERE ";
+					$where = TRUE;
+				}
+				if (1==count($loci)) {
+					$query .= " qtl.Locus='".$loci[0]."'";
+				}
+				else {
+					$query .= " qtl.Locus in ('".join("','",$loci)."')";
+				}
+			}
+		}
+		if (!empty($chrlist)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " Chromosome";
+			#$query .= " Chr";
+			$query .= " in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+		}
+
+                if (!empty($traitlist)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " Trait in ('".join("','",preg_split("/[, ;]/",$traitlist))."') ";
+		}
+		#
+		# SdExpression
+		#
+
+		if (!empty($SdMin) and !empty($SdMax)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " (trait.Sd between $SdMin and $SdMax) ";
+		}
+/*
+		elsif (!empty($SdMin)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " trait.Sd >= $SdMin ";
+		}
+		elsif (!empty($SdMax)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " trait.Sd <= $SdMax ";
+		}
+
+	*/
+
+		#
+		# MeanExpression
+		#
+
+		if (!empty($MeanMin) and !empty($MeanMax)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " (trait.Mean between $MeanMin and $MeanMax) ";
+		}
+/*
+		elsif (!empty($MeanMin)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " trait.Mean >= $MeanMin ";
+		}
+		elsif (!empty($MeanMax)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " trait.Mean <= $MeanMax ";
+		}
+	*/
+
+		#
+		#	Covariates - they are always queried
+		# 
+
+		if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			if (0==count($covariates)) {
+				$query .= " covariates='' ";
+			}
+			else {
+				$query .= " covariates='".join(",",$covariates)."' ";
+			}
+		}
+
+		# Performing tests on eligibility of values prior to entering 
+		# if statements
+
+		if (!(empty($cM_Peak_Min) or is_numeric($cM_Peak_Min))) {
+			array_push($err,
+			  "The lower boundary in cMorgan positions for loci under "
+			 ."investigation must be numeric ($cM_Peak_Min).\n");
+		}
+
+		if (!(empty($cM_Peak_Max) or is_numeric($cM_Peak_Max))) {
+			array_push($err,
+			  "The upper boundary in cMorgan positions for loci under "
+			 ."investigation must be numeric ($cM_Peak_Max).\n");
+		}
+
+		if (!(empty($cM_Peak_Min) or empty($cM_Peak_Max))) {
+			# A region is specified
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " (cMorgan_Peak BETWEEN ".$cM_Peak_Min." AND ".$cM_Peak_Max.") ";
+		}
+		else {
+			if (!empty($cM_Peak_Min)) {
+				if ($where) $query .= " AND ";
+				else {
+					$query .= " WHERE ";
+					$where = TRUE;
+				}
+				$query .= " cMorgan_Peak >= ".$cM_Peak_Min." ";
+			}
+			if (!empty($cM_Peak_Max)) {
+				if ($where) $query .= " AND ";
+				else {
+					$query .= " WHERE ";
+					$where = TRUE;
+				}
+				$query .= " cMorgan_Peak <= ".$cM_Peak_Max." ";
+			}
+		}
+
+		if (!empty($cM_within)||"0"==$cM_within) {
+			if (!is_numeric($cM_within)) array_push($err,"The position to be within a QTL must be numeric ($cM_within).\n");
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " ($cM_within between cMorgan_Min and cMorgan_Max) ";
+		}
+
+		if (!empty($LODmin)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " LOD >= ".$LODmin." ";
+		}
+		if (!empty($LODmax)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " LOD <= ".$LODmax." ";
+		}
+		if (!empty($quantilemin)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " Quantile >= ".$quantilemin." ";
+		}
+		if (!empty($quantilemax)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " Quantile <= ".$quantilemax." ";
+		}
+
+		// LODdiff = LOD - Quantile
+		if (!isset($LODdiffmin) and "" != "$LODdiffmin") {
+			if (!is_numeric($LODdiffmin)) {
+				array_push($err, "LOD score difference must be numeric.\n");
+			}
+			else {
+				if ($where) $query .= " AND ";
+				else {
+					$query .= " WHERE ";
+					$where = TRUE;
+				}
+				#$query .= " LODdiff >= ".$LODdiffmin." "; # not understood by MySQL
+				$query .= " (LOD - Quantile) >= ".$LODdiffmin." ";
+			}
+		}
+		
+		if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
+			if ("manual" != $conditionList[$c]["constraint"]) {
+				if ($where) $query .= " AND ";
+				else {
+					$query .= " WHERE ";
+					$where = TRUE;
+				}
+				$query .= " ".$conditionList[$c]["constraint"]." ";
+			}
+		}
+
+		#if (!empty($onlyNumbers) and !empty($onlyNumbersGrouped) and "totals" != "$onlyNumbersGrouped") {
+		if (!empty($onlyNumbers) and !empty($onlyNumbersGrouped) and "totals" != "$onlyNumbersGrouped" and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
+			$query .= " GROUP BY $onlyNumbersGrouped ORDER BY $onlyNumbersGrouped";
+		}
+
+		if (!$onlyNumbers and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
+			if (!empty($order)) {
+				$query .= " ORDER BY ".$order." ";
+			}
+
+			if (!empty($limit)) {
+				$query .= " LIMIT ".$limit." ";
+			}
+		}
+
+		if (0<count($err)) {
+			echo "<p>Please address the following error".(1<count($err)?"s":"").":<br>";
+			foreach ($err as $e) {
+				echo $e."<br>";
+			}
+			echo "</p>";
+			mysql_close($linkLocal);
+			exit;
+		}
+
+		if ($debug) echo "query: $query<br>";
+
+		$result = mysql_query($query,$linkLocal);
+		if (empty($result)) {
+			errorMessage(mysql_error($linkLocal)."</p><p>".$query."</p>");
+			//echo "LinkLocal: "; print_r($linkLocal);
+			mysql_close($linkLocal);
+			exit;
+		}
+
+		if (!empty($onlyNumbers) and isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition)) {
+		#if (!empty($onlyNumbers) and isset($condition) and is_array($condition)) {
+		    $rowno=0;
+		    $chr_count=array();
+		    $qtls = get_public_qtls($linkLocal);
+		    while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+				#hier einen hash anlegen mit chromosomen der hochgezählt werden kann
+					
+				$cMpeak=$line["cMorgan_Peak"];
+				$c=$line["Chromosome"];
+				$chromdingens=$line["chr_name"];
+		                $bp=cM2bp($c,$cMpeak);
+                        $qs=withinthefollowingqtls($c,$bp,$qtls);
+                        if (0==count($qs)) {
+                            #    echo "<tr><td colspan=1000>Ignoring row since it does not overlapt with classical QTLs</td></tr>\n";
+                                continue;
+                        }
+			if (!empty($onlyNumbersGrouped) and "seqname" == "$onlyNumbersGrouped") {
+			if(array_key_exists($chromdingens,$chr_count)){
+			   $chr_count[$chromdingens]++;
+			}
+			else{
+			   $chr_count[$chromdingens]=1;
+			}
+			}
+			elseif (!empty($onlyNumbersGrouped) and "Chromosome" == "$onlyNumbersGrouped") {
+			if(array_key_exists($c,$chr_count)){
+                           $chr_count[$c]++;
+                        }
+                        else{
+                           $chr_count[$c]=1;
+                        }
+
+			}
+                        $rowno++;
+	            }
+		    if (!empty($onlyNumbersGrouped) and "totals" == "$onlyNumbersGrouped") {
+                                        echo "<pre>";
+					echo "Number of eQTL within classical QTL:<br>";
+                                        print_r($rowno);
+                                        echo "</pre>\n";
+                        }
+                        else {
+				
+				echo "<table><thead><tr><th>Chromosome</th><th>#</th></tr></thead>\n";
+                                echo "<tbody>\n";
+				echo "else fall\n";
+				$sum =0;
+				foreach ($chr_count as $chrom => $counter)
+				{
+                                                echo "<tr>";
+                                                echo "<td>$chrom</td>";
+                                                echo "<td>$counter</td>";
+                                                echo "</tr>\n";
+						$sum += $counter;
+				}	
+				
+				#TODO muss noch gemacht werden
+                                #$r=array();
+                                #echo "<table><thead><tr><th>Chromosome</th><th>#</th></tr></thead>\n";
+                                #while ($line = mysql_fetch_row($result)) {
+                                #        print_r($line);
+                                #        $r["chr".$line[0]]=$line[1];
+                                #}
+                                #echo "<tbody>\n";
+                                #$i=-2;
+                                #$s=0;
+                                #while($i<23) {
+                                #        $i++;
+                                #        $j=$i;
+                                #        if (-1=="$j") $j="";
+                                #        if (0=="$j") $j="X";
+                                #        if (array_key_exists("chr$j",$r)) {
+                                #                echo "<tr>";
+                                #                echo "<td>$j</td>";
+                                #                echo "<td>".$r["chr$j"]."</td>";
+                                #                echo "</tr>\n";
+                                #                $s += $r["chr$j"];
+                                #        }
+                                #}
+                                echo "</tbody>\n";
+                                echo "<tfooter>";
+                                echo "<tr>";
+                                echo "<td>Sum</td>";
+                                echo "<td>".$sum."</td>";
+                                echo "</tr>\n";
+                                echo "</tfooter>";
+                                echo "</table>\n";
+                        }
+
+
+
+		}
+		elseif(!empty($onlyNumbers)){
+			if (!empty($onlyNumbersGrouped) and "totals" == "$onlyNumbersGrouped") {
+				while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+					echo "<pre>";
+					print_r($line);
+					echo "</pre>\n";
+				}
+			}
+			else {
+				$r=array();
+				echo "<table><thead><tr><th>Chromosome</th><th>#</th></tr></thead>\n";
+				while ($line = mysql_fetch_row($result)) {
+					print_r($line);
+					$r["chr".$line[0]]=$line[1];
+				}
+				echo "<tbody>\n";
+				$i=-2;
+				$s=0;
+				while($i<23) {
+					$i++;
+					$j=$i;
+					if (-1=="$j") $j="";
+					if (0=="$j") $j="X";
+					if (array_key_exists("chr$j",$r)) {
+						echo "<tr>";
+						echo "<td>$j</td>";
+						echo "<td>".$r["chr$j"]."</td>";
+						echo "</tr>\n";
+						$s += $r["chr$j"];
+					}
+				}
+				echo "</tbody>\n";
+				echo "<tfooter>";
+				echo "<tr>";
+				echo "<td>Sum</td>";
+				echo "<td>".$s."</td>";
+				echo "</tr>\n";
+				echo "</tfooter>";
+				echo "</table>\n";
+			}
+		}
+		else {
+		
+		    $rowno=0;
+		    //print_r($condition);
+		    $demandOverlappingQTL=FALSE;
+		    if(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition)) {
+			$demandOverlappingQTL=TRUE;
+		    }
+		    echo "<small><table border=1>\n<thead>\n";
+		    $qtls = get_public_qtls($linkLocal);
+		    while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+
+// 			if (empty($line["cMorgan_Max"])) {
+// 				if ($debug) echo "\nDebug: <p>empty(\$line[\"cMorgan_Max\"]</p>\n";
+// 				$cMmin=$line["Morgan"]*100-10;
+// 				$cMpeak=$line["Morgan"]*100;
+// 				$cMmax=$line["Morgan"]*100+10;
+// 			}
+// 			else {
+// 				$cMmin=$line["cMorgan_Min"];
+				$cMpeak=$line["cMorgan_Peak"];
+// 				$cMmax=$line["cMorgan_Max"];
+// 			}
+
+//			print_r($line); echo "<br>\n";
+
+			$c=$line["Chromosome"];
+			#$c=$line["Chr"];
+			$bp=cM2bp($c,$cMpeak);
+
+			//echo "<td align=right><small><small>$bp</small></small></td>";
+			$qs=withinthefollowingqtls($c,$bp,$qtls);
+			if ($demandOverlappingQTL && 0==count($qs)) {
+				//echo "<tr><td colspan=1000>Ignoring row since it does not overlapt with classical QTLs</td></tr>\n";
+				continue;
+			}
+
+			$rowno++;
+			if (1==$rowno) {
+				$firstRow=FALSE;
+				echo "<tr bgcolor=yellow>";
+				echo "<th class=c>#</th>";
+				foreach($line as $n=>$l) {
+					$f="show_".$n;
+					if (!empty($$f)) {
+						echo "<th class=c><small>$n</small></th>";
+						if ("Trait"==$n) {
+							if(!empty($show_LocusOfGene) and !empty($show_ExpressionOfGene)) {
+								echo "<th class=c colspan=5><small>Trait<br>chr,strand,start,mean,sd</small></th>";
+							}
+							else if(!empty($show_LocusOfGene)) {
+								echo "<th class=c colspan=3><small>Trait<br>chr,strand,start</small></th>";
+							}
+							else if(!empty($show_ExpressionOfGene)) {
+								echo "<th class=c colspan=2><small>Trait<br>mean,sd</small></th>";
+							}
+						}
+					}
+				}
+				echo "<th class=c>Public QTLs</th>";
+				echo "<th class=c>Links</th>";
+			#	echo "<th>Images</th>\n";
+				echo "</tr>\n</thead>\n<tbody>\n";
+			}
+			echo "<tr><td>$rowno</td>";
+			foreach($line as $n=>$l) {
+				$f="show_".$n;
+				if (!empty($$f)) {
+					#echo "not empty: \$$f\n";
+					switch($n) {
+						case "Trait":
+							echo "<td class=small align=right nowrap>"
+							."<a href=\"trait.php?direct=1&traitlist=$l\">$l</a> ["
+							."<a href=\"qtl.php?direct=1&traitlist=$l\">q</a>"
+							."<a href=\"interaction.php?direct=1&traitlist=$l&type=X\">i</a>"
+							."<a href=\"interaction.php?direct=1&traitlist=$l&type=Y\">j</a>"
+							."]</td>";
+							if (!empty($show_LocusOfGene)) {
+								echo "<td class=small>".$line["chr_name"]."</td>";
+								echo "<td class=small>".$line["strand"]."</td>";
+								echo "<td class=small>"
+									.$line["gene_chrom_start"]."</td>";
+							}
+							if (!empty($show_ExpressionOfGene)) {
+								echo "<td class=small>".$line["mean"]."</td>";
+								echo "<td class=small>".$line["sd"]."</td>";
+							}
+							break;
+						case "Chr":
+						case "Chromosome":
+							echo "<td class=small><a href=\"http://www.ensembl.org/$ensemblorganism/mapview?chr=$c\">$l</a>";
+							echo " <a href=\"http://www.ensembl.org/$ensemblorganism/syntenyview?otherspecies=Homo_sapiens&chr=$c\">Hs</a></td>";
+							break;
+						case "Locus":
+							echo "<td><a href=\"locus.php?Name=$l\">$l</a></td>";
+							break;
+						case "cMorgan_Peak":
+							echo "<td class=small><a href=\"http://www.ensembl.org/$ensemblorganism/contigview?chr=$c&vc_start="
+									.(cM2bp($c,$cMpeak)-100000)."&vc_end="
+									.(cM2bp($c,$cMpeak)+100000)."\">".round($cMpeak,4)."</a></td>";
+							break;
+						case "cMorgan_Min":
+							echo "<td class=small>".round($cMmin,4)."</td>";
+							break;
+						case "cMorgan_Max":
+							echo "<td class=small>".round($cMmax,4)."</td>";
+							break;
+						case "ProbeSequence":
+							echo "<small><small>$l</small></small>";
+							break;
+						case "LOD":
+							echo "<td class=small>".round($l,4)."</td>";
+							break;
+						case "LODdiff":
+							echo "<td class=small>".round($l,4)."</td>";
+							break;
+						case "gene_assignment":
+							$b=explode(".",$l);
+							echo "<td class=small><a href=\""
+								.gene2ensemblUrl($b[0],$ensemblorganism)
+								."\">$l</a></td>";
+							break;
+						case "covariates":
+							if (empty($l)) $l="none";
+							echo "<td class=small>$l</td>";
+							break;
+						default:
+							if (!isset($l)||""==$l) echo "<td>&nbsp;</td>";
+							else echo "<td class=small>$l</td>";
+					}
+					echo "</td>";
+				}
+				else {
+					#echo "empty: \$$f\n";
+				}
+				//expressionviewgene(array("db"=>"EMBL","name"=>$line["Transcript"],"symbol"=>$line["Accession"]));
+
+				$symb=$line["Symbol"];
+				if (empty($symb)) {
+					$symb="Trait#".$line["Trait"];
+				}
+				else {
+					expressionviewgene(
+						array(
+							#"db"=>"REFSEQ",
+							#"name"=>$line["Accession"],
+							"db"=>"HUGO",
+							"name"=>$symb,
+							"symbol"=>$symb)
+					);
+				}
+				$a=cM2bp($c,$cMmin);
+				if ($a<0) $a=0;
+				$b=cM2bp($c,$cMmax);
+				if ($b<0) $b=0;
+				
+				expressionviewqtl(array("name"=>$symb,
+					//"trait"=>$line["Trait"],
+					"trait"=>$symb,
+					"chr"=>$c,
+					"cMmin"=>$cMmin, "cMmax"=>$cMmax,
+					"bpmin"=>min($a,$b),"bpmax"=>max($a,$b)
+				));
+			}
+
+			echo "<td class=small>";
+			if (0==count($qs)) {
+				echo "&nbsp;";
+			}
+			else {
+				echo join(",",$qs);
+			}
+
+			echo "</td>";
+			echo "<td class=link>";
+			#echo "<a href=\"http://bioinformatics.pzr.uni-rostock.de/~moeller/genes_within.php?chr="
+			#echo "<a href=\"http://rack2.pzr.uni-rostock.de/~moeller/genes_within.php?chr="
+			echo "<a href=\"genes_within.php?chr="
+				.$c
+				."&bpFrom=".cM2bp($c,$cMmin)
+				."&bpTo=".cM2bp($c,$cMmax)
+				."&bpPeak=".cM2bp($c,$cMpeak)."\">"
+				."Genes"
+				."</a><br><hr>Plots w/ cofactor\n";
+				foreach(array("Severity","AUC","onset") as $cofactor) {
+				   echo " <a href=qtl_dynamic.php?traitlist=".$line["Trait"]
+				          ."&analysis=$cofactor>$cofactor</a>";
+				}
+				echo "</td>";
+		#	echo "<td class=link>"
+		#	 . "<a href=\"images/".$line["Trait"]."_onescan.pdf\">one</a>"
+		#	 ." <a href=\"images/".$line["Trait"]."_nosex_twoscan.pdf\">two</a>"
+		#	 ." <a href=\"images/".$line["Trait"]."_sex_twoscan.pdf\">two-sex</a>"
+		#	 ."</td>\n";
+			echo "</tr>\n";
+		    }
+		    echo "</tbody>\n</table>\n";
+		    if (0==$rowno) {
+			echo "<p>No records found matching criteria.</p>";
+		    }
+		    else {
+			echo "<p>$rowno record".($rowno>1?"s":"")." found matching criteria.</p>";
+			expressionviewlink("$ensemblorganism");
+		    }
+		    echo "</small>";
+		}
+		mysql_free_result($result);
+		mysql_close($linkLocal);
+	}
+	include("footer.php");
+?>
+</body>
+</html>

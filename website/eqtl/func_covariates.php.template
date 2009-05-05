@@ -1,0 +1,177 @@
+<?php
+
+TEMPLATEWARNINGHASH
+
+/**
+	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
+	Copyright: Universities of Rostock and Lübeck, 2003-2009
+*/
+
+
+/**
+    The QTLs differ in their covariates. The database
+    accomodates for these.
+ */
+
+/**
+ * Configuration stores the covariate names as a
+ * comma or blank separated string. This routine
+ * converts this string into a workable array.
+ *
+ * That string should be the exact same as the
+ * covariates are stored in the database. Don't change
+ * one without the other.
+ */
+function convert_string_to_covariates_array($cov) {
+	if (!is_array($cov)) {
+		$cov=preg_split("/[ ,]+/",$cov);
+	}
+	return($cov);
+}
+
+
+/**
+ * variable to store previously retrieved covariates
+ */
+
+/*
+ * Inspects table qtl to read out all occuring covariates and return these in a list.
+ */
+function get_covars_on_your_own_from_qtl($dbh) {
+	global $debug;
+	global $covariates_qtl;
+	if (isset($covariates_qtl)) {
+		return($covariates_qtl);
+	}
+	$query = "SELECT distinct covariates from qtl where covariates != ''";
+	$result = mysql_query($query) or die('Query failed: ' . mysql_error());
+	$retrieved=array();
+	while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+		#if ($debug) print_r($line); echo "<br>";
+		array_push($retrieved,$line["covariates"]);
+	}
+	$covariates_qtl=$retrieved;
+	return($retrieved);
+}
+
+function get_covars_on_your_own_from_schema($dbh) {
+	global $debug;
+	$query = 'DESCRIBE qtl';
+	$result = mysql_query($query) or die('Query failed: ' . mysql_error());
+	$retrieved=array();
+	while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+		#if ($debug) print_r($line); echo "<br>";
+		if ("covariates" == $line["Field"]) {
+			#echo "In covariates:"; print_r($line);
+			$quotedFields = preg_split("/,/",$line["Type"]);
+			foreach($quotedFields as $t) {
+				$takeMiddle=preg_split("/'/",$t);
+				array_push($retrieved,$takeMiddle[1]);
+			}
+		}
+		else {
+			// this function might evolve, still.
+		}
+	}
+	#echo "\n"; echo "FINDME\n"; print_r($retrieved); echo "\n";
+	return($retrieved);
+}
+
+$covariates_values=array();
+
+/**
+ * Retrieval of covariates from database schema and assigning
+ * values to the strings, accordingly.
+ */
+function prepare_covariates_values_hash($dbh) {
+	global $covariates_values;
+	if (0==count($covariates_values)) {
+		$cov = get_covars_on_your_own_from_schema($dbh);
+		$v=1;
+		foreach ($cov as $c) {
+			$covariates_values[$c]=$v;
+			$v = $v*2;
+		}
+	}
+	return $covariates_values;
+}
+
+
+$covariates_statistics=array();
+
+function prepare_covariates_statistics($dbh,$initial=array()) {
+	global $covariates_statistics;
+	if (0==count($covariates_statistics)) {
+		$cov = prepare_covariates_values_hash($dbh);
+		foreach ($cov as $c=>$v) {
+			#echo "<br>c=$c\n";
+			$c_parts=preg_split("/_/",$c);
+			if (isset($initial[$c_parts[0]])) {
+				array_push($initial[$c_parts[0]],$c_parts[1]);
+			}
+			else {
+				$initial[$c_parts[0]]=array($c_parts[1]);
+			}
+		}
+		$covariates_statistics=$initial;
+	}
+	#print_r($covariates_statistics);
+	return($covariates_statistics);
+}
+
+function select_covariates($dbh,$cov,$maxPerLine=6) {
+
+	global $_POST, $_GET; // still to be used.
+	global $covariates; // the covariates selected on the web site
+	if (empty($covariates)) {
+		$covariates=$_POST["covariates"];
+		if (empty($covariates)) {
+			$covariates=$_GET["covariates"];
+		}
+	}
+
+	#print_r($covariates);
+	
+	/*
+	if( $cov == 'qtl' or $cov == 'locusInteraction' or $cov == 'both' ) {
+		$cov = get_covars_on_your_own_from_schema($dbh);
+	} else {
+		$cov = convert_string_to_covariates_array($cov);
+	}
+	*/
+	$cov=array();
+	$cov["none"]=array();
+	$cov = prepare_covariates_statistics($dbh, $cov);
+
+	#echo "FINDME COVARIATES STATISTICS"; print_r($cov);
+
+	echo "<table border=1><tr>";
+	$numPerLine=0;
+	foreach($cov as $n=>$c) {
+
+		echo "<td valign=top>";
+		echo "<table>\n"
+		     ."<tr><th class=tl>$n</th></tr>\n"
+		     ."<tr><td valign=top nowrap>";
+		#foreach(("none"=="$c"?array("only"):array_merge(array("exclude"),$c)) as $v)
+		foreach(("none"=="$c"?array("only"):$c) as $v)
+		#foreach(("none"=="$c"?array("only"):array_merge($c,array("none"))) as $v)
+		{
+			echo "<input type=checkbox name=\"covariates[]\" value=\"".$n."_".$v."\"";
+			#print_r($covariates);
+			if ((!empty($covariates)) and is_array($covariates)) {
+				if (in_array(($n."_".$v),$covariates,TRUE)) echo " checked";
+			}
+			echo ">$v<br>\n";
+		}
+		echo " </td></tr></table>";
+		echo "</td>";
+		$numPerLine++;
+		if ($numPerLine>=$maxPerLine) {
+			echo "</tr>\n<tr>";
+			$numPerLine=0;
+		}
+	}
+	echo "</tr></table>\n";
+}
+?>

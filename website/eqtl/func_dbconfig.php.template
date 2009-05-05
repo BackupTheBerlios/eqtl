@@ -1,0 +1,191 @@
+<?php
+
+TEMPLATEWARNINGHASH
+
+/**
+	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
+	Copyright: Universities of Rostock and Lübeck, 2003-2009
+*/
+
+
+global $ensemblversion;
+global $ensemblversionLocal;
+global $ensemblversionEnsembl;
+
+$ensemblversion=ENSEMBLVERSION;
+$ensemblversionLocal=ENSEMBLVERSION;
+$ensemblversionEnsembl=ENSEMBLVERSION;
+
+function martdbname($version) {
+	$r = "ensembl_mart_$version";
+	if ($version<29) {
+		$r = "ensembl_mart_$version"."_1";
+	}
+	return($r);
+}
+
+/**
+ * Returns hostname:port to access Ensembl mart on
+ * for MySQL queries in dependency of the Ensembl
+ * version that is passed as an argument.
+ */
+function martdbhost($version) {
+	$r="martdb.ensembl.org:3316";
+	if ($version>47) {
+		$r="martdb.ensembl.org:5316";
+	}
+	return($r);
+}
+
+
+/**
+ * Returns the page with results from a search for a
+ * probeset with that ID in Ensembl.
+ */
+function probe2ensemblUrl($id,$species="Rattus_norvegicus"){
+	global $ensemblversionEnsembl;
+	return "http://www.ensembl.org/$species/Location/Genome?ftype=OligoFeature;id=".$id;
+}
+
+/**
+ * Returns the page with results from a search for a
+ * gene with that ID in Ensembl.
+ */
+function gene2ensemblUrl($id,$species="Rattus_norvegicus"){
+	global $ensemblversionEnsembl;
+	return "http://www.ensembl.org/".$species."/Search/Summary?species="
+		.$species.";idx=;q=".$id;
+}
+
+
+
+$hostnameEnsembl=martdbhost($ensemblversionEnsembl);
+$databaseEnsembl=martdbname($ensemblversionEnsembl);
+
+$ensemblhost=$hostnameEnsembl;
+$ensembluser="anonymous";
+$ensemblorganism="Rattus_norvegicus";
+$ensembldatabase=$databaseEnsembl;
+
+
+if (empty($usernameEnsembl)) {
+	if (empty($ensembluser)) {
+		$usernameEnsembl="anonymous";
+	}
+	else {
+		$usernameEnsembl=$ensembluser;
+	}
+}
+if (empty($ensemblversionEnsembl)) {
+	if (empty($ensemblversion) && empty($ensemblversionEnsembl)) {
+		$ensemblversionEnsembl=47;
+// 		print "Setting \$ensemblversionEnsembl=$ensemblversionEnsembl;";
+	}
+	else if (!empty($ensemblversionEnsembl)) {
+// 		print "Setting \$ensemblversionEnsembl=$ensemblversionEnsembl;";
+		$ensemblversionEnsembl=$ensemblversionLocal;
+	}
+	else {
+		$ensemblversionEnsembl=$ensemblversion;
+// 		print "Setting ensemblversionEnsembl to ensemblversion=$ensemblversion;\n";
+	}
+}
+
+if (empty($ensemblorganismEnsembl)) {
+	if (empty($ensemblorganism)) {
+		$ensemblorganismEnsembl="rnorvegicus";
+	}
+	else {
+		$ensemblorganismEnsembl=$ensemblorganism;
+	}
+}
+
+if (empty($hostname)) {
+	$ensemblhostLocal=$hostnameqtl;
+}
+else {
+	$ensemblhostLocal=$hostname;
+}
+
+if (empty($username)) {
+	$ensembluserLocal=$usernameqtl;
+}
+else {
+	$ensembluserLocal=$username;
+}
+
+if (empty($ensemblversionLocal)) {
+	$ensemblversionLocal=$ensemblversionLocal;
+}
+
+$databaseLocal=$database;
+
+global $hostname,$username,$database,$ensemblversion,$ensemblversionLocal;
+
+global $urlLogoLeft2,$urlLogoLeft, $urlLogoRight, $urlLogoRightLarge;
+$urlLogoLeft2="PATHLOGOLEFT2";
+$urlLogoLeft="PATHLOGOLEFTNORMAL";
+$urlLogoRight="PATHLOGORIGHTNORMAL";
+$urlLogoRightLarge="PATHLOGORIGHTLARGE";
+
+$hostname=`hostname --long`;
+if (strpos($hostname,".pzr.uni-rostock.de")) {
+	$htmlroot="http://bioinformatics.pzr.uni-rostock.de/~moeller/eqtl";
+	$hostname="rack8.pzr.uni-rostock.de";
+	$ensemblversionLocal="40";
+	$hostnameqtl="rack2.pzr.uni-rostock.de";
+	$usernameqtl="correlation";
+}
+else {
+	$htmlroot="http://www.inb.uni-luebeck.de/~moeller/eqtl";
+}
+$hostname="DATABASEHOSTLOCAL";
+$username="DATABASEEQTLUSER";
+$databaseqtl="DATABASEQTLNAME";
+$databaseeqtl="DATABASEEQTLNAME";
+$database="DATABASEEQTLNAME";
+$maintainerEmail="MAINTAINEREMAIL";
+$hostnameeqtl="DATABASEHOSTLOCAL";
+$usernameeqtl="DATABASEEQTLUSER";
+$hostnameqtl="DATABASEHOSTLOCAL";
+$usernameqtl="DATABASEQTLUSER";
+
+$debug=TRUE;
+
+function errorMessage ($text) {
+	global $maintainerEmail;
+	echo "<p>$text</p>";
+	echo "<p>Send an email to <a href=\"mailto:$maintainerEmail\">$maintainerEmail</a></p>";
+}
+
+function show_config() {
+	global $hostnameEnsembl, $usernameEnsembl,
+	       $ensemblversionEnsembl, $databaseEnsembl,
+	       $ensemblhostLocal, $ensembluserLocal,
+	       $ensemblversionLocal, $databaseLocal,
+	       $ensemblorganismEnsembl;
+
+	echo "<h2>Configuration</h2>\n";
+	echo "<table border=0>\n";
+	echo "<tr><td valign=top>";
+	echo "<table border=1>\n";
+	echo "<tr><th>Ensembl host</th><td class=l><input type=text name=\"ensemblhost\" value=\"$hostnameEnsembl\"></td><td class=l>Host of MySQL database providing Ensembl</td></tr>\n";
+	echo "<tr><th>Ensembl user</th><td class=l><input type=text name=\"ensembluser\" value=\"$usernameEnsembl\"></td><td class=l>Username for login</td></tr>\n";
+	echo "<tr><th valign=top> Organism:</th><td>";
+	foreach(array("hsapiens"=>"Human","mmusculus"=>"Mouse","rnorvegicus"=>"Rat") as $abbrev=>$trivial) {
+		echo "<input type=radio name=ensemblorganism value=$abbrev";
+		if ($abbrev==$ensemblorganismEnsembl) echo " checked";
+		echo ">$trivial</input><br>\n";
+	}
+	echo "</td><td class=l>Organism the gene should be searched in</td></tr>\n";
+	echo "<tr><th>Ensembl version</th><td class=l><input type=text name=\"ensemblversion\" value=\"$ensemblversionEnsembl\"></td><td class=l>Version of Ensembl on server to use</td></tr>\n";
+	echo "</table>\n";
+	echo "</td><td valign=top>";
+	echo "<table border=1>\n";
+	echo "<th>Marker DB host</th><td class=l><input type=text name=\"markerhost\" value=\"$ensemblhostLocal\"></td><td class=l>Host of MySQL database providing info on marker, genotyping, scoring and expression data</td></tr>\n";
+	echo "<th>Marker DB user</th><td class=l><input type=text name=\"markeruser\" value=\"$ensembluserLocal\"></td><td class=l>Username for login</td></tr>\n";
+	echo "<tr><th>Marker database</th><td class=l><input type=text name=\"markerdatabase\" value=\"".(empty($markerdatabase)?$databaseLocal:$markerdatabase)."\"></td><td class=l>Name of MySQL database</td></tr>\n";
+	echo "</table>\n";
+	echo "</td></tr></table>\n";
+}
+?>

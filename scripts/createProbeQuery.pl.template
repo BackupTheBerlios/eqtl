@@ -1,0 +1,43 @@
+#!/usr/bin/perl -w
+
+TEMPLATEWARNINGHASH
+
+use strict;
+
+my $src="PHENOFILE";
+my $base="BASEDIR";
+my $databaseW="MISCDATABASE";
+my $databaseR="CSVDATABASE";
+
+if( defined(@ARGV) && $ARGV[0] eq "-r" ){
+	open( OUT, "$base$databaseW"."ToDo" ) || die "Could not write to file $base$databaseW"."ToDo";
+	my @tmp = <OUT>;
+	close(OUT);
+	pop(@tmp);
+	open( OUT, ">$base$databaseW"."ToDo" );
+	print OUT @tmp;
+	close( OUT );
+	exit(0);
+}else{
+	#open files, read them to memory, close them
+	open(GET, "$base$databaseR$src") || die "No such pheno-file at '$databaseR$src";
+	
+	my @return;
+	
+	<GET>;
+	<GET>;
+	
+	print "Getting informations from: \t $base$databaseR$src\n";
+	print "	       Writing to:\t $base$databaseW"."ToDo\n";
+	
+	while( <GET> ){
+		my @tmp = split(/,/,$_);
+		push(@return,"$tmp[0]\n");
+	}
+	
+	close(GET);
+	
+	open(OUT, ">$base$databaseW"."ToDo") || die "Could not write to file $base$databaseW"."ToDo";
+	print OUT @return;
+	close(OUT);
+}

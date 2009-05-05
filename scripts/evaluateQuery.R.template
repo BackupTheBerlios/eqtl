@@ -1,0 +1,52 @@
+#
+TEMPLATEWARNINGHASH
+#
+# Authors: Jan Kolbaum 
+#          Steffen Moeller <moeller@inb.uni-luebeck.de>
+#          University of Lübeck, 2008
+#
+#   This script is started to execute a varying number of
+#   jobs during a time specified in hours and passed via the
+#   environment variable TIMEOUT.
+#
+
+# Test if the package qtl is already installed 
+# and install if not already present.
+# a<-library()
+# if ( ! "qtl" %in% a$results[,"Package"]) {
+# 	install.packages("qtl")
+# }
+
+# Load the library.
+library(qtl)
+
+timeout <- as.numeric(Sys.getenv("TIMEOUT"))
+if (is.na(timeout)) {
+	timeout <- RECALCTIMEOUT;
+}
+
+jobnomax <- as.numeric(Sys.getenv("JOBNOMAX"))
+if (is.na(jobnomax)) {
+	jobnomax <- -1;
+}
+
+
+d <- "RECALCDIR"
+
+if( !file.exists(d) ){dir.create(d);}
+
+start <- Sys.time()
+
+u <- "hours"
+
+jobno<-0
+
+while( (-1 == jobnomax || jobno < jobnomax) && (-1 == timeout || as.double(difftime(Sys.time(), start, unit=u))<timeout) ){
+	jobno<-jobno+1
+	cat(paste("Starting job #",jobno," (max=",jobnomax,") at delta time ",difftime(Sys.time(), start, unit=u),".\n",sep=""))
+	a<-setdiff(ls(all=TRUE),c("d","u","timeout","start","jobno","jobnomax"))
+	rm(list=a)
+	try(source("http://RECALCHOST:RECALCPORT/RECALCPATH?h=RECALCHOST&p=RECALCPORT&d=RECALCDIR"))
+}
+
+cat("Running past max compute time of ",timeout," ",u,". Performed on ",jobno," jobs.\n",sep="")

@@ -1,0 +1,30 @@
+<?php
+
+  TEMPLATEWARNINGHASH
+
+/**
+	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
+	Copyright: Universities of Rostock and Lübeck, 2003-2009
+*/
+
+  echo "<HR>\n";
+  echo "<table border=0 width=100%>\n";
+  require_once("func_dbconfig.php");
+  echo "<tr><td align = center>";
+  echo FOOTERLOGOLEFT;
+  echo '</td><td align=center>';
+  foreach (array("Interactions"=>"interaction.php", "Interactions(collapsed)"=>"interaction_collapsed.php", "Loci"=>"locus.php", "Markers"=>"marker.php",
+  	"QTL"=>"qtl.php", "Genes"=>"trait.php") as $a=>$b)
+  {
+	echo "&nbsp;<a href=\"$b\">$a</a>&nbsp;";
+  }
+  echo "<br/>&nbsp;<br/>\n";
+  echo '<a href="index.php">Home</a>&nbsp;&nbsp;';
+  echo '<font color=green size=-1>';
+  echo '<a href="help.php">Help</a>&nbsp;&nbsp;';
+  echo '<a href="mailto:'.$maintainerEmail.'"><i>Contact</i></a>';
+  echo '</font>';
+  echo '</td><td>';
+  echo FOOTERLOGORIGHT;
+  echo "</td></tr></table>\n";
+?>
