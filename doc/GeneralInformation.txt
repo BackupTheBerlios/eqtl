@@ -28,18 +28,84 @@
    +--------------------+
 
    BEARatChip:
+   --------------------
    
    this table contains all information
    about the expression data.
    This is the only table where the name should
    be choosen dependent from the data, but we haven't
    included this to to be a config parameter so at the
-   moment this name needs to be used
+   moment this name needs to be used.
 
+   computation:
+   --------------------
+
+   this table controls all computations:
+   all jobs that need to be computed are one entry in this
+   database. The jobname is in the format:
+
+	 [scanone|scantwo]_probesetid_lodThreshold_numberOfPermutations_(covariate1{_add|_int},covariate2{_add|_int}).csv.gz
+
+   each entry has a unique id, the computation_id
+   which is linked to the results from this job.
+   In that way, old results can be determined and can be
+   deleted if a new compuation was done.
+   The status of a job can either be QUEUED, which means
+   it needs to be computed for the first time, RECALCULATE
+   which says this job needs to be recalculated, PROCESSING
+   or REPROCESSING which says the job is beeing computed at
+   the moment or was computed and not uploaded yet or in the
+   status DONE, which means the results are already uploaded.
+   For a more precisely description of this table please 
+   apply to the seperated database documentation.
+
+   locus:
+   --------------------
+
+   This table gives information about the determined loci,
+   for example like the chromosome and the centiMorgan
+   position.
+
+   locusInteraction:
+   --------------------
+
+   This table contains all results from the scantwo analyses.
+   It tells which two loci are interacting for a specific
+   probeset_id and specific covariates. There is also information
+   about the 95 percentile, the LOD score and much more given.
+   For a detailed description please see the database documentation.
+
+   map:
+   --------------------
+
+   This table stores the marker information from the 
+   experment.
+
+   qtl:
+   --------------------
+
+   Table representing the results of the scanone analysis.
+   Locus, Probeset_ids, LOD-scores, cMorgan positions and
+   much more information are given.
+
+   trait:
+   --------------------
+
+   This table contains information about every single probeset
+   like expression high, variance, standarddeviaten.
+   
 
 
 2. Website
+--------------------
+--------------------
+
+
 3. Config files and template files
+--------------------
+--------------------
+
+
 4. Data Computation
 --------------------
 --------------------
@@ -104,4 +170,10 @@
    - make sure that the pathes to the files in the config 
      files are right
    
-5. data uplaod
+5. Data Uplaod
+--------------------
+--------------------
+
+
+--------------------
+--------------------
