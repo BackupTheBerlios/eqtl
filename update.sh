@@ -81,9 +81,9 @@ esac
 
 
 if [ -f "conf_$internal_projectname/path.conf" ] && [ -f "conf_$internal_projectname/param.conf" ] && [ "$1" != "-r" ]; then
-	echo "    Manually rerun './install.pl $internal_projectname' to  update your configuration if necessary!"
+	echo "    Manually rerun './install.pl $internal_projectname' to  update your configuration if necessary! or update your conf files"
 else
-	./install.pl $projectname $redirect
+	#./install.pl $projectname $redirect
 fi
 
 if [ -x scripts/autoTransformTemplate.pl ]; then
