@@ -44,7 +44,7 @@ The solution presented by this project was to have mere string
 substitutions. A file ending with ".template" is expected to offer
 keywords. Those keywords are defined in the files of the conf folder.
 Separated by a tab sign, the left side defines a keyword and the right
-defines a string that it shall be substituted with. When exhanging
+defines a string that it shall be substituted with. When exchanging
 projects, only the conf folder should be changed.
 
 
@@ -87,8 +87,11 @@ Here in the root of the source tree, there is only one key tool to be mentioned,
 update.sh
 ---------
 
-Update.sh gets all template variables from conf files and regenerate all
-perl files from their template. It will be one of the first commands to
+Update.sh gets all template variables from conf files and regenerates all
+perl files from their template. The conf files from the conf_template need 
+to be adopted to your project and need to be in a new folder called
+conf_yourprojectname. Update.sh needs to be called with your projectname as
+one Parameter. It will be one of the first commands to
 execute after having skimmed through the files in the doc folder. When
 invoked, it will execute "git pull" and afterwards apply all the template
 substitutions according to the settings in your config folder. The

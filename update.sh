@@ -60,8 +60,6 @@ if [ -z "$nopull" ]; then
 	git pull
 fi
 
-#TODO:
-#modify that the script accepts all projectnames
 internal_projectname=""
 case "$projectname" in
 	"mus"|"mouse")
@@ -72,15 +70,17 @@ case "$projectname" in
 	;;
 	*) 
 		if [ -n "$projectname" ]; then
-			echo "Unknown projectname: $projectname"
-			exit -1;
+			internal_projectname=$projectname
 		else
-			echo "Projectname not set. Use mus or mouse for mouse and rat or rattus for rat"
+			echo "Projectname not set. The Projectname must correspond with the config folder name: config_projectname"
 			exit -1;
 		fi
 	;;
 esac
 
+if [!-d "conf_$internal_projectname"]; then
+	echo "conf_$internal_projectname does not exist. Please check if you used the right projectname"
+fi
 
 if [ -f "conf_$internal_projectname/path.conf" ] && [ -f "conf_$internal_projectname/param.conf" ] && [ "$1" != "-r" ]; then
 	echo "    Manually rerun './install.pl $internal_projectname' to  update your configuration if necessary! or update your conf files"
