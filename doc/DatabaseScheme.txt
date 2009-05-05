@@ -1,0 +1,154 @@
++--------------------+
+| Tables_in_Database |
++--------------------+
+| BEARatChip         |
+| computation        |
+| locus              |
+| locusInteraction   |
+| map                |
+| qtl                |
+| trait              |
++--------------------+
+
+mysql> desc BEARatChip;
++--------------------------------+--------------+------+-----+---------+-------+
+| Field                          | Type         | Null | Key | Default | Extra |
++--------------------------------+--------------+------+-----+---------+-------+
+| probeset_id                    | char(10)     | NO   | PRI |         |       |
+| seqname                        | char(5)      | YES  |     | NULL    |       |
+| strand                         | char(1)      | YES  |     | NULL    |       |
+| start                          | int(11)      | YES  |     | NULL    |       |
+| stop                           | int(11)      | YES  |     | NULL    |       |
+| total_probes                   | int(11)      | YES  |     | NULL    |       |
+| gene_assignment                | text         | YES  |     | NULL    |       |
+| first_representative_public_id | char(20)     | YES  |     | NULL    |       |
+| first_symbol                   | text         | YES  |     | NULL    |       |
+| first_name                     | char(200)    | YES  |     | NULL    |       |
+| first_location                 | char(5)      | YES  |     | NULL    |       |
+| entrez_gene_ID                 | int(11)      | YES  |     | NULL    |       |
+| mrna_assignments               | char(200)    | YES  |     | NULL    |       |
+| swissprot_ID                   | char(200)    | YES  |     | NULL    |       |
+| swissprot_link                 | char(200)    | YES  |     | NULL    |       |
+| unigene                        | text         | YES  |     | NULL    |       |
+| unigene_link                   | char(200)    | YES  |     | NULL    |       |
+| GO_biological_process          | text         | YES  |     | NULL    |       |
+| GO_cellular_component          | text         | YES  |     | NULL    |       |
+| GO_molecular_function          | text         | YES  |     | NULL    |       |
+| pathway                        | char(200)    | YES  |     | NULL    |       |
+| protein_domains                | text         | YES  |     | NULL    |       |
+| crosshyb_type                  | char(3)      | YES  |     | NULL    |       |
+| category                       | char(50)     | YES  |     | NULL    |       |
+| ProbeSequence                  | varchar(150) | YES  |     | NULL    |       |
+| hum_onth_ens                   | char(15)     | YES  |     | NULL    |       |
+| gene_stable_id_rat             | char(15)     | YES  |     | NULL    |       |
++--------------------------------+--------------+------+-----+---------+-------+
+
+mysql> desc computation;
++----------------+---------------------------------------------------------------------------+------+-----+---------+----------------+
+| Field          | Type                                                                      | Null | Key | Default | Extra          |
++----------------+---------------------------------------------------------------------------+------+-----+---------+----------------+
+| computation_id | int(11)                                                                   | NO   | PRI | NULL    | auto_increment |
+| status         | enum('UNKNOWN','QUEUED','PROCESSING','DONE','RECALCULATE','REPROCESSING') | NO   | MUL | UNKNOWN |                |
+| version        | int(11)                                                                   | NO   |     | 0       |                |
+| application    | enum('UNKNOWN','SCANONE','SCANTWO')                                       | NO   | MUL | UNKNOWN |                |
+| timestamp      | datetime                                                                  | YES  | MUL | NULL    |                |
+| trait_id       | int(11)                                                                   | YES  |     | NULL    |                |
+| jobname        | varchar(255)                                                              | NO   | UNI |         |                |
+| filename       | varchar(255)                                                              | NO   | UNI |         |                |
++----------------+---------------------------------------------------------------------------+------+-----+---------+----------------+
+
+mysql> desc locus; desc locusInteraction; desc map; desc qtl; desc trait;
++----------+--------------+------+-----+---------+----------------+
+| Field    | Type         | Null | Key | Default | Extra          |
++----------+--------------+------+-----+---------+----------------+
+| No       | int(11)      | NO   | PRI | NULL    | auto_increment |
+| Name     | char(15)     | YES  | UNI | NULL    |                |
+| Chr      | char(2)      | NO   | MUL |         |                |
+| cMorgan  | float(255,8) | YES  |     | NULL    |                |
+| Organism | char(20)     | NO   |     |         |                |
+| marker   | varchar(15)  | YES  |     | NULL    |                |
++----------+--------------+------+-----+---------+----------------+
+
+mysql> desc locusInteraction;
++----------------+-----------------------------------+------+-----+---------+----------------+
+| Field          | Type                              | Null | Key | Default | Extra          |
++----------------+-----------------------------------+------+-----+---------+----------------+
+| No             | int(11)                           | NO   | PRI | NULL    | auto_increment |
+| computation_id | int(11)                           | YES  |     | NULL    |                |
+| Trait          | char(100)                         | NO   | MUL |         |                |
+| A              | char(10)                          | NO   | MUL |         |                |
+| B              | char(10)                          | NO   | MUL |         |                |
+| LogP           | char(100)                         | YES  |     | NULL    |                |
+| Type           | char(5)                           | NO   |     |         |                |
+| Analysis       | enum('interactive','additive')    | YES  |     | NULL    |                |
+| covariates     | set('eae_add','eae_int', ...)     | YES  |     | NULL    |                |
+| lod_full       | float(255,8)                      | YES  |     | NULL    |                |
+| lod_fv1        | float(255,8)                      | YES  |     | NULL    |                |
+| lod_int        | float(255,8)                      | YES  |     | NULL    |                |
+| lod_add        | float(255,8)                      | YES  |     | NULL    |                |
+| lod_av1        | float(255,8)                      | YES  |     | NULL    |                |
+| qlod_full      | float(255,8)                      | YES  |     | NULL    |                |
+| qlod_fv1       | float(255,8)                      | YES  |     | NULL    |                |
+| qlod_int       | float(255,8)                      | YES  |     | NULL    |                |
+| qlod_add       | float(255,8)                      | YES  |     | NULL    |                |
+| qlod_av1       | float(255,8)                      | YES  |     | NULL    |                |
+| cis            | enum('00','01','10','11')         | YES  |     | NULL    |                |
+| locComb        | int(11)                           | YES  |     | NULL    |                |
+| cis_dist_A     | int(11)                           | YES  |     | NULL    |                |
+| cis_dist_B     | int(11)                           | YES  |     | NULL    |                |
++----------------+-----------------------------------+------+-----+---------+----------------+
+
+mysql> desc map;
+
++-----------------+----------+------+-----+---------+-------+
+| Field           | Type     | Null | Key | Default | Extra |
++-----------------+----------+------+-----+---------+-------+
+| marker          | char(25) | YES  |     | NULL    |       |
+| bp              | int(11)  | YES  |     | NULL    |       |
+| cmorgan_rqtl    | float    | YES  |     | NULL    |       |
+| cmorgan_ensembl | float    | YES  |     | NULL    |       |
+| chr             | char(2)  | YES  |     | NULL    |       |
++-----------------+----------+------+-----+---------+-------+
+
+mysql> desc qtl;
+
++----------------+-----------------------------------------------+------+-----+-------------------+----------------+
+| Field          | Type                                          | Null | Key | Default           | Extra          |
++----------------+-----------------------------------------------+------+-----+-------------------+----------------+
+| No             | int(11)                                       | NO   | PRI | NULL              | auto_increment |
+| computation_id | int(11)                                       | YES  | MUL | NULL              |                |
+| Name           | char(255)                                     | YES  | MUL | NULL              |                |
+| Locus          | char(15)                                      | NO   | MUL |                   |                |
+| Trait          | char(100)                                     | NO   | MUL |                   |                |
+| Timestamp      | timestamp                                     | YES  |     | CURRENT_TIMESTAMP |                |
+| LOD            | float(255,8)                                  | YES  | MUL | NULL              |                |
+| Description    | text                                          | YES  |     | NULL              |                |
+| Chromosome     | varchar(2)                                    | YES  | MUL | NULL              |                |
+| cMorgan_Min    | float                                         | YES  |     | NULL              |                |
+| cMorgan_Max    | float                                         | YES  |     | NULL              |                |
+| cMorgan_Peak   | float                                         | YES  |     | NULL              |                |
+| Quantile       | float                                         | YES  |     | NULL              |                |
+| covariates     | set('eae_add','eae_int',...)                  | YES  |     | NULL              |                |
+| phenocol       | char(10)                                      | YES  |     | NULL              |                |
+| Analysis       | enum('none','interactive','additive')         | YES  |     | NULL              |                |
+| cis            | tinyint(1)                                    | YES  |     | NULL              |                |
+| cis_dist       | int(11)                                       | YES  |     | NULL              |                |
++----------------+-----------------------------------------------+------+-----+-------------------+----------------+
+
+mysql> desc trait;
+
++-------------+-------------+------+-----+---------+-------+
+| Field       | Type        | Null | Key | Default | Extra |
++-------------+-------------+------+-----+---------+-------+
+| trait_id    | varchar(20) | NO   | PRI |         |       |
+| name        | varchar(50) | YES  |     | NULL    |       |
+| mean        | float       | YES  |     | NULL    |       |
+| sd          | float       | YES  |     | NULL    |       |
+| vals        | text        | YES  |     | NULL    |       |
+| individuals | text        | YES  |     | NULL    |       |
+| median      | float       | YES  |     | NULL    |       |
+| variance    | float       | YES  |     | NULL    |       |
++-------------+-------------+------+-----+---------+-------+
+8 rows in set (0.00 sec)
+
+

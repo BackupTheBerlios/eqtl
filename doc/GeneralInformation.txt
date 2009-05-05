@@ -34,7 +34,11 @@
    This is the only table where the name should
    be choosen dependent from the data, but we haven't
    included this to to be a config parameter so at the
-   moment this name needs to be used
+   moment this name needs to be used.
+
+   computation:
+
+   this table controls all computations:
 
 
 
