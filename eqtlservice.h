@@ -8,6 +8,9 @@
 #include <arc/message/Service.h>
 #include <arc/Logger.h>
 
+#define MYSQLPP_MYSQL_HEADERS_BURIED 1
+#include <mysql++/mysql++.h>
+
 namespace ArcService
 {
 
@@ -17,6 +20,7 @@ class ExpressionQtlService: public Arc::Service
 	protected:
 		Arc::Logger logger;
 		Arc::NS ns_;
+		mysqlpp::Connection mysql;
 
 		/**
 		* Method to return an error. 

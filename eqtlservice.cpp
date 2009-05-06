@@ -32,7 +32,8 @@ using namespace Arc;
 namespace ArcService
 {
 
-	ExpressionQtlService::ExpressionQtlService(Arc::Config *cfg) : Service(cfg),logger(Logger::rootLogger, "eQTL")
+	ExpressionQtlService::ExpressionQtlService(Arc::Config *cfg) : Service(cfg),logger(Logger::rootLogger, "eQTL"),
+	 mysql("eQTL_Stockholm","localhost","root","")
 	{
 
 		// synchronize this with eqtl_arc.wsdl
@@ -121,8 +122,12 @@ namespace ArcService
 		logger.msg(Arc::DEBUG, "Called WSDL Operation: \"%s\"",requestNode.Name());
 		if( requestNode.Name() == "QTL_FindByPosition" ) {
 			std::string searchType = "both";
-			Arc::XMLNode searchTypeNode = requestNode["searchType"];
-			if( searchTypeNode ) searchType = searchTypeNode;
+			if( requestNode["searchType"] ) searchType = (std::string) requestNode["searchType"];
+			Arc::XMLNode searchRequest = requestNode["searchRequest"];
+			std::string sql = "SELECT * FROM hajo_qtl_nocov WHERE 1 ";
+			if( searchRequest["lodScore"]["fromBP"] ) {
+				if(searchType == "
+			}
 		} 
 
 		Arc::XMLNode sayNode      = requestNode["echo:say"];
