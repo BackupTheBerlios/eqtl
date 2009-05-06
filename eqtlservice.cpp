@@ -100,7 +100,7 @@ namespace ArcService
 				if(searchType == "gene") searchMarker = false;
 			}
 			Arc::XMLNode searchRequest = requestNode["searchRequest"];
-			std::ostringstream sql;
+			mysqlpp::Query sql = mysql.query();
 			sql << "SELECT * FROM hajo_qtl_nocov WHERE 1 ";
 
 			if( searchRequest["lodScore"]["from"] ) 
@@ -150,14 +150,17 @@ namespace ArcService
 				std::string order = searchRequest["orderBy"];
 				if( order == "LodScore" ) orderBy = "lod";
 			}
-			sql << " ORDER BY ", orderBy;
+			sql << " ORDER BY " << mysqlpp::quote << orderBy;
 			if( searchRequest["maxNumResults"] )
-				sql << " LIMIT "<< mysqlpp::quote << (std::string) searchRequest["maxNumResults"];
+				sql << " LIMIT "<< atoi( ((std::string) searchRequest["maxNumResults"]).c_str() );
 
-			std::string sqlstring = sql.str();
-			logger.msg(Arc::DEBUG, "SQL Query: \"%s\"",sqlstring);
-			mysqlpp::Query query = mysql.query(sqlstring);
-			mysqlpp::StoreQueryResult res = query.store();
+			logger.msg(Arc::DEBUG, "SQL Query: \"%s\"",sql.str());
+			mysqlpp::StoreQueryResult res;
+			try{
+				res = sql.store();
+			}catch(mysqlpp::Exception e) {
+				return makeFault(outmsg, e.what());
+			}
 			logger.msg(Arc::DEBUG, "Number of results: \"%d\"",res.num_rows());
 
 			Arc::XMLNode addToMe = outpayload->NewChild("arc:QTL_FindByPositionResponse");
