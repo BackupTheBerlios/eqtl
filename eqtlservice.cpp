@@ -87,63 +87,102 @@ namespace ArcService
 		/** */
 
 		/** Analyzing and execute request */
-/*
- <arc:QTL_FindByPosition>
-         <!--Optional:-->
-         <searchType>?</searchType>
-         <searchRequest>
-            <!--Optional:-->
-            <lodScore>
-               <from>?</from>
-               <to>?</to>
-            </lodScore>
-            <!--Zero or more repetitions:-->
-            <position>
-               <chromosome>?</chromosome>
-               <fromBP>?</fromBP>
-               <toBP>?</toBP>
-            </position>
-            <!--Optional:-->
-            <sameChromosome>?</sameChromosome>
-            <!--Optional:-->
-            <locusToGeneDistance>
-               <from>?</from>
-               <to>?</to>
-            </locusToGeneDistance>
-            <!--Optional:-->
-            <orderBy>?</orderBy>
-            <!--Optional:-->
-            <maxNumResults>?</maxNumResults>
-         </searchRequest>
-      </arc:QTL_FindByPosition>
-*/
+		Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
 
 		Arc::XMLNode requestNode  = inpayload->Child();
 		logger.msg(Arc::DEBUG, "Called WSDL Operation: \"%s\"",requestNode.Name());
 		if( requestNode.Name() == "QTL_FindByPosition" ) {
-			std::string searchType = "both";
-			if( requestNode["searchType"] ) searchType = (std::string) requestNode["searchType"];
+			bool searchMarker = true;
+			bool searchGene = true;
+			if( requestNode["searchType"] ) {
+				std::string searchType = (std::string) requestNode["searchType"];
+				if(searchType == "marker") searchGene = false;
+				if(searchType == "gene") searchMarker = false;
+			}
 			Arc::XMLNode searchRequest = requestNode["searchRequest"];
-			std::string sql = "SELECT * FROM hajo_qtl_nocov WHERE 1 ";
-			if( searchRequest["lodScore"]["fromBP"] ) {
-				if(searchType == "
+			std::ostringstream sql;
+			sql << "SELECT * FROM hajo_qtl_nocov WHERE 1 ";
+
+			if( searchRequest["lodScore"]["from"] ) 
+				sql << " AND lod >= " << mysqlpp::quote << (std::string) searchRequest["lodScore"]["from"];
+			if( searchRequest["lodScore"]["to"] ) 
+				sql << " AND lod <= " << mysqlpp::quote << (std::string) searchRequest["lodScore"]["to"];
+			
+			Arc::XMLNode position = searchRequest["position"];
+			if( position ) {
+				sql << " AND ( FALSE ";
+
+				while(position) {
+					if( searchMarker ) {
+						sql << " OR ( marker_chromosome=" << mysqlpp::quote << (std::string) position["chromosome"];
+						if( position["fromBP"] )
+							sql << " AND marker_positionBP >= " << mysqlpp::quote << (std::string) position["fromBP"];
+						if( position["toBP"] )
+							sql << " AND marker_positionBP <= " << mysqlpp::quote << (std::string) position["toBP"];
+						sql << ") ";
+					}
+					if( searchGene ) {
+						sql << " OR ( genePosition_chromosome=" << mysqlpp::quote << (std::string) position["chromosome"];
+						if( position["fromBP"] )
+							sql << " AND genePosition_toBP >= " << mysqlpp::quote << (std::string) position["fromBP"];
+						if( position["toBP"] )
+							sql << " AND genePosition_fromBP <= " << mysqlpp::quote << (std::string) position["toBP"];
+						sql << ") ";
+					}
+					++position;
+				}
+				sql << " ) ";
+			}
+
+			if( searchRequest["sameChromosome"] ) {
+				int what = atoi( ((std::string) searchRequest["sameChromosome"]).c_str() );
+				if( what == 1 ) sql << " AND sameChromosome='1' ";
+				else if( what == -1 ) sql << " AND sameChromosome='0' ";
+			}
+
+			if( searchRequest["locusToGeneDistance"]["from"] ) 
+				sql << " AND locusToGeneDistance >= " << mysqlpp::quote << (std::string) searchRequest["locusToGeneDistance"]["from"];
+			if( searchRequest["locusToGeneDistance"]["to"] ) 
+				sql << " AND locusToGeneDistance <= " << mysqlpp::quote << (std::string) searchRequest["locusToGeneDistance"]["to"];
+
+			std::string orderBy = "lod";
+			if( searchRequest["orderBy"] ) {
+				std::string order = searchRequest["orderBy"];
+				if( order == "LodScore" ) orderBy = "lod";
+			}
+			sql << " ORDER BY ", orderBy;
+			if( searchRequest["maxNumResults"] )
+				sql << " LIMIT "<< mysqlpp::quote << (std::string) searchRequest["maxNumResults"];
+
+			std::string sqlstring = sql.str();
+			logger.msg(Arc::DEBUG, "SQL Query: \"%s\"",sqlstring);
+			mysqlpp::Query query = mysql.query(sqlstring);
+			mysqlpp::StoreQueryResult res = query.store();
+			logger.msg(Arc::DEBUG, "Number of results: \"%d\"",res.num_rows());
+
+			Arc::XMLNode addToMe = outpayload->NewChild("arc:QTL_FindByPositionResponse");
+			for(size_t i=0;i<res.num_rows();i++) {
+				Arc::XMLNode curAdd = addToMe.NewChild("qtls");
+				curAdd.NewChild("lod") = res[i]["lod"];
+				curAdd.NewChild("marker");
+				curAdd["marker"].NewChild("name") = res[i]["marker_name"];
+				curAdd["marker"].NewChild("chromosome") = res[i]["marker_chromosome"];
+				curAdd["marker"].NewChild("positionBP") = res[i]["marker_positionBP"];
+				curAdd.NewChild("genePosition");
+				curAdd["genePosition"].NewChild("chromosome") = res[i]["genePosition_chromosome"];
+				curAdd["genePosition"].NewChild("fromBP") = res[i]["genePosition_fromBP"];
+				curAdd["genePosition"].NewChild("toBP") = res[i]["genePosition_toBP"];
+				curAdd.NewChild("geneEntrezID") = res[i]["geneEntrezID"];
+				curAdd.NewChild("statistics");
+				curAdd["statistics"].NewChild("mean") = res[i]["statistics_mean"];
+				curAdd["statistics"].NewChild("sd") = res[i]["statistics_sd"];
+				curAdd["statistics"].NewChild("median") = res[i]["statistics_median"];
+				curAdd["statistics"].NewChild("variance") = res[i]["statistics_variance"];
 			}
 		} 
 
-		Arc::XMLNode sayNode      = requestNode["echo:say"];
-		std::string operation = (std::string) sayNode.Attribute("operation");
-		std::string say       = (std::string) sayNode;
-		std::string hear      = "";
-		logger.msg(Arc::DEBUG, "Say: \"%s\"  Operation: \"%s\"",say,operation);
-		/** */
-
-		/** Create response */
-		Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
-		outpayload->NewChild("echo:echoResponse").NewChild("echo:hear")=hear;
-		outmsg.Payload(outpayload);
-		/** */
-
 		logger.msg(Arc::DEBUG, "eQTL service done...");
+		outmsg.Payload(outpayload);
 		return Arc::MCC_Status(Arc::STATUS_OK);
 	}
 
