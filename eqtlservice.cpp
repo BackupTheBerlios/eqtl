@@ -94,7 +94,7 @@ namespace ArcService
 		if( requestNode.Name() == "QTL_FindByPosition" ) {
 			bool searchMarker = true;
 			bool searchGene = true;
-			if( requestNode["searchType"] ) {
+			if( ((std::string)requestNode["searchType"]).length() ) {
 				std::string searchType = (std::string) requestNode["searchType"];
 				if(searchType == "marker") searchGene = false;
 				if(searchType == "gene") searchMarker = false;
@@ -103,29 +103,29 @@ namespace ArcService
 			mysqlpp::Query sql = mysql.query();
 			sql << "SELECT * FROM hajo_qtl_nocov WHERE 1 ";
 
-			if( searchRequest["lodScore"]["from"] ) 
+			if( ((std::string)searchRequest["lodScore"]["from"]).length() ) 
 				sql << " AND lod >= " << mysqlpp::quote << (std::string) searchRequest["lodScore"]["from"];
-			if( searchRequest["lodScore"]["to"] ) 
+			if( ((std::string)searchRequest["lodScore"]["to"]).length() ) 
 				sql << " AND lod <= " << mysqlpp::quote << (std::string) searchRequest["lodScore"]["to"];
-			
+
 			Arc::XMLNode position = searchRequest["position"];
-			if( position ) {
+			if( position.Size()>0 ) {
 				sql << " AND ( FALSE ";
 
 				while(position) {
 					if( searchMarker ) {
 						sql << " OR ( marker_chromosome=" << mysqlpp::quote << (std::string) position["chromosome"];
-						if( position["fromBP"] )
+						if( ((std::string)position["fromBP"]).length() )
 							sql << " AND marker_positionBP >= " << mysqlpp::quote << (std::string) position["fromBP"];
-						if( position["toBP"] )
+						if( ((std::string)position["toBP"]).length() )
 							sql << " AND marker_positionBP <= " << mysqlpp::quote << (std::string) position["toBP"];
 						sql << ") ";
 					}
 					if( searchGene ) {
 						sql << " OR ( genePosition_chromosome=" << mysqlpp::quote << (std::string) position["chromosome"];
-						if( position["fromBP"] )
+						if( ((std::string)position["fromBP"]).length() )
 							sql << " AND genePosition_toBP >= " << mysqlpp::quote << (std::string) position["fromBP"];
-						if( position["toBP"] )
+						if( ((std::string)position["toBP"]).length() )
 							sql << " AND genePosition_fromBP <= " << mysqlpp::quote << (std::string) position["toBP"];
 						sql << ") ";
 					}
@@ -134,24 +134,24 @@ namespace ArcService
 				sql << " ) ";
 			}
 
-			if( searchRequest["sameChromosome"] ) {
+			if( ((std::string)searchRequest["sameChromosome"]).length() ) {
 				int what = atoi( ((std::string) searchRequest["sameChromosome"]).c_str() );
 				if( what == 1 ) sql << " AND sameChromosome='1' ";
 				else if( what == -1 ) sql << " AND sameChromosome='0' ";
 			}
 
-			if( searchRequest["locusToGeneDistance"]["from"] ) 
+			if( ((std::string)searchRequest["locusToGeneDistance"]["from"]).length() ) 
 				sql << " AND locusToGeneDistance >= " << mysqlpp::quote << (std::string) searchRequest["locusToGeneDistance"]["from"];
-			if( searchRequest["locusToGeneDistance"]["to"] ) 
+			if( ((std::string)searchRequest["locusToGeneDistance"]["to"]).length() ) 
 				sql << " AND locusToGeneDistance <= " << mysqlpp::quote << (std::string) searchRequest["locusToGeneDistance"]["to"];
 
-			std::string orderBy = "lod";
-			if( searchRequest["orderBy"] ) {
+			std::string orderBy = "lod DESC";
+			if( ((std::string)searchRequest["orderBy"]).length() ) {
 				std::string order = searchRequest["orderBy"];
-				if( order == "LodScore" ) orderBy = "lod";
+				if( order == "LodScore" ) orderBy = "lod DESC";
 			}
-			sql << " ORDER BY " << mysqlpp::quote << orderBy;
-			if( searchRequest["maxNumResults"] )
+			sql << " ORDER BY " << orderBy;
+			if( ((std::string)searchRequest["maxNumResults"]).length() ) 
 				sql << " LIMIT "<< atoi( ((std::string) searchRequest["maxNumResults"]).c_str() );
 
 			logger.msg(Arc::DEBUG, "SQL Query: \"%s\"",sql.str());

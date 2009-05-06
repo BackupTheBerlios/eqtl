@@ -82,8 +82,8 @@
 					<xsd:annotation>
 						<xsd:documentation></xsd:documentation>
 					</xsd:annotation>
-					<xsd:element name="from" type="xsd:double"></xsd:element>
-					<xsd:element name="to" type="xsd:double"></xsd:element>
+					<xsd:element name="from" type="xsd:double" maxOccurs="1" minOccurs="0"></xsd:element>
+					<xsd:element name="to" type="xsd:double" maxOccurs="1" minOccurs="0"></xsd:element>
 				</xsd:sequence>
 			</xsd:complexType>
 
@@ -236,6 +236,6 @@
     </wsdl:binding>
     <wsdl:service name="eqtl_arc">
 		<wsdl:port name="eqtl_arc_port" binding="eqtl:eqtl_arc_binding">
-			<soap:address location="http://localhost:60000/eqtl" />
+			<soap:address location="http://192.168.1.101:60000/eqtl" />
 		</wsdl:port>
 	</wsdl:service></wsdl:definitions>
