@@ -14,8 +14,8 @@
     <projectname>eqtl_arc</projectname>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
-    <defaultencoding/>
+    <description></description>
+    <defaultencoding></defaultencoding>
   </general>
   <kdevautoproject>
     <general/>
@@ -149,7 +149,9 @@
       <designer></designer>
       <designerpluginpaths/>
     </qt>
-    <references/>
+    <references>
+      <pcs>automatic_%2Fhome%2Ffxtentacle%2Feqtl_arc</pcs>
+    </references>
     <codecompletion>
       <automaticCodeCompletion>false</automaticCodeCompletion>
       <automaticArgumentsHint>true</automaticArgumentsHint>
@@ -165,8 +167,8 @@
       <namespaceAliases>std=_GLIBCXX_STD;__gnu_cxx=std</namespaceAliases>
       <processPrimaryTypes>true</processPrimaryTypes>
       <processFunctionArguments>false</processFunctionArguments>
-      <preProcessAllHeaders>false</preProcessAllHeaders>
-      <parseMissingHeadersExperimental>false</parseMissingHeadersExperimental>
+      <preProcessAllHeaders>true</preProcessAllHeaders>
+      <parseMissingHeadersExperimental>true</parseMissingHeadersExperimental>
       <resolveIncludePathsUsingMakeExperimental>false</resolveIncludePathsUsingMakeExperimental>
       <alwaysParseInBackground>true</alwaysParseInBackground>
       <usePermanentCaching>true</usePermanentCaching>
@@ -174,7 +176,7 @@
       <includePaths>.;</includePaths>
     </codecompletion>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>
@@ -195,11 +197,11 @@
   </cppsupportpart>
   <kdevdebugger>
     <general>
-      <gdbpath/>
+      <gdbpath></gdbpath>
       <dbgshell>libtool</dbgshell>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>

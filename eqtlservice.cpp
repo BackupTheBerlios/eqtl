@@ -36,7 +36,7 @@ namespace ArcService
 	{
 
 		// synchronize this with eqtl_arc.wsdl
-		ns_["eqtl"]="http://www.example.org/eqtl_arc/";
+		ns_["arc"]="http://uni-luebeck.de/eqtl/arc/";
 
 		//read config like this: prefix_=(std::string)((*cfg)["prefix"]);
 	}
@@ -86,7 +86,45 @@ namespace ArcService
 		/** */
 
 		/** Analyzing and execute request */
-		Arc::XMLNode requestNode  = (*inpayload)["echo:echoRequest"];
+/*
+ <arc:QTL_FindByPosition>
+         <!--Optional:-->
+         <searchType>?</searchType>
+         <searchRequest>
+            <!--Optional:-->
+            <lodScore>
+               <from>?</from>
+               <to>?</to>
+            </lodScore>
+            <!--Zero or more repetitions:-->
+            <position>
+               <chromosome>?</chromosome>
+               <fromBP>?</fromBP>
+               <toBP>?</toBP>
+            </position>
+            <!--Optional:-->
+            <sameChromosome>?</sameChromosome>
+            <!--Optional:-->
+            <locusToGeneDistance>
+               <from>?</from>
+               <to>?</to>
+            </locusToGeneDistance>
+            <!--Optional:-->
+            <orderBy>?</orderBy>
+            <!--Optional:-->
+            <maxNumResults>?</maxNumResults>
+         </searchRequest>
+      </arc:QTL_FindByPosition>
+*/
+
+		Arc::XMLNode requestNode  = inpayload->Child();
+		logger.msg(Arc::DEBUG, "Called WSDL Operation: \"%s\"",requestNode.Name());
+		if( requestNode.Name() == "QTL_FindByPosition" ) {
+			std::string searchType = "both";
+			Arc::XMLNode searchTypeNode = requestNode["searchType"];
+			if( searchTypeNode ) searchType = searchTypeNode;
+		} 
+
 		Arc::XMLNode sayNode      = requestNode["echo:say"];
 		std::string operation = (std::string) sayNode.Attribute("operation");
 		std::string say       = (std::string) sayNode;
