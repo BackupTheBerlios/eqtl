@@ -78,17 +78,17 @@ case "$projectname" in
 	;;
 esac
 
-if [!-d "conf_$internal_projectname"]; then
+if [ ! -d "conf_$internal_projectname" ]; then
 	echo "conf_$internal_projectname does not exist. Please check if you used the right projectname"
 fi
 
 if [ -f "conf_$internal_projectname/path.conf" ] && [ -f "conf_$internal_projectname/param.conf" ] && [ "$1" != "-r" ]; then
 	echo "    Manually rerun './install.pl $internal_projectname' to  update your configuration if necessary! or update your conf files"
-else
-	#./install.pl $projectname $redirect
+elif [ -x install.pl ]; then
+	./install.pl $projectname $redirect
 fi
 
 if [ -x scripts/autoTransformTemplate.pl ]; then
 	echo "Now auto-transforming templates."
-	eval ./scripts/autoTransformTemplate.pl --projectname $internal_projectname website/*.template scripts/*.template website/eqtl/*.template *.template $redirect
+	eval ./scripts/autoTransformTemplate.pl --projectname $internal_projectname `find . -name "*.template" | grep -v "^./conf"` $redirect
 fi
