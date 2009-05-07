@@ -1,0 +1,18 @@
+Source: libarc1-eqtl
+Priority: extra
+Maintainer: Hajo Nils Krabbenhöft <h@h-yo.de>
+Build-Depends: debhelper (>= 7), autotools-dev, nordugrid-arc1-dev, libmysql++-dev
+Standards-Version: 3.8.1
+Section: libs
+Homepage: eqtl.berlios.de
+
+Package: libarc1-eqtl
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: ARC1 HED module for expression QTL Database
+ This library can be loaded by ARC1 HED using the arched command
+ to serve a webservice which will allow users access to the
+ expression QTL Database. An example arched config file as well
+ as an wsdl file are included.
+

@@ -1,11 +1,9 @@
 Makefile
-Makefile.in
 .deps/
 autom4te.cache/
 config.h
 config.log
 config.status
-configure
 echoservice.o
 libeqtlarc.a
 libtool
@@ -20,3 +18,4 @@ arched.log
 eqtlservice.lo
 libeqtlarc.la
 .DS_Store
+._eqtl_arc.wsdl
