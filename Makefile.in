@@ -54,7 +54,7 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgdatadir)"
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(mydatadir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libeqtlarc_la_DEPENDENCIES =
@@ -77,8 +77,8 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(libeqtlarc_la_SOURCES)
 DIST_SOURCES = $(libeqtlarc_la_SOURCES)
-pkgdataDATA_INSTALL = $(INSTALL_DATA)
-DATA = $(pkgdata_DATA)
+mydataDATA_INSTALL = $(INSTALL_DATA)
+DATA = $(mydata_DATA)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -209,7 +209,8 @@ LIBADD = @LIBXML_LIBS@
 libeqtlarc_la_SOURCES = eqtlservice.cpp
 libeqtlarc_la_LDFLAGS = -module -no-undefined
 libeqtlarc_la_LIBADD = -lmysqlpp -larccommon -larcmessage -larcloader
-pkgdata_DATA = taverna2-test.t2flow wsdl-viewer.xsl arched_eqtl.xml eqtl_arc.wsdl sample-request.xml
+mydatadir = $(datadir)/doc/libarc1-eqtl
+mydata_DATA = taverna2-test.t2flow wsdl-viewer.xsl arched_eqtl.xml eqtl_arc.wsdl sample-request.xml
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -332,22 +333,22 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool
-install-pkgdataDATA: $(pkgdata_DATA)
+install-mydataDATA: $(mydata_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(pkgdatadir)" || $(MKDIR_P) "$(DESTDIR)$(pkgdatadir)"
-	@list='$(pkgdata_DATA)'; for p in $$list; do \
+	test -z "$(mydatadir)" || $(MKDIR_P) "$(DESTDIR)$(mydatadir)"
+	@list='$(mydata_DATA)'; for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  f=$(am__strip_dir) \
-	  echo " $(pkgdataDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/$$f'"; \
-	  $(pkgdataDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/$$f"; \
+	  echo " $(mydataDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(mydatadir)/$$f'"; \
+	  $(mydataDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(mydatadir)/$$f"; \
 	done
 
-uninstall-pkgdataDATA:
+uninstall-mydataDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(pkgdata_DATA)'; for p in $$list; do \
+	@list='$(mydata_DATA)'; for p in $$list; do \
 	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(pkgdatadir)/$$f"; \
+	  echo " rm -f '$(DESTDIR)$(mydatadir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(mydatadir)/$$f"; \
 	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
@@ -532,7 +533,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(DATA) config.h
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgdatadir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(mydatadir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -581,7 +582,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-pkgdataDATA
+install-data-am: install-mydataDATA
 
 install-dvi: install-dvi-am
 
@@ -619,7 +620,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLTLIBRARIES uninstall-pkgdataDATA
+uninstall-am: uninstall-libLTLIBRARIES uninstall-mydataDATA
 
 .MAKE: install-am install-strip
 
@@ -633,13 +634,13 @@ uninstall-am: uninstall-libLTLIBRARIES uninstall-pkgdataDATA
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-libLTLIBRARIES \
-	install-man install-pdf install-pdf-am install-pkgdataDATA \
+	install-man install-mydataDATA install-pdf install-pdf-am \
 	install-ps install-ps-am install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-libLTLIBRARIES \
-	uninstall-pkgdataDATA
+	uninstall-mydataDATA
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
