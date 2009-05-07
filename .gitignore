@@ -19,3 +19,11 @@ eqtlservice.lo
 libeqtlarc.la
 .DS_Store
 ._eqtl_arc.wsdl
+config.guess
+config.sub
+debian/files
+debian/libarc1-eqtl.debhelper.log
+debian/libarc1-eqtl.substvars
+debian/libarc1-eqtl/
+debian/tmp/
+build-stamp

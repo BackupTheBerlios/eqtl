@@ -4,7 +4,7 @@ Maintainer: Hajo Nils Krabbenhöft <h@h-yo.de>
 Build-Depends: debhelper (>= 7), autotools-dev, nordugrid-arc1-dev, libmysql++-dev
 Standards-Version: 3.8.1
 Section: libs
-Homepage: eqtl.berlios.de
+Homepage: http://eqtl.berlios.de
 
 Package: libarc1-eqtl
 Section: libs
