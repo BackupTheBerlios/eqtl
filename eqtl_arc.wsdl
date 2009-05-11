@@ -203,8 +203,48 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
-        
-        </xsd:schema>
+
+	<xsd:element name="QTL_FindByPosition_R">
+		<xsd:complexType>
+					<xsd:sequence maxOccurs="1" minOccurs="1">
+						<xsd:element name="searchType" type="xsd:string"
+							maxOccurs="1" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									specify what needs to be in the
+									searched area: "marker", "gene" or
+									"both"
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="searchRequest"
+							type="eqtl:FilterParameters" maxOccurs="1" minOccurs="1">
+							<xsd:annotation>
+								<xsd:documentation>
+									this specifies which interactions we
+									want, how many of them, and in which
+									region they need to be
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="script"
+							type="xsd:string" maxOccurs="1" minOccurs="1">
+                            <xsd:annotation>
+                            	<xsd:documentation>this script will be executed in R. it can read </xsd:documentation>
+                            </xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="QTL_FindByPosition_RResponse">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="out" type="xsd:string"></xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+		</xsd:schema>
 </wsdl:types>
        <wsdl:message name="QTL_FindByPositionRequest">
     	<wsdl:part name="parameters" element="eqtl:QTL_FindByPosition"></wsdl:part>
@@ -212,11 +252,21 @@
     <wsdl:message name="QTL_FindByPositionResponse">
     	<wsdl:part name="parameters" element="eqtl:QTL_FindByPositionResponse"></wsdl:part>
     </wsdl:message>
+    <wsdl:message name="QTL_FindByPosition_RRequest">
+    	<wsdl:part name="parameters" element="eqtl:QTL_FindByPosition_R"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="QTL_FindByPosition_RResponse">
+    	<wsdl:part name="parameters" element="eqtl:QTL_FindByPosition_RResponse"></wsdl:part>
+    </wsdl:message>
     <wsdl:portType name="eqtl_arc_porttype">
         <wsdl:operation name="QTL_FindByPosition">
         	<wsdl:documentation>find expression qtls. an expression qtl is a location on the genome which affects the expression of a certain gene. this process may also be affected by covariates.</wsdl:documentation>
         	<wsdl:input message="eqtl:QTL_FindByPositionRequest"></wsdl:input>
         	<wsdl:output message="eqtl:QTL_FindByPositionResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="QTL_FindByPosition_R">
+        	<wsdl:input message="eqtl:QTL_FindByPosition_RRequest"></wsdl:input>
+        	<wsdl:output message="eqtl:QTL_FindByPosition_RResponse"></wsdl:output>
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="eqtl_arc_binding"

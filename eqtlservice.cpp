@@ -3,7 +3,53 @@
 
 #include <stdio.h>
 
+#define R_NO_REMAP 1
+#include <R.h>
+#include <Rembedded.h>
+#include <Rinternals.h>
+
+
 #include "eqtlservice.h"
+
+
+/** copied from RServer:
+    parses a string, stores the number of expressions in parts and the resulting statis in status.
+    the returned SEXP may contain multiple expressions */ 
+
+typedef enum {
+    PARSE_NULL,
+    PARSE_OK,
+    PARSE_INCOMPLETE,
+    PARSE_ERROR,
+    PARSE_EOF
+} ParseStatus;
+
+extern "C" SEXP R_ParseVector(SEXP, int, ParseStatus *);
+
+SEXP parseString(const char *s, int *parts, ParseStatus *status) {
+  int maxParts=1;
+  const char *c=s;
+  SEXP cv, pr;
+
+  while (*c) {
+    if (*c=='\n' || *c==';') maxParts++;
+    c++;
+  }
+
+  PROTECT(cv=Rf_allocVector(STRSXP, 1));
+  SET_VECTOR_ELT(cv, 0, Rf_mkChar(s));  
+
+  while (maxParts>0) {
+    pr=R_ParseVector(cv, maxParts, status);
+    if (*status!=PARSE_INCOMPLETE && *status!=PARSE_EOF) break;
+    maxParts--;
+  }
+  UNPROTECT(1);
+  *parts=maxParts;
+
+  return pr;
+}
+
 
 
 /**
@@ -39,7 +85,11 @@ namespace ArcService
 		// synchronize this with eqtl_arc.wsdl
 		ns_["arc"]="http://uni-luebeck.de/eqtl/arc/";
 
-		//read config like this: prefix_=(std::string)((*cfg)["prefix"]);
+		// init embedded R
+		char *argv[] = {"REmbeddedPostgres", "--gui=none", "--silent"};
+		Rf_initEmbeddedR(sizeof(argv)/sizeof(argv[0]), argv);
+
+		// read config like this: prefix_=(std::string)((*cfg)["prefix"]);
 	}
 
 	ExpressionQtlService::~ExpressionQtlService(void) 
@@ -81,7 +131,7 @@ namespace ArcService
 			inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
 		} catch(std::exception& e) { };
 		if(!inpayload) {
-			logger.msg(Arc::ERROR, "Input is not SOAP");
+//FIXME: causes compile error. dunno why 			logger.msg(Arc::ERROR,"Input is not SOAP");
 			return makeFault(outmsg, "Received message was not a valid SOAP message.");
 		};
 		/** */
@@ -91,7 +141,7 @@ namespace ArcService
 
 		Arc::XMLNode requestNode  = inpayload->Child();
 		logger.msg(Arc::DEBUG, "Called WSDL Operation: \"%s\"",requestNode.Name());
-		if( requestNode.Name() == "QTL_FindByPosition" ) {
+		if( requestNode.Name() == "QTL_FindByPosition" || requestNode.Name() == "QTL_FindByPosition_R" ) {
 			bool searchMarker = true;
 			bool searchGene = true;
 			if( ((std::string)requestNode["searchType"]).length() ) {
@@ -163,24 +213,71 @@ namespace ArcService
 			}
 			logger.msg(Arc::DEBUG, "Number of results: \"%d\"",res.num_rows());
 
-			Arc::XMLNode addToMe = outpayload->NewChild("arc:QTL_FindByPositionResponse");
-			for(size_t i=0;i<res.num_rows();i++) {
-				Arc::XMLNode curAdd = addToMe.NewChild("qtls");
-				curAdd.NewChild("lod") = res[i]["lod"];
-				curAdd.NewChild("marker");
-				curAdd["marker"].NewChild("name") = res[i]["marker_name"];
-				curAdd["marker"].NewChild("chromosome") = res[i]["marker_chromosome"];
-				curAdd["marker"].NewChild("positionBP") = res[i]["marker_positionBP"];
-				curAdd.NewChild("genePosition");
-				curAdd["genePosition"].NewChild("chromosome") = res[i]["genePosition_chromosome"];
-				curAdd["genePosition"].NewChild("fromBP") = res[i]["genePosition_fromBP"];
-				curAdd["genePosition"].NewChild("toBP") = res[i]["genePosition_toBP"];
-				curAdd.NewChild("geneEntrezID") = res[i]["geneEntrezID"];
-				curAdd.NewChild("statistics");
-				curAdd["statistics"].NewChild("mean") = res[i]["statistics_mean"];
-				curAdd["statistics"].NewChild("sd") = res[i]["statistics_sd"];
-				curAdd["statistics"].NewChild("median") = res[i]["statistics_median"];
-				curAdd["statistics"].NewChild("variance") = res[i]["statistics_variance"];
+			if( requestNode.Name() == "QTL_FindByPosition" ) {
+				Arc::XMLNode addToMe = outpayload->NewChild("arc:QTL_FindByPositionResponse");
+				for(size_t i=0;i<res.num_rows();i++) {
+					Arc::XMLNode curAdd = addToMe.NewChild("qtls");
+					curAdd.NewChild("lod") = res[i]["lod"];
+					curAdd.NewChild("marker");
+					curAdd["marker"].NewChild("name") = res[i]["marker_name"];
+					curAdd["marker"].NewChild("chromosome") = res[i]["marker_chromosome"];
+					curAdd["marker"].NewChild("positionBP") = res[i]["marker_positionBP"];
+					curAdd.NewChild("genePosition");
+					curAdd["genePosition"].NewChild("chromosome") = res[i]["genePosition_chromosome"];
+					curAdd["genePosition"].NewChild("fromBP") = res[i]["genePosition_fromBP"];
+					curAdd["genePosition"].NewChild("toBP") = res[i]["genePosition_toBP"];
+					curAdd.NewChild("geneEntrezID") = res[i]["geneEntrezID"];
+					curAdd.NewChild("statistics");
+					curAdd["statistics"].NewChild("mean") = res[i]["statistics_mean"];
+					curAdd["statistics"].NewChild("sd") = res[i]["statistics_sd"];
+					curAdd["statistics"].NewChild("median") = res[i]["statistics_median"];
+					curAdd["statistics"].NewChild("variance") = res[i]["statistics_variance"];
+				}
+			} else if( requestNode.Name() == "QTL_FindByPosition_R" ) {
+				Arc::XMLNode addToMe = outpayload->NewChild("arc:QTL_FindByPosition_RResponse");
+				int numCol = 1+3+3+1+4;
+				int numRow = res.num_rows();
+				SEXP dataForR = Rf_allocMatrix(VECSXP, numRow, numCol);
+				PROTECT( dataForR ); //we dont want R to garbage collect this
+				for(size_t i=0;i<res.num_rows();i++) {
+					int rowOff = i * numCol;
+					SET_VECTOR_ELT(dataForR, rowOff+0, Rf_mkString(res[i]["lod"]));
+					SET_VECTOR_ELT(dataForR, rowOff+1, Rf_mkString(res[i]["marker_name"]));
+					SET_VECTOR_ELT(dataForR, rowOff+2, Rf_mkString(res[i]["marker_chromosome"]));
+					SET_VECTOR_ELT(dataForR, rowOff+3, Rf_mkString(res[i]["marker_positionBP"]));
+					SET_VECTOR_ELT(dataForR, rowOff+4, Rf_mkString(res[i]["genePosition_chromosome"]));
+					SET_VECTOR_ELT(dataForR, rowOff+5, Rf_mkString(res[i]["genePosition_fromBP"]));
+					SET_VECTOR_ELT(dataForR, rowOff+6, Rf_mkString(res[i]["genePosition_toBP"]));
+					SET_VECTOR_ELT(dataForR, rowOff+7, Rf_mkString(res[i]["geneEntrezID"]));
+					SET_VECTOR_ELT(dataForR, rowOff+8, Rf_mkString(res[i]["statistics_mean"]));
+					SET_VECTOR_ELT(dataForR, rowOff+9, Rf_mkString(res[i]["statistics_sd"]));
+					SET_VECTOR_ELT(dataForR, rowOff+10, Rf_mkString(res[i]["statistics_median"]));
+					SET_VECTOR_ELT(dataForR, rowOff+11, Rf_mkString(res[i]["statistics_variance"]));
+				}
+				SEXP colnames = Rf_GetColNames(dataForR);
+				SET_VECTOR_ELT(colnames, 0, Rf_mkString("lod"));
+				SET_VECTOR_ELT(colnames, 1, Rf_mkString("marker_name"));
+				SET_VECTOR_ELT(colnames, 2, Rf_mkString("marker_chromosome"));
+				SET_VECTOR_ELT(colnames, 3, Rf_mkString("marker_positionBP"));
+				SET_VECTOR_ELT(colnames, 4, Rf_mkString("genePosition_chromosome"));
+				SET_VECTOR_ELT(colnames, 5, Rf_mkString("genePosition_fromBP"));
+				SET_VECTOR_ELT(colnames, 6, Rf_mkString("genePosition_toBP"));
+				SET_VECTOR_ELT(colnames, 7, Rf_mkString("geneEntrezID"));
+				SET_VECTOR_ELT(colnames, 8, Rf_mkString("statistics_mean"));
+				SET_VECTOR_ELT(colnames, 9, Rf_mkString("statistics_sd"));
+				SET_VECTOR_ELT(colnames, 10, Rf_mkString("statistics_median"));
+				SET_VECTOR_ELT(colnames, 11, Rf_mkString("statistics_variance"));
+
+				Rf_defineVar(Rf_install("data"), dataForR, R_GlobalEnv);
+				int numParts;
+				ParseStatus status;
+				SEXP commands = parseString( ((std::string)requestNode["script"]).c_str(), &numParts, &status);
+				PROTECT(commands);
+				int errorStatus;
+				SEXP result = R_tryEval(commands, R_GlobalEnv, &errorStatus);
+				UNPROTECT(2); //commands + dataForR
+
+				addToMe = "done";
 			}
 		} 
 
