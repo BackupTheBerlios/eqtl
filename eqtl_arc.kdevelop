@@ -14,22 +14,26 @@
     <projectname>eqtl_arc</projectname>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
-    <defaultencoding/>
+    <description></description>
+    <defaultencoding></defaultencoding>
   </general>
   <kdevautoproject>
-    <general/>
+    <general>
+      <useconfiguration>debug</useconfiguration>
+    </general>
     <run>
       <mainprogram>/usr/sbin/arched</mainprogram>
       <programargs>-f -c arched_eqtl.xml</programargs>
-      <globaldebugarguments>-f -c arched_eqtl.xml</globaldebugarguments>
+      <globaldebugarguments>-f -c arched_eqtl_dbg.xml</globaldebugarguments>
       <globalcwd>/home/fxtentacle/eqtl_arc</globalcwd>
       <useglobalprogram>true</useglobalprogram>
       <terminal>false</terminal>
       <autocompile>false</autocompile>
       <autoinstall>false</autoinstall>
       <autokdesu>false</autokdesu>
-      <envvars/>
+      <envvars>
+        <envvar value="/usr/local/lib/R" name="R_HOME" />
+      </envvars>
     </run>
     <configurations>
       <optimized>
@@ -47,6 +51,9 @@
         <f77compiler>kdevg77options</f77compiler>
         <cxxflags>-O0 -g3</cxxflags>
       </debug>
+      <default>
+        <envvars/>
+      </default>
     </configurations>
     <make>
       <envvars>
@@ -176,7 +183,7 @@
       <includePaths>.;</includePaths>
     </codecompletion>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>
@@ -197,11 +204,11 @@
   </cppsupportpart>
   <kdevdebugger>
     <general>
-      <gdbpath/>
+      <gdbpath></gdbpath>
       <dbgshell>libtool</dbgshell>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>

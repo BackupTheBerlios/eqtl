@@ -11,11 +11,6 @@
 
 #include "eqtlservice.h"
 
-
-/** copied from RServer:
-    parses a string, stores the number of expressions in parts and the resulting statis in status.
-    the returned SEXP may contain multiple expressions */ 
-
 typedef enum {
     PARSE_NULL,
     PARSE_OK,
@@ -25,30 +20,6 @@ typedef enum {
 } ParseStatus;
 
 extern "C" SEXP R_ParseVector(SEXP, int, ParseStatus *);
-
-SEXP parseString(const char *s, int *parts, ParseStatus *status) {
-  int maxParts=1;
-  const char *c=s;
-  SEXP cv, pr;
-
-  while (*c) {
-    if (*c=='\n' || *c==';') maxParts++;
-    c++;
-  }
-
-  PROTECT(cv=Rf_allocVector(STRSXP, 1));
-  SET_VECTOR_ELT(cv, 0, Rf_mkChar(s));  
-
-  while (maxParts>0) {
-    pr=R_ParseVector(cv, maxParts, status);
-    if (*status!=PARSE_INCOMPLETE && *status!=PARSE_EOF) break;
-    maxParts--;
-  }
-  UNPROTECT(1);
-  *parts=maxParts;
-
-  return pr;
-}
 
 
 
@@ -254,6 +225,7 @@ namespace ArcService
 					SET_VECTOR_ELT(dataForR, rowOff+10, Rf_mkString(res[i]["statistics_median"]));
 					SET_VECTOR_ELT(dataForR, rowOff+11, Rf_mkString(res[i]["statistics_variance"]));
 				}
+/*
 				SEXP colnames = Rf_GetColNames(dataForR);
 				SET_VECTOR_ELT(colnames, 0, Rf_mkString("lod"));
 				SET_VECTOR_ELT(colnames, 1, Rf_mkString("marker_name"));
@@ -267,14 +239,22 @@ namespace ArcService
 				SET_VECTOR_ELT(colnames, 9, Rf_mkString("statistics_sd"));
 				SET_VECTOR_ELT(colnames, 10, Rf_mkString("statistics_median"));
 				SET_VECTOR_ELT(colnames, 11, Rf_mkString("statistics_variance"));
-
+*/ 
+				logger.msg(Arc::DEBUG, "Registring data into R...");
 				Rf_defineVar(Rf_install("data"), dataForR, R_GlobalEnv);
-				int numParts;
+				logger.msg(Arc::DEBUG, "Variable \"data\" set.");
 				ParseStatus status;
-				SEXP commands = parseString( ((std::string)requestNode["script"]).c_str(), &numParts, &status);
+				const char* commandStr = ((std::string)requestNode["script"]).c_str();
+				logger.msg(Arc::DEBUG, "R script : %s", commandStr);
+				SEXP str = Rf_mkString(commandStr);
+				logger.msg(Arc::DEBUG, "mkString succeeded");
+				SEXP commands = R_ParseVector(str, -1, &status);
+				logger.msg(Arc::DEBUG, "parseString succeeded");
 				PROTECT(commands);
+				Rf_PrintValue(commands);
 				int errorStatus;
 				SEXP result = R_tryEval(commands, R_GlobalEnv, &errorStatus);
+				Rf_PrintValue(result);
 				UNPROTECT(2); //commands + dataForR
 
 				addToMe = "done";
