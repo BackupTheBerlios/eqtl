@@ -1,7 +1,15 @@
 <?php
+
+/**
+	This php script creates a table containing the position in basepairs for each locus.
+	It will use the func_conversion.php to convert from the cMorgan positions stored in locus table.
+
+	Hajo Krabbenhoeft, University of Lübeck, 2009
+ */
+
 require_once("func_conversion.php");
-mysql_connect("localhost","root","");
-mysql_select_db("eQTL_Stockholm");
+mysql_connect("DATABASEHOSTLOCAL","DATABASEEQTLUSER","DATABASEEQTLPASSWORD");
+mysql_select_db("DATABASEEQTLNAME");
 mysql_query("DROP TABLE IF EXISTS cache_locus_to_position");
 mysql_query("CREATE TABLE cache_locus_to_position (
   locus_id int(11) NOT NULL,
