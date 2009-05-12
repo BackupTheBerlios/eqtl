@@ -239,11 +239,26 @@
 	</xsd:element>
 	<xsd:element name="QTL_FindByPosition_RResponse">
 		<xsd:complexType>
-			<xsd:sequence>
-				<xsd:element name="out" type="xsd:string"></xsd:element>
+			<xsd:sequence maxOccurs="1" minOccurs="1">
+				<xsd:element name="scriptResults"
+					type="eqtl:RScriptResult" maxOccurs="unbounded" minOccurs="0">
+				</xsd:element>
+                        <xsd:element name="images" type="xsd:string" maxOccurs="unbounded" minOccurs="0" xmime:expectedContentTypes="image/jpeg" xmlns:xmime="http://www.w3.org/2005/05/xmlmime"></xsd:element>
+                        <xsd:element name="attachments" type="xsd:string"
+					maxOccurs="unbounded" minOccurs="0">
+				</xsd:element>
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>
+		
+	<xsd:complexType name="RScriptResult">
+		<xsd:sequence maxOccurs="1" minOccurs="1">
+			<xsd:element name="errorStatus" type="xsd:int" maxOccurs="1"
+				minOccurs="0">
+			</xsd:element>
+			<xsd:element name="output" type="xsd:string" maxOccurs="unbounded" minOccurs="0"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 		</xsd:schema>
 </wsdl:types>
        <wsdl:message name="QTL_FindByPositionRequest">
@@ -276,6 +291,16 @@
     	<wsdl:operation name="QTL_FindByPosition">
     		<soap:operation
     			soapAction="http://uni-luebeck.de/eqtl/arc/QTL_FindByPosition" />
+    		<wsdl:input>
+    			<soap:body use="literal" />
+    		</wsdl:input>
+    		<wsdl:output>
+    			<soap:body use="literal" />
+    		</wsdl:output>
+    	</wsdl:operation>
+    	<wsdl:operation name="QTL_FindByPosition_R">
+    		<soap:operation
+    			soapAction="http://uni-luebeck.de/eqtl/arc/QTL_FindByPosition_R" />
     		<wsdl:input>
     			<soap:body use="literal" />
     		</wsdl:input>

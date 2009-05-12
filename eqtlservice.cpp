@@ -11,6 +11,10 @@
 
 #include "eqtlservice.h"
 
+extern "C" {
+#include "cencode.h"
+}
+
 typedef enum {
     PARSE_NULL,
     PARSE_OK,
@@ -84,6 +88,37 @@ namespace ArcService
 		outmsg.Payload(outpayload);
 		
 		return Arc::MCC_Status(Arc::STATUS_OK);
+	}
+
+	std::string getBase64File(FILE* f) {
+		std::string ret = "";
+		const int readsize = 4096;
+		char* plaintext = 0;
+		char* code = 0;
+		int plainlength;
+		int codelength;
+		base64_encodestate state;
+		
+		code = (char*)malloc(sizeof(char)*readsize*2);
+		plaintext = (char*)malloc(sizeof(char)*readsize);
+		
+		base64_init_encodestate(&state);
+		
+		do
+		{
+			plainlength = fread((void*)plaintext, sizeof(char), readsize, f);
+			codelength = base64_encode_block(plaintext, plainlength, code, &state);
+			ret.append(code, codelength);
+		}
+		while (!feof(stdin) && plainlength > 0);
+		
+		codelength = base64_encode_blockend(code, &state);
+		ret.append(code, codelength);
+		
+		free(code);
+		free(plaintext);
+		
+		return ret;
 	}
 
 	/**
@@ -211,23 +246,23 @@ namespace ArcService
 				SEXP dataForR = Rf_allocMatrix(VECSXP, numRow, numCol);
 				PROTECT( dataForR ); //we dont want R to garbage collect this
 				for(size_t i=0;i<res.num_rows();i++) {
-					int rowOff = i * numCol;
-					SET_VECTOR_ELT(dataForR, rowOff+0, Rf_mkString(res[i]["lod"]));
-					SET_VECTOR_ELT(dataForR, rowOff+1, Rf_mkString(res[i]["marker_name"]));
-					SET_VECTOR_ELT(dataForR, rowOff+2, Rf_mkString(res[i]["marker_chromosome"]));
-					SET_VECTOR_ELT(dataForR, rowOff+3, Rf_mkString(res[i]["marker_positionBP"]));
-					SET_VECTOR_ELT(dataForR, rowOff+4, Rf_mkString(res[i]["genePosition_chromosome"]));
-					SET_VECTOR_ELT(dataForR, rowOff+5, Rf_mkString(res[i]["genePosition_fromBP"]));
-					SET_VECTOR_ELT(dataForR, rowOff+6, Rf_mkString(res[i]["genePosition_toBP"]));
-					SET_VECTOR_ELT(dataForR, rowOff+7, Rf_mkString(res[i]["geneEntrezID"]));
-					SET_VECTOR_ELT(dataForR, rowOff+8, Rf_mkString(res[i]["statistics_mean"]));
-					SET_VECTOR_ELT(dataForR, rowOff+9, Rf_mkString(res[i]["statistics_sd"]));
-					SET_VECTOR_ELT(dataForR, rowOff+10, Rf_mkString(res[i]["statistics_median"]));
-					SET_VECTOR_ELT(dataForR, rowOff+11, Rf_mkString(res[i]["statistics_variance"]));
+					SET_VECTOR_ELT(dataForR, i + numRow*0, Rf_mkString(res[i]["lod"]));
+					SET_VECTOR_ELT(dataForR, i + numRow*1, Rf_mkString(res[i]["marker_name"]));
+					SET_VECTOR_ELT(dataForR, i + numRow*2, Rf_mkString(res[i]["marker_chromosome"]));
+					SET_VECTOR_ELT(dataForR, i + numRow*3, Rf_mkString(res[i]["marker_positionBP"]));
+					SET_VECTOR_ELT(dataForR, i + numRow*4, Rf_mkString(res[i]["genePosition_chromosome"]));
+					SET_VECTOR_ELT(dataForR, i + numRow*5, Rf_mkString(res[i]["genePosition_fromBP"]));
+					SET_VECTOR_ELT(dataForR, i + numRow*6, Rf_mkString(res[i]["genePosition_toBP"]));
+					SET_VECTOR_ELT(dataForR, i + numRow*7, Rf_mkString(res[i]["geneEntrezID"]));
+					SET_VECTOR_ELT(dataForR, i + numRow*8, Rf_mkString(res[i]["statistics_mean"]));
+					SET_VECTOR_ELT(dataForR, i + numRow*9, Rf_mkString(res[i]["statistics_sd"]));
+					SET_VECTOR_ELT(dataForR, i + numRow*10, Rf_mkString(res[i]["statistics_median"]));
+					SET_VECTOR_ELT(dataForR, i + numRow*11, Rf_mkString(res[i]["statistics_variance"]));
 				}
-/*
+
 				SEXP colnames = Rf_GetColNames(dataForR);
-				SET_VECTOR_ELT(colnames, 0, Rf_mkString("lod"));
+				logger.msg(Arc::DEBUG, "colnames is of type %d.", TYPEOF(colnames));
+/*				SET_VECTOR_ELT(colnames, 0, Rf_mkString("lod"));
 				SET_VECTOR_ELT(colnames, 1, Rf_mkString("marker_name"));
 				SET_VECTOR_ELT(colnames, 2, Rf_mkString("marker_chromosome"));
 				SET_VECTOR_ELT(colnames, 3, Rf_mkString("marker_positionBP"));
@@ -307,6 +342,48 @@ namespace ArcService
 					}
 				}
 				UNPROTECT(3); //command str + commands + dataForR
+
+				std::list<std::string> attachmentNames;
+				SEXP attachmentList;
+				PROTECT( attachmentList = Rf_findVar(Rf_install("attachmentList"), R_GlobalEnv) );
+				logger.msg(Arc::DEBUG, "attachmentList is of type %d.", TYPEOF(attachmentList));
+				if( Rf_isString(attachmentList) ) {
+					int nAttachments = Rf_length(attachmentList);
+					for(int j=0;j<nAttachments;j++) {
+						SEXP attachment = STRING_ELT(attachmentList, j);
+						attachmentNames.push_back( Rf_translateCharUTF8(attachment) );
+					}
+				}
+				UNPROTECT(1);
+
+				std::list<std::string>::iterator curName;
+				for(curName = attachmentNames.begin(); curName != attachmentNames.end(); ) {
+					std::string name = *curName;
+					if(name.find(".jpg") == std::string::npos) {
+						++curName;
+						continue;
+					}
+					FILE* f = fopen(name.c_str(),"rb");
+					if(!f) {
+						++curName;
+						continue;
+					}
+					addToMe.NewChild("images") = getBase64File(f);
+					fclose(f);
+					curName = attachmentNames.erase(curName);
+				}
+
+				for(curName = attachmentNames.begin(); curName != attachmentNames.end(); ++curName) {
+					std::string name = *curName;
+					FILE* f = fopen(name.c_str(),"rb");
+					if(!f) {
+						++curName;
+						continue;
+					}
+					addToMe.NewChild("attachments") = getBase64File(f);
+					fclose(f);
+				}
+
 			}
 		} 
 
