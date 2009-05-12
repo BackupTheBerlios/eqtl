@@ -39,7 +39,8 @@ my.density <-function(data,breaks=NULL,interval.length=NA,max.value=NA) {
 show.qtl.density<-function(qtls,chromosome, lod.thresholds=NULL, 
 				interval.length=15, breaks=NULL,
 				show.empty=FALSE, # continue even if there are no chromosomes
-				show.absolute=FALSE # show absolute values
+				show.absolute=FALSE, # show absolute values
+				col=NULL
 ) {
   if (is.null(lod.thresholds)) {
     lod.thresholds<-3*(1:5)
@@ -68,7 +69,8 @@ show.qtl.density<-function(qtls,chromosome, lod.thresholds=NULL,
   print(t(i))
   image(y=b,ylab="cMorgan",
 	x=lod.thresholds,xlab="min LOD",
-	z=t(i)[,nrow(i):1],axes=FALSE)
+	z=-t(i)[,nrow(i):1], # painting from top to bottom, like biologists do
+	axes=FALSE,col=col)
   axis(1,lod.thresholds)
   axis(2,b,labels=rev(b))
   title(main = paste("Chromosome",chromosome), font.main = 4)
@@ -80,7 +82,7 @@ show.qtl.density<-function(qtls,chromosome, lod.thresholds=NULL,
 # a function doing some layout of the plot
 # to work on multiple chromosomes
 
-show.multiple.qtl.densities <- function(data,show.absolute=FALSE,max.num.chrom.per.line=5) {
+show.multiple.qtl.densities <- function(data,show.absolute=FALSE,max.num.chrom.per.line=5,col=heat.colors(100)) {
 
   chromosomes<-unique(sort(data[,1]))
   
@@ -90,7 +92,7 @@ show.multiple.qtl.densities <- function(data,show.absolute=FALSE,max.num.chrom.p
   par.orig<-par(mfrow=c(chrom.num.vertical,chrom.num.horizontal))
   sapply(chromosomes,function(chr){
     cat("Performing on chromosome ",chr,"\n")
-    show.qtl.density(m,chr,show.absolute=show.absolute)
+    show.qtl.density(m,chr,show.absolute=show.absolute,col=col)
   })
   par(par.orig)
 }
