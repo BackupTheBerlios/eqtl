@@ -7,6 +7,7 @@
 #include <R.h>
 #include <Rembedded.h>
 #include <Rinternals.h>
+#include <Rinterface.h>
 
 
 #include "eqtlservice.h"
@@ -24,7 +25,6 @@ typedef enum {
 } ParseStatus;
 
 extern "C" SEXP R_ParseVector(SEXP, int, ParseStatus *, SEXP);
-
 
 
 /**
@@ -63,6 +63,7 @@ namespace ArcService
 		// init embedded R
 		char *argv[] = {"R", "--gui=none", "--silent"};
 		Rf_initEmbeddedR(sizeof(argv)/sizeof(argv[0]), argv);
+	//	R_Interactive = FALSE;
 
 		// read config like this: prefix_=(std::string)((*cfg)["prefix"]);
 	}
@@ -243,38 +244,41 @@ namespace ArcService
 				Arc::XMLNode addToMe = outpayload->NewChild("arc:QTL_FindByPosition_RResponse");
 				int numCol = 1+3+3+1+4;
 				int numRow = res.num_rows();
-				SEXP dataForR = Rf_allocMatrix(VECSXP, numRow, numCol);
+				SEXP dataForR = Rf_allocMatrix(STRSXP, numRow, numCol);
 				PROTECT( dataForR ); //we dont want R to garbage collect this
 				for(size_t i=0;i<res.num_rows();i++) {
-					SET_VECTOR_ELT(dataForR, i + numRow*0, Rf_mkString(res[i]["lod"]));
-					SET_VECTOR_ELT(dataForR, i + numRow*1, Rf_mkString(res[i]["marker_name"]));
-					SET_VECTOR_ELT(dataForR, i + numRow*2, Rf_mkString(res[i]["marker_chromosome"]));
-					SET_VECTOR_ELT(dataForR, i + numRow*3, Rf_mkString(res[i]["marker_positionBP"]));
-					SET_VECTOR_ELT(dataForR, i + numRow*4, Rf_mkString(res[i]["genePosition_chromosome"]));
-					SET_VECTOR_ELT(dataForR, i + numRow*5, Rf_mkString(res[i]["genePosition_fromBP"]));
-					SET_VECTOR_ELT(dataForR, i + numRow*6, Rf_mkString(res[i]["genePosition_toBP"]));
-					SET_VECTOR_ELT(dataForR, i + numRow*7, Rf_mkString(res[i]["geneEntrezID"]));
-					SET_VECTOR_ELT(dataForR, i + numRow*8, Rf_mkString(res[i]["statistics_mean"]));
-					SET_VECTOR_ELT(dataForR, i + numRow*9, Rf_mkString(res[i]["statistics_sd"]));
-					SET_VECTOR_ELT(dataForR, i + numRow*10, Rf_mkString(res[i]["statistics_median"]));
-					SET_VECTOR_ELT(dataForR, i + numRow*11, Rf_mkString(res[i]["statistics_variance"]));
+					SET_STRING_ELT(dataForR, i + numRow*0, Rf_mkChar(res[i]["lod"]));
+					SET_STRING_ELT(dataForR, i + numRow*1, Rf_mkChar(res[i]["marker_name"]));
+					SET_STRING_ELT(dataForR, i + numRow*2, Rf_mkChar(res[i]["marker_chromosome"]));
+					SET_STRING_ELT(dataForR, i + numRow*3, Rf_mkChar(res[i]["marker_positionBP"]));
+					SET_STRING_ELT(dataForR, i + numRow*4, Rf_mkChar(res[i]["genePosition_chromosome"]));
+					SET_STRING_ELT(dataForR, i + numRow*5, Rf_mkChar(res[i]["genePosition_fromBP"]));
+					SET_STRING_ELT(dataForR, i + numRow*6, Rf_mkChar(res[i]["genePosition_toBP"]));
+					SET_STRING_ELT(dataForR, i + numRow*7, Rf_mkChar(res[i]["geneEntrezID"]));
+					SET_STRING_ELT(dataForR, i + numRow*8, Rf_mkChar(res[i]["statistics_mean"]));
+					SET_STRING_ELT(dataForR, i + numRow*9, Rf_mkChar(res[i]["statistics_sd"]));
+					SET_STRING_ELT(dataForR, i + numRow*10, Rf_mkChar(res[i]["statistics_median"]));
+					SET_STRING_ELT(dataForR, i + numRow*11, Rf_mkChar(res[i]["statistics_variance"]));
 				}
 
-				SEXP colnames = Rf_GetColNames(dataForR);
-				logger.msg(Arc::DEBUG, "colnames is of type %d.", TYPEOF(colnames));
-/*				SET_VECTOR_ELT(colnames, 0, Rf_mkString("lod"));
-				SET_VECTOR_ELT(colnames, 1, Rf_mkString("marker_name"));
-				SET_VECTOR_ELT(colnames, 2, Rf_mkString("marker_chromosome"));
-				SET_VECTOR_ELT(colnames, 3, Rf_mkString("marker_positionBP"));
-				SET_VECTOR_ELT(colnames, 4, Rf_mkString("genePosition_chromosome"));
-				SET_VECTOR_ELT(colnames, 5, Rf_mkString("genePosition_fromBP"));
-				SET_VECTOR_ELT(colnames, 6, Rf_mkString("genePosition_toBP"));
-				SET_VECTOR_ELT(colnames, 7, Rf_mkString("geneEntrezID"));
-				SET_VECTOR_ELT(colnames, 8, Rf_mkString("statistics_mean"));
-				SET_VECTOR_ELT(colnames, 9, Rf_mkString("statistics_sd"));
-				SET_VECTOR_ELT(colnames, 10, Rf_mkString("statistics_median"));
-				SET_VECTOR_ELT(colnames, 11, Rf_mkString("statistics_variance"));
-*/ 
+				SEXP colnames = Rf_allocVector(STRSXP, 12);
+				SET_STRING_ELT(colnames, 0, Rf_mkChar("lod"));
+				SET_STRING_ELT(colnames, 1, Rf_mkChar("marker_name"));
+				SET_STRING_ELT(colnames, 2, Rf_mkChar("marker_chromosome"));
+				SET_STRING_ELT(colnames, 3, Rf_mkChar("marker_positionBP"));
+				SET_STRING_ELT(colnames, 4, Rf_mkChar("genePosition_chromosome"));
+				SET_STRING_ELT(colnames, 5, Rf_mkChar("genePosition_fromBP"));
+				SET_STRING_ELT(colnames, 6, Rf_mkChar("genePosition_toBP"));
+				SET_STRING_ELT(colnames, 7, Rf_mkChar("geneEntrezID"));
+				SET_STRING_ELT(colnames, 8, Rf_mkChar("statistics_mean"));
+				SET_STRING_ELT(colnames, 9, Rf_mkChar("statistics_sd"));
+				SET_STRING_ELT(colnames, 10, Rf_mkChar("statistics_median"));
+				SET_STRING_ELT(colnames, 11, Rf_mkChar("statistics_variance"));
+				// we have 2 dimensions and column names are the second one, thus index 1
+				SEXP dimnames = Rf_allocVector(VECSXP, 2);
+				SET_VECTOR_ELT(dimnames, 1, colnames);
+				Rf_setAttrib(dataForR, R_DimNamesSymbol, dimnames);
+
 				logger.msg(Arc::DEBUG, "Registring data into R...");
 				Rf_defineVar(Rf_install("data"), dataForR, R_GlobalEnv);
 				logger.msg(Arc::DEBUG, "Variable \"data\" set.");
@@ -297,19 +301,20 @@ namespace ArcService
 				}
 				PROTECT(commands);
 
+				Arc::XMLNode scriptResults = addToMe.NewChild("scriptResults");
 				int nCommands = Rf_length(commands);
 				for(int i=0;i<nCommands;i++) {
-					Arc::XMLNode lineResult = addToMe.NewChild("scriptResults");
 					int errorStatus;
 					SEXP curCommand = VECTOR_ELT(commands,i);
 					//Rf_PrintValue(curCommand);
+
 					SEXP result = R_tryEval(curCommand, R_GlobalEnv, &errorStatus);
 					logger.msg(Arc::DEBUG, "R_tryEval number %d of %d returned error status %d.", i+1, nCommands, errorStatus);
 
 					if( errorStatus == 0 ) {
 						//Rf_PrintValue(result);
-						logger.msg(Arc::DEBUG, "Returned SEXP is of type %d.", TYPEOF(result));
-						if( ! Rf_isNull(result) ) {
+						//logger.msg(Arc::DEBUG, "Returned SEXP is of type %d.", TYPEOF(result));
+						if( Rf_isVector(result) && i == nCommands-1 ) {
 
 							SEXP printExpr = Rf_allocVector(EXPRSXP, 1);
 							PROTECT(printExpr);
@@ -332,18 +337,19 @@ namespace ArcService
 								logger.msg(Arc::DEBUG, "capturedString is of type %d.", TYPEOF(capturedString));
 								int nLines = Rf_length(capturedString);
 								for(int j=0;j<nLines;j++)
-									lineResult.NewChild("output") = Rf_translateCharUTF8(STRING_ELT(capturedString,j));
+									scriptResults.NewChild("output") = Rf_translateCharUTF8(STRING_ELT(capturedString,j));
 							}
 						}
 					} else {
 						std::stringstream statusStr;
+						statusStr << "Error executing R command. Error status: ";
 						statusStr << errorStatus;
-						lineResult.NewChild("errorStatus") = statusStr.str();
+						scriptResults.NewChild("output") = statusStr.str();
 					}
 				}
 				UNPROTECT(3); //command str + commands + dataForR
 
-				std::list<std::string> attachmentNames;
+				Arc::XMLNode attachmentResults = addToMe.NewChild("attachments");
 				SEXP attachmentList;
 				PROTECT( attachmentList = Rf_findVar(Rf_install("attachmentList"), R_GlobalEnv) );
 				logger.msg(Arc::DEBUG, "attachmentList is of type %d.", TYPEOF(attachmentList));
@@ -351,39 +357,16 @@ namespace ArcService
 					int nAttachments = Rf_length(attachmentList);
 					for(int j=0;j<nAttachments;j++) {
 						SEXP attachment = STRING_ELT(attachmentList, j);
-						attachmentNames.push_back( Rf_translateCharUTF8(attachment) );
+						std::string name = Rf_translateCharUTF8(attachment);
+						FILE* f = fopen(name.c_str(),"rb");
+						if(!f) continue;
+						Arc::XMLNode curAtt = attachmentResults.NewChild("files");
+						curAtt.NewChild("name") = name;
+						curAtt.NewChild("data") = getBase64File(f);
+						fclose(f);
 					}
 				}
 				UNPROTECT(1);
-
-				std::list<std::string>::iterator curName;
-				for(curName = attachmentNames.begin(); curName != attachmentNames.end(); ) {
-					std::string name = *curName;
-					if(name.find(".jpg") == std::string::npos) {
-						++curName;
-						continue;
-					}
-					FILE* f = fopen(name.c_str(),"rb");
-					if(!f) {
-						++curName;
-						continue;
-					}
-					addToMe.NewChild("images") = getBase64File(f);
-					fclose(f);
-					curName = attachmentNames.erase(curName);
-				}
-
-				for(curName = attachmentNames.begin(); curName != attachmentNames.end(); ++curName) {
-					std::string name = *curName;
-					FILE* f = fopen(name.c_str(),"rb");
-					if(!f) {
-						++curName;
-						continue;
-					}
-					addToMe.NewChild("attachments") = getBase64File(f);
-					fclose(f);
-				}
-
 			}
 		} 
 

@@ -27,3 +27,4 @@ debian/libarc1-eqtl.substvars
 debian/libarc1-eqtl/
 debian/tmp/
 build-stamp
+debug/
