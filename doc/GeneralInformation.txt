@@ -1,6 +1,5 @@
 1. Database
--------------------
--------------------
+===================
 
    The database is the core unit of the whole dataflow.
    It is storing the results and is used by the website
@@ -79,7 +78,7 @@
    --------------------
 
    This table stores the marker information from the 
-   experment.
+   experiment.
 
    qtl:
    --------------------
@@ -97,18 +96,16 @@
 
 
 2. Website
---------------------
---------------------
+====================
 
 
 3. Config files and template files
---------------------
---------------------
+====================
 
 
 4. Data Computation
---------------------
---------------------
+====================
+
    The main script to start the computation of the data is
 
 	scripts/evaluateQuery.R
@@ -169,9 +166,10 @@
      with the latest config files
    - make sure that the pathes to the files in the config 
      files are right
+
    
 5. Data Uplaod
---------------------
---------------------
+====================
+
 
 
