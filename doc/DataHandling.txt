@@ -8,7 +8,7 @@ This document summarises on how to submit jobs to the grid.
 
    Those jobs that should be sent to the grid or to a local cluster, should
    have their status field set to 'RECALCULATE'. The job submission script
-   will fine all these entries and submit them.
+   will find all these entries and submit them.
 
    The status change can be performed with the following mysql statement, which
    would change the status of all those scanones that are at the moment marked
@@ -109,7 +109,7 @@ This document summarises on how to submit jobs to the grid.
 	ngsub -d 1 -f job.xrsl -c benedict.grid.aau.dk 
 
    Site administrators will worry less about the number of jobs that 
-   are submitted than about about jobs that take awfully long to
+   are submitted than about jobs that take awfully long to
    complete. Please take that into account.
 
    Two more clusters with the R/qtl runtime environment are:

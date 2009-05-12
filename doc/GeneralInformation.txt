@@ -3,7 +3,7 @@
 
    The database is the core unit of the whole dataflow.
    It is storing the results and is used by the website
-   to present the results. And it is controlling the
+   to present the results. Moreover it is controlling the
    computation of the data.
    For the description of the tables of the database,
    see the database description file which is not there
@@ -29,24 +29,24 @@
    BEARatChip:
    --------------------
    
-   this table contains all information
+   This table contains all information
    about the expression data.
    This is the only table where the name should
-   be choosen dependent from the data, but we haven't
-   included this to to be a config parameter so at the
+   be chosen dependent from the data, but we haven't
+   included this as a config parameter so at the
    moment this name needs to be used.
 
    computation:
    --------------------
 
-   this table controls all computations:
+   This table controls all computations:
    all jobs that need to be computed are one entry in this
    database. The jobname is in the format:
 
 	 [scanone|scantwo]_probesetid_lodThreshold_numberOfPermutations_(covariate1{_add|_int},covariate2{_add|_int}).csv.gz
 
-   each entry has a unique id, the computation_id
-   which is linked to the results from this job.
+   Each entry has a unique id, the computation_id
+   which is linked to the results of this job.
    In that way, old results can be determined and can be
    deleted if a new compuation was done.
    The status of a job can either be QUEUED, which means
@@ -110,11 +110,11 @@
 
 	scripts/evaluateQuery.R
 
-   To run this script, make sure that Rqtl is installed
-   Startet with this script, several files are used that
+   To run this script, make sure that Rqtl is installed.
+   Started with this script, several files are used that
    need to be on a web server with apache and fcgi.
    The path to those files and the names of the files,
-   which can be changed  if required need to be determined
+   which can be changed if required need to be determined
    in the config files. The first file to be called is
 
 	website/recalc.pl
@@ -136,7 +136,7 @@
 
    is called. This script returns the R code to be executed.
    This script uses the path to the data file (expression 
-   data, genotyping and quntitative information(covariates))
+   data, genotyping and quntitative information(covariates)).
    The path needs to be specified in the config files.
    The format of the required data will soon appear in this
    file in a special section. Of course you don't need to
@@ -168,8 +168,10 @@
      files are right
 
    
-5. Data Uplaod
+5. Data Upload
 ====================
+
+@Ann-Kristin: to be completed by Benedikt
 
 
 
