@@ -19,7 +19,7 @@ typedef enum {
     PARSE_EOF
 } ParseStatus;
 
-extern "C" SEXP R_ParseVector(SEXP, int, ParseStatus *);
+extern "C" SEXP R_ParseVector(SEXP, int, ParseStatus *, SEXP);
 
 
 
@@ -57,7 +57,7 @@ namespace ArcService
 		ns_["arc"]="http://uni-luebeck.de/eqtl/arc/";
 
 		// init embedded R
-		char *argv[] = {"REmbeddedPostgres", "--gui=none", "--silent"};
+		char *argv[] = {"R", "--gui=none", "--silent"};
 		Rf_initEmbeddedR(sizeof(argv)/sizeof(argv[0]), argv);
 
 		// read config like this: prefix_=(std::string)((*cfg)["prefix"]);
@@ -243,21 +243,70 @@ namespace ArcService
 				logger.msg(Arc::DEBUG, "Registring data into R...");
 				Rf_defineVar(Rf_install("data"), dataForR, R_GlobalEnv);
 				logger.msg(Arc::DEBUG, "Variable \"data\" set.");
-				ParseStatus status;
-				const char* commandStr = ((std::string)requestNode["script"]).c_str();
-				logger.msg(Arc::DEBUG, "R script : %s", commandStr);
-				SEXP str = Rf_mkString(commandStr);
-				logger.msg(Arc::DEBUG, "mkString succeeded");
-				SEXP commands = R_ParseVector(str, -1, &status);
-				logger.msg(Arc::DEBUG, "parseString succeeded");
-				PROTECT(commands);
-				Rf_PrintValue(commands);
-				int errorStatus;
-				SEXP result = R_tryEval(commands, R_GlobalEnv, &errorStatus);
-				Rf_PrintValue(result);
-				UNPROTECT(2); //commands + dataForR
 
-				addToMe = "done";
+				ParseStatus status;
+				char* commandStr = strdup( ((std::string)requestNode["script"]).c_str() );
+				logger.msg(Arc::DEBUG, "R script: %s", commandStr);
+
+				SEXP str = Rf_mkString(commandStr);
+				free(commandStr);
+				PROTECT(str);
+				//Rf_PrintValue(str);
+
+				SEXP commands = R_ParseVector(str, -1, &status, R_NilValue);
+				if( status == PARSE_OK ) 
+					logger.msg(Arc::DEBUG, "R_ParseVector succeeded.");
+				else {
+					logger.msg(Arc::DEBUG, "R_ParseVector failed with status %d.", status);
+					return makeFault(outmsg, "The script you provided could not be parsed by R using R_ParseVector.");
+				}
+				PROTECT(commands);
+
+				int nCommands = Rf_length(commands);
+				for(int i=0;i<nCommands;i++) {
+					Arc::XMLNode lineResult = addToMe.NewChild("scriptResults");
+					int errorStatus;
+					SEXP curCommand = VECTOR_ELT(commands,i);
+					//Rf_PrintValue(curCommand);
+					SEXP result = R_tryEval(curCommand, R_GlobalEnv, &errorStatus);
+					logger.msg(Arc::DEBUG, "R_tryEval number %d of %d returned error status %d.", i+1, nCommands, errorStatus);
+
+					if( errorStatus == 0 ) {
+						//Rf_PrintValue(result);
+						logger.msg(Arc::DEBUG, "Returned SEXP is of type %d.", TYPEOF(result));
+						if( ! Rf_isNull(result) ) {
+
+							SEXP printExpr = Rf_allocVector(EXPRSXP, 1);
+							PROTECT(printExpr);
+							SET_VECTOR_ELT(printExpr, 0, result);
+							//Rf_PrintValue(printExpr);
+
+							SEXP printCall, tmp;
+							PROTECT(tmp = printCall = Rf_allocList(2));
+							SET_TYPEOF(printCall, LANGSXP);
+							SETCAR(tmp, Rf_install("capture.output")); 
+							tmp = CDR(tmp);
+							SETCAR(tmp, printExpr); 
+							//Rf_PrintValue(printCall);
+
+							SEXP capturedString = R_tryEval(printCall, R_GlobalEnv, &errorStatus);
+							logger.msg(Arc::DEBUG, "R_tryEval to format result returned error status %d.", errorStatus);
+							UNPROTECT(2); // printCall + printExpr
+	
+							if(errorStatus == 0) {
+								logger.msg(Arc::DEBUG, "capturedString is of type %d.", TYPEOF(capturedString));
+								int nLines = Rf_length(capturedString);
+								for(int j=0;j<nLines;j++)
+									lineResult.NewChild("output") = Rf_translateCharUTF8(STRING_ELT(capturedString,j));
+							}
+						}
+					} else {
+						std::stringstream statusStr;
+						statusStr << errorStatus;
+						lineResult.NewChild("errorStatus") = statusStr.str();
+					}
+				}
+				UNPROTECT(3); //command str + commands + dataForR
 			}
 		} 
 
