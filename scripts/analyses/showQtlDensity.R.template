@@ -40,6 +40,7 @@ show.qtl.density<-function(qtls,chromosome, lod.thresholds=NULL,
 				interval.length=15, breaks=NULL,
 				show.empty=FALSE, # continue even if there are no chromosomes
 				show.absolute=FALSE, # show absolute values
+				show.logarithmic=TRUE,
 				col=NULL
 ) {
   if (is.null(lod.thresholds)) {
@@ -64,6 +65,11 @@ show.qtl.density<-function(qtls,chromosome, lod.thresholds=NULL,
       i<-i/counts.per.threshold[thres.pos]
     }
   }
+
+  if (show.logarithmic) {
+	i<-log(1+i)
+  }
+
   rownames(i)<-b
   colnames(i)<-lod.thresholds
   print(t(i))
@@ -82,7 +88,12 @@ show.qtl.density<-function(qtls,chromosome, lod.thresholds=NULL,
 # a function doing some layout of the plot
 # to work on multiple chromosomes
 
-show.multiple.qtl.densities <- function(data,show.absolute=FALSE,max.num.chrom.per.line=5,col=heat.colors(100)) {
+show.multiple.qtl.densities <- function(data,
+					lod.thresholds=NULL,
+					show.absolute=FALSE,
+					interval.length=30,
+					show.logarithmic=TRUE,
+					max.num.chrom.per.line=5,col=heat.colors(100)) {
 
   chromosomes<-unique(sort(data[,1]))
   
@@ -92,7 +103,7 @@ show.multiple.qtl.densities <- function(data,show.absolute=FALSE,max.num.chrom.p
   par.orig<-par(mfrow=c(chrom.num.vertical,chrom.num.horizontal))
   sapply(chromosomes,function(chr){
     cat("Performing on chromosome ",chr,"\n")
-    show.qtl.density(data,chr,show.absolute=show.absolute,col=col)
+    show.qtl.density(data,chr,show.absolute=show.absolute,interval.length=interval.length,col=col,lod.thresholds=lod.thresholds,show.logarithmic=show.logarithmic)
   })
   par(par.orig)
 }
@@ -120,4 +131,5 @@ con <- dbConnect(MySQL(),user="DATABASEQTLUSER", password="", dbname="DATABASEEQ
 rs<-dbGetQuery(con, "select Chromosome, cMorgan_Peak as cMorgan, LOD from qtl where Chromosome=1 and covariates='' order by LOD")
 dbDisconnect(con)
 
-show.multiple.qtl.densities(rs,show.absolute=FALSE)
+cols=heat.colors(255)
+show.multiple.qtl.densities(rs,show.absolute=FALSE,col=cols,interval.length=50,lod.thresholds=(0:10*3),show.logarithmic=TRUE)
