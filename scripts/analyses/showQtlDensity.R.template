@@ -99,6 +99,7 @@ show.multiple.qtl.densities <- function(data,show.absolute=FALSE,max.num.chrom.p
 
 # some stupid test data, so the script
 # does something in the first place
+
 m<-matrix(c(
     1,10,3.4,
     1,11,5,
@@ -111,4 +112,9 @@ colnames(m)<-c("Chromosome","cMorgan","LOD")
 
 
 # now calling our function to see it work
-show.multiple.qtl.densities(m,show.absolute=TRUE)
+show.multiple.qtl.densities(m,show.absolute=FALSE)
+
+require(RMySQL)
+con <- dbConnect(MySQL(),user="DATABASEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
+   rs<-dbGetQuery(con, "select trait_id, vals from trait where trait_id like '10749%'")
+   dbDisconnect(con)
