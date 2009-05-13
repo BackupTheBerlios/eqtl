@@ -36,7 +36,7 @@ my.density <-function(data,breaks=NULL,interval.length=NA,max.value=NA) {
 }
 
 # qtl - quantitative trait locus
-show.qtl.density<-function(qtls,chromosome, lod.thresholds=NULL, 
+show.qtl.density<-function(qtls,chromosome,cov, lod.thresholds=NULL, 
 				interval.length=15, breaks=NULL,
 				show.empty=FALSE, # continue even if there are no chromosomes
 				show.absolute=FALSE, # show absolute values
@@ -79,7 +79,7 @@ show.qtl.density<-function(qtls,chromosome, lod.thresholds=NULL,
 	axes=FALSE,col=col)
   axis(1,lod.thresholds)
   axis(2,b,labels=rev(b))
-  title(main = paste("Chromosome",chromosome), font.main = 4)
+  title(main = paste("Chr",chromosome,"cov", cov), font.main = 4)
   #print(dimnames(i))
   counts.per.threshold
 }
@@ -95,15 +95,20 @@ show.multiple.qtl.densities <- function(data,
 					show.logarithmic=TRUE,
 					max.num.chrom.per.line=5,col=heat.colors(100)) {
 
-  chromosomes<-unique(sort(data[,1]))
-  
+  chromosomes<-unique(sort(data[,"Chromosome"]))
+  covariates<-unique(sort(data[,"covariates"]))
   chrom.num.horizontal<-min(max.num.chrom.per.line,length(chromosomes))
   chrom.num.vertical<-1+length(chromosomes)%/%max.num.chrom.per.line
-
-  par.orig<-par(mfrow=c(chrom.num.vertical,chrom.num.horizontal))
+  par.orig<-par(mfrow=c(1,length(covariates)))
+  #par.orig<-par(mfrow=c(chrom.num.vertical,chrom.num.horizontal))
   sapply(chromosomes,function(chr){
     cat("Performing on chromosome ",chr,"\n")
-    show.qtl.density(data,chr,show.absolute=show.absolute,interval.length=interval.length,col=col,lod.thresholds=lod.thresholds,show.logarithmic=show.logarithmic)
+    sapply(covariates,function(cov){
+       data.tmp<-data[data[,"covariates"]==cov,]
+       cat("Performing on covariate ",cov,"\n")
+       show.qtl.density(data.tmp,chr,cov,show.absolute=show.absolute,interval.length=interval.length,col=col,lod.thresholds=lod.thresholds,show.logarithmic=show.logarithmic)
+       
+    })	
   })
   par(par.orig)
 }
@@ -128,8 +133,28 @@ colnames(m)<-c("Chromosome","cMorgan","LOD")
 require(RMySQL)
 #example data for chromosome 1
 con <- dbConnect(MySQL(),user="DATABASEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
-rs<-dbGetQuery(con, "select Chromosome, cMorgan_Peak as cMorgan, LOD from qtl where Chromosome=1 and covariates='' order by LOD")
+rs<-dbGetQuery(con, "select covariates, Chromosome, cMorgan_Peak as cMorgan, LOD from qtl where covariates in ('','eae_add','sud_add','dud_add') order by covariates,Chromosome, LOD")
 dbDisconnect(con)
 
 cols=heat.colors(255)
-show.multiple.qtl.densities(rs,show.absolute=FALSE,col=cols,interval.length=50,lod.thresholds=(0:10*3),show.logarithmic=TRUE)
+#covariates<-unique(rs[,"covariates"])
+#a<-lapply(covariates,function(x){
+#   data.to.plot<-rs[which(rs[,"covariates"]==x),2:ncol(rs)]
+#   x11()
+#   show.multiple.qtl.densities(data.to.plot,show.absolute=TRUE,col=cols,interval.length=50,lod.thresholds=(0:10*3),show.logarithmic=TRUE)
+#}
+#)
+chromosomes<-unique(rs[,"Chromosome"])
+lapply(chromosomes,function(x){
+   data.to.plot<-rs[which(rs[,"Chromosome"]==x),]
+   x11()
+   show.multiple.qtl.densities(data.to.plot,show.absolute=TRUE,col=cols,interval.length=15,lod.thresholds=(0:10*3),show.logarithmic=TRUE)
+}
+)
+
+#show.multiple.qtl.densities(rs,show.absolute=TRUE,col=cols,interval.length=15,lod.thresholds=(0:10*3),show.logarithmic=TRUE)
+
+
+
+
+
