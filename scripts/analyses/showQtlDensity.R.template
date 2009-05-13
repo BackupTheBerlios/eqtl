@@ -116,13 +116,8 @@ colnames(m)<-c("Chromosome","cMorgan","LOD")
 
 require(RMySQL)
 #example data for chromosome 1
-   con <- dbConnect(MySQL(),user="DATABASEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
-   rs<-dbGetQuery(con, "select Chromosome, cMorgan_Peak as cMorgan, LOD from qtl where Chromosome=1 and covariates='' order by LOD")
-   dbDisconnect(con)
+con <- dbConnect(MySQL(),user="DATABASEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
+rs<-dbGetQuery(con, "select Chromosome, cMorgan_Peak as cMorgan, LOD from qtl where Chromosome=1 and covariates='' order by LOD")
+dbDisconnect(con)
+
 show.multiple.qtl.densities(rs,show.absolute=FALSE)
-
-
-
-
-
-
