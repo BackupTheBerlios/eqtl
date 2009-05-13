@@ -92,7 +92,7 @@ show.multiple.qtl.densities <- function(data,show.absolute=FALSE,max.num.chrom.p
   par.orig<-par(mfrow=c(chrom.num.vertical,chrom.num.horizontal))
   sapply(chromosomes,function(chr){
     cat("Performing on chromosome ",chr,"\n")
-    show.qtl.density(m,chr,show.absolute=show.absolute,col=col)
+    show.qtl.density(data,chr,show.absolute=show.absolute,col=col)
   })
   par(par.orig)
 }
@@ -112,12 +112,15 @@ colnames(m)<-c("Chromosome","cMorgan","LOD")
 
 
 # now calling our function to see it work
-show.multiple.qtl.densities(m,show.absolute=FALSE)
+#show.multiple.qtl.densities(m,show.absolute=FALSE)
 
 require(RMySQL)
-con <- dbConnect(MySQL(),user="DATABASEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
-   rs<-dbGetQuery(con, "select trait_id, vals from trait where trait_id like '10749%'")
+#example data for chromosome 1
+   con <- dbConnect(MySQL(),user="DATABASEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
+   rs<-dbGetQuery(con, "select Chromosome, cMorgan_Peak as cMorgan, LOD from qtl where Chromosome=1 and covariates='' order by LOD")
    dbDisconnect(con)
+show.multiple.qtl.densities(rs,show.absolute=FALSE)
+
 
 
 
