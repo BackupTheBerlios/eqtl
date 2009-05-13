@@ -111,4 +111,4 @@ colnames(m)<-c("Chromosome","cMorgan","LOD")
 
 
 # now calling our function to see it work
-show.multiple.qtl.densities(m,show.absolute=FALSE)
+show.multiple.qtl.densities(m,show.absolute=TRUE)
