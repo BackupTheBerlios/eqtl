@@ -18,7 +18,7 @@ configuration files (expected as conf/*.conf) this script prepares
 new files, without the ending ".template" that have all variables
 substituted.
 
-It was motivated by web pages that should be adaptable to various 
+The script was motivated by web pages that should be adaptable to various 
 analogous projects.
 
 =head1 OPTIONS
@@ -42,8 +42,17 @@ GetOptions(
 		"help"=>\$help
 ) or pod2usage(2);
 
-unless (defined($projectname)) {
-	print STDERR "Projectname is not defined.\n";
+if (defined($projectname)) {
+	if  ( ! -d "conf_$projectname" ) {
+		print STDERR "Could not find directory with project's configuration files expected at 'conf_${projectname}'.\n";
+		exit(-1);
+	}
+}
+elsif ( -d "conf" ) {
+		$projectname=""
+}
+else {
+	print STDERR "Projectname is not defined and no 'conf' folder available.\n";
 	print "\n";
 	pod2usage(1);
 }
@@ -51,15 +60,14 @@ unless (defined($projectname)) {
 pod2usage(1) if $help;
 pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
-unless ( -d "conf_${projectname}") {
-	print STDERR "Could not find directory with project's configuration files expected at 'conf_${projectname}'.\n";
-	exit(-1);
+my $configdir="conf";
+if ("" ne "$projectname") {
+	$configdir="conf_${projectname}";
 }
-
 
 my %vars;
 
-foreach my $c (glob("conf_${projectname}/*.conf")) {
+foreach my $c (glob("$configdir/*.conf")) {
 	print STDERR "\tFound configuration file '$c'.\n";
 	open(CONF,"<$c") or die "\tCould not open configuration file '$c': $@\n";
 	while(<CONF>) {
