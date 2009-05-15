@@ -12,10 +12,13 @@ TEMPLATEWARNINGHASH
 # DESCRIPTION
 #
 #	This script calculates all correlations between 
-#	the expression levels of all genes. For larger
-#	projects, only the calculation of the correlaction
-#	coefficients are practical. Smaller projects may
-#	also determine # the p-Value for the likelihood
+#	 * the expression levels of all genes
+#	 * between expression levels and the classical traits.
+#	For larger projects, only the calculation of the correlaction
+#	coefficients is practical to be applied for gene-gene comparisons.
+#	
+#	For comparisons with classical phenotypes and smaller projects
+#	may also determine # the p-Value for the likelihood
 #	to make this observation on uncorrelated data.
 #
 # AUTHOR
@@ -31,16 +34,17 @@ d<-read.delim(file="CSVDATABASE/PHENOFILE",dec=",",sep="\t",row.names=1,skip=1)
 
 # columns with expression data
 p<-grep("^MT",colnames(d))
+
 # convert to (numerical) matrix
+# selecting mouse-columns,
+# transposing since genes are the observations that shall be compared
+m<-t(as.matrix(d[,p]))
+# freeing some memory
+rm("d")
 
 
 if (TRUE) {
 
-	# selecting mouse-columns,
-	# transposing since genes are the observations that shall be compared
-	m<-t(as.matrix(d[,p]))
-	# freeing some memory
-	rm("d")
 	# recieving all-against-all matrix or for all genes
 	m.cor<-cor(m,method="spearman")
 	con.out<-file("trait_trait_cor.sql","w")
@@ -75,40 +79,56 @@ if (TRUE) {
 }
 else {
 
-    con.out<-file("trait_trait_cor.sql","w")
+	# read in phenotypes
+	d<-read.table(file="CSVDATABASE/GENOFILE",dec=".",sep=",",header=TRUE,na.strings=c("-"))
+	d.cols<-is.na(d[1,]) | ""==d[1,]
+	d.rows<-!(is.na(d[,1]) | ""==d[,1])
+	d.m<-as.matrix(d[d.rows,d.cols])
+	p.no<-1
 
-    # perform 
-    testfunction<-function(X,Y,method="spearman") {
-        r<-cor.test(X,Y,alternative="two.sided",method=method,exact=FALSE)
-        return(c(estimate=r[["estimate"]],p.value=r[["p.value"]]))
-    }
+	# perform 
+	testfunction<-function(X,Y,method="spearman") {
+		r<-cor.test(X,Y,alternative="two.sided",method=method,exact=FALSE)
+		return(c(rho=r[["estimate"]],p.value=r[["p.value"]]))
+	}
 
 
-  m<-as.matrix(d[1:1000,p])
+	# perform over all phenotypes
 
+	for(p.no in 1:ncol(d.m)) {
 
-  a.max<-nrow(m)
-  for(a in 1:a.max) {
+		p.name<-tolower(colnames(d.m)[p.no])
+		cat(p.name,"\n")
 
-	cat(paste(" ------- ", a , " of ", a.max , " --------\n"))
-	
-	a.v<-m[a,]
-	r<-apply(m,1,function(X,Y=a.v){
-		testfunction(X,Y)
-	})
-	# find the 500 most correlating
-	o<-order(r[2,1:500])
-	r.sub<-r[,o]
-	cat(file=con.out,
-			paste("insert into trait_trait_cor set ",
-			"who='", rownames(m)[a],"', ",
-			"most='",paste(colnames(r.sub),collapse=",",sep=""),"' ",
-			"rho=",  paste(r.sub[1,],      collapse=",",sep=""),"' ",
-			"p=",    paste(r.sub[2,],      collapse=",",sep=""),
-			"';\n",sep=""))
-   }
-   close(con.out)
+		d.m.curr<-d.m[,p.no]
+		d.m.curr.index<-!is.na(d.m.curr)
+		d.m.curr.takeme<-d.m.curr[d.m.curr.index]
 
+		if (10>=sum(d.m.curr.index)) {
+			cat("skipping: too few values left after NA-check\n")
+		}
+		else if (0 == sd(d.m.curr.takeme)) {
+			cat("skipping: sd of phen is 0\n")
+		}
+
+		# create outputfile, one per phen
+    		con.out<-file(paste("trait_phen_",p.name,"_cor.sql",sep=""),"w")
+
+		v<-apply(m[,1:10],2,function(Expression){
+			Expression.not.paired.with.na<-Expression[d.m.curr.index]
+			testfunction(Expression.not.paired.with.na,d.m.curr.takeme)
+		})
+
+		for(i in 1:ncol(v)) {
+			if (!is.na(v[1,i])) {
+				cat(file=con.out,
+				    paste("INSERT INTO trait_phen_cor SET trait_id='",colnames(v)[i],
+				    				"', phen='",p.name,"', rho=",v[1,i],
+								", p=",v[2,i],";\n",sep=""))
+			}
+		}
+		close(con.out)
+	}
 }
 
 
