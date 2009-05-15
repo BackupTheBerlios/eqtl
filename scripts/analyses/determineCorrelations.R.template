@@ -60,14 +60,14 @@ if (TRUE) {
 		# the first will be the negative correlated ones
 		cat(file=con.out,
 		    paste("UPDATE trait SET ",
-				"traits_pos_cor='",          paste(names(X.sub[o.rev][1:num.shown]),collapse=","),"', ",
-				"traits_pos_cor_rho='",      paste(X.sub[o.rev][1:num.shown],collapse=","),"', ",
-				"traits_pos_cor_most='",     names(X.sub[o.rev][1]),"', ",
+				"traits_pos_cor='",         paste(names(X.sub[o.rev][1:num.shown]),collapse=","),"', ",
+				"traits_pos_cor_rho='",     paste(X.sub[o.rev][1:num.shown],collapse=","),"', ",
+				"traits_pos_cor_most='",    names(X.sub[o.rev][1]),"', ",
 				"traits_pos_cor_most_rho=", X.sub[o.rev][1],", ",
-				"traits_neg_cor='",          paste(names(X.sub[o][1:num.shown]),collapse=","),"', ",
-				"traits_neg_cor_rho='",      paste(X.sub[o][1:num.shown],collapse=","),"', ",
-				"traits_pos_cor_least='",    names(X.sub[o][1]),"', ",
-				"traits_pos_cor_least_rho=",X.sub[o][1]," ",
+				"traits_neg_cor='",         paste(names(X.sub[o][1:num.shown]),collapse=","),"', ",
+				"traits_neg_cor_rho='",     paste(X.sub[o][1:num.shown],collapse=","),"', ",
+				"traits_neg_cor_most='",    names(X.sub[o][1]),"', ",
+				"traits_neg_cor_most_rho=", X.sub[o][1]," ",
 			  "WHERE trait_id='",X.self,"';\n",
 				sep=""))
 	}
