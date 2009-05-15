@@ -1,0 +1,111 @@
+# NAME
+#
+#	determineCorrelations.R - prepare upload of correlation data
+#
+# SYNOPSIS
+#
+#	echo 'source("determineCorrelations.R')" | R --vanilla --no-save
+#
+# DESCRIPTION
+#
+#	This script calculates all correlations between 
+#	the expression levels of all genes. For larger
+#	projects, only the calculation of the correlaction
+#	coefficients are practical. Smaller projects may
+#	also determine # the p-Value for the likelihood
+#	to make this observation on uncorrelated data.
+#
+# AUTHOR
+#
+#	Steffen Möller <moeller@inb.uni-luebeck.de>
+#	2009 University of Lübeck
+#
+
+# read in data after conversion with OpenOffice from xls
+# further abstractions are required to adapt for multiple
+# organisms.
+d<-read.delim(file="CSVDATABASE/PHENOFILE",dec=",",sep="\t",row.names=1,skip=1)
+
+# columns with expression data
+p<-grep("^MT",colnames(d))
+# convert to (numerical) matrix
+
+
+if (TRUE) {
+
+	# selecting mouse-columns,
+	# transposing since genes are the observations that shall be compared
+	m<-t(as.matrix(d[,p]))
+	# freeing some memory
+	rm("d")
+	# recieving all-against-all matrix or for all genes
+	m.cor<-cor(m,method="spearman")
+	con.out<-file("trait_trait_cor.sql","w")
+	n.row<-nrow(m.cor)
+	num.shown<-300
+	# writing best and worst for every gene into traits table
+	for (i in 1:n.row) {
+		if (0==i%%100) {
+			cat(i,"\n")
+		}
+		X<-m.cor[i,]
+		X.self<-colnames(m)[i]
+		# select NAs (from all 0 lines) and the correlation with itself
+		X.sub<-X[!is.na(X) & names(X)!=X.self]
+		o<-order(X.sub)
+		o.rev<-rev(o)
+		# the first will be the negative correlated ones
+		cat(file=con.out,
+		    paste("UPDATE trait SET ",
+				"traits_pos_cor='",          paste(names(X.sub[o.rev][1:num.shown]),collapse=","),"', ",
+				"traits_pos_cor_rho='",      paste(X.sub[o.rev][1:num.shown],collapse=","),"', ",
+				"traits_pos_cor_most='",     names(X.sub[o.rev][1]),"', ",
+				"traits_pos_cor_most_rho=", X.sub[o.rev][1],", ",
+				"traits_neg_cor='",          paste(names(X.sub[o][1:num.shown]),collapse=","),"', ",
+				"traits_neg_cor_rho='",      paste(X.sub[o][1:num.shown],collapse=","),"', ",
+				"traits_pos_cor_least='",    names(X.sub[o][1]),"', ",
+				"traits_pos_cor_least_rho=",X.sub[o][1]," ",
+			  "WHERE trait_id='",X.self,"';\n",
+				sep=""))
+	}
+	close(con.out)
+}
+else {
+
+    con.out<-file("trait_trait_cor.sql","w")
+
+    # perform 
+    testfunction<-function(X,Y,method="spearman") {
+        r<-cor.test(X,Y,alternative="two.sided",method=method,exact=FALSE)
+        return(c(estimate=r[["estimate"]],p.value=r[["p.value"]]))
+    }
+
+
+  m<-as.matrix(d[1:1000,p])
+
+
+  a.max<-nrow(m)
+  for(a in 1:a.max) {
+
+	cat(paste(" ------- ", a , " of ", a.max , " --------\n"))
+	
+	a.v<-m[a,]
+	r<-apply(m,1,function(X,Y=a.v){
+		testfunction(X,Y)
+	})
+	# find the 500 most correlating
+	o<-order(r[2,1:500])
+	r.sub<-r[,o]
+	cat(file=con.out,
+			paste("insert into trait_trait_cor set ",
+			"who='", rownames(m)[a],"', ",
+			"most='",paste(colnames(r.sub),collapse=",",sep=""),"' ",
+			"rho=",  paste(r.sub[1,],      collapse=",",sep=""),"' ",
+			"p=",    paste(r.sub[2,],      collapse=",",sep=""),
+			"';\n",sep=""))
+   }
+   close(con.out)
+
+}
+
+
