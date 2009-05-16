@@ -27,6 +27,8 @@ TEMPLATEWARNINGHASH
 #	2009 University of Lübeck
 #
 
+TEMPLATEWARNINGHASH
+
 # read in data after conversion with OpenOffice from xls
 # further abstractions are required to adapt for multiple
 # organisms.
@@ -84,7 +86,6 @@ else {
 	d.cols<-is.na(d[1,]) | ""==d[1,]
 	d.rows<-!(is.na(d[,1]) | ""==d[,1])
 	d.m<-as.matrix(d[d.rows,d.cols])
-	p.no<-1
 
 	# perform 
 	testfunction<-function(X,Y,method="spearman") {
@@ -95,6 +96,7 @@ else {
 
 	# perform over all phenotypes
 
+	#p.no<-1
 	for(p.no in 1:ncol(d.m)) {
 
 		p.name<-tolower(colnames(d.m)[p.no])
@@ -106,28 +108,28 @@ else {
 
 		if (10>=sum(d.m.curr.index)) {
 			cat("skipping: too few values left after NA-check\n")
-		}
-		else if (0 == sd(d.m.curr.takeme)) {
+		} else if (0 == sd(d.m.curr.takeme)) {
 			cat("skipping: sd of phen is 0\n")
-		}
+		} else {
+			# create outputfile, one per phen
+			con.out<-file(paste("trait_phen_",p.name,"_cor.sql",sep=""),"w")
 
-		# create outputfile, one per phen
-    		con.out<-file(paste("trait_phen_",p.name,"_cor.sql",sep=""),"w")
+			v<-apply(m,2,function(Expression){
+				Expression.not.paired.with.na<-Expression[d.m.curr.index]
+				testfunction(Expression.not.paired.with.na,d.m.curr.takeme)
+			})
 
-		v<-apply(m[,1:10],2,function(Expression){
-			Expression.not.paired.with.na<-Expression[d.m.curr.index]
-			testfunction(Expression.not.paired.with.na,d.m.curr.takeme)
-		})
-
-		for(i in 1:ncol(v)) {
-			if (!is.na(v[1,i])) {
-				cat(file=con.out,
-				    paste("INSERT INTO trait_phen_cor SET trait_id='",colnames(v)[i],
-				    				"', phen='",p.name,"', rho=",v[1,i],
-								", p=",v[2,i],";\n",sep=""))
+			for(i in 1:ncol(v)) {
+				if (!is.na(v[1,i])) {
+					cat(file=con.out,
+					    paste("INSERT INTO trait_phen_cor SET trait_id='",
+					    		colnames(v)[i],
+							"', phen='",p.name,"', rho=",v[1,i],
+							", p=",v[2,i],";\n",sep=""))
+				}
 			}
+			close(con.out)
 		}
-		close(con.out)
 	}
 }
 
