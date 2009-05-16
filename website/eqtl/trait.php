@@ -22,6 +22,7 @@
 		 "mean"=>1, "median"=>1, "sd"=>1, "variance"=>1,
 		"positive_correlation"=>1,
 		"negative_correlation"=>1,
+		"phen_correlation"=>1,
 #		 "traits_pos_cor"=>1, "traits_pos_cor_rho"=>1,
 #		 "traits_pos_cor_most"=>1, "traits_pos_cor_most_rho"=>1,
 #		 "traits_neg_cor"=>1, "traits_neg_cor_rho"=>1,
@@ -98,6 +99,7 @@
 						</td></tr>
 			<tr><th align=left>Correlation</th>
 						<td>
+							<i>To be implemented:</i> 
 							Positive: <input type=text name=traits_pos_cor_most size=7>
 							<br>
 							Negative: <input type=text name=traits_pos_cor_most size=7>
@@ -176,6 +178,15 @@
 				else if ("negative_correlation"=="$n") {
 					$query .= ",traits_neg_cor, traits_neg_cor_rho";
 					$query .= ",traits_neg_cor_most, traits_neg_cor_most_rho";
+				}
+				else if ("phen_correlation"=="$n") {
+				# the one-to-many relationship cannot be reasonably well
+				# resolved for the display of the data. Instead, a second
+				# query will be performed.
+				#	$query .= ",trait_phen_cor.phen";
+				#	$query .= ",trait_phen_cor.rho";
+				#	$query .= ",trait_phen_cor.p";
+				#	$from  .= " left join trait_phen_cor using(trait_id) ";
 				}
 				else {
 					$query .= ", $n";
@@ -299,17 +310,21 @@
 							echo "<th colspan=3><small>Locus chr,start,stop</small></th>";
 						}
 					}
-					else if("traits_pos_cor"==$n) {
+					else if("traits_pos_cor"=="$n") {
 						echo "<th>positive correlation</th>\n";
 					}
-					else if("traits_neg_cor"==$n) {
+					else if("traits_neg_cor"=="$n") {
 						echo "<th>negative correlation</th>\n";
 					}
+				}
+				if (!empty($show_phen_correlation)){
+					echo "<th>phen correlation</th>\n";
 				}
 // 				echo "<td>Images</td>\n";
 				echo "</tr>\n";
 			}
 			echo "<tr>";
+			$traitid="";
 			foreach($line as $n=>$l) {
 				$f="show_".$n;
 				if (!empty($$f)) {
@@ -325,6 +340,7 @@
 					case "BlName":
 						break;
 					case "Trait":
+						$traitid=$l;
 						echo "<td align=right nowrap>"
 						."<a href=\"".probe2ensemblUrl($l,$species_name_ensembl_core)
 						."\">$l</a> ["
@@ -356,7 +372,7 @@
 				else if("traits_pos_cor"==$n) {
 					$traitsPos=preg_split("/,/",$l);
 					$traitsPosRho=preg_split("/,/",$line["traits_pos_cor_rho"]);
-					echo "<td>";
+					echo "<td valign=top>";
 					foreach($traitsPos as $tp=>$tv) {
 						if (0 < $tp) echo ", ";
 						#echo "<a href=\"".probe2ensemblUrl($tp,$species_name_ensembl_core) . "\">$tv</a>";
@@ -369,7 +385,7 @@
 				else if("traits_neg_cor"==$n) {
 					$traitsNeg=preg_split("/,/",$l);
 					$traitsNegRho=preg_split("/,/",$line["traits_neg_cor_rho"]);
-					echo "<td>";
+					echo "<td valign=top>";
 					foreach($traitsNeg as $tp=>$tv) {
 						if (0 < $tp) echo ", ";
 						#echo "<a href=\"".probe2ensemblUrl($tp,$species_name_ensembl_core) . "\">$tv</a>";
@@ -379,6 +395,45 @@
 					}
 					echo "</td>\n";
 				}
+			}
+			if (!empty($show_phen_correlation)){
+				echo "<td valign=top>";
+				if (empty($traitid)) {
+					echo "<i>No trait specified in query.</i>";
+				}
+				else {
+					$phenquery  = "SELECT";
+					$phenquery .= " trait_phen_cor.phen";
+					$phenquery .= ",trait_phen_cor.rho";
+					$phenquery .= ",trait_phen_cor.p";
+					$phenquery .= " FROM trait_phen_cor";
+					$phenquery .= " WHERE trait_id = '$traitid'";
+					$phenquery .= "   AND p<=0.05";
+					$phenquery .= " ORDER BY p";
+					$resultPhen = mysql_query($phenquery,$linkLocal);
+					if (empty($resultPhen)) {
+						echo "<p>".mysql_error($linkLocal)."</p>";
+						mysql_close($linkLocal);
+						exit;
+					}
+					$firstPhen=true;
+					while ($line = mysql_fetch_array($resultPhen,
+									MYSQL_ASSOC)) {
+						if($firstPhen){
+							$firstPhen=FALSE;
+							#print_r($line);
+						}
+						else{
+							echo ", ";
+						}
+						echo "<b>".$line["phen"]."</b>"
+							." &rho;".round($line["rho"],3)
+							." <i>p</i>".round($line["p"],4);
+
+					}
+					mysql_free_result($resultPhen);
+				}
+				echo "</td>\n";
 			}
 // 			echo "<td>"
 // 			 . "<a href=\"images/".$line["Trait"]."_onescan.pdf\">one</a>"
