@@ -1,5 +1,12 @@
 AC_INIT(configure.in)
 
+AC_CHECK_TYPE(uintptr_t, unsigned long)
+
+if test $ac_cv_type_uintptr_t = yes
+then
+  AC_DEFINE(HAVE_UINTPTR_T, 1, [Define if you have the \`uintptr_t' type.])
+fi
+
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(eqtl_arc, 0.1)
 

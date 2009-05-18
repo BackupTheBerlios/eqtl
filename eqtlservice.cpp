@@ -1,9 +1,15 @@
+#include <config.h>
+
 #include <arc/loader/Plugin.h>
 #include <arc/message/PayloadSOAP.h>
 
 #include <stdio.h>
 
 #define R_NO_REMAP 1
+#define CSTACK_DEFNS 1
+//otherwise R will redefine ERROR:
+#define STRICT_R_HEADERS 1 
+
 #include <R.h>
 #include <Rembedded.h>
 #include <Rinternals.h>
@@ -25,7 +31,7 @@ typedef enum {
 } ParseStatus;
 
 extern "C" SEXP R_ParseVector(SEXP, int, ParseStatus *, SEXP);
-
+extern "C" SEXP Rf_NewEnvironment(SEXP, SEXP, SEXP);
 
 /**
  * Initializes the expression qtl service and returns it.
@@ -48,22 +54,35 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 };
 
 
-using namespace Arc;
+// using namespace Arc;
 
 namespace ArcService
 {
 
-	ExpressionQtlService::ExpressionQtlService(Arc::Config *cfg) : Service(cfg),logger(Logger::rootLogger, "eQTL"),
-	 mysql("eQTL_Stockholm","localhost","root","")
+	ExpressionQtlService::ExpressionQtlService(Arc::Config *cfg) : Service(cfg),logger(Arc::Logger::rootLogger, "eQTL")
 	{
+		// get mysql connection parameters
+		database = (std::string) cfg->Get("database");
+		server = (std::string) cfg->Get("server");
+		user = (std::string) cfg->Get("user");
+		password = (std::string) cfg->Get("password");
+		port = atoi( ((std::string) cfg->Get("port")).c_str() );
+
+		// test connection to mysql server
+		mysqlpp::Connection mysql( database.c_str(), server.c_str(), user.c_str(), password.c_str(), port );
+		if(!mysql.connected())
+			logger.msg(Arc::ERROR,"ExpressionQtlService: mysql connection failed.");
+		mysql.disconnect();
 
 		// synchronize this with eqtl_arc.wsdl
+		// could also be used in config xml but is not
 		ns_["arc"]="http://uni-luebeck.de/eqtl/arc/";
 
 		// init embedded R
-		char *argv[] = {"R", "--gui=none", "--silent"};
+		char *argv[] = {"REmbeddedARCHED", "--gui=none", "--silent"};
 		Rf_initEmbeddedR(sizeof(argv)/sizeof(argv[0]), argv);
-	//	R_Interactive = FALSE;
+		R_CStackLimit = -1; //unlimited R stack
+	//	R_Interactive = FALSE; this will make it kill everything on error in tryEval
 
 		// read config like this: prefix_=(std::string)((*cfg)["prefix"]);
 	}
@@ -138,9 +157,8 @@ namespace ArcService
 			inpayload = dynamic_cast<Arc::PayloadSOAP*>(inmsg.Payload());
 		} catch(std::exception& e) { };
 		if(!inpayload) {
-//FIXME: causes compile error. dunno why 			logger.msg(Arc::ERROR,"Input is not SOAP");
 			return makeFault(outmsg, "Received message was not a valid SOAP message.");
-		};
+		}
 		/** */
 
 		/** Analyzing and execute request */
@@ -157,6 +175,10 @@ namespace ArcService
 				if(searchType == "gene") searchMarker = false;
 			}
 			Arc::XMLNode searchRequest = requestNode["searchRequest"];
+			mysqlpp::Connection mysql( database.c_str(), server.c_str(), user.c_str(), password.c_str(), port );
+			if(!mysql.connected()) {
+				return makeFault(outmsg, "Could not connect to mysql.");
+			}
 			mysqlpp::Query sql = mysql.query();
 			sql << "SELECT * FROM hajo_qtl_nocov WHERE 1 ";
 
@@ -208,8 +230,11 @@ namespace ArcService
 				if( order == "LodScore" ) orderBy = "lod DESC";
 			}
 			sql << " ORDER BY " << orderBy;
+			int maxNumResults = 500;
 			if( ((std::string)searchRequest["maxNumResults"]).length() ) 
-				sql << " LIMIT "<< atoi( ((std::string) searchRequest["maxNumResults"]).c_str() );
+				maxNumResults = atoi( ((std::string) searchRequest["maxNumResults"]).c_str() );
+			if(maxNumResults > 5000) maxNumResults = 5000;
+			sql << " LIMIT "<< maxNumResults;
 
 			logger.msg(Arc::DEBUG, "SQL Query: \"%s\"",sql.str());
 			mysqlpp::StoreQueryResult res;
@@ -279,8 +304,11 @@ namespace ArcService
 				SET_VECTOR_ELT(dimnames, 1, colnames);
 				Rf_setAttrib(dataForR, R_DimNamesSymbol, dimnames);
 
+ 				logger.msg(Arc::DEBUG, "Creating new environment inside R global environment...");
+				SEXP calcenv = Rf_NewEnvironment(R_NilValue, R_NilValue, R_GlobalEnv);
+   				PROTECT(calcenv);
 				logger.msg(Arc::DEBUG, "Registring data into R...");
-				Rf_defineVar(Rf_install("data"), dataForR, R_GlobalEnv);
+				Rf_defineVar(Rf_install("data"), dataForR, calcenv);
 				logger.msg(Arc::DEBUG, "Variable \"data\" set.");
 
 				ParseStatus status;
@@ -308,7 +336,7 @@ namespace ArcService
 					SEXP curCommand = VECTOR_ELT(commands,i);
 					//Rf_PrintValue(curCommand);
 
-					SEXP result = R_tryEval(curCommand, R_GlobalEnv, &errorStatus);
+					SEXP result = R_tryEval(curCommand, calcenv, &errorStatus);
 					logger.msg(Arc::DEBUG, "R_tryEval number %d of %d returned error status %d.", i+1, nCommands, errorStatus);
 
 					if( errorStatus == 0 ) {
@@ -329,7 +357,7 @@ namespace ArcService
 							SETCAR(tmp, printExpr); 
 							//Rf_PrintValue(printCall);
 
-							SEXP capturedString = R_tryEval(printCall, R_GlobalEnv, &errorStatus);
+							SEXP capturedString = R_tryEval(printCall, calcenv, &errorStatus);
 							logger.msg(Arc::DEBUG, "R_tryEval to format result returned error status %d.", errorStatus);
 							UNPROTECT(2); // printCall + printExpr
 	
@@ -351,7 +379,7 @@ namespace ArcService
 
 				Arc::XMLNode attachmentResults = addToMe.NewChild("attachments");
 				SEXP attachmentList;
-				PROTECT( attachmentList = Rf_findVar(Rf_install("attachmentList"), R_GlobalEnv) );
+				PROTECT( attachmentList = Rf_findVar(Rf_install("attachmentList"), calcenv) );
 				logger.msg(Arc::DEBUG, "attachmentList is of type %d.", TYPEOF(attachmentList));
 				if( Rf_isString(attachmentList) ) {
 					int nAttachments = Rf_length(attachmentList);
@@ -366,7 +394,9 @@ namespace ArcService
 						fclose(f);
 					}
 				}
-				UNPROTECT(1);
+				UNPROTECT(1); // attachmentList
+
+				UNPROTECT(1); // calcenv
 			}
 		} 
 

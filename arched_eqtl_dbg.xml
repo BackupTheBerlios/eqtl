@@ -3,7 +3,6 @@
   xmlns="http://www.nordugrid.org/schemas/ArcConfig/2007"
   xmlns:tcp="http://www.nordugrid.org/schemas/ArcMCCTCP/2007"
   xmlns:tls="http://www.nordugrid.org/schemas/ArcMCCTLS/2007"
-  xmlns:echo="urn:echo_config"
 >
 	<Server>
 	<Pidfile>arched.pid</Pidfile>
@@ -35,6 +34,11 @@
 			<next id="eqtl">^/eqtl$</next>
 		</Plexer>
 		<Service name="eQTL" id="eqtl">
+			<database>eQTL_Stockholm</database>
+			<server>localhost</server>
+			<user>root</user>
+			<password></password>
+			<port>3306</port>
 		</Service>
 		<Service name="hopi" id="hopi">
 			<DocumentRoot>./</DocumentRoot>

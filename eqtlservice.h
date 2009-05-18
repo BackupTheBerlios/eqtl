@@ -20,7 +20,8 @@ class ExpressionQtlService: public Arc::Service
 	protected:
 		Arc::Logger logger;
 		Arc::NS ns_;
-		mysqlpp::Connection mysql;
+		std::string database, server, user, password;
+		int port;
 
 		/**
 		* Method to return an error. 
