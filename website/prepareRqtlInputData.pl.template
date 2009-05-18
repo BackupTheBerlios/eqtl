@@ -64,10 +64,10 @@ while (FCGI::accept >= 0) {
 #	die $database.$data{'phenofile'};#."\n".cwd()."\n";
 
 	#open files, read them to memory, close them
-#	open(getFrom, "$base$database$data{'phenofile'}") || open(INSERT,$data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
-	open(getFrom, $database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at ".$database.$data{'phenofile'}.cwd().$@;		#insert-file will  be expaneded by probe-column
+	open(getFrom, $base.$database.$data{'phenofile'}) || open(getFrom,$database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
+	#open(getFrom, $database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at ".$database.$data{'phenofile'}.cwd().$@;		#insert-file will  be expaneded by probe-column
 #	open(INSERT, "$base$database$data{'genofile'}") || open(getFrom,$data{'genofile'}) || die "No such gene-file at $database$data{'genofile'}: $@";		#open the file wich contains probe-data
-	open(INSERT, $database.$data{'genofile'}) || open(INSERT,$data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
+	open(INSERT, $base.$database.$data{'genofile'}) || open(INSERT,$database.$data{'genofile'}) || open(INSERT,$data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
 	
 	my @insertionFile = <INSERT>;
 	
