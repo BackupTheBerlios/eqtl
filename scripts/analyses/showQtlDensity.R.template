@@ -9,7 +9,10 @@
 # when raising the threshold for LOD scores. Here, the selection
 # criterion and the chromosomal distribution are shown together.
 #
-# Steffen Möller, University of Lübeck, 2009
+# Steffen Möller <moeller@inb.uni-luebeck.de>,
+# Ann-Kristin Grimm <grimm@inb.uni-luebeck.de>
+#
+# University of Lübeck, 2009
 
 # substituting the 'hist' function to derive density data
 my.density <-function(data,breaks=NULL,interval.length=NA,max.value=NA) {
@@ -150,7 +153,7 @@ m<-matrix(c(
 colnames(m)<-c("Chromosome","Mbp_Peak","LOD")
 
 
-# now calling our function to see it work
+# now calling our function to see it works
 #show.multiple.qtl.densities(m,show.absolute=FALSE)
 
 require(RMySQL)
@@ -182,8 +185,4 @@ lapply(chromosomes,function(x){
 )
 
 #show.multiple.qtl.densities(rs,show.absolute=TRUE,col=cols,interval.length=15,lod.thresholds=(0:10*3),show.logarithmic=TRUE)
-
-
-
-
 
