@@ -96,7 +96,7 @@ then
 	exit -1
 fi
 
-if [ -f "$configuration_directory/path.conf" -a -f "$configuration_directory/param.conf" ]
+if [ -x install.pl -a -f "$configuration_directory/path.conf" -a -f "$configuration_directory/param.conf" ]
 then
 	echo "    Manually rerun './install.pl $internal_projectname' to  update your configuration if necessary! or update your conf files"
 elif [ -x install.pl ]; then
