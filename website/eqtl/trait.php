@@ -19,7 +19,8 @@
 	// specification of attributes to be shown in table
 // 	$a=array("Trait"=>1, "genes_associated"=>1, "MMSV_data"=>1, "LocusOfGene"=>1, "swissprot_ID"=>1);
 	$a=array("Trait"=>1, "Rat_gene_associated"=>1, "Human_ontholog_gene"=>1, "transcript"=>1,
-		 "mean"=>1, "median"=>1, "sd"=>1, "variance"=>1,
+		"mean_sd_variance"=>1,
+		#"mean"=>1, "median"=>1, "sd"=>1, "variance"=>1,
 		"positive_correlation"=>1,
 		"negative_correlation"=>1,
 		"phen_correlation"=>1,
@@ -171,6 +172,9 @@
 				else if("transcript" == "$n") {
 					$query .= ", gene_assignment AS transcript ";
 				}
+				else if ("mean_sd_variance"=="$n") {
+					$query .= ",mean,sd,median,variance";
+				}
 				else if ("positive_correlation"=="$n") {
 					$query .= ",traits_pos_cor, traits_pos_cor_rho";
 					$query .= ",traits_pos_cor_most, traits_pos_cor_most_rho";
@@ -191,7 +195,9 @@
 				else {
 					$query .= ", $n";
 				}
-				if ("transcript"=="$n" or "Chromosome"=="$n" or "start"=="$n" or "stop"=="$n") {
+				if ("transcript"=="$n" or "Chromosome"=="$n"
+				      or "start"=="$n" or "stop"=="$n")
+				{
 					if( !$joinedTrait ) {
 						$from .= " LEFT JOIN trait ON (trait.trait_id=BEARatChip.probeset_id) ";
 						$joinedTrait = true;
@@ -320,6 +326,9 @@
 				if (!empty($show_phen_correlation)){
 					echo "<th>phen correlation</th>\n";
 				}
+				if (!empty($show_mean_sd_variance)) {
+					echo "<th>Stats</th>\n";
+				}
 // 				echo "<td>Images</td>\n";
 				echo "</tr>\n";
 			}
@@ -417,7 +426,7 @@
 						exit;
 					}
 					$firstPhen=true;
-					while ($line = mysql_fetch_array($resultPhen,
+					while ($linePhen = mysql_fetch_array($resultPhen,
 									MYSQL_ASSOC)) {
 						if($firstPhen){
 							$firstPhen=FALSE;
@@ -426,14 +435,17 @@
 						else{
 							echo ", ";
 						}
-						echo "<b>".$line["phen"]."</b>"
-							." &rho;".round($line["rho"],3)
-							." <i>p</i>".round($line["p"],4);
+						echo "<b>".$linePhen["phen"]."</b>"
+							." &rho;".round($linePhen["rho"],3)
+							." <i>p</i>".round($linePhen["p"],4);
 
 					}
 					mysql_free_result($resultPhen);
 				}
 				echo "</td>\n";
+			}
+			if (!empty($show_mean_sd_variance)) {
+				echo "<td>mean: ".$line["mean"]."<br/>\nsd: ".$line["sd"]."</td>\n";
 			}
 // 			echo "<td>"
 // 			 . "<a href=\"images/".$line["Trait"]."_onescan.pdf\">one</a>"
