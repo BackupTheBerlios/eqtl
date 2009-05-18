@@ -49,12 +49,13 @@ show.qtl.density<-function(qtls,chromosome,cov, lod.thresholds=NULL,
   i<-NULL
   b<-breaks
   counts.per.threshold<-rep(0,length(lod.thresholds))
-  
+  counts<-rep(0,length(lod.thresholds))
   for(thres.pos in 1:length(lod.thresholds)) {
     thres<-lod.thresholds[thres.pos]
     qtls.chrom<-qtls[chromosome==qtls[,"Chromosome"]& thres<=qtls[,"LOD"],,drop=FALSE]
     counts.per.threshold[thres.pos]<-nrow(qtls.chrom)
     #print(qtls.chrom)
+    counts[thres.pos]<-nrow(qtls.chrom)
     d<-my.density(qtls.chrom[,"Mbp_Peak"],breaks=b,interval.length)
     if (is.null(b)) {
       b<-d$breaks
@@ -82,8 +83,12 @@ show.qtl.density<-function(qtls,chromosome,cov, lod.thresholds=NULL,
     label.marker<-c(b,max.cM)	
   }
   axis(2,c(b,max.cM),labels=rev(label.marker),las=1,cex.axis=0.5)
+  test<-lod.thresholds+((lod.thresholds[2]-lod.thresholds[1])/2)
+  axis(3,test,labels=counts,cex.axis=0.5,tick=F)
+  axis(3,lod.thresholds,labels=F)
   title(main = paste("Chr",chromosome,"cov", cov), font.main = 4)
   #print(dimnames(i))
+  print(counts)
   counts.per.threshold
 }
 
@@ -103,12 +108,11 @@ show.multiple.qtl.densities <- function(data,
   covariates<-unique(sort(data[,"covariates"]))
   chrom.num.horizontal<-min(max.num.chrom.per.line,length(chromosomes))
   chrom.num.vertical<-1+length(chromosomes)%/%max.num.chrom.per.line
-  par.orig<-par(mfrow=c(1,length(covariates)))
   #par.orig<-par(mfrow=c(chrom.num.vertical,chrom.num.horizontal))
   sapply(chromosomes,function(chr){
     cat("Performing on chromosome ",chr,"\n")
     chrom<-which(marker[,"chr"]==chr)
-    break.values<-c(0,marker[marker[,"chr"]==chr,"Mbp"])
+    break.values<-marker[marker[,"chr"]==chr,"Mbp"]
     labels<-c("start",marker[marker[,"chr"]==chr,"marker"],"end")
     marker.expression<-lapply(chrom,function(x){
       print(x)
@@ -116,17 +120,20 @@ show.multiple.qtl.densities <- function(data,
       cmorgan.tmp<-marker[x,"Mbp"]
       return(paste(marker.tmp, '(',cmorgan.tmp,')'))	
     })
-    labels<-c("start",marker.expression,"end")
+    labels<-c(marker.expression,"end")
     cat("break.values: ",break.values,"\n")
+    pdf(file=paste("/nfshome/grimm/gitEqtlRepo/data/graphics/Chr_",chr,".pdf",sep=""))
+    par.orig<-par(mfrow=c(1,length(covariates)/2))
     sapply(covariates,function(cov){
        data.tmp<-data[data[,"covariates"]==cov,]
-       cat("Performing on covariate ",cov,"\n")
+    #   cat("Performing on covariate ",cov,"\n")
        show.qtl.density(data.tmp,chr,cov,show.absolute=show.absolute,interval.length=interval.length,breaks=break.values,col=col,lod.thresholds=lod.thresholds,show.logarithmic=show.logarithmic,label.marker=labels)
        
     })	
+    par(par.orig)
+    dev.off()
     cat("break.values: ",break.values,"\n")
   })
-  par(par.orig)
 }
 
 # some stupid test data, so the script
@@ -149,11 +156,13 @@ colnames(m)<-c("Chromosome","Mbp_Peak","LOD")
 require(RMySQL)
 #example data for chromosome 1
 con <- dbConnect(MySQL(),user="DATABASEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
-rs<-dbGetQuery(con, "select covariates, Chromosome, Mbp_Peak, LOD from qtl where covariates in ('','eae_add','sud_add','dud_add') and Chromosome=1 and LOD>Quantile and LOD>3.5 order by covariates,Chromosome, LOD")
+#rs<-dbGetQuery(con, "select covariates, Chromosome, Mbp_Peak, LOD from qtl where covariates in ('','eae_add','sud_add','wl0_add','dud_add','totalIgG_add') and LOD>Quantile and LOD>3.5 and ((cis=1 and cis_dist>20000000) or cis=0 )order by covariates,Chromosome, LOD")
+#rs<-dbGetQuery(con, "select covariates, Chromosome, Mbp_Peak, LOD from qtl where covariates in ('','eae_add','sud_add','wl0_add','dud_add','totalIgG_add') and LOD>Quantile and LOD>3.5 and cis=1 and cis_dist<20000000 order by covariates,Chromosome, LOD")
+rs<-dbGetQuery(con, "select covariates, Chromosome, Mbp_Peak, LOD from qtl where covariates in ('','eae_add','sud_add','wl0_add','dud_add','totalIgG_add') and LOD>Quantile and LOD>3.5 order by covariates,Chromosome, LOD")
 #get marker
 marker<-dbGetQuery(con, "select marker,Mbp,chr from map")
 dbDisconnect(con)
-
+rs[,"Mbp_Peak"]<-round(rs[,"Mbp_Peak"])
 cols=heat.colors(255)
 #covariates<-unique(rs[,"covariates"])
 #a<-lapply(covariates,function(x){
