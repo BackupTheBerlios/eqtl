@@ -121,13 +121,6 @@ Scripts may (technically) be executed anywhere in the world where R with R/qtl i
 <br>
 [<a href="showSRC.pl?file=prepareRqtlInputData.pl">Perl source code</a> | example output: <a href="prepareRqtlInputData?probesetid=none">classical only</a>, <a href="prepareRqtlInputData?probesetid=10700001">probesetid=10700001</a>, <a href="prepareRqtlInputData?probesetid=10700001">gene inbetween</a>, <a href="prepareRqtlInputData?probesetid=10940690">last gene</a>]
 </ul>
-<ul>
-<li><small>getMMSVdata.pl</small> - Calculate mean, median, standart deviation and variance of all gene expression levels<br>
-<i>These data a required to do calculations like: <a href="http://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient">Spearman's rank correlation coefficient</a>.
-</i>
-<br>
-[<a href="showSRC.pl?file=getMMSVdata.pl">Perl source code</a> | <a href="getMMSVdata">link to example output</a>]
-</ul>
 
 <h2><a name="OneScan">Calculation of single QTL</a></h2>
 
