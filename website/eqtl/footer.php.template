@@ -24,7 +24,7 @@
   echo '<a href="help.php">Help</a>&nbsp;&nbsp;';
   echo '<a href="mailto:'.$maintainerEmail.'"><i>Contact</i></a>';
   echo '</font>';
-  echo '</td><td>';
+  echo '</td><td align=center>';
   echo FOOTERLOGORIGHT;
   echo "</td></tr></table>\n";
 ?>

@@ -333,8 +333,15 @@
 	}
 	else {
 		include_once("func_species.php");
-		include_once("func_conversion_$ensemblversion.php");
-		include_once("func_expressionview.php");
+		if (file_exists("func_conversion_$ensemblversion.php")) {
+			include_once("func_conversion_$ensemblversion.php");
+		}
+		else {
+			echo "<p>Missing file 'func_conversion_$ensemblversion.php' for the translation between cMorgan and bp.</p><br>\n";
+		}
+		if (file_exists("func_expressionview.php")) {
+			include_once("func_expressionview.php");
+		}
 		include_once("func_public_qtl.php");
 
 		$where=FALSE;
@@ -719,12 +726,13 @@
 		    $chr_count=array();
 		    $qtls = get_public_qtls($linkLocal);
 		    while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-				#hier einen hash anlegen mit chromosomen der hochgezählt werden kann
-					
-				$cMpeak=$line["cMorgan_Peak"];
-				$c=$line["Chromosome"];
-				$chromdingens=$line["chr_name"];
-		                $bp=cM2bp($c,$cMpeak);
+
+			# preparation of a hash with chromosomes that can be incremented later
+			$cMpeak=$line["cMorgan_Peak"];
+			$c=$line["Chromosome"];
+			$chromdingens=$line["chr_name"];
+	                $bp=cM2bp($c,$cMpeak);
+
                         $qs=withinthefollowingqtls($c,$bp,$qtls);
                         if (0==count($qs)) {
                             #    echo "<tr><td colspan=1000>Ignoring row since it does not overlapt with classical QTLs</td></tr>\n";
@@ -989,14 +997,16 @@
 					$symb="Trait#".$line["Trait"];
 				}
 				else {
-					expressionviewgene(
-						array(
-							#"db"=>"REFSEQ",
-							#"name"=>$line["Accession"],
-							"db"=>"HUGO",
-							"name"=>$symb,
-							"symbol"=>$symb)
-					);
+					if (file_exists("func_expressionview.php")) {
+						expressionviewgene(
+							array(
+								#"db"=>"REFSEQ",
+								#"name"=>$line["Accession"],
+								"db"=>"HUGO",
+								"name"=>$symb,
+								"symbol"=>$symb)
+						);
+					}
 				}
 				$a=cM2bp($c,$cMmin);
 				if ($a<0) $a=0;

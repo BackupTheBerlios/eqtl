@@ -1,0 +1,136 @@
+
+TEMPLATEWARNINGHASH
+
+# NAME
+#
+#	determineCorrelations.R - prepare upload of correlation data
+#
+# SYNOPSIS
+#
+#	echo 'source("determineCorrelations.R')" | R --vanilla --no-save
+#
+# DESCRIPTION
+#
+#	This script calculates all correlations between 
+#	 * the expression levels of all genes
+#	 * between expression levels and the classical traits.
+#	For larger projects, only the calculation of the correlaction
+#	coefficients is practical to be applied for gene-gene comparisons.
+#	
+#	For comparisons with classical phenotypes and smaller projects
+#	may also determine # the p-Value for the likelihood
+#	to make this observation on uncorrelated data.
+#
+# AUTHOR
+#
+#	Steffen Möller <moeller@inb.uni-luebeck.de>
+#	2009 University of Lübeck
+#
+
+TEMPLATEWARNINGHASH
+
+# read in data after conversion with OpenOffice from xls
+# further abstractions are required to adapt for multiple
+# organisms.
+d<-read.delim(file="CSVDATABASE/PHENOFILE",dec=",",sep="\t",row.names=1,skip=1)
+
+# columns with expression data
+p<-grep("^MT",colnames(d))
+
+# convert to (numerical) matrix
+# selecting mouse-columns,
+# transposing since genes are the observations that shall be compared
+m<-t(as.matrix(d[,p]))
+# freeing some memory
+rm("d")
+
+
+if (TRUE) {
+
+	# recieving all-against-all matrix or for all genes
+	m.cor<-cor(m,method="spearman")
+	con.out<-file("trait_trait_cor.sql","w")
+	n.row<-nrow(m.cor)
+	num.shown<-300
+	# writing best and worst for every gene into traits table
+	for (i in 1:n.row) {
+		if (0==i%%100) {
+			cat(i,"\n")
+		}
+		X<-m.cor[i,]
+		X.self<-colnames(m)[i]
+		# select NAs (from all 0 lines) and the correlation with itself
+		X.sub<-X[!is.na(X) & names(X)!=X.self]
+		o<-order(X.sub)
+		o.rev<-rev(o)
+		# the first will be the negative correlated ones
+		cat(file=con.out,
+		    paste("UPDATE trait SET ",
+				"traits_pos_cor='",         paste(names(X.sub[o.rev][1:num.shown]),collapse=","),"', ",
+				"traits_pos_cor_rho='",     paste(X.sub[o.rev][1:num.shown],collapse=","),"', ",
+				"traits_pos_cor_most='",    names(X.sub[o.rev][1]),"', ",
+				"traits_pos_cor_most_rho=", X.sub[o.rev][1],", ",
+				"traits_neg_cor='",         paste(names(X.sub[o][1:num.shown]),collapse=","),"', ",
+				"traits_neg_cor_rho='",     paste(X.sub[o][1:num.shown],collapse=","),"', ",
+				"traits_neg_cor_most='",    names(X.sub[o][1]),"', ",
+				"traits_neg_cor_most_rho=", X.sub[o][1]," ",
+			  "WHERE trait_id='",X.self,"';\n",
+				sep=""))
+	}
+	close(con.out)
+}
+else {
+
+	# read in phenotypes
+	d<-read.table(file="CSVDATABASE/GENOFILE",dec=".",sep=",",header=TRUE,na.strings=c("-"))
+	d.cols<-is.na(d[1,]) | ""==d[1,]
+	d.rows<-!(is.na(d[,1]) | ""==d[,1])
+	d.m<-as.matrix(d[d.rows,d.cols])
+
+	# perform 
+	testfunction<-function(X,Y,method="spearman") {
+		r<-cor.test(X,Y,alternative="two.sided",method=method,exact=FALSE)
+		return(c(rho=r[["estimate"]],p.value=r[["p.value"]]))
+	}
+
+
+	# perform over all phenotypes
+
+	#p.no<-1
+	for(p.no in 1:ncol(d.m)) {
+
+		p.name<-tolower(colnames(d.m)[p.no])
+		cat(p.name,"\n")
+
+		d.m.curr<-d.m[,p.no]
+		d.m.curr.index<-!is.na(d.m.curr)
+		d.m.curr.takeme<-d.m.curr[d.m.curr.index]
+
+		if (10>=sum(d.m.curr.index)) {
+			cat("skipping: too few values left after NA-check\n")
+		} else if (0 == sd(d.m.curr.takeme)) {
+			cat("skipping: sd of phen is 0\n")
+		} else {
+			# create outputfile, one per phen
+			con.out<-file(paste("trait_phen_",p.name,"_cor.sql",sep=""),"w")
+
+			v<-apply(m,2,function(Expression){
+				Expression.not.paired.with.na<-Expression[d.m.curr.index]
+				testfunction(Expression.not.paired.with.na,d.m.curr.takeme)
+			})
+
+			for(i in 1:ncol(v)) {
+				if (!is.na(v[1,i])) {
+					cat(file=con.out,
+					    paste("INSERT INTO trait_phen_cor SET trait_id='",
+					    		colnames(v)[i],
+							"', phen='",p.name,"', rho=",v[1,i],
+							", p=",v[2,i],";\n",sep=""))
+				}
+			}
+			close(con.out)
+		}
+	}
+}
+
+

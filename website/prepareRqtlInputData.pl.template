@@ -66,10 +66,10 @@ while (FCGI::accept >= 0) {
 #	die $database.$data{'phenofile'};#."\n".cwd()."\n";
 
 	#open files, read them to memory, close them
-#	open(getFrom, "$base$database$data{'phenofile'}") || open(INSERT,$data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
-	open(getFrom, $database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at ".$database.$data{'phenofile'}.cwd().$@;		#insert-file will  be expaneded by probe-column
+	open(getFrom, $base.$database.$data{'phenofile'}) || open(getFrom,$database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
+	#open(getFrom, $database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at ".$database.$data{'phenofile'}.cwd().$@;		#insert-file will  be expaneded by probe-column
 #	open(INSERT, "$base$database$data{'genofile'}") || open(getFrom,$data{'genofile'}) || die "No such gene-file at $database$data{'genofile'}: $@";		#open the file wich contains probe-data
-	open(INSERT, $database.$data{'genofile'}) || open(INSERT,$data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
+	open(INSERT, $base.$database.$data{'genofile'}) || open(INSERT,$database.$data{'genofile'}) || open(INSERT,$data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
 	
 	my @insertionFile = <INSERT>;
 	
@@ -108,44 +108,44 @@ while (FCGI::accept >= 0) {
 			if( $i==0 ){ 				# as some lines have to be omitted, some indexshifting is required
 				my @iline = split(/,/, $insertionFile[$i]);
 				my $ret = '';
-				for( my $j=0; $j<@iline; $j++ ){				#reassamble the (now exanded) line
+				for( my $j=0; $j<=@iline; $j++ ){				#reassamble the (now exanded) line
 					if( $j<2 ){ $ret =  $ret . ',' . $iline[$j]; }
 					elsif( $j==2 ){ $ret = $ret . ',' . $line[$i]; }
 					else{ $ret =  $ret . ',' . $iline[$j-1]; }
 				}
 				$ret =~ s/,//;						#delete leading comma
 				$insertionFile[$i] = $ret . "\n";
-			}elsif( $i > 3 ){
+			}elsif( $i > 2 ){
 				my @iline = split(/,/, $insertionFile[$i]);
 				my $ret = '';
-				for( my $j=0; $j<@iline; $j++ ){				#reassamble the (now exanded) line
+				for( my $j=0; $j<=@iline; $j++ ){				#reassamble the (now exanded) line
 					if( $j<2 ){ $ret =  $ret . ',' . $iline[$j]; }
-					elsif( $j==2 ){ $ret = $ret . ',' . $line[$i-3]; }
+					elsif( $j==2 ){ $ret = $ret . ',' . $line[$i-2]; }
 					else{ $ret =  $ret . ',' . $iline[$j-1]; }
 				}
 				$ret =~ s/,//;						#delete leading comma
-				$insertionFile[$i-1] = $ret . "\n";
-			}elsif( $i==2 ){  }
+				$insertionFile[$i] = $ret . "\n";
+			}
 			elsif( $i==1 ){
 				my @iline = split(/,/, $insertionFile[$i]);
 				my $ret = '';
-				for( my $j=0; $j<@iline; $j++ ){				#reassamble the (now exanded) line
+				for( my $j=0; $j<=@iline; $j++ ){				#reassamble the (now exanded) line
 					if( $j<2 ){ $ret =  $ret . ',' . $iline[$j]; }
 					elsif( $j==2 ){ $ret = $ret . ',' . ''; }
 					else{ $ret =  $ret . ',' . $iline[$j-1]; }
 				}
 				$ret =~ s/,//;						#delete leading comma
 				$insertionFile[$i] = $ret . "\n";
-			}elsif( $i==3 ){
+			}elsif( $i==2 ){
 				my @iline = split(/,/, $insertionFile[$i]);
 				my $ret = '';
-				for( my $j=0; $j<@iline; $j++ ){				#reassamble the (now exanded) line
+				for( my $j=0; $j<=@iline; $j++ ){				#reassamble the (now exanded) line
 					if( $j<2 ){ $ret =  $ret . ',' . $iline[$j]; }
 					elsif( $j==2 ){ $ret = $ret . ',' . ''; }
 					else{ $ret =  $ret . ',' . $iline[$j-1]; }
 				}
 				$ret =~ s/,//;						#delete leading comma
-				$insertionFile[$i-1] = $ret . "\n";;
+				$insertionFile[$i] = $ret . "\n";;
 			}
 		}
 	}

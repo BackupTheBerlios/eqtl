@@ -1,0 +1,6 @@
+The directory 'scripts/analyses' harbors all scripts that were created to
+help understanding the data that are not bound to the web pages.
+
+showQtlDensity.R - prepares a plot of centiMorgan over minimal LOD score,
+                   thus displaying the absolute or relative frequency of
+		   eQTLs at a particular locus.

@@ -1,7 +1,7 @@
 <?php
 	require_once("header.php");
 	show_small_header("Selection of eTraits",TRUE);
-	
+
 	foreach(array("direct",
 			"submitted",
 			"MeanMin","MeanMax","SdMin","SdMax","MedianMin", "MedianMax", "VarianceMin", "VarianceMax",
@@ -18,7 +18,17 @@
 
 	// specification of attributes to be shown in table
 // 	$a=array("Trait"=>1, "genes_associated"=>1, "MMSV_data"=>1, "LocusOfGene"=>1, "swissprot_ID"=>1);
-	$a=array("Trait"=>1, "Rat_gene_associated"=>1, "Human_ontholog_gene"=>1, "transcript"=>1, "mean"=>1, "median"=>1, "sd"=>1, "variance"=>1, "Chromosome"=>1, "start"=>1, "stop"=>1);
+	$a=array("Trait"=>1, "Rat_gene_associated"=>1, "Human_ontholog_gene"=>1, "transcript"=>1,
+		"mean_sd_variance"=>1,
+		#"mean"=>1, "median"=>1, "sd"=>1, "variance"=>1,
+		"positive_correlation"=>1,
+		"negative_correlation"=>1,
+		"phen_correlation"=>1,
+#		 "traits_pos_cor"=>1, "traits_pos_cor_rho"=>1,
+#		 "traits_pos_cor_most"=>1, "traits_pos_cor_most_rho"=>1,
+#		 "traits_neg_cor"=>1, "traits_neg_cor_rho"=>1,
+#		 "traits_neg_cor_most"=>1, "traits_neg_cor_most_rho"=>1,
+		 "Chromosome"=>1, "start"=>1, "stop"=>1);
 
 	foreach ($a as $vname =>$v) {
 		$vname = "show_".$vname;
@@ -88,6 +98,13 @@
 						-
 							<input type=text name=VarianceMax size=7>
 						</td></tr>
+			<tr><th align=left>Correlation</th>
+						<td>
+							<i>To be implemented:</i> 
+							Positive: <input type=text name=traits_pos_cor_most size=7>
+							<br>
+							Negative: <input type=text name=traits_pos_cor_most size=7>
+						</td>
 			<tr><th align=right>order by:</th><td>
 						<select name=order>
 						<option value=probeset_id>Trait Number</option>
@@ -131,61 +148,62 @@
 		$from = 'FROM BEARatChip ';
 		$query  = "SELECT probeset_id AS Trait ";
 		
-		if( !empty($show_Rat_gene_associated) || !empty($show_Human_ontholog_gene) ) {
-			$query .= ", gene_stable_id_rat Rat_gene_associated, hum_onth_ens Human_ontholog_gene ";
-		}
-
-		if( !empty( $show_transcript) ) {
-			$query .= ", gene_assignment AS transcript ";
-		}
 
 		$joinedTrait = false;
-		if( !empty($show_mean) ) {
-			$query .= ", mean ";
-			if( !$joinedTrait ) {
-				$from .= " LEFT JOIN trait ON (trait.trait_id=BEARatChip.probeset_id) ";
-				$joinedTrait = true;
-			}
-		}
-
-		if( !empty($show_median) ) {
-			$query .= ", median ";
-			if( !$joinedTrait ) {
-				$from .= " LEFT JOIN trait ON (trait.trait_id=BEARatChip.probeset_id) ";
-				$joinedTrait = true;
-			}
-		}
-
-		if( !empty($show_sd) ) {
-			$query .= ", sd ";
-			if( !$joinedTrait ) {
-				$from .= " LEFT JOIN trait ON (trait.trait_id=BEARatChip.probeset_id) ";
-				$joinedTrait = true;
-			}
-		}
-
-		if( !empty($show_variance) ) {
-			$query .= ", variance ";
-			if( !$joinedTrait ) {
-				$from .= " LEFT JOIN trait ON (trait.trait_id=BEARatChip.probeset_id) ";
-				$joinedTrait = true;
-			}
-		}
-
-		if( !empty($show_Chromosome) ) {
-			$query .= ", seqname AS Chromosome ";
-		}
-
-		if( !empty( $show_start ) ) {
-			$query .= ", start ";
-		}
-
-		if( !empty( $show_stop ) ) {
-			$query .= ", stop ";
-		}
 
 		if( !empty($show_swissprot_ID) ) {
 			$query .= ", swissprot_ID ";
+		}
+
+		foreach ($a as $n=>$v) {
+			$showname="show_$n";
+			#echo "$showname<br>\n";
+			if (!empty($$showname)) {
+				if ("Chromosome" == "$n") {
+				}
+				else if ("Trait" == "$n") {
+				}
+				else if("Rat_gene_associated" == "$n") {
+					$query .= ", gene_stable_id_rat as Rat_gene_associated";
+				}
+				else if ("Human_ontholog_gene" == "$n") {
+					$query .= ", hum_onth_ens as Human_ontholog_gene";
+				}
+				else if("transcript" == "$n") {
+					$query .= ", gene_assignment AS transcript ";
+				}
+				else if ("mean_sd_variance"=="$n") {
+					$query .= ",mean,sd,median,variance";
+				}
+				else if ("positive_correlation"=="$n") {
+					$query .= ",traits_pos_cor, traits_pos_cor_rho";
+					$query .= ",traits_pos_cor_most, traits_pos_cor_most_rho";
+				}
+				else if ("negative_correlation"=="$n") {
+					$query .= ",traits_neg_cor, traits_neg_cor_rho";
+					$query .= ",traits_neg_cor_most, traits_neg_cor_most_rho";
+				}
+				else if ("phen_correlation"=="$n") {
+				# the one-to-many relationship cannot be reasonably well
+				# resolved for the display of the data. Instead, a second
+				# query will be performed.
+				#	$query .= ",trait_phen_cor.phen";
+				#	$query .= ",trait_phen_cor.rho";
+				#	$query .= ",trait_phen_cor.p";
+				#	$from  .= " left join trait_phen_cor using(trait_id) ";
+				}
+				else {
+					$query .= ", $n";
+				}
+				if ("transcript"=="$n" or "Chromosome"=="$n"
+				      or "start"=="$n" or "stop"=="$n")
+				{
+					if( !$joinedTrait ) {
+						$from .= " LEFT JOIN trait ON (trait.trait_id=BEARatChip.probeset_id) ";
+						$joinedTrait = true;
+					}
+				}
+			}
 		}
 
 		if (!empty($traits)) {
@@ -261,10 +279,11 @@
 			$where .= " variance <= ".$VarianceMax;
 		}
 
+
 		if( !$whereB ) {
-			$query .= $from;
+			$query .= " " . $from;
 		} else {
-			$query .= $from .$where;
+			$query .= " " . $from .$where;
 		}
 // 		$query  .= " group by trait_id, name, mean, sd";
 
@@ -297,11 +316,24 @@
 							echo "<th colspan=3><small>Locus chr,start,stop</small></th>";
 						}
 					}
+					else if("traits_pos_cor"=="$n") {
+						echo "<th>positive correlation</th>\n";
+					}
+					else if("traits_neg_cor"=="$n") {
+						echo "<th>negative correlation</th>\n";
+					}
+				}
+				if (!empty($show_phen_correlation)){
+					echo "<th>phen correlation</th>\n";
+				}
+				if (!empty($show_mean_sd_variance)) {
+					echo "<th>Stats</th>\n";
 				}
 // 				echo "<td>Images</td>\n";
 				echo "</tr>\n";
 			}
 			echo "<tr>";
+			$traitid="";
 			foreach($line as $n=>$l) {
 				$f="show_".$n;
 				if (!empty($$f)) {
@@ -317,6 +349,7 @@
 					case "BlName":
 						break;
 					case "Trait":
+						$traitid=$l;
 						echo "<td align=right nowrap>"
 						."<a href=\"".probe2ensemblUrl($l,$species_name_ensembl_core)
 						."\">$l</a> ["
@@ -345,6 +378,74 @@
 						else echo "<td>$l</td>";
 					}
 				}
+				else if("traits_pos_cor"==$n) {
+					$traitsPos=preg_split("/,/",$l);
+					$traitsPosRho=preg_split("/,/",$line["traits_pos_cor_rho"]);
+					echo "<td valign=top>";
+					foreach($traitsPos as $tp=>$tv) {
+						if (0 < $tp) echo ", ";
+						#echo "<a href=\"".probe2ensemblUrl($tp,$species_name_ensembl_core) . "\">$tv</a>";
+						echo "<a href=\"trait.php?traits=$tv\">$tv</a>";
+						echo " (".round($traitsPosRho[$tp],2).")";
+						if (9 < $tp) break;
+					}
+					echo "</td>\n";
+				}
+				else if("traits_neg_cor"==$n) {
+					$traitsNeg=preg_split("/,/",$l);
+					$traitsNegRho=preg_split("/,/",$line["traits_neg_cor_rho"]);
+					echo "<td valign=top>";
+					foreach($traitsNeg as $tp=>$tv) {
+						if (0 < $tp) echo ", ";
+						#echo "<a href=\"".probe2ensemblUrl($tp,$species_name_ensembl_core) . "\">$tv</a>";
+						echo "<a href=\"trait.php?traits=$tv\">$tv</a>";
+						echo " (".round($traitsNegRho[$tp],2).")";
+						if (9 < $tp) break;
+					}
+					echo "</td>\n";
+				}
+			}
+			if (!empty($show_phen_correlation)){
+				echo "<td valign=top>";
+				if (empty($traitid)) {
+					echo "<i>No trait specified in query.</i>";
+				}
+				else {
+					$phenquery  = "SELECT";
+					$phenquery .= " trait_phen_cor.phen";
+					$phenquery .= ",trait_phen_cor.rho";
+					$phenquery .= ",trait_phen_cor.p";
+					$phenquery .= " FROM trait_phen_cor";
+					$phenquery .= " WHERE trait_id = '$traitid'";
+					$phenquery .= "   AND p<=0.05";
+					$phenquery .= " ORDER BY p";
+					$resultPhen = mysql_query($phenquery,$linkLocal);
+					if (empty($resultPhen)) {
+						echo "<p>".mysql_error($linkLocal)."</p>";
+						mysql_close($linkLocal);
+						exit;
+					}
+					$firstPhen=true;
+					while ($linePhen = mysql_fetch_array($resultPhen,
+									MYSQL_ASSOC)) {
+						if($firstPhen){
+							$firstPhen=FALSE;
+							#print_r($line);
+						}
+						else{
+							echo ", ";
+						}
+						echo "<b>".$linePhen["phen"]."</b>"
+							." &rho;".round($linePhen["rho"],3)
+							." <i>p</i>".round($linePhen["p"],4);
+
+					}
+					mysql_free_result($resultPhen);
+				}
+				echo "</td>\n";
+			}
+			if (!empty($show_mean_sd_variance)) {
+				echo "<td>mean: ".$line["mean"]."<br/>\nsd: ".$line["sd"]."</td>\n";
 			}
 // 			echo "<td>"
 // 			 . "<a href=\"images/".$line["Trait"]."_onescan.pdf\">one</a>"
