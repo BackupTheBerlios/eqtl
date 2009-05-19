@@ -14,30 +14,28 @@
    you write it to the config files. The database itself
    needs to contain the following tables:
 
-   +--------------------+
-   | Tables_in_Database |
-   +--------------------+
-   | BEARatChip         |
-   | computation        |
-   | locus              |
-   | locusInteraction   |
-   | map                |
-   | qtl                |
-   | trait              |
-   +--------------------+
+	   +--------------------+
+	   | Tables_in_Database |
+	   +--------------------+
+	   | BEARatChip         |
+	   | computation        |
+	   | locus              |
+	   | locusInteraction   |
+	   | map                |
+	   | qtl                |
+	   | trait              |
+	   +--------------------+
 
    BEARatChip:
-   --------------------
+   -----------
    
-   This table contains all information
-   about the expression data.
-   This is the only table where the name should
-   be chosen dependent from the data, but we haven't
-   included this as a config parameter so at the
-   moment this name needs to be used.
+   This table contains all information about the expression data.
+   This is the only table where the name should be chosen dependent from
+   the data, but we haven't included this as a config parameter so at
+   the moment this name needs to be used.
 
    computation:
-   --------------------
+   ------------
 
    This table controls all computations:
    all jobs that need to be computed are one entry in this
@@ -59,14 +57,14 @@
    apply to the seperated database documentation.
 
    locus:
-   --------------------
+   ------
 
    This table gives information about the determined loci,
    for example like the chromosome and the centiMorgan
    position.
 
    locusInteraction:
-   --------------------
+   -----------------
 
    This table contains all results from the scantwo analyses.
    It tells which two loci are interacting for a specific
@@ -75,20 +73,20 @@
    For a detailed description please see the database documentation.
 
    map:
-   --------------------
+   ----
 
    This table stores the marker information from the 
    experiment.
 
    qtl:
-   --------------------
+   ----
 
    Table representing the results of the scanone analysis.
    Locus, Probeset_ids, LOD-scores, cMorgan positions and
    much more information are given.
 
    trait:
-   --------------------
+   ------
 
    This table contains information about every single probeset
    like expression high, variance, standarddeviaten.
@@ -96,7 +94,7 @@
 
 
 2. Config files and template files
-====================
+==================================
 
    Most scripts that are prepared for one experiment are available
    and applicable for all experiments using this infrastructure, i.e.
@@ -116,7 +114,7 @@
 
 
 3. Website
-====================
+==========
 
    Once that update.sh was executed, your website shall be ready. There
    are two websites to take care of. The scripts in 
@@ -137,9 +135,10 @@
 
 		provides the web interface to human users
 
-	getMMSVdata.pl.template
-
 	getRscript.pl.template
+
+		prepares a script that is executed with the
+		statistics suite R (http://www.r-project.org).
 
 	prepareRqtlInputData.pl.template
 
@@ -149,8 +148,6 @@
 
    
         website/eqtl/*.php
-
-   
 
 
 
