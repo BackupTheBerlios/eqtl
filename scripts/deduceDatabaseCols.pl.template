@@ -37,7 +37,7 @@ my $start = time;
 # Update cis information in table locus
 if( $toDo{'qtlCis'}==1 || $toDo{'all'}==1 ) {
 	print "\tUPDATING: cis informations (qtl):\t\t\t\t";
-	my $sth = $dbh->prepare("UPDATE qtl as l JOIN (SELECT qtl.No, BEARatChip.seqname, qtl.Locus FROM locus JOIN qtl ON qtl.Locus=locus.Name JOIN BEARatChip on qtl.Trait=BEARatChip.probeset_id) AS x ON (x.No=l.No) SET cis=(l.Chromosome=x.seqname)")
+	my $sth = $dbh->prepare("UPDATE qtl as l JOIN (SELECT qtl.No, TRAITSDETAILSCHIPDATA.seqname, qtl.Locus FROM locus JOIN qtl ON qtl.Locus=locus.Name JOIN TRAITSDETAILSCHIPDATA on qtl.Trait=TRAITSDETAILSCHIPDATA.probeset_id) AS x ON (x.No=l.No) SET cis=(l.Chromosome=x.seqname)")
 			or die "Couldn\'t prepare statement: " . $dbh->errstr;
 	$sth->execute() or die "Couldn\'t execute statement: " . $sth->errstr;
 	$sth->finish;
@@ -72,7 +72,7 @@ if( $toDo{'qtlPos'}==1 || $toDo{'all'}==1){
 
 if( $toDo{'qtlCisDist'}==1 || $toDo{'all'}==1 ) {
 	print "\tCALCULATING DISTANCES (cis-qtl):\t\t\t\t";
-	my $sth = $dbh->prepare("SELECT q.No, Locus, Trait, cMorgan_Peak, l.Chr, b.start, b.stop FROM qtl AS q JOIN locus AS l ON l.Name = Locus JOIN BEARatChip AS b ON Trait = b.probeset_id WHERE LOD IS NOT NULL ORDER BY Locus") or die "Couldn\'t prepare statement: " . $dbh->errstr;
+	my $sth = $dbh->prepare("SELECT q.No, Locus, Trait, cMorgan_Peak, l.Chr, b.start, b.stop FROM qtl AS q JOIN locus AS l ON l.Name = Locus JOIN TRAITSDETAILSCHIPDATA AS b ON Trait = b.probeset_id WHERE LOD IS NOT NULL ORDER BY Locus") or die "Couldn\'t prepare statement: " . $dbh->errstr;
 	$sth->execute() or die "Couldn\'t execute statement: " . $sth->errstr;
 	my $locus = "";
 	my $locPos = 0;
@@ -96,15 +96,15 @@ if( $toDo{'qtlCisDist'}==1 || $toDo{'all'}==1 ) {
 # Update cis information in table locusInteraction
 if( $toDo{'liCis'}==1 || $toDo{'all'}==1 ) {
 	print "\tUPDATING: cis informations (locusInteraction):\t\t\t";
-	$sth = $dbh->prepare("UPDATE locusInteraction AS l JOIN (SELECT li.No, bea.probeset_id, bea.seqname, A.Chr AS A_Chr, B.Chr AS B_Chr FROM locusInteraction AS li JOIN locus AS A ON ( li.A=A.Name ) JOIN locus AS B ON (B.Name=li.B) JOIN BEARatChip AS bea ON (li.Trait=bea.probeset_id)) AS x ON (l.No=x.No) SET l.cis=(IF((x.A_Chr=x.seqname)&&(x.B_Chr=x.seqname), '11', NULL))")
+	$sth = $dbh->prepare("UPDATE locusInteraction AS l JOIN (SELECT li.No, bea.probeset_id, bea.seqname, A.Chr AS A_Chr, B.Chr AS B_Chr FROM locusInteraction AS li JOIN locus AS A ON ( li.A=A.Name ) JOIN locus AS B ON (B.Name=li.B) JOIN TRAITSDETAILSCHIPDATA AS bea ON (li.Trait=bea.probeset_id)) AS x ON (l.No=x.No) SET l.cis=(IF((x.A_Chr=x.seqname)&&(x.B_Chr=x.seqname), '11', NULL))")
 			or die "Couldn\'t prepare statement: " . $dbh->errstr;
 	$sth->execute() or die "Couldn\'t execute statement: " . $sth->errstr;
 	$sth->finish;
-	$sth = $dbh->prepare("UPDATE locusInteraction AS l JOIN (SELECT li.No, bea.probeset_id, bea.seqname, A.Chr AS A_Chr FROM locusInteraction AS li JOIN locus AS A ON ( li.A=A.Name ) JOIN BEARatChip AS bea ON (li.Trait=bea.probeset_id) WHERE li.cis IS NULL) AS x ON (l.No=x.No) SET l.cis=(IF((x.A_Chr=x.seqname), '01', NULL))")
+	$sth = $dbh->prepare("UPDATE locusInteraction AS l JOIN (SELECT li.No, bea.probeset_id, bea.seqname, A.Chr AS A_Chr FROM locusInteraction AS li JOIN locus AS A ON ( li.A=A.Name ) JOIN TRAITSDETAILSCHIPDATA AS bea ON (li.Trait=bea.probeset_id) WHERE li.cis IS NULL) AS x ON (l.No=x.No) SET l.cis=(IF((x.A_Chr=x.seqname), '01', NULL))")
 			or die "Couldn\'t prepare statement: " . $dbh->errstr;
 	$sth->execute() or die "Couldn\'t execute statement: " . $sth->errstr;
 	$sth->finish;
-	$sth = $dbh->prepare("UPDATE locusInteraction AS l JOIN (SELECT li.No, bea.probeset_id, bea.seqname, B.Chr AS B_Chr FROM locusInteraction AS li JOIN locus AS B ON ( B.Name=li.B ) JOIN BEARatChip AS bea ON (li.Trait=bea.probeset_id) WHERE li.cis IS NULL) AS x ON (l.No=x.No) SET l.cis=(IF((x.B_Chr=x.seqname), '10', NULL))")
+	$sth = $dbh->prepare("UPDATE locusInteraction AS l JOIN (SELECT li.No, bea.probeset_id, bea.seqname, B.Chr AS B_Chr FROM locusInteraction AS li JOIN locus AS B ON ( B.Name=li.B ) JOIN TRAITSDETAILSCHIPDATA AS bea ON (li.Trait=bea.probeset_id) WHERE li.cis IS NULL) AS x ON (l.No=x.No) SET l.cis=(IF((x.B_Chr=x.seqname), '10', NULL))")
 			or die "Couldn\'t prepare statement: " . $dbh->errstr;
 	$sth->execute() or die "Couldn\'t execute statement: " . $sth->errstr;
 	$sth->finish;
