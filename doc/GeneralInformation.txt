@@ -134,21 +134,35 @@
 	website/index.php.template
 
 		provides the web interface to human users
+		and also gives an introduction to the working of
+		the infrastructure
 
 	getRscript.pl.template
 
 		prepares a script that is executed with the
-		statistics suite R (http://www.r-project.org).
+		statistics suite R (http://www.r-project.org)
+		and the library R/qtl (http://www.rqtl.org).
 
 	prepareRqtlInputData.pl.template
 
+		prepares the input for the getRscript.pl
+		from the genotype data, the expression data
+		and the clinical parameters, all for a single
+		gene to be analysed.
+
 	recalc.pl.template
+
+		determines what job should be executed next,
+		i.e. what clinical parameter shall be modelled
+		by which gene's expression levels with which
+		set of covariates and those additive or
+		interacting.
 
 	showSRC.pl.template
 
+		displays source code of scripts on the website
    
         website/eqtl/*.php
-
 
 
 4. Data Computation
