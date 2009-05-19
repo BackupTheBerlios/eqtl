@@ -95,12 +95,63 @@
    
 
 
-2. Website
+2. Config files and template files
 ====================
 
+   Most scripts that are prepared for one experiment are available
+   and applicable for all experiments using this infrastructure, i.e.
+   all scripts except for those involved in the upload of wet-lab data.
+   For the latter, only conceptional drafts are available that should
+   be adapted.
 
-3. Config files and template files
+   The configuration files in the folder 'conf_template' shall be
+   copied into a folder that is named 'conf_projectname', substitute
+   'projectname' with the respective name of your project. You may have
+   multiple projects maintained in parallel. Then edit all the
+   files in conf_projectname/ to suite your project.
+
+   The script 'update.sh' will perform the substitution of all the
+   placeholders.
+
+
+
+3. Website
 ====================
+
+   Once that update.sh was executed, your website shall be ready. There
+   are two websites to take care of. The scripts in 
+
+        website/*
+
+   perform the distribution of data and present an overview on the
+   current state of data generation to the project participants. The
+   jobs that are executed remotely will query the website and request
+   new data to be submitted. The setup expected to be ready involves
+
+	- Apache with FastCGI Perl interface
+	- a MySQL database
+
+   The script
+
+	website/index.php.template
+
+		provides the web interface to human users
+
+	getMMSVdata.pl.template
+
+	getRscript.pl.template
+
+	prepareRqtlInputData.pl.template
+
+	recalc.pl.template
+
+	showSRC.pl.template
+
+   
+        website/eqtl/*.php
+
+   
+
 
 
 4. Data Computation
@@ -110,12 +161,11 @@
 
 	scripts/evaluateQuery.R
 
-   To run this script, make sure that Rqtl is installed.
-   Started with this script, several files are used that
-   need to be on a web server with apache and fcgi.
-   The path to those files and the names of the files,
-   which can be changed if required need to be determined
-   in the config files. The first file to be called is
+   To run this script, make sure that Rqtl is installed.  Started with
+   this script, several files are used that need to be on a web server
+   with apache and fcgi.  The path to those files and the names of the
+   files, which can be changed if required need to be determined in the
+   config files. The first file to be called is
 
 	website/recalc.pl
 
