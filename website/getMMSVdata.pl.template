@@ -2,6 +2,9 @@
 
 TEMPLATEWARNINGHASH
 
+# FIXME: consider removing this code, it seems obsolete, the data should all reside in the database
+#        Steffen 5/2009
+
 =head1 NAME
 
 =head1 SYNOPSIS
@@ -26,7 +29,7 @@ use POSIX;
 #my @params = $request->param()
 my $request = FCGI::Request();
 
-#gobal prior known vraiables
+#gobal prior known variables
 my $phenfile="PHENOFILE";		#the pheno-file
 my $base="BASEDIR";		#base directory of this project
 my $genofile="GENOFILE";
