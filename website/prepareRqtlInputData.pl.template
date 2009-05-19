@@ -4,9 +4,11 @@ TEMPLATEWARNINGHASH
 
 =head1 NAME
 
-
+	prepareRqtlInputData.pl - transforms expresssion data and genotype data into single files for job input
 
 =head1 SYNOPSIS
+
+	Called from the web server. Needs identifier 'probesetid' to denote the gene to be investigated.
 
 =head1 DESCRIPTION
 
