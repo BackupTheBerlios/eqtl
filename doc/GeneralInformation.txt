@@ -1,5 +1,54 @@
-1. Database
-===================
+
+
+
+          General informaion and instructions
+          -----------------------------------
+
+                          on
+
+          setting up an Expression QTL project
+          ------------------------------------
+
+
+
+  This text brings the the reader to the level that the overall concept
+  of the presented tools are understood sufficiently deep to set up an
+  expression QTL project by his/her own.
+
+  This file should be the first to read. It gives references to files
+  and folders. Every file has a description itself that explains what
+  it is doing and what options are expected. Every folder contains the
+  file README with further information. This way one is incrementally
+  guided through concepts and the source code.
+
+
+
+1. Preparations
+===============
+
+1.1 Installation: Download of source code
+-----------------------------------------
+
+   The software does not come with an installer. This is not required
+   since all parts are scripted and directly executable. The sources
+   are made available via a git repository on http://eqtl.berlios.de.
+
+   Once adapted to the workings of git, one can in a straight-forward
+   manner share efforts between multiple projects. Every site can have
+   their very own servers and their very own local changes to the system,
+   while those parts that are of interest for other users can be sent
+   back to the server.
+
+   A first start is done with
+
+	git clone git://git.berlios.de/eqtl
+
+   to anonymously checkout the source tree. A username to allow
+   for uploads back to the server can be added at a later time.
+
+
+1.2 Database
+------------
 
    The database is the core unit of the whole dataflow.
    It is storing the results and is used by the website
@@ -8,11 +57,10 @@
    For the description of the tables of the database,
    see the database description file which is not there
    yet but will be soon...
-   I am not sure if there is an upload script to create
-   the database but if not there will be one soon...
-   The name of the database is irrelevant, as long as
-   you write it to the config files. The database itself
-   needs to contain the following tables:
+
+   The name of the database should be that of your project
+   and be specified in the configuration files.
+   The database itself needs to contain the following tables.
 
 	   +----------------------+
 	   | Tables_in_Database   |
@@ -26,74 +74,104 @@
 	   | trait                |
 	   +----------------------+
 
+   As a start, it is suggested to directly import the schema
+   that is put next to this document:
+
+        yourMysqlSettings="-h yourHostname -u yourUsername"
+	echo "create database yourDatabasename;"|mysql $yourMysqlSettings
+        mysql $yourMysqlSettings yourDatabaseName < DatabaseSchema.txt
+
+   In MySQL call "help alter table" for instructions how to change the
+   properties of columns. This should only be required for the table
+   representing the chip details and the implementation of enhancements
+   to the system.
+
    TableWithChipDetails:
    ---------------------
    
-   This table contains all information about the expression data.
-   The name of the table may vary between projects and was thus made
-   a parameter for the configuration.
+        This table contains all information about the expression data.
+        The name of the table may vary between projects and was thus
+        made a parameter for the configuration.
 
    computation:
    ------------
 
-   This table controls all computations:
-   all jobs that need to be computed are one entry in this
-   database. The jobname is in the format:
+        This table controls all computations: all jobs that need to
+        be computed are one entry in this database. The jobname is in
+        the format:
 
 	 [scanone|scantwo]_probesetid_lodThreshold_numberOfPermutations_(covariate1{_add|_int},covariate2{_add|_int}).csv.gz
 
-   Each entry has a unique id, the computation_id
-   which is linked to the results of this job.
-   In that way, old results can be determined and can be
-   deleted if a new compuation was done.
-   The status of a job can either be QUEUED, which means
-   it needs to be computed for the first time, RECALCULATE
-   which says this job needs to be recalculated, PROCESSING
-   or REPROCESSING which says the job is beeing computed at
-   the moment or was computed and not uploaded yet or in the
-   status DONE, which means the results are already uploaded.
-   For a more precisely description of this table please 
-   apply to the seperated database documentation.
+        Each entry has a unique id, the computation_id which is linked
+        to the results of this job.  In that way, old results can be
+        determined and can be deleted if a new compuation was done.
+        The status of a job can either be
+
+		QUEUED	     it needs to be computed for the first time
+		RECALCULATE  job needs to be recalculated
+		PROCESSING   following QUEUED when job is executed
+			     but not yet uploaded
+		REPROCESSING which follows RECALCULATE
+		DONE         the results are already uploaded
 
    locus:
    ------
 
-   This table gives information about the determined loci,
-   for example like the chromosome and the centiMorgan
-   position.
+        This table gives information about the determined loci,
+        for example like the chromosome and the centiMorgan
+        position.
 
    locusInteraction:
    -----------------
 
-   This table contains all results from the scantwo analyses.
-   It tells which two loci are interacting for a specific
-   probeset_id and specific covariates. There is also information
-   about the 95 percentile, the LOD score and much more given.
-   For a detailed description please see the database documentation.
+        This table contains all results from the scantwo analyses.
+        It tells which two loci are interacting for a specific
+        probeset_id and specific covariates. There is also information
+        about the 95 percentile, the LOD score and much more given.
+        For a detailed description please see the database documentation.
 
    map:
    ----
 
-   This table stores the marker information from the 
-   experiment.
+        This table stores the marker information from the 
+        experiment.
 
    qtl:
    ----
 
-   Table representing the results of the scanone analysis.
-   Locus, Probeset_ids, LOD-scores, cMorgan positions and
-   much more information are given.
+        Table representing the results of the scanone analysis.
+        Locus, Probeset_ids, LOD-scores, cMorgan positions and
+        much more information are given.
 
    trait:
    ------
 
-   This table contains information about every single probeset
-   like expression high, variance, standarddeviaten.
+        This table contains information about every single probeset
+        like expression high, variance, standarddeviaten.
+
+
+1.3 Data Preparation
+--------------------
+
+   Every project will generate data in a different format. The ultimate
+   challenge is to prepare the data in a way that any particular job 
+   receives (as a single file) the right covariates, the complete genotyping
+   data, and the right gene's expression values to perform the computation.
+   Also important it is to have every data file in the right order, i.e. the
+   mice in the genotyping should be ordered in the same way that the mice
+   in the expression data is.  The joining of the data sources should
+   be performed prior to the submission of the job, to help avoiding
+   potential problems.
+
+   The data shall be formatted in a way that the function qtl::read.cross
+   understands it directly. The expression data then commonly is in the 2nd
+   or third column, which is identified by the variable phenocol (parameter
+   PHENOCOL in conf*/data.conf). 
    
 
 
-2. Config files and template files
-==================================
+1.4 Config files and template files
+-----------------------------------
 
    Most scripts that are prepared for one experiment are available
    and applicable for all experiments using this infrastructure, i.e.
@@ -117,7 +195,7 @@
 
 
 
-3. Website
+2. Website
 ==========
 
    Once that update.sh was executed, your website shall be ready. There
@@ -133,6 +211,14 @@
 	- Apache with FastCGI Perl interface
 	- a MySQL database
 
+   For Debian install the packages libfcgi-perl, libapache2-mod-fastcgi,
+   php5-mysql, libapache2-mod-php5 and ensure that the website folder
+   is accessible by the apache.
+
+
+2.1  Communication of the project's internals
+---------------------------------------------
+
    The script
 
 	website/index.php.template
@@ -141,31 +227,119 @@
 		and also gives an introduction to the working of
 		the infrastructure
 
-	getRscript.pl.template
+	website/showSRC.pl.template
 
-		prepares a script that is executed with the
-		statistics suite R (http://www.r-project.org)
-		and the library R/qtl (http://www.rqtl.org).
+		displays source code of scripts on the website
 
-	prepareRqtlInputData.pl.template
+2.2  Data Computation
+---------------------
 
-		prepares the input for the getRscript.pl
-		from the genotype data, the expression data
-		and the clinical parameters, all for a single
-		gene to be analysed.
+	website/evaluateQuery.R
 
-	recalc.pl.template
+   		is the main script to start the computation of the data.
+		It is executed on the machine that performs the computation
+		and resides in this folder only to be easily accessible for
+		its distribution.
 
+		To run this script, make sure that R/qtl is installed.
+		Started with this script, several files are used
+		that need to be on a web server with apache and fcgi.
+		The path to those files and the names of the files,
+		which can be changed if required need to be determined
+		in the config files.
+
+
+	website/recalc.pl.template
+
+	        is the first file to be called as it
 		determines what job should be executed next,
 		i.e. what clinical parameter shall be modelled
 		by which gene's expression levels with which
 		set of covariates and those additive or
 		interacting.
 
-	showSRC.pl.template
+	        This script queries the database for the next job to compute.
+		The jobname is a concatenation, joined by interspersing "_"
+	     	characters, of the following pameters in the exact same order:
+		   [scanone|scantwo]	single or combined effects
+		   probesetid		trait to be modelled
+		   lodThreshold		always set to 3.6
+		   numberOfPermutations	always set to 1000
+		   (covariate1{_add|_int},covariate2{_add|_int})
+					list of covariates to be taken into account
+	        The extension _add or _int tells wether the covariate
+	        should be considered interactive or additive in the
+	        model.  If this information is missing, the covariate is
+	        automatically considered to be interactive.
 
-		displays source code of scripts on the website
-   
+		The specification the syntax of jobnames can obviously be changed,
+		but many parts of the code as it is written today do depend on the
+		current formatting. 
+
+		When no more jobs are pending to be computed, the script returns q("no")
+		which causes evaluateQuery.R to stop and to leave R.
+
+
+	website/getRscript.pl.template
+
+		prepares a script that is executed with the statistics
+		suite R (http://www.r-project.org) and the library R/qtl
+		(http://www.rqtl.org).	Albeit written in Perl, this
+		script returns R code.
+
+		This script uses the path to the data file (expression
+		data, genotyping and quantitative information
+		(covariates)).	The path needs to be specified in the
+		config files.
+
+		The format of the required data will vary across projects.
+		There is yet not ultimate decision on how to achive
+		project independence with respect to data formats and to
+		what degree this is achievable. More details are found
+		in the 'upload' section of this document.
+
+
+	website/prepareRqtlInputData.pl.template
+
+		prepares the input for the getRscript.pl from the genotype
+		data, the expression data and the clinical parameters,
+		all for a single gene to be analysed.
+
+		The data is prepared for to be accepted by the
+		qtl::read.cross() function, which is executed from the
+		R script that is generated by getRscript.pl.
+
+   After the execution of all those scripts, the result file
+   is written to the specified directory (default: ~/myTmp).
+   These files need to be retrieved from he host that performs
+   the computation to be then uploaded to the database.
+
+   Just a short checklist before you run evaluateQuery.R:
+
+   - make sure the database is reachable and the computation
+     table contains jobs with status QUEUED or RECALCULATE
+   - make sure the jobnames have the right syntax
+   - make sure you have the right data files and they are
+     in the config files
+   - make sure evaluateQuery.R, recalc.pl, getRscript.pl
+     and prepareRqtlInputData.pl are reachable and updated
+     with the latest config files
+   - make sure that the paths to the files in the config 
+     files are correct
+
+2.2  Results Upload to Database
+-------------------------------
+
+   For the upload of data please refer to the document
+   'DataHandling.txt' in this folder.
+
+
+2.3  Results Presentation
+-------------------------
+
+   All data that is presented on the interactive web site
+   was at some stage stored in the database.
+
         website/eqtl/*.php
 
 		represents the web interface for the presentation 
@@ -179,76 +353,13 @@
 			details on the gene, whose expression levels
 			are attempted to be modelled by the genotype.
 
-
-
-4. Data Computation
-====================
-
-   The main script to start the computation of the data is
-
-	scripts/evaluateQuery.R
-
-   To run this script, make sure that Rqtl is installed.  Started with
-   this script, several files are used that need to be on a web server
-   with apache and fcgi.  The path to those files and the names of the
-   files, which can be changed if required need to be determined in the
-   config files. The first file to be called is
-
-	website/recalc.pl
-
-   This script queries the database for the next job to
-   compute. The jobname is in the following syntax:
-	[scanone|scantwo]_probesetid_lodThreshold_numberOfPermutations_(covariate1{_add|_int},covariate2{_add|_int}).csv.gz
-   The extension _add or _int tells wether the covariate
-   should be considered interactive or additive in the model.
-   If this information is missing, the covariate is 
-   automatically considered to be interactive.
-   Of course the jobname syntax can be changed, but in
-   this case, the code needs to be adopted to the new syntax.
-   If there are no more jobs to do, the script returns q("no")
-   which causes evaluateQuery.R to stop and to leave R.
-   The jobname is parsed, and
-
-	website/getRscript.pl 
-
-   is called. This script returns the R code to be executed.
-   This script uses the path to the data file (expression 
-   data, genotyping and quntitative information(covariates)).
-   The path needs to be specified in the config files.
-   The format of the required data will soon appear in this
-   file in a special section. Of course you don't need to
-   stick with this format specification, but be aware that
-   you need to adopt the code if you change it.
-   The generated R-code needs the script
-
-	website/prepareRqtlInputData.pl 
-
-   This script generates an output which contains the needed
-   information from the data and can be read via read.cross()
-   from the R script generated by getRscript.pl.
-
-   After the execution of all those scripts, the result file
-   is written to the specified directory (default: ~/myTmp)
-   and the results can be uploaded to the database.
-
-   Just a short checklist before you run evaluateQuery.R:
-
-   - make sure the database is reachable and the computation
-     table contains jobs with status QUEUED or RECALCULATE
-   - make sure the jobnames have the right syntax
-   - make sure you have the right data files and they are
-     in the config files.
-   - make sure evaluateQuery.R, recalc.pl, getRscript.pl
-     and prepareRqtlInputData.pl are reachable and updated
-     with the latest config files
-   - make sure that the pathes to the files in the config 
-     files are right
-
    
-5. Data Upload
-====================
+3.  Analyses
+============
 
-@Ann-Kristin: to be completed by Benedikt
+   cis - trans QTL
 
+   QTL density plots
 
+   correlations between genes and between genes and phenotypes
 
