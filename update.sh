@@ -106,8 +106,8 @@ fi
 if [ -x scripts/autoTransformTemplate.pl ]; then
 	echo "Now auto-transforming templates."
 	if [ -n "$internal_projectname" ]; then
-		eval ./scripts/autoTransformTemplate.pl --projectname $internal_projectname `find . -name "*.template" | grep -v "^./conf"` $redirect
+		eval ./scripts/programming/autoTransformTemplate.pl --projectname $internal_projectname `find . -name "*.template" | grep -v "^./conf"` $redirect
 	else 
-		eval ./scripts/autoTransformTemplate.pl `find . -name "*.template" | grep -v "^./conf"` $redirect
+		eval ./scripts/programming/autoTransformTemplate.pl `find . -name "*.template" | grep -v "^./conf"` $redirect
 	fi
 fi
