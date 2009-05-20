@@ -19,4 +19,7 @@ clean:
 		rm $$ii
 	done
 
-.PHONY: udpate clean
+count:
+	wc -l `find scripts -name "*.pl" -o -name "*.R" -o -name "*.php" -o -name "*.sh"` `find website -name "*.pl" -o -name "*.R" -o -name "*.php" -o -name "*.sh"`
+
+.PHONY: udpate clean count
