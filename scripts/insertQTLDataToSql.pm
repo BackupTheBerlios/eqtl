@@ -254,7 +254,8 @@ else {
 
 if(($status =~ /QUEUED/ && !$force) or ($status =~ /DONE/ && !$force)){
 	print "$exitcode\n";
-	harmless("$filename was not marked to be processed. To upload the data anyway use the option -f\n",$exitcode);
+	harmless("$filename was not marked to be processed. "
+	        ."To upload the data anyway use the option -f\n",$exitcode);
 	return($exitcode);
 }
 

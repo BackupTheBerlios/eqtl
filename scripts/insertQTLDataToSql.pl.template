@@ -34,10 +34,25 @@ NAME
 
 SYNOPSIS
 
+	insertQTLDataToSql.pl [ --verbose ] [ --force ] --filename <name of file with results>
+	insertQTLDataToSql.pl --help
+
+
 DESCRIPTION
 	This script is not meant to be executed by the regular user but
 	should be accessed from the wrapping iterateThroughFiles.pl script.
 	It takes a single result file and uploads its content to the database.
+
+OPTIONS
+	--filename	the file with the output of R/qtl
+
+	--force		if set, every file will be interpreted,
+			even those that the system did not
+			expect in the computations table.
+
+	--help		shows these instructions and exists
+
+	--verbose	
 
 AUTHOR
 	Jan Kolbaum <kolbaum\@inb.uni-luebeck.de>
