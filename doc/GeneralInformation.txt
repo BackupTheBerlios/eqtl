@@ -14,25 +14,24 @@
    you write it to the config files. The database itself
    needs to contain the following tables:
 
-	   +--------------------+
-	   | Tables_in_Database |
-	   +--------------------+
-	   | BEARatChip         |
-	   | computation        |
-	   | locus              |
-	   | locusInteraction   |
-	   | map                |
-	   | qtl                |
-	   | trait              |
-	   +--------------------+
+	   +----------------------+
+	   | Tables_in_Database   |
+	   +----------------------+
+	   | TableWithChipDetails |
+	   | computation          |
+	   | locus                |
+	   | locusInteraction     |
+	   | map                  |
+	   | qtl                  |
+	   | trait                |
+	   +----------------------+
 
-   BEARatChip:
-   -----------
+   TableWithChipDetails:
+   ---------------------
    
    This table contains all information about the expression data.
-   This is the only table where the name should be chosen dependent from
-   the data, but we haven't included this as a config parameter so at
-   the moment this name needs to be used.
+   The name of the table may vary between projects and was thus made
+   a parameter for the configuration.
 
    computation:
    ------------
@@ -109,7 +108,12 @@
    files in conf_projectname/ to suite your project.
 
    The script 'update.sh' will perform the substitution of all the
-   placeholders.
+   placeholders. The substitutions will be performed in the alphabetic
+   order of the filenames of those files that contain the rules.
+   Nevertheless, dependencies between rules should be strictly avoided.
+   The substitutions will be performed on all files ending with ".template"
+   and a new file will be created, without the ".template" suffix, that
+   has all the substitutions performed. 
 
 
 
@@ -163,6 +167,18 @@
 		displays source code of scripts on the website
    
         website/eqtl/*.php
+
+		represents the web interface for the presentation 
+		of all results.
+
+		qtl.php
+			presentation of the quantitative effect
+			that single locus has
+
+		trait.php
+			details on the gene, whose expression levels
+			are attempted to be modelled by the genotype.
+
 
 
 4. Data Computation
