@@ -2,13 +2,20 @@ This folder harbors a series of scripts that help with
 the organisation of the calculations, the upload or the
 download of data.
 
-checkForMissingFiles.pl
-createExpectedFiles.pl
-createProbeQuery.pl
-get_ensmbl_ids.pl
-gzToSQL.sh
-insertQTLDataToSql.pl
-insertStaticDataToSql.pl
+Subfolders
+
+   analyses		scripts performed on the database to extend
+			information that is already available
+
+   db_management	scripts that for managing the database, i.e.
+			to dump or reupload it
+
+   deprecated		scripts now considered obsolete
+
+
+Files
+
+	insertQTLDataToSql.pl
 iterateThroughFiles.pl
 updateCIS.?
 update.sh		- reads template and conf files an
