@@ -7,6 +7,8 @@ use vars qw($VERSION
 	$exitcode
 	%EXITCODE2TEXT
 	$sth_loc
+	$sth_loc_update
+	$sth_loc_select
 	$sth_jobexists
 	$sth_reset_recalculate
 	$sth_reset_queued
@@ -99,6 +101,8 @@ sub perform {
 
 	unless (defined($sth_loc) and defined($sth_qtl_scanone)) {
 		my $sql_loc = qq{INSERT INTO locus (Name, Chr, cMorgan, Organism, Marker) VALUES (?,?,?,"Rattus norvegicus",?)};
+		my $sql_loc_update = qq{UPDATE locus set cMorgan =? where Name=?};
+		my $sql_loc_select = qq{select Name, cMorgan from locus where Name=?};
 		my $query_jobexists = "select computation_id, status, version from computation where jobname = ?;";
 		my $reset_query_recalculate = "UPDATE computation SET status=\"RECALCULATE\" where jobname = ? ";
 		my $reset_query_queued = "UPDATE computation SET status=\"QUEUED\" where jobname = ? ";			
@@ -108,9 +112,11 @@ sub perform {
 		my $sql_compute = "UPDATE computation SET status=\"DONE\", version= ?, "
 			  ."timestamp = ? where computation_id = ?";
 		my $sql_qtl_scantwo = qq{INSERT INTO  locusInteraction (computation_id, Trait,A, B, LogP, Type, Analysis, covariates, lod_full, lod_fv1, lod_int, lod_add, lod_av1, qlod_full, qlod_fv1, qlod_int, qlod_add, qlod_av1 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)};
-		my $sql_qtl_scanone = qq{INSERT INTO  qtl (computation_id, Locus, Trait, LOD, Chromosome, cMorgan_Peak, Quantile, covariates, phenocol, Analysis) VALUES (?,?,?,?,?,?,?,?,?,?)};
+		my $sql_qtl_scanone = qq{INSERT INTO  qtl (computation_id, Locus, Trait, LOD, Chromosome, cMorgan_Peak, Quantile, covariates, phenocol) VALUES (?,?,?,?,?,?,?,?,?)};
 
 		$sth_loc = $dbh->prepare( $sql_loc );
+		$sth_loc_update = $dbh->prepare( $sql_loc_update );
+		$sth_loc_select = $dbh->prepare( $sql_loc_select );
 		$sth_jobexists = $dbh->prepare($query_jobexists);
 		if ($@) {
 			print STDERR "Could not prepare query 'sth_jobexists': $@\n";
@@ -260,6 +266,9 @@ if(($status =~ /QUEUED/ && !$force) or ($status =~ /DONE/ && !$force)){
 }
 
 print "\tfilename: $filename status: $status\n";
+
+
+
 
 ##############################
 
@@ -532,16 +541,35 @@ $version++;
 					unless ($dryrun) {
 						$sth_qtl->execute($compute_id, $lineFields[0], $trait,
 							$lineFields[3], $lineFields[1], $lineFields[2],
-							$quant[0], join(",",@covars_array), $phenocol, $cov_meth);
+							$quant[0], join(",",@covars_array), $phenocol);
 						$sth_qtl->finish;
 
 						if( ! exists($committed_loci{$lineFields[0]}) ){
 							print STDERR "Also preparing entry for locus.\n"
 								if $verbose;
+							my $loc_name = "";
+							my $loc_pos;
+							if ($dryrun) {
+								print "Testing if locus exists.\n" if $verbose;
+							}
+							elsif ( ! $sth_loc_select->execute("$lineFields[0]")) {
+								harmless($DBI::errstr,-1);
+								return($exitcode);
+							}		
+							while( my @data = $sth_loc_select->fetchrow_array() ){
+								$loc_name = $data[0];
+								$loc_pos = $data[1];
+							}
+							$sth_jobexists->finish;
+							if($loc_name eq ""){
 							$sth_loc->execute($lineFields[0],
 									     $lineFields[1], 
 										$lineFields[2], $NULL);
 							$sth_loc->finish;
+							}
+							elsif ($loc_name eq $lineFields[0] and $loc_pos ne $lineFields[2]){
+								$sth_loc_update->execute("$lineFields[2]","$loc_name")
+							}
 							$committed_loci{$lineFields[0]}="scanone";
 						}
 					}
