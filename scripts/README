@@ -21,7 +21,9 @@ Files
    iterateThroughFiles.pl  executes the module behind insertQTLDataToSql.pl
                            recursively on all files in a folder
 
-   updateCIS.?
+   sort.pl
 
    update.sh               reads template and conf files an
                            generates the executed code from there.
+
+   uploadExpectedFiles.pl.template
