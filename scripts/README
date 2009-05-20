@@ -4,20 +4,24 @@ download of data.
 
 Subfolders
 
-   analyses		scripts performed on the database to extend
-			information that is already available
+   analyses                scripts performed on the database to extend
+                           information that is already available
 
-   db_management	scripts that for managing the database, i.e.
-			to dump or reupload it
+   db_management           scripts that for managing the database, i.e.
+                           to dump or reupload it
 
-   deprecated		scripts now considered obsolete
+   deprecated              scripts now considered obsolete
 
 
 Files
 
-	insertQTLDataToSql.pl
-iterateThroughFiles.pl
-updateCIS.?
-update.sh		- reads template and conf files an
-			  generates the executed code from
-			  there.
+   insertQTLDataToSql.pl   performs uploads of calculations in single file
+                           to database
+
+   iterateThroughFiles.pl  executes the module behind insertQTLDataToSql.pl
+                           recursively on all files in a folder
+
+   updateCIS.?
+
+   update.sh               reads template and conf files an
+                           generates the executed code from there.
