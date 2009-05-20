@@ -1,0 +1,3 @@
+
+autoTransformTemplate.pl	- performs the substitutions along
+				  the rules in the conf*/* files.
