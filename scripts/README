@@ -2,12 +2,9 @@ This folder harbors a series of scripts that help with
 the organisation of the calculations, the upload or the
 download of data.
 
-autoTransformTemplate.pl
 checkForMissingFiles.pl
 createExpectedFiles.pl
 createProbeQuery.pl
-evaluateQuery.R		- main script to start when running
-			  analyses
 get_ensmbl_ids.pl
 gzToSQL.sh
 insertQTLDataToSql.pl
