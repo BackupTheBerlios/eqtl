@@ -151,6 +151,41 @@
         like expression high, variance, standarddeviaten.
 
 
+   Emendations of the schema
+   -------------------------
+
+
+   ~ Trait details ~
+   
+   The name of the table with chip details is free to be set.
+
+
+   ~ Covariates ~
+
+   Special care should be taken to adjust the names of covariates
+   in the table qtl. It is suggested to only use lower case
+   names, but there is no technical requirement for that. For
+   details on how to perform the change, call "HELP ALTER TABLE"
+   in the MySQL shell. Then perform something analogous to
+
+	alter table qtl change
+          covariates
+          covariates set('sex_add','sex_int',
+                         'onset_add','onset_int',
+                         'severity_add','severity_int',
+                         'aux_add','aux_int');
+
+   The idea behind the above attribute 'covariates' is that
+   every covariate can possibly be part of the modelling of
+   the QTL that is represented by that table entry. The
+   covariate can either be in as an additive covariate or as
+   an interactive covariate, which also renders it additive.
+   All combinations are technically possible. The implementation
+   as a set-attribute allows for all these without the need
+   to introduce an additional table as a link between covariates
+   and QTL.
+
+
 1.3 Data Preparation
 --------------------
 
@@ -217,11 +252,14 @@
    in the sense that the distribution of the data for the computation will in its
    current implementation fall back to the file-respresentation of expression data.
    For the display of data, however, and the sharing of the effort to display the
-   data between projects, the upload of the data to the database is preferable.
+   data between projects, the upload of the data to the database is preferable. To
+   amend the current scripts for retrieving all their data from the tables is work
+   in progress.
 
-   The scripts that perform the update are suggested not to access the data directly.
-   For inspections it is preferable to let the scripts output SQL statements to 
-   stdout and pipe that to the MySQL client. For instance, the initial upload to 
+   The scripts that perform the subsequent updates of the trait table are suggested
+   not to access the database directly. To allow for manual verification,
+   it is preferable to let the scripts output SQL statements to 
+   STDOUT and pipe that to the database client. For instance, the initial upload to 
    the traits table could only contain the trait_id and the name, which possibly are
    also the first and second column of the possibly tab-separated text file. To have
    the records with the primary keys uploaded, and thus prepared for subsequent updates
@@ -259,6 +297,12 @@
     p-value to observe the correlation with uncorrelated variables
 	| p        | float       | YES  |     | NULL    |       |
 	+----------+-------------+------+-----+---------+-------+
+
+   
+
+
+   Subsequently, one should prepare the local data in a way that the
+   script
 
    
 
