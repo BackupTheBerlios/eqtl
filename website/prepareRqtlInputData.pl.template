@@ -37,6 +37,9 @@ my $database="URLCSVDEPOT";
 
 
 while (FCGI::accept >= 0) {
+
+	print	"Content-type: text/plain\n\n";					#sign page-type as plain
+
 	#check if argument has been given
 	my @params = split(/&/, $ENV{'QUERY_STRING'});
 	my $probeID;
@@ -57,9 +60,8 @@ while (FCGI::accept >= 0) {
 	
 	
 	if( !defined( $probeID) ){
-		print	"Content-type: text/plain\n\n",
-				"Usage when accessed via web address : \t<url>?probesetid=\"probesetid\"\n",
-				"      When accessed via command line: \tinsertProbe_online.pl gene-file pheno-file probesetid\n";
+		print "Usage when accessed via web address :\t<url>?probesetid=\"probesetid\"\n",
+		      "      When accessed via command line:\tinsertProbe_online.pl gene-file pheno-file probesetid\n";
 		exit(-1);
 	}
 
@@ -151,6 +153,5 @@ while (FCGI::accept >= 0) {
 	}
 	$insertionFile[$#insertionFile] = "";
 
-	print	"Content-type: text/plain\n\n",					#sign page-type as plain
-		join("",@insertionFile);					#print expanded file to page
+	print join("",@insertionFile);					#print expanded file to page
 }
