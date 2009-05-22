@@ -34,6 +34,22 @@ my %data = 	(
 my $base="BASEDIR";
 my $database="URLCSVDEPOT";
 
+#open files, read them to memory, close them
+open(getFrom, $base.$database.$data{'phenofile'}) || open(getFrom,$database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
+
+my %probe2line;
+while( <getFrom> ){
+        my $l = $_;
+	my ($p,$_) = split( /,/,$l);
+	$probe2line{$p}=$l;
+}
+		
+#open(getFrom, $database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at ".$database.$data{'phenofile'}.cwd().$@;		#insert-file will  be expaneded by probe-column
+#	open(INSERT, "$base$database$data{'genofile'}") || open(getFrom,$data{'genofile'}) || die "No such gene-file at $database$data{'genofile'}: $@";		#open the file wich contains probe-data
+open(INSERT, $base.$database.$data{'genofile'}) || open(INSERT,$database.$data{'genofile'}) || open(INSERT,$data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
+
+my @insertionFile = <INSERT>;
+close(INSERT);
 
 
 while (FCGI::accept >= 0) {
@@ -55,7 +71,6 @@ while (FCGI::accept >= 0) {
 	}
 
 	
-	
 	if( !defined( $probeID) ){
 		print	"Content-type: text/plain\n\n",
 				"Usage when accessed via web address : \t<url>?probesetid=\"probesetid\"\n",
@@ -65,14 +80,6 @@ while (FCGI::accept >= 0) {
 
 #	die $database.$data{'phenofile'};#."\n".cwd()."\n";
 
-	#open files, read them to memory, close them
-	open(getFrom, $base.$database.$data{'phenofile'}) || open(getFrom,$database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
-	#open(getFrom, $database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at ".$database.$data{'phenofile'}.cwd().$@;		#insert-file will  be expaneded by probe-column
-#	open(INSERT, "$base$database$data{'genofile'}") || open(getFrom,$data{'genofile'}) || die "No such gene-file at $database$data{'genofile'}: $@";		#open the file wich contains probe-data
-	open(INSERT, $base.$database.$data{'genofile'}) || open(INSERT,$database.$data{'genofile'}) || open(INSERT,$data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
-	
-	my @insertionFile = <INSERT>;
-	
 	if( $probeID eq 'none' ){
 		my $length = @insertionFile;			
 		for( my $i=0; $i<$length; $i++ ){		#here the later returned file is splitted up to insert probeinformations, using insert subroutine
@@ -91,15 +98,7 @@ while (FCGI::accept >= 0) {
 			}
 		}
 	}else{
-		my @line;
-		
-		#in the following lines we will be searching for the given probeId assuming probeID in front of each line
-		while( <getFrom> ){
-			if( m/^$probeID/ ){		#if probeID has been found
-				@line = split( /,/,$_ );
-				last;				#stop searching
-			}
-		}
+		my @line = split(/\t/,$probe2line{$probeID});
 		
 		if( !@line ){ die "No such probesetID: $probeID"; }
 		
