@@ -1,22 +1,23 @@
 
 
 
-          General informaion and instructions
-          -----------------------------------
+               General informaion and instructions
+               -----------------------------------
 
-                          on
+                            on
 
-          setting up an Expression QTL project
-          ------------------------------------
+              setting up an Expression QTL project
+              ------------------------------------
 
 
 
   This text brings the the reader to the level that the overall concept
-  of the presented tools are understood sufficiently deep to set up an
+  of the presented tools are understood sufficiently well to set up an
   expression QTL project by his/her own.
 
-  This file should be the first to read. It gives references to files
-  and folders. Every file has a description itself that explains what
+  This file should be the first to read. References to other files
+  and folders are given where appropriate. It should be noted that every
+  file of the source code offers description itself, which explains what
   it is doing and what options are expected. Every folder contains the
   file README with further information. This way one is incrementally
   guided through concepts and the source code.
@@ -159,7 +160,7 @@
    data, and the right gene's expression values to perform the computation.
    Also important it is to have every data file in the right order, i.e. the
    mice in the genotyping should be ordered in the same way that the mice
-   in the expression data is.  The joining of the data sources should
+   in the expression data is. The joining of the data sources should
    be performed prior to the submission of the job, to help avoiding
    potential problems.
 
@@ -167,8 +168,99 @@
    understands it directly. The expression data then commonly is in the 2nd
    or third column, which is identified by the variable phenocol (parameter
    PHENOCOL in conf*/data.conf). 
-   
 
+
+   Upload of traits table
+   ----------------------
+
+   The traits can easily be uploaded with the sole inspection of the file that
+   the presents the expression data:
+
+	+-------------------------+-------------+------+-----+---------+-------+
+	| Field                   | Type        | Null | Key | Default | Extra |
+	+-------------------------+-------------+------+-----+---------+-------+
+
+   core fields, the trait_id is the primary key of this table and links to the
+   expression QTL tables.
+	| trait_id                | varchar(20) | NO   | PRI |         |       |
+	| name                    | varchar(50) | YES  |     | NULL    |       |
+
+   expression data, expected as a comma-separated list, and the individuals that
+   provided the expression data in the same order as in 'vals', also expected as
+   a comma-separated list.
+	| vals                    | text        | YES  |     | NULL    |       |
+	| individuals             | text        | YES  |     | NULL    |       |
+
+
+   core statistical data.     
+	| mean                    | float       | YES  |     | NULL    |       |
+	| sd                      | float       | YES  |     | NULL    |       |
+	| median                  | float       | YES  |     | NULL    |       |
+	| variance                | float       | YES  |     | NULL    |       |
+
+   fields storing data on the correlation between genes. There is positive and
+   negative regulation, the one traits most correlated and its correlation coefficient
+   (rho), and a list of arbitrary length that present the X most correlating genes
+   and their correlation coefficients as comma separated lists.
+	| traits_pos_cor          | text        | YES  |     | NULL    |       |
+	| traits_pos_cor_rho      | text        | YES  |     | NULL    |       |
+	| traits_pos_cor_most     | varchar(20) | YES  |     | NULL    |       |
+	| traits_pos_cor_most_rho | float       | YES  |     | NULL    |       |
+	| traits_neg_cor          | text        | YES  |     | NULL    |       |
+	| traits_neg_cor_rho      | text        | YES  |     | NULL    |       |
+	| traits_neg_cor_most     | varchar(20) | YES  |     | NULL    |       |
+	| traits_neg_cor_most_rho | float       | YES  |     | NULL    |       |
+	+-------------------------+-------------+------+-----+---------+-------+
+	 
+
+   None of the data is ultimately essential for the computation of expresssion QTL,
+   in the sense that the distribution of the data for the computation will in its
+   current implementation fall back to the file-respresentation of expression data.
+   For the display of data, however, and the sharing of the effort to display the
+   data between projects, the upload of the data to the database is preferable.
+
+   The scripts that perform the update are suggested not to access the data directly.
+   For inspections it is preferable to let the scripts output SQL statements to 
+   stdout and pipe that to the MySQL client. For instance, the initial upload to 
+   the traits table could only contain the trait_id and the name, which possibly are
+   also the first and second column of the possibly tab-separated text file. To have
+   the records with the primary keys uploaded, and thus prepared for subsequent updates
+   with other data, one shall execute a Perl script in analogy to
+
+        $ cat <<EOPERL > trait_upload.pl
+	#!/usr/bin/perl
+	use strict;
+	while(<>){
+		chomp;
+		my @fields=split(/\t/,$_);
+		print "INSERT INTO trait SET trait_id='$fields[0]',name='$fields[1]';\n";
+	}
+	EOPERL
+	$ perl trait_upload.pl expressiondata.tsv | mysql -h yourhost -u yourself yourdatabase
+
+   Templates for the reading of expression data for deriving the autocorrelation matrix
+   and the correlation between expression data and classical phenotypes can be found in
+   scripts/analyses. The data of the latter goes into the table trait_phen_cor:
+
+	desc trait_phen_cor;
+	+----------+-------------+------+-----+---------+-------+
+	| Field    | Type        | Null | Key | Default | Extra |
+	+----------+-------------+------+-----+---------+-------+
+
+    ID of trait (expression data) inspected 
+	| trait_id | varchar(20) | YES  |     | NULL    |       |
+
+    name of classifical phen
+	| phen     | varchar(20) | YES  |     | NULL    |       |
+
+    correlaction coefficient
+	| rho      | float       | YES  |     | NULL    |       |
+
+    p-value to observe the correlation with uncorrelated variables
+	| p        | float       | YES  |     | NULL    |       |
+	+----------+-------------+------+-----+---------+-------+
+
+   
 
 1.4 Config files and template files
 -----------------------------------
@@ -327,11 +419,11 @@
    - make sure that the paths to the files in the config 
      files are correct
 
-2.2  Results Upload to Database
+2.2  Invocation and Results Upload to Database
 -------------------------------
 
-   For the upload of data please refer to the document
-   'DataHandling.txt' in this folder.
+   For the submission of compute jobs and the upload of results
+   please refer to the document 'DataHandling.txt' in this folder.
 
 
 2.3  Results Presentation
