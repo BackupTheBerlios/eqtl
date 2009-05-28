@@ -41,6 +41,7 @@ EOHELP
 fi
 
 set -e
+
 redirect=""
 nopull=""
 projectname=""
@@ -61,7 +62,10 @@ do
 done
 
 if [ -z "$nopull" ]; then
-	git pull
+	if ! git pull; then
+		echo "Could not properly pull from the archive - exiting. Call with '--no-pull' to circumvent the problem."
+		exit -1
+	fi
 fi
 
 internal_projectname=""
@@ -96,6 +100,7 @@ then
 	exit -1
 fi
 
+
 if [ -x install.pl -a -f "$configuration_directory/path.conf" -a -f "$configuration_directory/param.conf" ]
 then
 	echo "    Manually rerun './install.pl $internal_projectname' to  update your configuration if necessary! or update your conf files"
@@ -103,11 +108,16 @@ elif [ -x install.pl ]; then
 	./install.pl $projectname $redirect
 fi
 
-if [ -x scripts/autoTransformTemplate.pl ]; then
+
+AUTOTRANSFORMSCRIPT="scripts/programming/autoTransformTemplate.pl" 
+if [ -x "$AUTOTRANSFORMSCRIPT" ]; then
 	echo "Now auto-transforming templates."
 	if [ -n "$internal_projectname" ]; then
-		eval ./scripts/programming/autoTransformTemplate.pl --projectname $internal_projectname `find . -name "*.template" | grep -v "^./conf"` $redirect
+		eval "$AUTOTRANSFORMSCRIPT" --projectname $internal_projectname `find . -name "*.template" | grep -v "^./conf"` $redirect
 	else 
-		eval ./scripts/programming/autoTransformTemplate.pl `find . -name "*.template" | grep -v "^./conf"` $redirect
+		eval "$AUTOTRANSFORMSCRIPT" `find . -name "*.template" | grep -v "^./conf"` $redirect
 	fi
+else
+	echo "Could not find script to transform templates."
 fi
+
