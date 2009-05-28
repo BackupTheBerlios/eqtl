@@ -28,7 +28,8 @@ my $request = FCGI::Request();
 
 my %data = 	(
 		'genofile' => 'GENOFILE',
-		'phenofile' => 'PHENOFILE'
+		'phenofile' => 'PHENOFILE',
+		'scorefile' => 'SCOREFILE'
 		);
 
 my $base="BASEDIR";
