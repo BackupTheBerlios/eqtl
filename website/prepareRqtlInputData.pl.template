@@ -128,7 +128,7 @@ while (FCGI::accept >= 0) {
 			#if ( -z "$ret" ) {
 			#	print STDERR "ret is empty.\n";
 			#}
-			print .$ret."\n";
+			print $ret."\n";
 		}
 	}
 }
