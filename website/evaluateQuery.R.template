@@ -3,6 +3,7 @@ TEMPLATEWARNINGHASH
 #
 # Authors: Jan Kolbaum 
 #          Steffen Moeller <moeller@inb.uni-luebeck.de>
+#          Benedikt Bauer <bauer@cls.uni-luebeck.de>
 #          University of Lübeck, 2008
 #
 #   This script is started to execute a varying number of
@@ -62,4 +63,7 @@ while( (-1 == jobnomax || jobno < jobnomax) && (-1 == timeout || as.double(difft
 	try(source("http://RECALCHOST:RECALCPORT/RECALCPATH?h=RECALCHOST&p=RECALCPORT&d=RECALCDIR"))
 }
 
-cat("Running past max compute time of ",timeout," ",u,". Performed on ",jobno," jobs.\n",sep="")
+if(-1!=timeout && as.double(difftime(Sys.time(), start, unit=u))>=timeout) {
+	cat("Running past max compute time of ",timeout," ",u,".\n")
+}
+cat("Performed on ",jobno," jobs of max. ",jobnomax,".\n",sep="")
