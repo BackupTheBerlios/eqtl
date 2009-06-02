@@ -42,9 +42,6 @@ my $database="URLCSVDEPOT";	#storage cotaining miscellaneous data
 my $covbase="CSVDATABASEGENOFILE";
 my $phenocol;
 
-if( system( "ps -e | grep prepareRqtl" ) == 0 ){
-	system( "./synchronizer.pl" );
-}
 
 =head2 errorMessage
 
@@ -76,7 +73,6 @@ sub errorMessage($) {
 #
 my $probeCNT = 0;
 
-my @covars;
 
 while (FCGI::accept >= 0) {
 
@@ -95,6 +91,7 @@ while (FCGI::accept >= 0) {
 
 
 	my @params;
+	my @covars;
 	my $pc;
 	my $mode = 'scanone';
 
@@ -156,7 +153,7 @@ while (FCGI::accept >= 0) {
 		}elsif( $value[0] =~ m/mode/ ){
 			$mode = $value[1];
 			if( $mode ne 'scanone' && $mode ne 'scantwo' ){
-				errorMessage("Wrong value at parameter mode, only scanone or scantwo are allowed!\n"
+				errorMessage("Wrong value at parameter mode, only scanone or scantwo are allowed! "
 				            ."You used '$mode'\n");
 				next;
 			}
@@ -270,19 +267,7 @@ writeToDisk <- function( toWrite ){
 				open = "a", encoding = getOption("encoding"),compression = 6)
 	if( is.list(toWrite) ){
 		vert <- labels( toWrite )
-EOWRITETODISK
-	if( $mode eq 'scanone' ){
-		$writeToDisk .= <<EOWRITETODISK;
-write.table( print(toWrite), file=my.file, append=TRUE )
-EOWRITETODISK
-	}
-	else{
-		$writeToDisk .= <<EOWRITETODISK;
-write.table( print(toWrite), file=my.file, append=TRUE )
-EOWRITETODISK
-
-	}
-	$writeToDisk .= <<EOWRITETODISK;
+		write.table( print(toWrite), file=my.file, append=TRUE )
 	}else if( is.vector( toWrite ) ){
 		label <- labels( toWrite )
 		if( label[1] != 1 ){
@@ -315,7 +300,9 @@ EOWRITETODISK
 EOWRITETODISK
 
 	my $getData = <<EOWRITETODISK;
-my.cross <- read.cross( "csv",dir="",file="URLGETDATA?probesetid=$probeID", genotypes=NULL, alleles=c("D","P"), convertXdata=TRUE )
+my.cross <- read.cross( "csv",dir="",file="URLGETDATA?probesetid=$probeID",
+			genotypes=RQTLREADCROSSGENOTYPES, alleles=RQTLREADCROSSALLELES,
+			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )
 my.cross <- calc.genoprob( my.cross, step=$steps, error.prob=$execParams{'errorP'} )
 EOWRITETODISK
 	if( $mode eq 'scantwo' ){
