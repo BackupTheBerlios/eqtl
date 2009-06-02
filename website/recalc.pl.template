@@ -57,7 +57,6 @@ my $sth_lock = $dbh->prepare($query_lock)         or die $DBI::errstr;
 my $sth_select = $dbh->prepare($query_select)     or die $DBI::errstr;
 my $sth_update = $dbh->prepare($query_update)     or die $DBI::errstr;
 my $sth_unlock = $dbh->prepare($query_unlock)     or die $DBI::errstr;
-my $sth_reselect = $dbh->prepare($query_reselect) or die $DBI::errstr;
 
 my $request = FCGI::Request();
 
