@@ -47,10 +47,9 @@ my $dbh = DBI->connect( DATABASECON )
 # queries
 
 my $query_lock     = "LOCK TABLES computation WRITE;";
-my $query_select   = "SELECT computation_id, jobname FROM computation WHERE status='QUEUED' LIMIT 1;";
-my $query_update   = "UPDATE computation SET status='PROCESSING' WHERE computation_id =?;";
+my $query_select   = "SELECT computation_id, jobname, status FROM computation WHERE status='QUEUED' or status='RECALCULATE' order by status LIMIT 1;";
+my $query_update   = "UPDATE computation SET status=? WHERE computation_id =?;";
 my $query_unlock   = "UNLOCK TABLES;"; 
-my $query_reselect = "SELECT computation_id, jobname FROM computation WHERE status='RECALCULATE' limit 1;";
 
 # and their executable counterparts
 
@@ -94,33 +93,19 @@ while (FCGI::accept >= 0) {
 	#
 
 	$sth_select->execute() or die "# $DBI::errstr\n";
-	
+
 	my $compute_id = undef;
 	my $jobname = undef;
-	while( my @data = $sth_select->fetchrow_array() ){
+	my $status = undef;
+	if( my @data = $sth_select->fetchrow_array() ){
         	$compute_id = $data[0];
         	$jobname = $data[1];
+        	$status = $data[2];
+	}
+	else {
+		# no job tagged as 'QUEUED' for computations
 	}
 	$sth_select->finish();
-
-	#
-	# Check if job to compute is existing
-	#
-
-	unless(defined($compute_id)){
-
-		#
-		# There is none, doing jobs that need a recalculation
-		#
-
-		$sth_reselect->execute() or die "# $DBI::errstr\n";
-		while( my @data = $sth_reselect->fetchrow_array() ){
-                	$compute_id = $data[0];
-                	$jobname = $data[1];
-
-        	}
-		$sth_reselect->finish();
-	}	
 
 	#
 	# check if now a job was found to work on
@@ -132,7 +117,7 @@ while (FCGI::accept >= 0) {
 		# flaggin job as 'PROCESSING'
 		#
 
-		$sth_update->execute($compute_id) or die "# $DBI::errstr\n";
+		$sth_update->execute(($status eq 'QUEUED')?'PROCESSING':'REPROCESSING', $compute_id) or die "# $DBI::errstr\n";
 		$sth_update->finish();
 
 	}
@@ -142,7 +127,7 @@ while (FCGI::accept >= 0) {
 	#
 
 	$sth_unlock->execute() or die "# $DBI::errstr\n";
-	$sth_update->finish();
+	$sth_unlock->finish();
 
 	if(defined($compute_id)){
 
