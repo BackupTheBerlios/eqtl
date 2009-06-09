@@ -17,41 +17,52 @@ namespace ArcService
 class ExpressionQtlService: public Arc::Service
 {
 
-	protected:
-		Arc::Logger logger;
-		Arc::NS ns_;
-		std::string database, server, user, password;
-		int port;
-
-		/**
-		* Method to return an error. 
-		* Creates a fault message and returns a status.
-		* @param outmsg outgoing message
-		* @return always Arc::MCC_Status(Arc::STATUS_OK)
-		*/
-		Arc::MCC_Status makeFault(Arc::Message& outmsg, const std::string &reason);
-
-	public:
-
-        	/**
-        	* Constructor which is capable to extract prefix and suffix
-		* for the echo service.
-		*/
-        	ExpressionQtlService(Arc::Config *cfg);
-
-		/**
-		* Destructor.
-		*/
-	        virtual ~ExpressionQtlService(void);
-
-	        /**
-		* Implementation of the virtual method defined in MCCInterface
-		* (to be found in MCC.h). 
-		* @param inmsg incoming message
-		* @param inmsg outgoing message
-		* @return Status of the result achieved
-		*/
-	        virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
+protected:
+	Arc::Logger logger;
+	Arc::NS ns_;
+	std::string database, server, user, password;
+	int port;
+	Glib::Mutex r_single_thread;
+	
+	/**
+	 * Method to return an error. 
+	 * Creates a fault message and returns a status.
+	 * @param outmsg outgoing message
+	 * @return always Arc::MCC_Status(Arc::STATUS_OK)
+	 */
+	Arc::MCC_Status makeFault(Arc::Message& outmsg, const std::string &reason);
+	
+	
+public:
+	
+	/**
+	 * Constructor which is capable to extract prefix and suffix
+	 * for the echo service.
+	 */
+	ExpressionQtlService(Arc::Config *cfg);
+	
+	/**
+	 * Destructor.
+	 */
+	virtual ~ExpressionQtlService(void);
+	
+	/**
+	 * Implementation of the virtual method defined in MCCInterface
+	 * (to be found in MCC.h). 
+	 * @param inmsg incoming message
+	 * @param inmsg outgoing message
+	 * @return Status of the result achieved
+	 */
+	virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
+	
+protected:
+	/**
+	 * Implementation of the http server
+	 * @param path the requested HTTP path
+	 * @param base_url request HTTP base url
+	 * @return the HTTP payload to be delivered to the client
+	 */
+	Arc::PayloadRawInterface* Get(const std::string &path, const std::string &base_url);
 
 }; 
 

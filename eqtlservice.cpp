@@ -2,6 +2,8 @@
 
 #include <arc/loader/Plugin.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/message/PayloadRaw.h>
+#include <arc/URL.h>
 
 #include <stdio.h>
 
@@ -141,6 +143,28 @@ namespace ArcService
 		return ret;
 	}
 
+	
+		//NOTE: this function was copied from Hopi.cpp
+	static std::string GetPath(Arc::Message &inmsg,std::string &base) {
+		base = inmsg.Attributes()->get("HTTP:ENDPOINT");
+		Arc::AttributeIterator iterator = inmsg.Attributes()->getAll("PLEXER:EXTENSION");
+		std::string path;
+		if(iterator.hasMore()) {
+			// Service is behind plexer
+			path = *iterator;
+			if(base.length() > path.length()) base.resize(base.length()-path.length());
+		} else {
+			// Standalone service
+			path=Arc::URL(base).Path();
+			base.resize(0);
+		};
+		return path;
+	}
+	
+	
+TODO: html get in nodes transformieren und genau wie SOAP verarbeiten
+	
+
 	/**
 	* Processes the incoming message and generates an outgoing message.
 	* @param inmsg incoming message
@@ -150,7 +174,21 @@ namespace ArcService
 	Arc::MCC_Status ExpressionQtlService::process(Arc::Message& inmsg, Arc::Message& outmsg) 
 	{
 		logger.msg(Arc::DEBUG, "eQTL service started...");
-
+		
+		/** check if this is HTTP GET and redirect if needed */
+		std::string method = inmsg.Attributes()->get("HTTP:METHOD");
+		if (method == "GET") {
+			std::string base_url;
+			std::string path = GetPath(inmsg,base_url);
+			Arc::PayloadRawInterface *buf = Get(path, base_url);
+			if (!buf) {
+				return Arc::MCC_Status();
+			}
+			outmsg.Payload(buf);
+			return Arc::MCC_Status(Arc::STATUS_OK);
+		} 
+		/** */
+		
 		/**  Extracting incoming payload */
 		Arc::PayloadSOAP* inpayload  = NULL;
 		try {
@@ -266,6 +304,8 @@ namespace ArcService
 					curAdd["statistics"].NewChild("variance") = res[i]["statistics_variance"];
 				}
 			} else if( requestNode.Name() == "QTL_FindByPosition_R" ) {
+				Glib::Mutex::Lock lock(r_single_thread);
+
 				Arc::XMLNode addToMe = outpayload->NewChild("arc:QTL_FindByPosition_RResponse");
 				int numCol = 1+3+3+1+4;
 				int numRow = res.num_rows();
@@ -397,6 +437,7 @@ namespace ArcService
 				UNPROTECT(1); // attachmentList
 
 				UNPROTECT(1); // calcenv
+
 			}
 		} 
 
@@ -404,5 +445,17 @@ namespace ArcService
 		outmsg.Payload(outpayload);
 		return Arc::MCC_Status(Arc::STATUS_OK);
 	}
+	
+	
+	
+	Arc::PayloadRawInterface *ExpressionQtlService::Get(const std::string &path, const std::string &base_url)
+	{
+		logger.msg(Arc::DEBUG, "ExpressionQtlService::Get path: \"%s\" base: \"%s\".", path.c_str(), base_url.c_str());
+		Arc::PayloadRaw *buf = new Arc::PayloadRaw();
+		std::string html = "<html><body>It works ;)</body></html>";
+		buf->Insert(html.c_str(), 0, html.length());
+		return buf;
+	}
+	
 
 }//namespace
