@@ -305,6 +305,8 @@ namespace ArcService
 				}
 			}
 			
+			requestNode.NewChild("pathAfterLastSlash") = path.substr(path.rfind('/')+1); 
+			
 			if( requestNode["script-id"] ) {
 				//we got a script id, so fetch the script from mysql
 				mysqlpp::Connection mysql( database.c_str(), server.c_str(), user.c_str(), password.c_str(), port );
@@ -354,7 +356,7 @@ namespace ArcService
 		std::vector<std::string> attachmentFileList;
 		std::vector<std::string> evaluationResults;
 	
-		if( requestNode.Name() == "QTL_FindByPosition_R" || httpRequest ) {
+		if( requestNode["script"] ) {
 			// if we do R or http, from here on downwards, this function is single threaded. 
 			// that way we can safely play with R and files, but get all the multithreading goodies for the mysql data aquiration part
 			lock.acquire();
@@ -537,45 +539,75 @@ namespace ArcService
 			
 			outmsg.Payload(outpayload);
 		} else if( httpRequest ) {
-			Arc::PayloadRaw *buf = new Arc::PayloadRaw();
-			
+			Arc::PayloadRaw *buf = new Arc::PayloadRaw();			
 			std::string errorString = "";
 			
-			if( attachmentFileList.size() != 1 ) {
-				errorString = "your script needs to produce exactly one attachment";
-			} else {
-				std::string name = attachmentFileList[0];
+			if( requestNode["script"] ) {
+				//we have a script, so format R output
 				
-				FILE* f = fopen(name.c_str(),"rb");
-				if(f) {
-					fseek(f, 0, SEEK_END);
-					int len = ftell(f);
-					fseek(f, 0, SEEK_SET);
-					char* data = (char*) malloc(len);
-					fread(data,1,len,f);
-					buf->Insert(data, 0, len);
-					free(data);
-					fclose(f);
+				if( attachmentFileList.size() != 1 ) {
+					errorString = "your script needs to produce exactly one attachment";
 				} else {
-					errorString = " output file \"";
-					errorString.append(name);
-					errorString.append("\" was not readable");
-					std::stringstream html;
-				}				
-			}
-			
-			if( errorString.length() > 0 ) {
-				std::stringstream html;
-				html << "<html><body><h1>Error: ";
-				html << errorString;
-				html << "</h1><br>Listing R output:<br>";
-				for (int i=0; i<evaluationResults.size(); i++) {
-					html << evaluationResults[i];
-					html << "<br>";
+					std::string name = attachmentFileList[0];
+					
+					FILE* f = fopen(name.c_str(),"rb");
+					if(f) {
+						fseek(f, 0, SEEK_END);
+						int len = ftell(f);
+						fseek(f, 0, SEEK_SET);
+						char* data = (char*) malloc(len);
+						fread(data,1,len,f);
+						buf->Insert(data, 0, len);
+						free(data);
+						fclose(f);
+					} else {
+						errorString = " output file \"";
+						errorString.append(name);
+						errorString.append("\" was not readable");
+						std::stringstream html;
+					}				
 				}
-				html << "</body></html>";
-				std::string htmls = html.str();
-				buf->Insert(htmls.c_str(), 0, htmls.length());
+				
+				if( errorString.length() > 0 ) {
+					std::stringstream html;
+					html << "<html><body><h1>Error: ";
+					html << errorString;
+					html << "</h1><br>Listing R output:<br>";
+					for (int i=0; i<evaluationResults.size(); i++) {
+						html << evaluationResults[i];
+						html << "<br>";
+					}
+					html << "</body></html>";
+					std::string htmls = html.str();
+					buf->Insert(htmls.c_str(), 0, htmls.length());
+				}
+				
+			} else {
+				// no script => JSON
+				std::stringstream json;
+				json << requestNode["pathAfterLastSlash"] << "( [";
+				
+				for(size_t i=0;i<queryResults.num_rows();i++) {
+					if(i>0) json << ",";
+					json << "{lod:" << queryResults[i]["lod"];
+					json << ",marker:{name:'" << queryResults[i]["marker_name"];
+					json << "',chromosome:'" << queryResults[i]["marker_chromosome"];
+					json << "',positionBP:" << queryResults[i]["marker_positionBP"];
+					json << "},genePosition:{chromosome:'" << queryResults[i]["genePosition_chromosome"];
+					json << "',fromBP:" << queryResults[i]["genePosition_fromBP"];
+					json << ",toBP:" << queryResults[i]["genePosition_toBP"];
+					json << "},geneEntrezID:'" << queryResults[i]["geneEntrezID"];
+					json << "',statistics:{mean:" << queryResults[i]["statistics_mean"];
+					json << ",sd:" << queryResults[i]["statistics_sd"];
+					json << ",median:" << queryResults[i]["statistics_median"];
+					json << ",variance:" << queryResults[i]["statistics_variance"];
+					json << "}}";
+				}
+				
+				json << "] );";
+				
+				std::string json_str = json.str();
+				buf->Insert(json_str.c_str(), 0, json_str.length());
 			}
 			
 			outmsg.Payload(buf);
