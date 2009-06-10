@@ -306,6 +306,7 @@ namespace ArcService
 			}
 			
 			if( requestNode["script-id"] ) {
+				//we got a script id, so fetch the script from mysql
 				mysqlpp::Connection mysql( database.c_str(), server.c_str(), user.c_str(), password.c_str(), port );
 				if(!mysql.connected()) {
 					return makeFault(outmsg, "Could not connect to mysql.");
