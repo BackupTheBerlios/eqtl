@@ -297,10 +297,29 @@ namespace ArcService
 						curNode.NewChild( param.substr(lastDot) ) = value;
 						break;
 					} else {
-						curNode = curNode.NewChild( param.substr(lastDot,dotPos-lastDot) );
+						std::string str = param.substr(lastDot,dotPos-lastDot);
+						if( curNode[str] ) curNode = curNode[str];
+						else curNode = curNode.NewChild( str );
 						lastDot = dotPos +1;
 					}
 				}
+			}
+			
+			if( requestNode["script-id"] ) {
+				mysqlpp::Connection mysql( database.c_str(), server.c_str(), user.c_str(), password.c_str(), port );
+				if(!mysql.connected()) {
+					return makeFault(outmsg, "Could not connect to mysql.");
+				}
+				mysqlpp::Query sql = mysql.query();
+				sql << "SELECT script FROM r_scripts WHERE id=" << mysqlpp::quote << (std::string)requestNode["script-id"];
+				mysqlpp::StoreQueryResult res;
+				try{
+					res = sql.store();
+				}catch(mysqlpp::Exception e) {
+					return makeFault(outmsg, e.what());
+				}
+				if(res.num_rows() > 0) 
+					requestNode.NewChild("script") = res[0]["script"];
 			}
 										 
 			std::string xmlTree;
@@ -401,51 +420,55 @@ namespace ArcService
 				logger.msg(Arc::DEBUG, "R_ParseVector succeeded.");
 			else {
 				logger.msg(Arc::DEBUG, "R_ParseVector failed with status %d.", status);
-				return makeFault(outmsg, "The script you provided could not be parsed by R using R_ParseVector.");
+				evaluationResults.push_back("The script you provided could not be parsed by R using R_ParseVector.");
 			}
-			PROTECT(commands);
 			
 			
 			// STEP 3: execute R commands and log results
 			
-			int nCommands = Rf_length(commands);
-			for(int i=0;i<nCommands;i++) {
-				int errorStatus;
-				SEXP curCommand = VECTOR_ELT(commands,i);
-				SEXP result = R_tryEval(curCommand, calcenv, &errorStatus);
-				logger.msg(Arc::DEBUG, "R_tryEval number %d of %d returned error status %d.", i+1, nCommands, errorStatus);
-				
-				if( errorStatus == 0 ) {
-					if( Rf_isVector(result) && i == nCommands-1 ) {
-						
-						SEXP printExpr = Rf_allocVector(EXPRSXP, 1);
-						PROTECT(printExpr);
-						SET_VECTOR_ELT(printExpr, 0, result);
-						
-						SEXP printCall, tmp;
-						PROTECT(tmp = printCall = Rf_allocList(2));
-						SET_TYPEOF(printCall, LANGSXP);
-						SETCAR(tmp, Rf_install("capture.output")); 
-						tmp = CDR(tmp);
-						SETCAR(tmp, printExpr); 
-						
-						SEXP capturedString = R_tryEval(printCall, calcenv, &errorStatus);
-						logger.msg(Arc::DEBUG, "R_tryEval to format result returned error status %d.", errorStatus);
-						UNPROTECT(2); // printCall + printExpr
-						
-						if(errorStatus == 0) {
-							logger.msg(Arc::DEBUG, "capturedString is of type %d.", TYPEOF(capturedString));
-							int nLines = Rf_length(capturedString);
-							for(int j=0;j<nLines;j++)
-								evaluationResults.push_back( Rf_translateCharUTF8(STRING_ELT(capturedString,j)) );
+			PROTECT(commands);
+			if( status == PARSE_OK ) {
+	
+				int nCommands = Rf_length(commands);
+				for(int i=0;i<nCommands;i++) {
+					int errorStatus;
+					SEXP curCommand = VECTOR_ELT(commands,i);
+					SEXP result = R_tryEval(curCommand, calcenv, &errorStatus);
+					logger.msg(Arc::DEBUG, "R_tryEval number %d of %d returned error status %d.", i+1, nCommands, errorStatus);
+					
+					if( errorStatus == 0 ) {
+						if( Rf_isVector(result) && i == nCommands-1 ) {
+							
+							SEXP printExpr = Rf_allocVector(EXPRSXP, 1);
+							PROTECT(printExpr);
+							SET_VECTOR_ELT(printExpr, 0, result);
+							
+							SEXP printCall, tmp;
+							PROTECT(tmp = printCall = Rf_allocList(2));
+							SET_TYPEOF(printCall, LANGSXP);
+							SETCAR(tmp, Rf_install("capture.output")); 
+							tmp = CDR(tmp);
+							SETCAR(tmp, printExpr); 
+							
+							SEXP capturedString = R_tryEval(printCall, calcenv, &errorStatus);
+							logger.msg(Arc::DEBUG, "R_tryEval to format result returned error status %d.", errorStatus);
+							UNPROTECT(2); // printCall + printExpr
+							
+							if(errorStatus == 0) {
+								logger.msg(Arc::DEBUG, "capturedString is of type %d.", TYPEOF(capturedString));
+								int nLines = Rf_length(capturedString);
+								for(int j=0;j<nLines;j++)
+									evaluationResults.push_back( Rf_translateCharUTF8(STRING_ELT(capturedString,j)) );
+							}
 						}
+					} else {
+						std::stringstream statusStr;
+						statusStr << "Error executing R command. Error status: ";
+						statusStr << errorStatus;
+						evaluationResults.push_back(statusStr.str());
 					}
-				} else {
-					std::stringstream statusStr;
-					statusStr << "Error executing R command. Error status: ";
-					statusStr << errorStatus;
-					evaluationResults.push_back(statusStr.str());
 				}
+				
 			}
 			UNPROTECT(3); //command str + commands + dataForR
 			
