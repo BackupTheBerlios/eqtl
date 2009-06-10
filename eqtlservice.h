@@ -32,6 +32,15 @@ protected:
 	 */
 	Arc::MCC_Status makeFault(Arc::Message& outmsg, const std::string &reason);
 	
+	/**
+	 * Do as the name says and load results for a request from mysql database. 
+	 * @param requestNode the XML request node
+	 * @param queryResults this will be filled with fresh mysql data
+	 * @param outmsg the output arc message, in case we need to throw errors
+	 * @return return value of makeFault if bad things happen, Arc::MCC_Status(Arc::STATUS_OK) otherwise
+	 */
+	Arc::MCC_Status fetchMysqlResultForRequest(Arc::XMLNode requestNode, mysqlpp::StoreQueryResult* queryResults, Arc::Message& outmsg);
+	
 	
 public:
 	
@@ -54,16 +63,6 @@ public:
 	 * @return Status of the result achieved
 	 */
 	virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
-	
-protected:
-	/**
-	 * Implementation of the http server
-	 * @param path the requested HTTP path
-	 * @param base_url request HTTP base url
-	 * @return the HTTP payload to be delivered to the client
-	 */
-	Arc::PayloadRawInterface* Get(const std::string &path, const std::string &base_url);
-
 }; 
 
 } //namespace ArcService
