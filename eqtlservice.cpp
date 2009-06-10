@@ -261,7 +261,7 @@ namespace ArcService
 		
 		logger.msg(Arc::DEBUG, "eQTL service started...");
 		bool httpRequest = false;
-		Arc::XMLNode requestNode;
+		Arc::XMLNode requestNode(ns_, "dummy");
 		
 		/** check if this is HTTP GET and redirect if needed */
 		std::string method = inmsg.Attributes()->get("HTTP:METHOD");
@@ -271,8 +271,8 @@ namespace ArcService
 			std::string base_url;
 			std::string path = GetPath(inmsg,base_url);
 			
-			Arc::XMLNode rrr(ns_,"requestNodeForHtml");
-			logger.msg(Arc::DEBUG, "Called HTML Operation: \"%s\" at path \"%s\" ",rrr.Name(), path.c_str());
+			requestNode.Name("requestNodeForHtml");
+			logger.msg(Arc::DEBUG, "Called HTML Operation: \"%s\" at path \"%s\" ",requestNode.Name(), path.c_str());
 			
 			std::string::size_type curPos = path.find('/', 0);
 			if( curPos == std::string::npos || curPos > 1 ) curPos = 0;
@@ -289,18 +289,23 @@ namespace ArcService
 				curPos = nextPos + 1;
 				
 				logger.msg(Arc::DEBUG, "HTML Parameter: \"%s\" := \"%s\" ", param.c_str(), value.c_str() );
-				std::string::size_type dotPos = param.find('.');
-				if(dotPos == std::string::npos) rrr.NewChild(param) = value;
-				else {
-					rrr.NewChild(param.substr(0,dotPos)).NewChild(param.substr(dotPos+1)) = value;
+				Arc::XMLNode curNode = requestNode;
+				std::string::size_type lastDot = 0;
+				while(1) {
+					std::string::size_type dotPos = param.find('.', lastDot);
+					if(dotPos == std::string::npos) {
+						curNode.NewChild( param.substr(lastDot) ) = value;
+						break;
+					} else {
+						curNode = curNode.NewChild( param.substr(lastDot,dotPos-lastDot) );
+						lastDot = dotPos +1;
+					}
 				}
 			}
 										 
 			std::string xmlTree;
-			rrr.GetXML(xmlTree, true);
+			requestNode.GetXML(xmlTree);
 			logger.msg(Arc::DEBUG, "HTML requestNode: %s ", xmlTree.c_str() );
-										 
-			requestNode.New( rrr );
 		} 
 		/** */
 		
