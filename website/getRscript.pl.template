@@ -220,7 +220,7 @@ while (FCGI::accept >= 0) {
 	my @covars_int = ();
 	my @covars_add = ();
 	if( @covars ){
-		print "covars: @covars\n";
+		#print "covars: @covars\n";
 		foreach my $cov (@covars){
 			if($cov =~ s/_int//){
 			   push(@covars_int, $cov);
@@ -432,7 +432,7 @@ writeToDisk( "<WARNINGS>" )
 writeToDisk( "</WARNINGS>" )
 EOWRITETODISK
 
-	my $status = " print( \"\" ) \n";
+	my $status = "print( \"\" ) \n";
 
 	if ($execParams{'num'}) {
 		$status .= "print( \"!-Case: $execParams{'num'} of $execParams{'of'}\" )\n";
