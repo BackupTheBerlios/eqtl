@@ -111,7 +111,7 @@ sub perform {
 		my $sql_delete_qtl = "DELETE from qtl where computation_id = ?";
 		my $sql_compute = "UPDATE computation SET status=\"DONE\", version= ?, "
 			  ."timestamp = ? where computation_id = ?";
-		my $sql_qtl_scantwo = qq{INSERT INTO  locusInteraction (computation_id, Trait,A, B, LogP, Type, Analysis, covariates, lod_full, lod_fv1, lod_int, lod_add, lod_av1, qlod_full, qlod_fv1, qlod_int, qlod_add, qlod_av1 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)};
+		my $sql_qtl_scantwo = qq{INSERT INTO  locusInteraction (computation_id, Trait,A, B, LogP, covariates, lod_full, lod_fv1, lod_int, lod_add, lod_av1, qlod_full, qlod_fv1, qlod_int, qlod_add, qlod_av1 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)};
 		my $sql_qtl_scanone = qq{INSERT INTO  qtl (computation_id, Locus, Trait, LOD, Chromosome, cMorgan_Peak, Quantile, covariates, phenocol) VALUES (?,?,?,?,?,?,?,?,?)};
 
 		$sth_loc = $dbh->prepare( $sql_loc );
@@ -496,8 +496,8 @@ $version++;
 					print STDERR "Now writing scantwo data." if $verbose;
 					unless ($dryrun) {
 						# Writing scantwo data into table locusInteraction
-						$sth_qtl->execute($compute_id, $trait, $loc1, $loc2, $NULL, $NULL,
-							$cov_meth, join(",",@covars_array),
+						$sth_qtl->execute($compute_id, $trait, $loc1, $loc2, $NULL,
+							join(",",@covars_array),
 							$scantwoField[3], $scantwoField[5], $scantwoField[7],
 							$scantwoField[11], $scantwoField[13],
 							$quant[1], $quant[2], $quant[3], $quant[4], $quant[5])
