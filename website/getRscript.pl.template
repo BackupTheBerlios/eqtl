@@ -223,7 +223,6 @@ while (FCGI::accept >= 0) {
 	my @covars_int = ();
 	my @covars_add = ();
 	if( @covars ){
-		print "covars: @covars\n";
 		foreach my $cov (@covars){
 			if($cov =~ s/_int//){
 			   push(@covars_int, $cov);
@@ -362,8 +361,20 @@ EOWRITETODISK
 	perms.done = $execParams{'perms'}/100
 }
 my.$mode.S.P.summary <- summary( my.$mode.S, perms=my.$mode.P, alpha=$execParams{'alpha'}, pvalues=TRUE)
+EOWRITETODISK
+if($mode eq 'scanone'){
+		$tryPermutations .= <<EOWRITETODISK;
 my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
 EOWRITETODISK
+
+}else{
+		$tryPermutations .= <<EOWRITETODISK;
+my.quants <- summary(my.$mode.P,alpha=1-c(0,0.25,0.5,0.75,0.9,0.9,0.95,0.99,1))
+EOWRITETODISK
+
+}
+#my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
+#EOWRITETODISK
 
 
 #^^my.quants <- summary(my.$mode.P,alpha=1-c(0,0.25,0.5,0.75,0.9,0.9,0.95,0.99,1))
