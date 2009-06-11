@@ -1,43 +1,60 @@
 #!/usr/bin/perl -w
 
+=head1 NAME
+
+uploadExpectedFiles
+
+=head1 AUTHORS
+
+Jan Kolbaum
+Ann-Kristin Grimm <grimm@inb.uni-luebeck.de>
+
+=cut
+
 use strict;
 use Cwd;
 use DBI;
 
 my $dbh = DBI->connect( DATABASECON ) || die "Database connection not made: $DBI::errstr";
-open( TODO, "MISCDATABASEToDo" ) or die "Cannot open file: MISCDATABASEToDo";
 
 my $mode;
 my $dir;
 if( $#ARGV != 0 ){
 	die "Usage: ./createExpectedFiles [scanone | scantwo | both] [directory where results are stored]\n";
-	if( $mode ne 'scanone' && $mode ne 'scantwo' && $mode ne 'both' ){
-		die "Usage: ./createExpectedFiles [scanone | scantwo | both] [directory where results are stored]\nYou used: ".$mode."\n";
-	}
 }
 
 $mode = $ARGV[0];
+if( $mode ne 'scanone' && $mode ne 'scantwo' && $mode ne 'both' ){
+	die "Usage: ./createExpectedFiles [scanone | scantwo | both] [directory where results are stored]\nYou used: ".$mode."\n"; 
+}
+
 #$dir = $ARGV[1];
-my @file = <TODO>;
 
 #my @covar = ('EAE', 'MAX', 'none', 'SUM', 'SUD', 'cross', 'weight', 'D12G1', 'D12G2B', 'D12G2C', 'D35G1', 'D35G2B', 'D35G2C','t12p','t35p', 'BD', 'ONS', 'DUD', 'dpw', 'SUD,dpw', 'ONS,dpw' );
-	my @covar = ('DUD_add,cross_int');
+	my @covar = ('severity_int', 'severity_add', 'auc_add', 'auc_int', 'auc_add,sex_int');
 #has to be in correct order
+
+my $sth_traits = $dbh->prepare("select trait_id from trait;");
+$sth_traits -> execute();
+
+my $test_query = "select computation_id from computation where jobname=?;";
+my $sth_test = $dbh->prepare($test_query) || die $DBI::errstr;
+
+my @traits;
+my @r;
+while (@r=$sth_traits->fetchrow_array()) {
+	push(@traits,$r[0]);
+}
 
 print "\tCREATING EXPECTED FILE INDEX\t\t\t\t\t\t\t\t\t";
 for( my $i=0; $i<=$#covar; $i++ ){
-	for( my $j=0; $j<=$#file; $j++ ){
-		my $line = $file[$j];
-		$line =~ s/\n//g;
+	foreach my $line (@traits) {
 		if( $mode eq 'both' || $mode eq 'scanone' ){	
 			#push( @out1, "scanone_".$line."_3.5_1000_(".$covar[$i].").csv.gz" );
 			my $jobname = "scanone_".$line."_3.5_1000_(".$covar[$i].").csv.gz";
 			#testn ob jobname schon existiert
-			my $test_query = "select computation_id from computation where jobname=\"$jobname\";";
-                        #test ausführen
-                        my $sth_test = $dbh->prepare($test_query) || die $DBI::errstr;
-			$sth_test->execute() || die $DBI::errstr;	
-			my $query ="";
+			$sth_test->execute($jobname) || die $DBI::errstr;	
+			my $query;
  			my @a = $sth_test->fetchrow_array();
 			if(@a){
 				$query ="UPDATE computation SET status=\"RECALCULATE\" where jobname =\"$jobname\";"
