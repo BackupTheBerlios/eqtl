@@ -2,12 +2,52 @@
 
 =head1 NAME
 
-uploadExpectedFiles
+uploadExpectedFiles - prepare table 'computation' of workunits
+
+=head1 SYNOPSIS
+
+uploadExpectedFiles analysis covariates
+
+=head1 DESCRIPTION
+
+The workunits, i.e. combinations of traits with covariates and the analysis to be perfomed,
+are stored in the table 'computation'. That table will be queried when new work is demanded
+from grid jobs and is updated when the results are uploaded to the database.
+
+=head1 OPTIONS
+
+=over 4
+
+=item analysis 
+
+=over 8
+
+=item scanone
+
+Analysis for single locus' effects
+
+=item scantwo
+
+Analysis for two locus' effects
+
+=item both
+
+Perform both, scanone and scantwo
+
+=back
+
+=item covariates
+
+list of covariates, if it should be modelled as additive or interacting shall be specified by the suffix "_add" or "_int", respectively.
+
+=back
 
 =head1 AUTHORS
 
 Jan Kolbaum
 Ann-Kristin Grimm <grimm@inb.uni-luebeck.de>
+Benedikt Bauer <bauer@cls.uni-luebeck.de>
+Steffen Moeller <moeller@inb.uni-luebeck.de>
 
 =cut
 
@@ -15,63 +55,80 @@ use strict;
 use Cwd;
 use DBI;
 
-my $dbh = DBI->connect( DATABASECON ) || die "Database connection not made: $DBI::errstr";
-
 my $mode;
 my $dir;
-if( $#ARGV != 0 ){
-	die "Usage: ./createExpectedFiles [scanone | scantwo | both] [directory where results are stored]\n";
+if( $#ARGV < 0 ){
+	die "Usage: ./createExpectedFiles (scanone|scantwo|both) covariates\n";
 }
 
-$mode = $ARGV[0];
+my @A=@ARGV;
+$mode = shift @A;
 if( $mode ne 'scanone' && $mode ne 'scantwo' && $mode ne 'both' ){
-	die "Usage: ./createExpectedFiles [scanone | scantwo | both] [directory where results are stored]\nYou used: ".$mode."\n"; 
+	die "Usage: ./createExpectedFiles (scanone|scantwo|both)\nInvalid mode of analysis: '".$mode."'\n"; 
 }
 
-#$dir = $ARGV[1];
+my $dbh = DBI->connect( DATABASECON ) || die "Database connection not made: $DBI::errstr";
 
-#my @covar = ('EAE', 'MAX', 'none', 'SUM', 'SUD', 'cross', 'weight', 'D12G1', 'D12G2B', 'D12G2C', 'D35G1', 'D35G2B', 'D35G2C','t12p','t35p', 'BD', 'ONS', 'DUD', 'dpw', 'SUD,dpw', 'ONS,dpw' );
-	my @covar = ('severity_int', 'severity_add', 'auc_add', 'auc_int', 'auc_add,sex_int');
-#has to be in correct order
 
-my $sth_traits = $dbh->prepare("select trait_id from trait;");
-$sth_traits -> execute();
+# presume the remaining attributes to be all covariates - unchecked
+my @covar = @A;
 
 my $test_query = "select computation_id from computation where jobname=?;";
 my $sth_test = $dbh->prepare($test_query) || die $DBI::errstr;
 
+my $update_query ="UPDATE computation SET status='RECALCULATE' where jobname=?;";
+my $sth_update = $dbh->prepare($update_query) || die $DBI::errstr;
+
+my $insert_query = "INSERT INTO computation(status, application, trait_id, jobname, filename) VALUES('QUEUED',?,?,?,?);";
+my $sth_insert = $dbh->prepare($insert_query) || die $DBI::errstr;
+
+
+print "\tRETRIEVING TRAIT NAMES\t\t\t\t\t\t\t\t\t\t";
+my $sth_traits = $dbh->prepare("select trait_id from trait;");
+$sth_traits -> execute() || die $DBI::errstr;
 my @traits;
 my @r;
 while (@r=$sth_traits->fetchrow_array()) {
 	push(@traits,$r[0]);
 }
+print "[DONE]\n";
 
 print "\tCREATING EXPECTED FILE INDEX\t\t\t\t\t\t\t\t\t";
-for( my $i=0; $i<=$#covar; $i++ ){
+foreach my $cov (@covar) {
+
+	unless ($cov =~ /_(add|int)$/) {
+		print STDERR "Skipping covariate '$cov', which does not end on _add or _int.\n";
+		next;
+	}
+
 	foreach my $line (@traits) {
 		if( $mode eq 'both' || $mode eq 'scanone' ){	
-			#push( @out1, "scanone_".$line."_3.5_1000_(".$covar[$i].").csv.gz" );
-			my $jobname = "scanone_".$line."_3.5_1000_(".$covar[$i].").csv.gz";
-			#testn ob jobname schon existiert
+			my $jobname = "scanone_".${line}."_3.5_1000_($cov).csv.gz";
+
+			# checking for existance of that job
 			$sth_test->execute($jobname) || die $DBI::errstr;	
 			my $query;
  			my @a = $sth_test->fetchrow_array();
 			if(@a){
-				$query ="UPDATE computation SET status=\"RECALCULATE\" where jobname =\"$jobname\";"
+				$sth_update->execute($jobname) || die $DBI::errstr;
 			}
 			else{
-				$query = "INSERT INTO computation(status, application, trait_id, jobname, filename) VALUES('QUEUED', 'SCANONE', $line, '$jobname', '$jobname');";
+				$sth_insert->execute('SCANONE',$line,$jobname,$jobname);
 			}
-			#erst mal abragen ob der eintrag schon existiert...
-			my $sth = $dbh->prepare($query) || die $DBI::errstr;
-			$sth->execute() || die $DBI::errstr;
 		}
 		if( $mode eq 'both' || $mode eq 'scantwo' ){
-			#push( @out2, "scantwo_".$line."_3.5_1000_(".$covar[$i].").csv.gz" );
-			my $jobname = "scantwo_".$line."_3.5_1000_(".$covar[$i].").csv.gz";
-			my $query = "INSERT INTO computation(status, application, trait_id, jobname, filename) VALUES('QUEUED', 'SCANTWO', $line, '$jobname', '$jobname');";
-			my $sth = $dbh->prepare($query) || die $DBI::errstr;
-			$sth->execute() || die $DBI::errstr;
+			my $jobname = "scantwo_".$line."_3.5_1000_($cov).csv.gz";
+
+			# checking for existance of that job
+			$sth_test->execute($jobname) || die $DBI::errstr;	
+			my $query;
+ 			my @a = $sth_test->fetchrow_array();
+			if(@a){
+				$sth_update->execute($jobname) || die $DBI::errstr;
+			}
+			else{
+				$sth_insert->execute('SCANTWO',$line,$jobname,$jobname);
+			}
 		}
 	}
 }
