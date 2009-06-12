@@ -1,6 +1,33 @@
 #!/usr/bin/perl
-#FIXME:
-# write comments
+
+=head1 NAME
+
+trait_upload.pl - transform traits into SQL statements
+
+=head1 SYNOPSIS
+
+trait_upload.pl filename
+
+=head1 DESCRIPTION
+
+The traits table is key to the organisation of the compute jobs
+(workunits) and also for the display of detailed information about the
+eQTLs that have been determined. Every project will have different
+kinds of information about these traits available. This script is one
+example on how to upload that data.
+
+When using more common sources, e.g. a regular Affymetrix chip,
+one may think very differently about the traits table inn general. 
+But still, one has the option to either trust data from Affymetrix themselves
+or use such that was derived from the Ensembl team. The result of that
+decision may be forwarded to this traits table.
+
+=head1 AUTHORS
+
+Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+=cut
+
 use strict;
 
 my $mouseids=undef;
