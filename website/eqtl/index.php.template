@@ -2,8 +2,15 @@
 	TEMPLATEWARNINGHASH
 
 /**
-	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
-	Copyright: Universities of Rostock and Lübeck, 2003-2009
+
+AUTHOR
+
+	Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+COPYRIGHT
+
+	Universities of Rostock and Luebeck, 2003-2009
+
 */
 
 	require_once("header.php");
@@ -34,13 +41,16 @@ probe of the chip.
 
 <?php
 $forms=array();
+$forms[]=array(href="qtl_groups.php", title="QTL Groups", description="Characterisation of classical QTL");
 $forms[]=array(href=>"qtl.php", title=>"QTL", description=>"Filter for single loci influencing the expression of at least one gene.");
 $forms[]=array(href=>"interaction.php", title=>"Interactions", description=>"Filter for pairs of loci contributing to the control of the expression of at least one gene.");
 $forms[]=array(href=>"trait.php", title=>"Traits", description=>"Filter for all information on particular genes.");
 $forms[]=array(href=>"locus.php", title=>"Loci", description=>"Do not show the genes but only the loci and the number of genes thes control. This is supposed to determine a preferences for further investigation within the genome.");
 $forms[]=array(href=>"marker.php", title=>"Marker", description=>"Link the cMorgan positions assigned to markers to base pairs.");
-$forms[]=array(href=>"parental_expression.php", title=>"Expression data", description=>"See expression level of genes 30 days post immunisation.");
-$forms[]=array(href=>"expression_trait_correlation.php", title=>"Correlation of classical and expresssion traits", description=>"For any trait this answers the question to what extend a gene's expression is correlating with the severity of the disease.");
+if (file_exists("parental_expression.php")) 
+	$forms[]=array(href=>"parental_expression.php", title=>"Expression data", description=>"See expression level of genes 30 days post immunisation.");
+if (file_exists("expression_trait_correlation.php"))
+	$forms[]=array(href=>"expression_trait_correlation.php", title=>"Correlation of classical and expresssion traits", description=>"For any trait this answers the question to what extend a gene's expression is correlating with the severity of the disease.");
 
 echo "<table>\n";
 foreach($forms as $f) {

@@ -1,15 +1,29 @@
 <?php
 
 /*
+STARTOFDOCUMENATION
 
-   This PHP script is meant as a tool to retrieve files 
-   that describe chromosomal loci and the genes these contain.
+NAME
 
-   Authors
+	filehandler.php - presentation of details of loci
 
-	Steffen Möller <moeller@inb.uni-luebeck.de>
+SYNOPSIS
+
+	a dynamic web page
+
+DESCRIPTION
+
+	This PHP script is meant as a tool to retrieve files 
+	that describe chromosomal loci and the genes these contain.
+	The results are presented in an easily parseable
+	ASCII format.
+
+AUTHORS
+
+	Steffen Moeller <moeller@inb.uni-luebeck.de>
 	Ann-Kristin Grimm <grimm@inb.uni-luebeck.de>
 
+ENDOFDOCUMENATION
 */
 
 	header("Content-Type: text/plain");

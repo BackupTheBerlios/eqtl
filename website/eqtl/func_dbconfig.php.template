@@ -3,8 +3,24 @@
 TEMPLATEWARNINGHASH
 
 /**
-	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
-	Copyright: Universities of Rostock and Lübeck, 2003-2009
+NAME
+
+	func_dbconfig.php
+
+SYNOPSIS
+
+	to be included by dynamic web pages
+
+DESCRIPTION
+
+AUTHOR
+
+	Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+COPYRIGHT
+
+	Universities of Rostock and Luebeck, 2003-2009
+
 */
 
 

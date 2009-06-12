@@ -3,8 +3,26 @@
 TEMPLATEWARNINGHASH
 
 /**
-	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
-	Copyright: Universities of Rostock and Lübeck, 2003-2009
+
+NAME
+
+	func_covariates.php
+
+SYNOPSIS
+
+	collection of routines to retrieve and present covariates
+
+DESCRIPTION
+
+
+AUTHOR
+
+	Steffen Möller <moeller@inb.uni-luebeck.de>
+
+COPYRIGHT
+
+	University of Luebeck, 2008-2009
+
 */
 
 

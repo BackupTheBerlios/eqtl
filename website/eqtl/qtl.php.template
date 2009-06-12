@@ -2,8 +2,31 @@
 	TEMPLATEWARNINGHASH
 
 /**
-	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
-	Copyright: Universities of Rostock and Lübeck, 2003-2009
+STARTOFDOCUMENTATION
+NAME
+
+	qtl.php
+
+SYNOPSIS
+
+	a dynamic weg page - may be invoked without parameters
+
+DESCRIPTION
+
+	The web page represents a first entry to the core results
+	that have been produced by the analysis. Users will find
+	useful to rank expression QTL by their statistical likelihood
+	and to sort/filter them by the chromosomal location or
+	covariates.
+
+AUTHOR
+
+	Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+COPYRIGHT
+
+	Universities of Rostock and Luebeck, 2003-2009
+ENDOFDOCUMENTATION
 */
 
 	require_once("header.php");

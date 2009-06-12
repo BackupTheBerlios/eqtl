@@ -3,8 +3,28 @@
     TEMPLATEWARNINGHASH
 
 /**
-	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
-	Copyright: Universities of Rostock and Lübeck, 2003-2009
+NAME
+
+	header.php - common header for dynamic web pages
+
+SYNOPSIS
+
+	to be included by PHP scripts
+
+DESCRIPTION
+
+	The title is passed as an argument.
+	Differences between projects are defined in the
+	configuration.
+
+AUTHOR
+
+	Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+COPYRIGHT
+
+	Universities of Rostock and Luebeck, 2003-2009
+
 */
 
     require_once("func_dbconfig.php");
