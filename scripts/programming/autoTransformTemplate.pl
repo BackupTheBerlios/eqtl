@@ -8,7 +8,7 @@ autoTransformTemplates.pl - inspect conf/*.conf files and perform respective sub
 
 autoTransformTemplates.pl -projectname (rat|mus) <list of files>
 
-=head DESCRIPTION
+=head1 DESCRIPTION
 
 Configuration files can be read when a script is started. This script
 allows for a different approach: the configuration files are read
