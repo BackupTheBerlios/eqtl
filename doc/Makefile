@@ -8,7 +8,8 @@
 #	in the form prescribed by POD.
 
 PERLSCRIPTS=$(shell find .. -name "*.pl" )
-SHELLSCRIPTS=$(shell find .. -name "*.sh" | sort | egrep -v 'website/.*update.sh' | egrep -v 'scripts/.*update.sh' )
+PHPSCRIPTS=$(shell find .. -name "*.php" )
+SHELLSCRIPTS=$(shell find .. -name "*.sh" | sort | egrep -v 'website/.*update.sh' | egrep -v 'scripts/.*update.sh' | egrep -v 'doc/.*update.sh')
 
 .SUFFIXES: .pl .ps
 
@@ -25,6 +26,12 @@ SHELLSCRIPTS=$(shell find .. -name "*.sh" | sort | egrep -v 'website/.*update.sh
 		echo "No help available for $<"; \
 	fi ) | a2ps -o $@ --center-title $<
 
+%.ps: %.php
+	test -x /usr/bin/a2ps
+	(if grep -q STARTOFDOCUMENT $< | grep -q ENDOFDOCUMENT; then \
+		cat $< | sed -e '1,/^STARTOFDOCUNENT/d' -e '/ENDOFDOCUMENT/,$$d' ; \
+	fi) | a2ps -o $@ --center-title $<
+
 documentation.ps: shell perl
 	psmerge -o documentation.ps tmp/*.ps
 
@@ -35,6 +42,10 @@ perl:	$(PERLSCRIPTS:.pl=.ps)
 shell: $(SHELLSCRIPTS:.sh=.ps)
 	if [ ! -d tmp ]; then mkdir tmp; fi
 	mv $(SHELLSCRIPTS:.sh=.ps) tmp/
+
+php: $(PHPSCRIPTS:.php=.ps)
+	if [ ! -d tmp ]; then mkdir tmp; fi
+	mv $(PHPSCRIPTS:.php=.ps) tmp/
 
 clean:
 	rm -rf tmp scripts.ps
