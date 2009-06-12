@@ -4,17 +4,25 @@ TEMPLATEWARNINGHASH
 
 =head1 NAME
 
-	prepareRqtlInputData.pl - transforms expresssion data and genotype data into single files for job input
+prepareRqtlInputData.pl - transforms expresssion data and genotype data into single files for job input
 
 =head1 SYNOPSIS
 
-	Called from the web server. Needs identifier 'probesetid' to denote the gene to be investigated.
+Called from the web server. Needs identifier 'probesetid' to denote the gene to be investigated.
 
 =head1 DESCRIPTION
 
+Except for a change in the interpretation of covariates, i.e. from interacting to additive,
+every computation needs a different input. This input is prepared by this script, which
+involves the reading of all input data by a web server, to subsequently generate the
+right combinations upon request.
+
+The script does not perform any selection of workunits, or reports on the submission,
+it only prepares the data.
+
 =head1 AUTHORS
 
-Jan Kolbaum with some contribution by Steffen Moeller
+Jan Kolbaum with some contribution by Steffen Moeller <moeller@inb.uni-luebeck.de> and Benedikt Bauer.
 2008-08-27
 
 =cut
