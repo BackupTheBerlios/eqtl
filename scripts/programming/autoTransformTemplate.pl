@@ -30,6 +30,10 @@ analogous projects.
 
 =back
 
+=head1 AUTHORS
+
+Steffen Moeller <moeller@inb.uni-luebeck.de>
+
 =cut
 
 use strict;
