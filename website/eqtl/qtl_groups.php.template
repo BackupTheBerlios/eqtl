@@ -24,6 +24,7 @@ AUTHOR
 
 	Steffen Moeller <moeller@inb.uni-luebeck.de>
 	Universities of Rostock and Luebeck, 2003-2009
+
 ENDOFDOCUMENTATION
 */
 
@@ -47,7 +48,7 @@ ENDOFDOCUMENTATION
 	);
 
 	$database="DATABASEEQTLNAME";
-	include_once("func_connect.php");
+	include("func_connect.php");
 
 	$dataSelectionFieldsQTL = array(
 		"show_LocusOfGene", "show_Covariates",
@@ -143,8 +144,71 @@ ENDOFDOCUMENTATION
 	if (empty($direct) and empty($submitted))
 	{
 ?>
-		<form action=qtl_group.php method=post>
+		<form action="qtl_group.php" method="post">
 		<input type=hidden name=submitted value=1>
+
+<?php
+		#$queryAllGroups = "SELECT qq.name from qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry";
+		#$queryAllGroups = "SELECT qq.name,qq.trait,locus.chr as chr from qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry left join locus on locus_id=No";
+		$queryAllGroups = "SELECT qtl_id,qq.name,qq.trait,start_cm,stop_cm,start_bps,stop_bps,locus.chr,covariates,count(*) as c from qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry left join locus on locus_id=No left join qtl on locus.Name=qtl.Locus where species='ENSEMBLSPECIESDB' group by qtl_id,qq.name,covariates order by qtl_id,covariates";
+		$result = mysql_query($queryAllGroups,$linkLocal);
+		if (empty($result)) {
+			mysql_close($linkLocal);
+			errorMessage(mysql_error($linkLocal)."</p><p>".$queryAllGroups."</p>");
+			//echo "LinkLocal: "; print_r($linkLocal);
+			exit;
+		}
+
+		echo "<table>";
+		echo "<tr>";
+		echo "<th rowspan=2 bgcolor=\"lightgreen\">Group/QTL</th>";
+		echo "<th colspan=2>Covariates (Number of Traits)</th></tr>";
+		echo "<tr><th>Location (chr:bp-range)</th><th>c-Trait</th>";
+		echo "</tr>\n";
+		$first=TRUE;
+		$prevGroupname="@@@@NOT@@@@IN@@@@DATABASE@@@@";
+		$chr=array();
+		$prevTrait="";
+	        while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			if ("$prevGroupname" != $line["qtl_id"]) {
+				if (!$first) {
+					#print_r($line);
+					echo "</td></tr>";
+					echo "<td>".join(",",array_unique($chr))."</td><td>$prevTrait</td>";
+					echo "</tr>\n";
+					$chr = array();
+				}
+				elseif ($first) {
+					$first=FALSE;
+				}
+				echo "<tr>";
+				echo "<td rowspan=2>".$line["name"]. " (".$line["qtl_id"].")"."</td>";
+				#."<td>".$line["chr"]."</td>";
+				echo "<td colspan=2>";
+			}
+			else {
+				echo ", ";
+			}
+			$cc=$line["covariates"];
+			array_push($chr,$line["chr"].":".$line["start_bps"]."-".$line["stop_bps"]);
+			if ("" == "$cc") $cc="none";
+			echo "$cc (".$line["c"].")";
+			#$prevGroupname=$line["name"];
+			$prevGroupname=$line["qtl_id"];
+			$prevTrait=$line["trait"];
+		}
+		if ($first) {
+			echo "<tr><td colspan=2>NO ENTRIES FOUND for query: '$queryAllGroups'</td></tr>\n";
+		}
+		else {
+			echo "</td></tr>";
+			echo "<td>".join(",",array_unique($chr))."</td>";
+			echo "<td>$prevTrait</td>";
+			echo "</tr>\n";
+		}
+		echo "</table>";
+?>
+
 		<table width=100%><tr><td>
 			<table>
 			<tr><th class=r>Locus:</th><td colspan=3><input type=text name=locus size=40 maxsize=700
@@ -177,21 +241,25 @@ ENDOFDOCUMENTATION
 			<tr><th class=r valign=top>Covariates:<br>
 	<font size=-3><i>
 	<?php
+		/*
+		// Presentation of covariates - not required?
 		$cvs=get_covars_on_your_own_from_qtl($linkLocal);
 		foreach ($cvs as $n=>$c) {
 			if ($n>0) {
 				echo "; ";
-				if (0== $n%2) {
+				if (0 == $n%2) {
 					echo "<br>\n";
 				}
 			}
 			echo "$c";
 		}
+		*/
 	?>
 	</i></font>
 			</th><td colspan=3>
 	<?php
-					select_covariates($linkLocal, "qtl");
+			// covariates not required?!?
+			//		select_covariates($linkLocal, "qtl");
 	?>
 			</td></tr>
 			
@@ -327,11 +395,14 @@ ENDOFDOCUMENTATION
 			</table>
 			</small></small>
 		</td>
-		<td valign=top>
+	/*
+<?php
+		echo '<td valign=top>
 			<table border=0>
 			<tr bgcolor="red"><th colspan=4 class=c>QTLs - Select Locus</th></tr>
-			<tr bgcolor="orange"><th>Name</th><th>Chromosome</th><th><small>bp From</small></th><th><small>bp To</small></th></tr>
-<?php
+			<tr bgcolor="orange"><th>Name</th><th>Chromosome</th><th><small>bp From</small></th><th><small>bp To</small></th></tr>'."\n";;
+		// no QTL information presented at this meta-stage
+
 		include_once("func_public_qtl.php");
 		$qtls = get_public_qtls($linkLocal);
 
@@ -342,9 +413,10 @@ ENDOFDOCUMENTATION
 			echo "<td align=right><small><small>".$q["stop_bps"]."</small></small></td>";
 			echo "</tr>\n";
 		}
+		echo '</table>
+		</td>'."\n";;
 ?>
-			</table>
-		</td>
+	*/
 		</tr>
 		</table>
 		</form>
@@ -720,12 +792,12 @@ ENDOFDOCUMENTATION
 		}
 
 		if (0<count($err)) {
-			echo "<p>Please address the following error".(1<count($err)?"s":"").":<br>";
-			foreach ($err as $e) {
-				echo $e."<br>";
-			}
-			echo "</p>";
 			mysql_close($linkLocal);
+			$emsg="";
+			foreach ($err as $e) {
+				$emsg .= $e."<br>";
+			}
+			errorMessage($emsg);
 			exit;
 		}
 
@@ -1082,9 +1154,9 @@ ENDOFDOCUMENTATION
 		    }
 		    echo "</small>";
 		}
-		mysql_free_result($result);
-		mysql_close($linkLocal);
 	}
+	if (!empty($result)) mysql_free_result($result);
+	mysql_close($linkLocal);
 	include("footer.php");
 ?>
 </body>
