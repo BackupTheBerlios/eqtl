@@ -53,7 +53,7 @@ ENDOFDOCUMENTATION
 	include_once("func_connect.php");
 
 	$dataSelectionFieldsQTL = array(
-		"show_LocusOfGene", "show_Covariates",
+		"groups",
 		"Chromosome","ensemblversion",
 		"cM_within","LODmax","LODmin",
 		"quantilemin","quantilemax",
@@ -74,7 +74,8 @@ ENDOFDOCUMENTATION
 			"onlyNumbersGrouped"
 		),
 
-		array(  "show_Trait",
+		array(  "show_Groups",
+			"show_Trait",
 			"show_LocusOfGene",
 			"show_ExpressionOfGene",
 			"show_Locus",
@@ -129,14 +130,14 @@ ENDOFDOCUMENTATION
 		echo "<br>\n";
 	}
 
-	$a=array("Trait"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
+	$a=array("Trait"=>1, "Groups"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
 		"LOD"=>1,"LODdiff"=>1,"Quantile"=>1,
 		//"Sex"=>1,"AUC"=>1,
 			//"AUCbinary"=>1,
 		//"Severity"=>1,
 		"Covariates"=>1,
 		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>1, "cMorgan_Max"=>1,
-		"Analysis"=>1, "Gid"=>0, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1,
+		"Gid"=>0, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1,
 		"Definition"=>1, "ProbeSequence"=>0);
 
 	if (!empty($direct)) {
@@ -153,6 +154,21 @@ ENDOFDOCUMENTATION
 		<input type=hidden name=submitted value=1>
 		<table width=100%><tr><td>
 			<table>
+			<tr><th class=r>Groups:</th><td colspan=3><input type=text name=groups size=40 maxsize=700
+<?php
+			if (!empty($groups)) {
+				echo "value=";
+				if (is_array($groups)) {
+					#FIXME: this should show the names of the groups, not the IDs
+					echo "\"".join(",",$groups)."\"";
+				}
+				else {
+					echo "\"$groups\"";
+					$groups = preg_split("/[ ,;\t\n]+/",$groups);
+				}
+			}
+?>
+			></td></tr>
 			<tr><th class=r>Locus:</th><td colspan=3><input type=text name=locus size=40 maxsize=700
 <?php
 			if (!empty($locus)) {
@@ -388,11 +404,14 @@ ENDOFDOCUMENTATION
 			if (!empty($show_Covariates)) {
 				$query .= ", covariates";
 			}
+			if (!empty($show_Groups)) {
+				$query .= ", qtl_id";
+			}
 			#, l.Name as lName, 
 			#. ", l.Chr, l.cMorgan "
 			$query .= ", Chromosome"
 				. ", cMorgan_Peak, cMorgan_Min, cMorgan_Max"
-				. ", Analysis";
+			;
 			$query .= ", Quantile"
 				. ", (LOD-Quantile) as LODdiff "
 				. ", unigene, swissprot_ID, gene_assignment"
@@ -410,20 +429,23 @@ ENDOFDOCUMENTATION
 
 		$query  .= " FROM qtl ";
 
+		if (!empty($groups)) {
+			$query .= " right join locus as l on qtl.Locus=l.Name right join qtl_groups on locus_id=l.No ";
+		}
+
+
 		# The counting of QTLs should now be influencing the numbers of QTLs shown
 		# These extra joins are not needed for every kind of query, some optimisation
 		# would help to speed things up!
 
-			# FIXME: In a later version, the specification of loci should be identical
-			#	 for both qtl and locus tables
-				#.  " left join locus as l on concat('loc',qtl.Locus)=l.Name "
-			$query .=  " left join BEARatChip as c on Trait=c.probeset_id ";
+		$query .= " left join BEARatChip as c on Trait=c.probeset_id ";
 
-			$needingMart=!empty($show_LocusOfGene);
-			if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
-				$needingMart=TRUE;
-			}
-			$needingMart=FALSE;
+		$needingMart=!empty($show_LocusOfGene);
+		if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
+			$needingMart=TRUE;
+		}
+		$needingMart=FALSE;
+
 		if (!(empty($MeanMin) and empty($MeanMax) and empty($SdMin) and empty($SdMax) and empty($show_ExpressionOfGene))) {
 			$query .= " join trait on qtl.Trait=trait.trait_id ";
 		}
@@ -471,6 +493,28 @@ ENDOFDOCUMENTATION
 			else {
 				echo "Unknown external db: 'EXTERNALGENEDB'.\n";
 				exit;
+			}
+		}
+
+		if (!empty($groups)) {
+			if (is_array($groups)) {
+				$g=$groups;
+			}
+			else {
+				$g=preg_split("/[ ,;\t\n\r]+/",$groups);
+			}
+			if (count($g)>0) {
+				if ($where) $query .= " AND ";
+				else {
+					$query .= " WHERE ";
+					$where = TRUE;
+				}
+				if (1==count($g)) {
+					$query .= " qtl_groups.qtl_id=".$g[0];
+				}
+				else {
+					$query .= " qtl_groups.qtl_id in ('".join("','",$g)."')";
+				}
 			}
 		}
 
@@ -902,7 +946,7 @@ ENDOFDOCUMENTATION
 // 				$cMmax=$line["cMorgan_Max"];
 // 			}
 
-//			print_r($line); echo "<br>\n";
+			//print_r($line); echo "<br>\n";
 
 			$c=$line["Chromosome"];
 			#$c=$line["Chr"];
@@ -921,6 +965,7 @@ ENDOFDOCUMENTATION
 				echo "<tr bgcolor=yellow>";
 				echo "<th class=c>#</th>";
 				foreach($line as $n=>$l) {
+					if ("qtl_id"=="$n") $n = "Groups"; #FIXME: attribute name needs to be adjusted
 					$f="show_".$n;
 					if (!empty($$f)) {
 						echo "<th class=c><small>$n</small></th>";
@@ -944,6 +989,7 @@ ENDOFDOCUMENTATION
 			}
 			echo "<tr><td>$rowno</td>";
 			foreach($line as $n=>$l) {
+				if ("qtl_id"=="$n") $n = "Groups"; #FIXME: attribute name needs to be adjusted
 				$f="show_".$n;
 				if (!empty($$f)) {
 					#echo "not empty: \$$f\n";
@@ -1004,6 +1050,15 @@ ENDOFDOCUMENTATION
 							if (empty($l)) $l="none";
 							echo "<td class=small>$l</td>";
 							break;
+						case "Groups":
+							# only one group per eQTL in current implementation
+							# needs adjustment to look up names of group
+							echo "<td>";
+							if (!empty($l)) {
+							     echo "<a href=\"http:qtl.php?groups=$l\">$l</a>";
+							}
+							echo "</td>";
+							break;
 						default:
 							if (!isset($l)||""==$l) echo "<td>&nbsp;</td>";
 							else echo "<td class=small>$l</td>";
@@ -1036,13 +1091,16 @@ ENDOFDOCUMENTATION
 				$b=cM2bp($c,$cMmax);
 				if ($b<0) $b=0;
 				
-				expressionviewqtl(array("name"=>$symb,
-					//"trait"=>$line["Trait"],
-					"trait"=>$symb,
-					"chr"=>$c,
-					"cMmin"=>$cMmin, "cMmax"=>$cMmax,
-					"bpmin"=>min($a,$b),"bpmax"=>max($a,$b)
-				));
+
+				if (file_exists("func_expressionview.php")) {
+					expressionviewqtl(array("name"=>$symb,
+						//"trait"=>$line["Trait"],
+						"trait"=>$symb,
+						"chr"=>$c,
+						"cMmin"=>$cMmin, "cMmax"=>$cMmax,
+						"bpmin"=>min($a,$b),"bpmax"=>max($a,$b)
+					));
+				}
 			}
 
 			echo "<td class=small>";
@@ -1055,8 +1113,6 @@ ENDOFDOCUMENTATION
 
 			echo "</td>";
 			echo "<td class=link>";
-			#echo "<a href=\"http://bioinformatics.pzr.uni-rostock.de/~moeller/genes_within.php?chr="
-			#echo "<a href=\"http://rack2.pzr.uni-rostock.de/~moeller/genes_within.php?chr="
 			echo "<a href=\"genes_within.php?chr="
 				.$c
 				."&bpFrom=".cM2bp($c,$cMmin)
@@ -1082,7 +1138,9 @@ ENDOFDOCUMENTATION
 		    }
 		    else {
 			echo "<p>$rowno record".($rowno>1?"s":"")." found matching criteria.</p>";
-			expressionviewlink("$ensemblorganism");
+			if (file_exists("func_expressionview.php")) {
+				expressionviewlink("$ensemblorganism");
+			}
 		    }
 		    echo "</small>";
 		}
