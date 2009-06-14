@@ -801,7 +801,7 @@ ENDOFDOCUMENTATION
 						$sum += $counter;
 				}	
 				
-				#TODO muss noch gemacht werden
+				#TODO remains to be implemented
                                 #$r=array();
                                 #echo "<table><thead><tr><th>Chromosome</th><th>#</th></tr></thead>\n";
                                 #while ($line = mysql_fetch_row($result)) {
