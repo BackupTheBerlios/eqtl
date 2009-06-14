@@ -77,7 +77,7 @@ ENDOFDOCUMENATION
 				$begin = $begin_bp;
 				$end = $end_bp;
 			} else {
-				require_once("func_conversion_47.php");
+				require_once("func_conversion_ENSEMBLVERSION.php");
 				$begin = max(1,cM2bp($chromosome, $cM)-$scope);
 				$end = cM2bp($chromosome, $cM)+$scope;
 			}
@@ -137,7 +137,11 @@ ENDOFDOCUMENATION
 			mysql_free_result($result);
 			mysql_close($link);
 		} else {
+<<<<<<< HEAD:website/eqtl/filehandler.php.template
 			@readfile($BASEPATH."genes_within.php?submitted=submitted&chr=".$chromosome."&bpFrom=".$begin."&bpTo=".$end."&ensemblhost=".martdbhost(ENSEMBLVERSION)."&ensembluser=anonymous&ensemblorganism=ENSEMBLSPECIESMART&ensemblversion=47&markerhost=DATABASEHOSTLOCAL&markeruser=qtl&markerdatabase=DATABASEEQTLNAME&plain=on");
+=======
+			@readfile($BASEPATH."genes_within.php?submitted=submitted&chr=".$chromosome."&bpFrom=".$begin."&bpTo=".$end."&ensemblhost=martdb.ensembl.org%3A3316&ensembluser=anonymous&ensemblorganism=rnorvegicus&ensemblversion=ENSEMBLVERSION&markerhost=DATABASEHOSTLOCAL&markeruser=qtl&markerdatabase=DATABASEEQTLNAME&plain=on");
+>>>>>>> 7efc70f5fd3ed8f600ee29bbd0d28f2a43e27a68:website/eqtl/filehandler.php.template
 		}
 	}
 	if( !empty($trait_genes) ) {
