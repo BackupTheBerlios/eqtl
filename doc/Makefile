@@ -29,7 +29,7 @@ SHELLSCRIPTS=$(shell find .. -name "*.sh" | sort | egrep -v 'website/.*update.sh
 %.ps: %.php
 	test -x /usr/bin/a2ps
 	(if grep -q STARTOFDOCUMENT $< | grep -q ENDOFDOCUMENT; then \
-		cat $< | sed -e '1,/^STARTOFDOCUNENT/d' -e '/ENDOFDOCUMENT/,$$d' ; \
+		cat $< | sed -e '1,/STARTOFDOCUMENTATION/d' -e '/ENDOFDOCUMENTATION/,$$d' ; \
 	fi) | a2ps -o $@ --center-title $<
 
 documentation.ps: shell perl
