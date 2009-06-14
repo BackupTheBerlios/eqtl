@@ -27,6 +27,9 @@ ENDOFDOCUMENATION
 */
 
 	header("Content-Type: text/plain");
+
+	include_once("func_dbconfig.php");
+
 	$accessible_fields_in_POST_or_GET = array(
 							"chromosome",
 							"cM",
@@ -108,8 +111,8 @@ ENDOFDOCUMENATION
 			$database=$databaseLocal;
 			if (!mysql_select_db("$database",$link)) {
 				echo "Could not select database '$database'. "
-				. "Send an email to <a href=\"steffen.moeller a t uni-luebeck.de\""
-				. ">steffen.moeller a t uni-luebeck.de</a><br>";
+				. "Please report to <a href=\"mailto:MAINTAINEREMAIL\""
+				. ">MAINTAINEREMAIL</a><br>";
 				mysql_close($link);
 				exit;
 			}
@@ -134,7 +137,7 @@ ENDOFDOCUMENATION
 			mysql_free_result($result);
 			mysql_close($link);
 		} else {
-			@readfile($BASEPATH."genes_within.php?submitted=submitted&chr=".$chromosome."&bpFrom=".$begin."&bpTo=".$end."&ensemblhost=martdb.ensembl.org%3A3316&ensembluser=anonymous&ensemblorganism=rnorvegicus&ensemblversion=47&markerhost=DATABASEHOSTLOCAL&markeruser=qtl&markerdatabase=DATABASEEQTLNAME&plain=on");
+			@readfile($BASEPATH."genes_within.php?submitted=submitted&chr=".$chromosome."&bpFrom=".$begin."&bpTo=".$end."&ensemblhost=".martdbhost(ENSEMBLVERSION)."&ensembluser=anonymous&ensemblorganism=ENSEMBLSPECIESMART&ensemblversion=47&markerhost=DATABASEHOSTLOCAL&markeruser=qtl&markerdatabase=DATABASEEQTLNAME&plain=on");
 		}
 	}
 	if( !empty($trait_genes) ) {
@@ -156,17 +159,15 @@ ENDOFDOCUMENATION
 	
 			$database=$databaseLocal;
 			if (!mysql_select_db("$database",$link)) {
-				echo "Could not select database '$database'. "
-				. "Send an email to <a href=\"steffen.moeller a t uni-luebeck.de\""
-				. ">steffen.moeller a t uni-luebeck.de</a><br>";
 				mysql_close($link);
+				errorMessage("Could not select database '$database'.");
 				exit;
 			}
 	
 			$result = mysql_query($query,$link);
 			if (empty($result)) {
-				echo "<p>Error: ".mysql_error($link)."</p>";
 				mysql_close($link);
+				errorMessage(mysql_error($link));
 				exit;
 			}
 			$first=true;
@@ -182,7 +183,7 @@ ENDOFDOCUMENATION
 			}
 			mysql_free_result($result);
 			mysql_close($link);
-		} else {
+		)} else {
 			echo "trait_genes does not accept [chromosome + position] as argument but requires [locus]";
 			exit;
 		}
