@@ -178,7 +178,6 @@ open(SCORE, $base.$database.$data{'scorefile'}) || open(SCORE,$database.$data{'s
 #$geno=shift(@ARGV);
 #$expr=shift(@ARGV);
 
-my @index;
 my $scoreline=readline(SCORE);
 my @scoreline=split($sep,$scoreline);
 shift @scoreline;
@@ -240,7 +239,9 @@ while (FCGI::accept >= 0) {
 			}
 		}
         }
+#	print join($sep,@scoreselection)."\n";
 
+	my @index;
 	my $k;
 	for ($k=0;$k<=$#scoreline;$k++) {
 		my $j;
@@ -252,6 +253,8 @@ while (FCGI::accept >= 0) {
 		}
 	}
 	@vals=@vals[@index];
+#	print join($sep,@vals)."\n";
+#	print join($sep,@index)."\n";
 
         if( !defined( $probeID ) && $#ARGV == 2 ){
                 $probeID = $ARGV[2];                            #id of probset to insert
