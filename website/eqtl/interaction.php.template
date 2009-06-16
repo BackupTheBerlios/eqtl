@@ -2,8 +2,31 @@
 	TEMPLATEWARNINGHASH
 
 /**
-	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
-	Copyright: Universities of Rostock and Lübeck, 2003-2009
+STARTOFDOCUMENTATION
+NAME
+
+	interaction.php - query and display of interacting effects
+
+SYNOPSIS
+
+	a dynamic web page - no parameters required
+
+DESCRIPTION
+
+	This page represents the root of the web pages that are to
+	be presented to regular users of the expression QTL once
+	that these are calculated.
+
+	The parameters, i.e. texts to introduce to the project, are
+	set in the configuration.
+
+AUTHOR
+	Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+COPYRIGHT
+
+	Universities of Rostock and Luebeck, 2003-2009
+ENDOFDOCUMENTATION
 */
 
 	require_once("header.php");

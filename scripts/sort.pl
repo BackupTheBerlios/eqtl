@@ -1,7 +1,21 @@
 #!/usr/bin/perl -w
 
+=head1 NAME
+
+sort.pl - classifying and sorting results files for their result status
+
+=head1 SYNOPSIS
+
+sort.pl [source folder (base)] [destination folder (base)]";
+
+=head1 AUTHORS
+
+Jan Kohlbaum
+
+=cut
+
 if( $#ARGV != 1 ){
-	die "USAGE: ./SCRIPTNAME [source folder (base)] [destination folder (base)]";
+	die "USAGE: ./sort.pl [source folder (base)] [destination folder (base)]";
 }
 
 if( !(-d $ARGV[1]) ){

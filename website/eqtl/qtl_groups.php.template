@@ -1,0 +1,223 @@
+<?php
+	TEMPLATEWARNINGHASH
+
+/**
+STARTOFDOCUMENTATION
+NAME
+
+	qtl_groups.php - display of groups of expression QTL
+
+
+SYNOPSIS
+
+	a dynamic web page to be called only from the web server
+
+DESCRIPTION
+
+	When inspecting a classical QTL, it is likely to find multiple
+	genes to be associated with the locus. Further inspections should
+	then be formed on that set of eQTL, them being understood as
+	a group. This web page caters for that point of view. To many,
+	it is represents the main entry ot the data.
+
+AUTHOR
+
+	Steffen Moeller <moeller@inb.uni-luebeck.de>
+	Universities of Rostock and Luebeck, 2003-2009
+
+ENDOFDOCUMENTATION
+*/
+
+	require_once("header.php");
+	require_once("func_covariates.php");
+	show_small_header("Expression QTL describing classical QTL",TRUE);
+	$err=array();
+	$conditionList=array(
+		"Equal Chromosomes" => array(
+			"constraint"=>"seqname = Chromosome",
+			"description"=>"The QTL and the gene it controls are on the same chromosome"
+		),
+		"Unequal Chromosomes" => array(
+			"constraint"=>"seqname != Chromosome",
+			"description"=>"The QTL and the gene it controls are on different chromosomes"
+		),
+		"Within classical QTL" => array(
+			"constraint"=>"manual",
+			"description"=>"The peak of the e-QTL overlaps with a classical QTL (true for all entries in this table)"
+		),
+	);
+
+	$database="DATABASEEQTLNAME";
+	include("func_connect.php");
+
+	$dataSelectionFieldsQTL = array(
+		"show_LocusOfGene", "show_Covariates",
+		"Chromosome","ensemblversion",
+		"cM_within","LODmax","LODmin",
+		"quantilemin","quantilemax",
+		"covariates",
+		"LODdiffmin","LODdiffmax",
+		"cM_Peak_Min","cM_Peak_Max",
+		"MeanMin","MeanMax","SdMin","SdMax",
+		"locus","chrlist", "condition"
+	);
+
+	$accessible_fields_in_POST_or_GET = array_merge(
+		$dataSelectionFieldsQTL,
+
+		array(  "cisOrTrans" ),	# if unset, show all
+		array(  "direct",
+			"debug",
+			"submitted",
+			"onlyNumbers",
+			"onlyNumbersGrouped"
+		),
+
+		array(  "show_Trait",
+			"show_LocusOfGene",
+			"show_ExpressionOfGene",
+			"show_Locus",
+			"show_LOD",
+			"show_LODdiff",
+			"show_Quantile",
+			"show_Covariates",
+			"show_Chromosome",
+			
+			"show_name",
+			"show_mean",
+			"show_sd",
+			"show_unigene",
+			"show_swissprot_ID",
+			"show_gene_assignment",
+			"show_first_symbol",
+			"show_Description",
+			"show_ProbeSequence",
+
+			"traits",
+			"traitlist",
+			"limit","order"
+		),
+		
+			convert_string_to_covariates_array(strtolower("qtl"))
+		);
+
+	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+		echo "<br>Retrieving info for: "; print_r($accessible_fields_in_POST_or_GET); echo "<br>\n";
+	}
+			
+	foreach($accessible_fields_in_POST_or_GET as $vname)
+	{
+		if (isset($_POST[$vname])) {
+			$$vname = $_POST[$vname];
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+		elseif(isset($_GET[$vname])) {
+			$$vname = $_GET[$vname];
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+	}
+
+	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+		echo "<br>\n";
+		echo "eae: "; print_r($eae);
+		echo "sum: "; print_r($sum);
+		echo "<br>\n";
+	}
+
+	$a=array("Trait"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
+		"LOD"=>1,"LODdiff"=>1,"Quantile"=>1,
+		"Covariates"=>1,
+		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>1, "cMorgan_Max"=>1,
+		"Analysis"=>1, "Gid"=>0, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1,
+		"Definition"=>1, "ProbeSequence"=>0);
+
+	if (!empty($direct)) {
+		foreach($a as $i=>$v) {
+			$n="show_".$i;
+			$$n=$v;
+		}
+	}
+
+	echo '<form action="qtl_group.php" method="post">'."\n";
+	echo '<input type=hidden name=submitted value=1>'."\n";
+
+	#$queryAllGroups = "SELECT qq.name from qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry";
+	#$queryAllGroups = "SELECT qq.name,qq.trait,locus.chr as chr from qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry left join locus on locus_id=No";
+	$queryAllGroups = "SELECT qtl_id,qq.name,covariates,qq.source,qq.trait,start_cm,stop_cm,start_bps,stop_bps,locus.chr,count(*) as c "
+			 ."FROM qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry left join locus on locus_id=No left join qtl on locus.Name=qtl.Locus "
+			 ."WHERE species='ENSEMBLSPECIESDB' "
+			 ."GROUP BY qtl_id,qq.name,covariates ORDER BY qtl_id,c DESC,covariates";
+	$result = mysql_query($queryAllGroups,$linkLocal);
+	if (empty($result)) {
+		mysql_close($linkLocal);
+		errorMessage(mysql_error($linkLocal)."</p><p>".$queryAllGroups."</p>");
+		//echo "LinkLocal: "; print_r($linkLocal);
+		exit;
+	}
+
+	echo "<table>";
+	echo "<tr>";
+	echo "<th rowspan=2 bgcolor=\"lightgreen\">QTL name<br>(id)</th>";
+	echo "<th colspan=3>Covariates (Number of Traits)</th></tr>";
+	echo "<tr><th>Location (chr:bp-range)</th><th>Source</th><th>c-Trait</th>";
+	echo "</tr>\n";
+	$first=TRUE;
+	$prevGroupname="@@@@NOT@@@@IN@@@@DATABASE@@@@";
+	$chr=array();
+	$prevTrait="";
+	$prevSource="";
+	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		if ("$prevGroupname" != $line["qtl_id"]) {
+			if (!$first) {
+				#print_r($line);
+				echo "</td></tr>";
+				echo "<td>".join(",",array_unique($chr))."</td><td>$prevSource</td><td>$prevTrait</td>";
+				echo "</tr>\n";
+				$chr = array();
+			}
+			elseif ($first) {
+				$first=FALSE;
+			}
+			echo "<tr>";
+			echo "<td rowspan=2>";
+			echo "<input type=checkbox name=group value=".$line["qtl_id"].">";
+			echo "<a href=\"http:qtl.php?groups=".$line["qtl_id"]."\">".$line["name"]."</a>";
+			echo "<br>(".$line["qtl_id"].")";
+			echo "</td>";
+			#."<td>".$line["chr"]."</td>";
+			echo "<td colspan=3>";
+		}
+		else {
+			echo ", ";
+		}
+		$cc=$line["covariates"];
+		array_push($chr,$line["chr"].":".$line["start_bps"]."-".$line["stop_bps"]);
+		if ("" == "$cc") $cc="none";
+		echo "<a href=\"qtl.php?groups=".$line["qtl_id"]."&covariates=$cc&submitted=1\">$cc</a> (".$line["c"].")";
+		#$prevGroupname=$line["name"];
+		$prevGroupname=$line["qtl_id"];
+		$prevTrait=$line["trait"];
+		$prevSource=$line["source"];
+	}
+	if ($first) {
+		echo "<tr><td colspan=2>NO ENTRIES FOUND for query: '$queryAllGroups'</td></tr>\n";
+	}
+	else {
+		echo "</td></tr>";
+		echo "<td>".join(",",array_unique($chr))."</td>";
+		echo "<td>$prevTrait</td>";
+		echo "</tr>\n";
+	}
+	echo "</table>";
+	echo "</form>";
+
+	if (!empty($result)) mysql_free_result($result);
+	mysql_close($linkLocal);
+	include("footer.php");
+?>
+</body>
+</html>

@@ -3,8 +3,30 @@
 TEMPLATEWARNINGHASH
 
 /**
-	Author:    Steffen Möller <moeller@inb.uni-luebeck.de>
-	Copyright: Universities of Rostock and Lübeck, 2003-2009
+STARTOFDOCUMENTATION
+NAME
+
+	func_dbconfig.php
+
+SYNOPSIS
+
+	to be included by dynamic web pages
+
+DESCRIPTION
+
+	The package contains a series of helper functions and global
+	variables for the interaction with local and remote databases,
+	i.e.  with Ensembl in its various versions.
+
+AUTHOR
+
+	Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+COPYRIGHT
+
+	Universities of Rostock and Luebeck, 2003-2009
+
+ENDOFDOCUMENTATION
 */
 
 
@@ -78,7 +100,7 @@ if (empty($usernameEnsembl)) {
 }
 if (empty($ensemblversionEnsembl)) {
 	if (empty($ensemblversion) && empty($ensemblversionEnsembl)) {
-		$ensemblversionEnsembl=47;
+		$ensemblversionEnsembl=ENSEMBLVERSION;
 // 		print "Setting \$ensemblversionEnsembl=$ensemblversionEnsembl;";
 	}
 	else if (!empty($ensemblversionEnsembl)) {
@@ -93,7 +115,7 @@ if (empty($ensemblversionEnsembl)) {
 
 if (empty($ensemblorganismEnsembl)) {
 	if (empty($ensemblorganism)) {
-		$ensemblorganismEnsembl="rnorvegicus";
+		$ensemblorganismEnsembl="ENSEMBLSPECIESMART";
 	}
 	else {
 		$ensemblorganismEnsembl=$ensemblorganism;
@@ -129,22 +151,12 @@ $urlLogoRight="PATHLOGORIGHTNORMAL";
 $urlLogoRightLarge="PATHLOGORIGHTLARGE";
 
 $hostname=`hostname --long`;
-if (strpos($hostname,".pzr.uni-rostock.de")) {
-	$htmlroot="http://bioinformatics.pzr.uni-rostock.de/~moeller/eqtl";
-	$hostname="rack8.pzr.uni-rostock.de";
-	$ensemblversionLocal="40";
-	$hostnameqtl="rack2.pzr.uni-rostock.de";
-	$usernameqtl="correlation";
-}
-else {
-	$htmlroot="http://www.inb.uni-luebeck.de/~moeller/eqtl";
-}
+$htmlroot="URLEQTL";
 $hostname="DATABASEHOSTLOCAL";
 $username="DATABASEEQTLUSER";
 $databaseqtl="DATABASEQTLNAME";
 $databaseeqtl="DATABASEEQTLNAME";
 $database="DATABASEEQTLNAME";
-$maintainerEmail="MAINTAINEREMAIL";
 $hostnameeqtl="DATABASEHOSTLOCAL";
 $usernameeqtl="DATABASEEQTLUSER";
 $hostnameqtl="DATABASEHOSTLOCAL";
@@ -152,10 +164,12 @@ $usernameqtl="DATABASEQTLUSER";
 
 $debug=TRUE;
 
-function errorMessage ($text) {
-	global $maintainerEmail;
+function errorMessage ($text,$maintainerEmail="") {
+	if (empty($maintainerEmail)) {
+		$maintainerEmail="MAINTAINEREMAIL";
+	}
 	echo "<p>$text</p>";
-	echo "<p>Send an email to <a href=\"mailto:$maintainerEmail\">$maintainerEmail</a></p>";
+	echo "<p>Please report to <a href=\"mailto:$maintainerEmail\">$maintainerEmail</a>.</p>";
 }
 
 function show_config() {

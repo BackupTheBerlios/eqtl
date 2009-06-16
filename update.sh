@@ -8,7 +8,7 @@ NAME
 
 SYNOPSIS
 
-	update.sh [--no-pull|-np] <projectname>
+	update.sh [--no-pull|-np] projectname
 
 DESCRIPTION
 
@@ -23,9 +23,13 @@ DESCRIPTION
 
 OPTIONS
 
-	--no-pull|-np	Don't execute 'git pull', only transform the templates.
+	--no-pull|-np	Don't execute 'git pull', only transform the
+	                templates.
 
 	--quiet|-q	Be quiet.
+
+	projectname	Expected as the suffix of a directory named
+			conf_projectname.
 
 AUTHORS
 
@@ -83,6 +87,7 @@ case "$projectname" in
 			internal_projectname=""
 		else
 			echo "Projectname not set. The Projectname must correspond with the config folder name: config_projectname"
+			echo "Candidates in this folder are:" `find .  -maxdepth 1 \( -type d -o -type l \) -name "conf_*"| cut -f2 -d_ | tr "\n" " "`
 			exit -1;
 		fi
 	;;
@@ -96,7 +101,8 @@ then
 elif [ ! -d "$configuration_directory" ]
 then
 	echo -n "Configuration directoriy '$configuration_directory' does not exist. "
-	echo    "Please check if you used the right projectname"
+	echo    "Please check if you used the right projectname."
+	echo "Candidates in this folder are:" `find .  -maxdepth 1 \( -type d -o -type l \) -name "conf_*" | cut -f2 -d_ | tr "\n" " "`
 	exit -1
 fi
 

@@ -2,6 +2,52 @@
 
 TEMPLATEWARNINGHASH
 
+=head1 NAME
+
+insertQTLDataToSql.pl	- low level upload of single result file
+
+=head1 SYNOPSIS
+
+insertQTLDataToSql.pl [ --verbose ] [ --force ] --filename <name of file with results>
+
+insertQTLDataToSql.pl --help
+
+
+=head1 DESCRIPTION
+
+This script is not meant to be executed by the regular user but
+should be accessed from the wrapping iterateThroughFiles.pl script.
+It takes a single result file and uploads its content to the database.
+
+=head1 OPTIONS
+
+=over 4
+
+=item --filename
+
+the file with the output of R/qtl
+
+=item --force	
+
+if set, every file will be interpreted, even those that the system did not expect in the computations table.
+
+=item --help	
+
+shows these instructions and exists
+
+=item --verbose	
+
+=back
+
+=head1 AUTHORs
+
+Jan Kolbaum <kolbaum@inb.uni-luebeck.de>, Ann-Kristin Grimm, Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+	University of Luebeck, 2008-2009
+
+=cut
+
+
 use strict;
 use DBI;
 use Getopt::Long;
@@ -28,39 +74,7 @@ unless (GetOptions(
 
 if (defined($help)) {
 	print <<EOHELP
-
-NAME
-	insertQTLDataToSql.pl	- low level upload of single result file
-
-SYNOPSIS
-
-	insertQTLDataToSql.pl [ --verbose ] [ --force ] --filename <name of file with results>
-	insertQTLDataToSql.pl --help
-
-
-DESCRIPTION
-	This script is not meant to be executed by the regular user but
-	should be accessed from the wrapping iterateThroughFiles.pl script.
-	It takes a single result file and uploads its content to the database.
-
-OPTIONS
-	--filename	the file with the output of R/qtl
-
-	--force		if set, every file will be interpreted,
-			even those that the system did not
-			expect in the computations table.
-
-	--help		shows these instructions and exists
-
-	--verbose	
-
-AUTHOR
-	Jan Kolbaum <kolbaum\@inb.uni-luebeck.de>
-	Ann-Kristin Grimm
-	Steffen Möller
-
-	University of Lübeck, 2008-2009
-
+	FIXME: Need to update for pod-usage
 EOHELP
 ;
 	exit -3;
