@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ "-h" == "$1" -o "--help" == "$1" ]; then
+cat <<EOHELP
+Steffen will add help.
+EOHELP
+fi
+
+TIMEOUT=70 R CMD BATCH evaluateQuery.R 
+cd RECALCDIR && tar cf ../evaluatedQueries.tar *.gz
