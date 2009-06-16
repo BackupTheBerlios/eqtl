@@ -1,10 +1,27 @@
 #!/bin/sh
 
-if [ "-h" == "$1" -o "--help" == "$1" ]; then
+if [ "-h" = "$1" -o "--help" = "$1" ]; then
 cat <<EOHELP
 Steffen will add help.
 EOHELP
 fi
 
-TIMEOUT=70 R CMD BATCH evaluateQuery.R 
+Rscript=evaluateQuery.R
+
+if [ ! -r "$Rscript" -a -x /usr/bin/wget ]; then
+	echo "Cannot find R script, attempting download from web."
+	wget URLWEBSITE/$Rscript
+fi
+
+if [ ! -r "$Rscript" ]; then
+	echo "Could not find R script to execute, expected at '$Rscript'."
+	exit -1
+fi
+
+
+if ! TIMEOUT=70 R CMD BATCH $Rscript; then
+	echo "Problem with executing R script at '$Rscript' in `pwd`."
+	echo "Collecting results to the degree that these are available";
+fi
+
 cd RECALCDIR && tar cf ../evaluatedQueries.tar *.gz

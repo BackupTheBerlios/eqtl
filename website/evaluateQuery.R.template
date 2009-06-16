@@ -60,7 +60,7 @@ while( (-1 == jobnomax || jobno < jobnomax) && (-1 == timeout || as.double(difft
 	cat(paste("Starting job #",jobno," (max=",jobnomax,") at delta time ",difftime(Sys.time(), start, unit=u),".\n",sep=""))
 	a<-setdiff(ls(all=TRUE),c("d","u","timeout","start","jobno","jobnomax"))
 	rm(list=a)
-	try(source("http://RECALCHOST:RECALCPORT/RECALCPATH?h=RECALCHOST&p=RECALCPORT&d=RECALCDIR"))
+	try(source("URLWEBSITE/RECALCPATH?h=RECALCHOST&p=RECALCPORT&d=RECALCDIR"))
 }
 
 if(-1!=timeout && as.double(difftime(Sys.time(), start, unit=u))>=timeout) {
