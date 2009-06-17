@@ -44,7 +44,8 @@ $forms=array();
 $forms[]=array(href=>"qtl_groups.php", title=>"QTL Groups", description=>"Characterisation of classical QTL");
 $forms[]=array(href=>"qtl.php", title=>"QTL", description=>"Filter for single loci influencing the expression of at least one gene.");
 $forms[]=array(href=>"interaction.php", title=>"Interactions", description=>"Filter for pairs of loci contributing to the control of the expression of at least one gene.");
-$forms[]=array(href=>"trait.php", title=>"Traits", description=>"Filter for all information on particular genes.");
+$forms[]=array(href=>"trait.php", title=>"e-Traits", description=>"Filter for all information on particular genes.");
+$forms[]=array(href=>"phen.php", title=>"c-Traits", description=>"Classically scored phenotypes and their correlation with transcript levels");
 $forms[]=array(href=>"locus.php", title=>"Loci", description=>"Do not show the genes but only the loci and the number of genes thes control. This is supposed to determine a preferences for further investigation within the genome.");
 $forms[]=array(href=>"marker.php", title=>"Marker", description=>"Link the cMorgan positions assigned to markers to base pairs.");
 if (file_exists("parental_expression.php")) 
