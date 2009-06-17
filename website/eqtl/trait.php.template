@@ -1,10 +1,18 @@
 <?php
 	require_once("header.php");
+	$database="DATABASEEQTLNAME";
+	require_once("func_connect.php");
 	show_small_header("Selection of eTraits",TRUE);
 
 	foreach(array("direct",
 			"submitted",
-			"MeanMin","MeanMax","SdMin","SdMax","MedianMin", "MedianMax", "VarianceMin", "VarianceMax",
+			"MeanMin","MeanMax","SdMin","SdMax",
+			"MedianMin", "MedianMax",
+			"VarianceMin", "VarianceMax",
+			"phen",
+			"expr_neg_cor_max",  "expr_neg_cor_min",
+			"expr_pos_cor_max",  "expr_pos_cor_min",
+			"traits_pos_cor","traits_neg_cor",
 			"traitlist", "traits",
 			"limit","order") as $vname)
 	{
@@ -13,12 +21,14 @@
 		}
 		elseif(isset($_GET[$vname])) {
 			$$vname = $_GET[$vname];
+			if ("expr_pos_cor_max" == "$vname") echo "found $vname to be " . $$vname . "\n";
 		}
 	}
 
 	// specification of attributes to be shown in table
 // 	$a=array("Trait"=>1, "genes_associated"=>1, "MMSV_data"=>1, "LocusOfGene"=>1, "swissprot_ID"=>1);
-	$a=array("Trait"=>1, "Rat_gene_associated"=>1, "Human_ontholog_gene"=>1, "transcript"=>1,
+	$a=array("Trait"=>1,
+		"Rat_gene_associated"=>1, "Human_ontholog_gene"=>1, "transcript"=>1,
 		"mean_sd_variance"=>1,
 		#"mean"=>1, "median"=>1, "sd"=>1, "variance"=>1,
 		"positive_correlation"=>1,
@@ -40,13 +50,13 @@
 		}
 	}
 
-
 	if (!empty($direct)) {
 		foreach($a as $i=>$v) {
 			$n="show_".$i;
 			$$n=$v;
 		}
 	}
+
 	if (!empty($traitlist)) {
 		if (is_array($traitlist)) {
 			$traits=join(",",$traitlist);
@@ -98,13 +108,33 @@
 						-
 							<input type=text name=VarianceMax size=7>
 						</td></tr>
-			<tr><th align=left>Correlation</th>
-						<td>
-							<i>To be implemented:</i> 
-							Positive: <input type=text name=traits_pos_cor_most size=7>
-							<br>
-							Negative: <input type=text name=traits_pos_cor_most size=7>
-						</td>
+			<tr><th rowspan=3 align=left>Correlation</th>
+
+				<td valign=top><b>Expression correlation</b><br>
+					<code>&nbsp;0</code> &lt; <input type=text name=expr_pos_cor_min size=7> &lt; <code>+ cor</code> &lt; <input type=text name=expr_pos_cor_max size=7> &lt; <code>1</code>
+					<br>
+					<code>-1</code> &lt; <input type=text name=expr_neg_cor_min size=7> &lt; <code>- cor</code> &lt; <input type=text name=expr_neg_cor_max size=7> &lt; <code>0</code>
+				</td></tr>
+
+				<td valign=top><b>Traits correlation (to be implemented)</b><br>
+					<code>+ cor</code> &gt; <input type=text name=traits_pos_cor size=7>
+					<br>
+					<code>- cor</code> &lt; <input type=text name=traits_neg_cor size=7>
+				</td></tr>
+			<tr><td valign=top>
+<?php
+			$query = "select distinct phen from trait_phen_cor";
+			$result = mysql_query($query) or die('Query failed: ' . mysql_error());
+			echo "<b>Show only data for the following phen(s):</b></br>";
+			echo "<select name=phen multiple size=8>\n";
+			while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+				echo "<option value=\"".$line[0]."\">"
+					.$line{"phen"}."</option>\n";
+			}
+			mysql_free_result($result);
+			echo "</select>\n";
+?>
+						</td></tr>
 			<tr><th align=right>order by:</th><td>
 						<select name=order>
 						<option value=probeset_id>Trait Number</option>
@@ -112,9 +142,11 @@
 						<option value="median DESC">Median</option>
 						<option value="sd DESC">Standard deviation</option>
 						<option value="variance DESC">Variance</option>
+						<option value="traits_pos_cor_most_rho DESC">Positive correlation with other genes (descending)</option>
+						<option value="traits_neg_cor_most_rho DESC">Negative correlation with other genes (ascending)</option>
 						</select>
 						</td></tr>
-			<tr><th align=right>Limit lines shown:</th><td><input type=t_id limit 150 ext name=limit value=150></td></tr>
+			<tr><th align=right>Limit lines shown:</th><td><input type=t_id limit 150 ext name=limit value=30></td></tr>
 			<tr><td>&nbsp;</td><td></td></tr>
 			<tr><td class=r><input type=submit></td><td align=left><input type=reset></td></tr>
 			</table>
@@ -143,9 +175,8 @@
 			exit;
 		}
 		
-		$whereB=FALSE;
-		$where = 'WHERE ';
-		$from = 'FROM BEARatChip ';
+		$where  = 'WHERE ';
+		$from   = 'FROM BEARatChip ';
 		$query  = "SELECT probeset_id AS Trait ";
 		
 
@@ -208,82 +239,81 @@
 
 		if (!empty($traits)) {
 			$traitsArray=preg_split("/[, \t\n]+/",$traits);
-			if ($whereB) $where .= " AND ";
-			else {
-				$whereB = TRUE;
-			}
+			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " BEARatChip.probeset_id IN ('".join("','",$traitsArray)."') ";
 		}
 
 		if( !empty($MedianMin) ) {
-			if ($whereB) $where .= " AND ";
-			else {
-				$whereB = TRUE;
-			}
+			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " median >= ".$MedianMin;
 		}
 
 		if( !empty($MedianMax) ) {
-			if ($whereB) $where .= " AND ";
-			else {
-				$whereB = TRUE;
-			}
+			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " median <= ".$MedianMax;	
 		}
 
 		if( !empty($MeanMin) ) {
-			if ($whereB) $where .= " AND ";
-			else {
-				$whereB = TRUE;
-			}
+			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " mean >= ".$MeanMin;	
 		}
 
 		if( !empty($MeanMax) ) {
-			if ($whereB) $where .= " AND ";
-			else {
-				$whereB = TRUE;
-			}
+			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " mean <= ".$MeanMax;
 		}
 
 		if( !empty($SdMin) ) {
-			if ($whereB) $where .= " AND ";
-			else {
-				$whereB = TRUE;
-			}
+			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " sd >= ".$SdMin;
 		}
 
 		if( !empty($SdMax) ) {
-			if ($whereB) $where .= " AND ";
-			else {
-				$whereB = TRUE;
-			}
+			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " sd <= ".$SdMax;
 		}
 
 		if( !empty($VarianceMin) ) {
-			if ($whereB) $where .= " AND ";
-			else {
-				$whereB = TRUE;
-			}
+			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " variance >= ".$VarianceMin;
 		}
 
 		if( !empty($VarianceMax) ) {
-			if ($whereB) $where .= " AND ";
-			else {
-				$whereB = TRUE;
-			}
+			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " variance <= ".$VarianceMax;
 		}
 
+		if (!empty($expr_pos_cor_min)) {
+			//echo "----------expr_pos_cor_min=$expr_pos_cor_min ----------";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " traits_pos_cor_most_rho >= ".$expr_pos_cor_min;
+		}
+		else {
+			//echo "----------expr_pos_cor_min=$expr_pos_cor_min ----------";
+		}
 
-		if( !$whereB ) {
-			$query .= " " . $from;
-		} else {
-			$query .= " " . $from .$where;
+		if (!empty($expr_pos_cor_max)) {
+			//echo "----------expr_pos_cor_max=$expr_pos_cor_max ----------";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " traits_pos_cor_most_rho <= ".$expr_pos_cor_max;
+		}
+		else {
+			//echo "----------expr_pos_cor_max=$expr_pos_cor_max ----------";
+		}
+
+		if (!empty($expr_neg_cor_min)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " traits_neg_cor_most_rho >= ".$expr_neg_cor_min;
+		}
+
+		if (!empty($expr_neg_cor_max)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " traits_neg_cor_most_rho <= ".$expr_neg_cor_max;
+		}
+
+		$query .= " $from";
+		if( "WHERE " != $where ) {
+			$query .= " " . $where;
 		}
 // 		$query  .= " group by trait_id, name, mean, sd";
 
@@ -294,7 +324,7 @@
 			$query .= " LIMIT ".$limit." ";
 		}
 
-		echo "query: $query<br>";
+		echo "<p>query: $query</p>";
 
 		$result = mysql_query($query,$linkLocal);
 		if (empty($result)) {

@@ -92,6 +92,7 @@ function get_covars_on_your_own_from_schema($dbh) {
 		}
 	}
 	#echo "\n"; echo "FINDME\n"; print_r($retrieved); echo "\n";
+	mysql_free_result($result);
 	return($retrieved);
 }
 
