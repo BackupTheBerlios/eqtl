@@ -145,16 +145,14 @@ ENDOFDOCUMENTATION
 	echo '<form action="qtl_group.php" method="post">'."\n";
 	echo '<input type=hidden name=submitted value=1>'."\n";
 
-	#$queryAllGroups = "SELECT qq.name from qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry";
-	#$queryAllGroups = "SELECT qq.name,qq.trait,locus.chr as chr from qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry left join locus on locus_id=No";
 	$queryAllGroups = "SELECT qtl_id,qq.name,covariates,qq.source,qq.trait,start_cm,stop_cm,start_bps,stop_bps,locus.chr,count(*) as c "
 			 ."FROM qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry left join locus on locus_id=No left join qtl on locus.Name=qtl.Locus "
 			 ."WHERE species='ENSEMBLSPECIESDB' "
 			 ."GROUP BY qtl_id,qq.name,covariates ORDER BY qtl_id,c DESC,covariates";
 	$result = mysql_query($queryAllGroups,$linkLocal);
 	if (empty($result)) {
-		mysql_close($linkLocal);
 		errorMessage(mysql_error($linkLocal)."</p><p>".$queryAllGroups."</p>");
+		mysql_close($linkLocal);
 		//echo "LinkLocal: "; print_r($linkLocal);
 		exit;
 	}
