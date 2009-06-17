@@ -1,0 +1,223 @@
+<?php
+	TEMPLATEWARNINGHASH
+
+/**
+STARTOFDOCUMENTATION
+NAME
+
+	phen.php - access data via covariates
+
+
+SYNOPSIS
+
+	a dynamic web page to be called only from the web server
+
+DESCRIPTION
+
+	The covariates are of interest per se - since this is the
+	effect that one aims to reduce/increase with whatever 
+	functional compounds that may be developed.
+
+	The traits and the expression QTL are ranked for their 
+	statistical association with the phenotype.
+
+	A primary focus of this form is to link the phenotypes
+	to the expression-traits/genes.
+	
+
+AUTHOR
+
+	Steffen Moeller <moeller@inb.uni-luebeck.de>
+	Universities of Rostock and Luebeck, 2003-2009
+
+ENDOFDOCUMENTATION
+*/
+
+	require_once("header.php");
+	require_once("func_covariates.php");
+	show_small_header("Classical phenotypes as covariates",TRUE);
+	$err=array();
+	$conditionList=array(
+		"Equal Chromosomes" => array(
+			"constraint"=>"seqname = Chromosome",
+			"description"=>"The QTL and the gene it controls are on the same chromosome"
+		),
+		"Unequal Chromosomes" => array(
+			"constraint"=>"seqname != Chromosome",
+			"description"=>"The QTL and the gene it controls are on different chromosomes"
+		),
+		"Within classical QTL" => array(
+			"constraint"=>"manual",
+			"description"=>"The peak of the e-QTL overlaps with a classical QTL (true for all entries in this table)"
+		),
+	);
+
+	$database="DATABASEEQTLNAME";
+	include("func_connect.php");
+
+	$dataSelectionFieldsQTL = array(
+		"show_LocusOfGene", "show_Covariates",
+		"Chromosome","ensemblversion",
+		"cM_within","LODmax","LODmin",
+		"quantilemin","quantilemax",
+		"covariates",
+		"LODdiffmin","LODdiffmax",
+		"cM_Peak_Min","cM_Peak_Max",
+		"MeanMin","MeanMax","SdMin","SdMax",
+		"locus","chrlist", "condition"
+	);
+
+	$accessible_fields_in_POST_or_GET = array_merge(
+		$dataSelectionFieldsQTL,
+
+		array(  "cisOrTrans" ),	# if unset, show all
+		array(  "direct","phen",
+			"debug",
+			"submitted",
+			"onlyNumbers",
+			"onlyNumbersGrouped"
+		),
+
+		array(  "show_Trait",
+			"show_LocusOfGene",
+			"show_ExpressionOfGene",
+			"show_Locus",
+			"show_LOD",
+			"show_LODdiff",
+			"show_Quantile",
+			"show_Covariates",
+			"show_Chromosome",
+			
+			"show_name",
+			"show_mean",
+			"show_sd",
+			"show_unigene",
+			"show_swissprot_ID",
+			"show_gene_assignment",
+			"show_first_symbol",
+			"show_Description",
+			"show_ProbeSequence",
+
+			"traits",
+			"traitlist",
+			"limit", # truly used
+			"order"
+		),
+		
+			convert_string_to_covariates_array(strtolower("qtl"))
+		);
+
+	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+		echo "<br>Retrieving info for: "; print_r($accessible_fields_in_POST_or_GET); echo "<br>\n";
+	}
+			
+	foreach($accessible_fields_in_POST_or_GET as $vname)
+	{
+		if (isset($_POST[$vname])) {
+			$$vname = $_POST[$vname];
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+		elseif(isset($_GET[$vname])) {
+			$$vname = $_GET[$vname];
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+	}
+
+	if (!empty($direct)) {
+		foreach($a as $i=>$v) {
+			$n="show_".$i;
+			$$n=$v;
+		}
+	}
+
+	echo '<form action="phen.php" method="post">'."\n";
+	echo '<input type=hidden name=submitted value=1>'."\n";
+
+	$queryPhenotypes = "SELECT DISTINCT phen FROM trait_phen_cor";
+	$queryPhenotypes .= " LIMIT 1000"; # just to be on the save side
+
+	$result = mysql_query($queryPhenotypes);
+	if (empty($result)) {
+		mysql_close($linkLocal);
+		errorMessage(mysql_error()."</p><p>".$queryPhenotypes."</p>");
+		//echo "LinkLocal: "; print_r($linkLocal);
+		exit;
+	}
+
+	$phenotypes = array();
+	if (empty($phen)) {
+		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			array_push($phenotypes,$line["phen"]);
+		}
+		mysql_free_result($result);
+	}
+	else {
+		$phenotypes=preg_split("/,/",$phen);
+	}
+
+	if(count($phenotypes)>0) {
+		echo "<a name=\"top\" />Phenotypes: ";
+		foreach($phenotypes as $n=>$p) {
+			if ($n>0) echo ", ";
+			echo "<a href=\"#$p\">$p</a>";
+		}
+	}
+
+	if (empty($limit)) {
+		$limit=25;
+	}
+
+	echo "<table>";
+
+	foreach ($phenotypes as $n=>$p) {
+		if (0==$n%2) {
+			if (0 <$n) {
+				echo "</tr>\n";
+			}
+			echo "<tr>";
+		}
+		echo "<a name=\"$p\" />";
+		echo "<table><tr><th colspan=2><a href=\"http:phen.php?phen=$p&limit=500\">$p</a> - <a href=\"#top\">top</a></th></tr>";
+		echo "<tr><th>DESC</th><th>ASC</th></tr>\n";
+		echo "<tr>";
+		$os=array("DESC","ASC");
+		foreach ($os as $o) {
+			echo "<td>";
+			$queryAllCorrelations = "SELECT trait_id,rho,p "
+				 ."FROM trait_phen_cor "
+				 ."WHERE phen='$p' "
+				 ."ORDER BY rho $o "
+				 ."LIMIT $limit";
+			;
+			$result = mysql_query($queryAllCorrelations,$linkLocal);
+			if (empty($result)) {
+				errorMessage(mysql_error($linkLocal)."</p><p>".$queryAllCorrelations."</p>");
+				mysql_close($linkLocal);
+				//echo "LinkLocal: "; print_r($linkLocal);
+				exit;
+			}
+			while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+				echo "<a href=\"http:trait.php?traits=".$line["trait_id"]."\">".$line["trait_id"]."</a> ";
+				echo $line["rho"]." (".$line["p"].")\n";
+			}
+			mysql_free_result($result);
+			echo "</td>";
+		}
+
+		echo "</tr>";
+		echo "</table>";
+	}
+
+	echo "</tr>\n</table>\n";
+
+	echo "</form>\n";
+
+	mysql_close($linkLocal);
+	include("footer.php");
+?>
+</body>
+</html>
