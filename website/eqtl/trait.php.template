@@ -12,7 +12,8 @@
 			"phen",
 			"expr_neg_cor_max",  "expr_neg_cor_min",
 			"expr_pos_cor_max",  "expr_pos_cor_min",
-			"traits_pos_cor","traits_neg_cor",
+			"phen_pos_cor_min","phen_neg_cor_min",
+			"phen_pos_cor_max","phen_neg_cor_max",
 			"traitlist", "traits",
 			"limit","order") as $vname)
 	{
@@ -116,10 +117,10 @@
 					<code>-1</code> &lt; <input type=text name=expr_neg_cor_min size=7> &lt; <code>- cor</code> &lt; <input type=text name=expr_neg_cor_max size=7> &lt; <code>0</code>
 				</td></tr>
 
-				<td valign=top><b>Traits correlation (to be implemented)</b><br>
-					<code>+ cor</code> &gt; <input type=text name=traits_pos_cor size=7>
+				<td valign=top><b>Phen covariates correlation (to be implemented)</b><br>
+					<code>&nbsp;0</code> &lt; <input type=text name=phen_pos_cor_min size=7> &lt; <code>+ cor</code> &lt; <input type=text name=phen_pos_cor_max size=7> &lt; <code>1</code>
 					<br>
-					<code>- cor</code> &lt; <input type=text name=traits_neg_cor size=7>
+					<code>-1</code> &lt; <input type=text name=phen_neg_cor_min size=7> &lt; <code>- cor</code> &lt; <input type=text name=phen_neg_cor_max size=7> &lt; <code>0</code>
 				</td></tr>
 			<tr><td valign=top>
 <?php
@@ -175,9 +176,10 @@
 			exit;
 		}
 		
+		$distinct = "";
 		$where  = 'WHERE ';
 		$from   = 'FROM BEARatChip ';
-		$query  = "SELECT probeset_id AS Trait ";
+		$query  = "";
 		
 
 		$joinedTrait = false;
@@ -234,6 +236,30 @@
 						$joinedTrait = true;
 					}
 				}
+
+			}
+		}
+
+		if (!empty($phen_neg_cor_min) or !empty($phen_neg_cor_max)
+		 or !empty($phen_pos_cor_min) or !empty($phen_pos_cor_max))
+		{
+			$distinc = "DISTINCT";
+			$from .= " RIGHT JOIN trait_phen_cor using(trait_id) ";
+			if (!empty($phen_neg_cor_min)) {
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " $phen_neg_cor_min<=trait_phen_cor.rho";
+			}
+			if (!empty($phen_neg_cor_max)) {
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " $phen_neg_cor_max>=trait_phen_cor.rho";
+			}
+			if (!empty($phen_pos_cor_min)) {
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " $phen_pos_cor_min<=trait_phen_cor.rho";
+			}
+			if (!empty($phen_pos_cor_max)) {
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " $phen_pos_cor_max>=trait_phen_cor.rho";
 			}
 		}
 
@@ -311,6 +337,7 @@
 			$where .= " traits_neg_cor_most_rho <= ".$expr_neg_cor_max;
 		}
 
+		$query  = "SELECT $distinct probeset_id AS Trait " . $query;
 		$query .= " $from";
 		if( "WHERE " != $where ) {
 			$query .= " " . $where;
@@ -447,7 +474,38 @@
 					$phenquery .= ",trait_phen_cor.p";
 					$phenquery .= " FROM trait_phen_cor";
 					$phenquery .= " WHERE trait_id = '$traitid'";
-					$phenquery .= "   AND p<=0.05";
+					if (!empty($phen_neg_cor_min) or !empty($phen_neg_cor_max)
+					 or !empty($phen_pos_cor_min) or !empty($phen_pos_cor_max))
+					 {
+						$addme="";
+						if (!empty($phen_pos_cor_min) and !empty($phen_pos_cor_max)) {
+							$addme .= "  (rho > $phen_pos_cor_min AND rho < $phen_pos_cor_max)";
+						}
+					 	else if($phen_pos_cor_min){
+							$addme .= "   rho > $phen_pos_cor_min";
+						}
+					 	else if($phen_posneg_cor_max){
+							$addme .= "   rho < $phen_pos_cor_max";
+						}
+						if (!empty($phen_neg_cor_min) or !empty($phen_neg_cor_max)) {
+							if (empty($addme)) {
+								$addme .= " OR ";
+							}
+							if (!empty($phen_neg_cor_min) and !empty($phen_neg_cor_max)) {
+								$addme .= "  (rho > $phen_neg_cor_min AND rho < $phen_neg_cor_max)";
+							}
+							else if($phen_neg_cor_min){
+								$addme .= "   AND rho > $phen_neg_cor_min";
+							}
+							else if($phen_neg_cor_max){
+								$addme .= "   AND rho < $phen_neg_cor_max";
+							}
+						}
+						$phenquery .= "   AND ($addme)";
+					}
+					else {
+						$phenquery .= "   AND p<=0.05";
+					}
 					$phenquery .= " ORDER BY p";
 					$resultPhen = mysql_query($phenquery,$linkLocal);
 					if (empty($resultPhen)) {
