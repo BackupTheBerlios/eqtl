@@ -179,6 +179,7 @@ open(SCORE, $base.$database.$data{'scorefile'}) || open(SCORE,$database.$data{'s
 #$expr=shift(@ARGV);
 
 my $scoreline=readline(SCORE);
+chomp $scoreline;
 my @scoreline=split($sep,$scoreline);
 shift @scoreline;
 #for ($i=0;$i<=$#scoreline;$i++) {
