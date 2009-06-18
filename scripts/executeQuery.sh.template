@@ -1,9 +1,49 @@
 #!/bin/sh
 
 if [ "-h" = "$1" -o "--help" = "$1" ]; then
-cat <<EOHELP
-Steffen will add help.
-EOHELP
+
+: <<=cut
+
+=name1 NAME
+
+executeQuery.sh - calculate several expression QTL
+
+=name1 SYNOPSIS
+
+executeQuery.sh
+
+=name1 DESCRIPTION
+
+This script, a wrapper of the evaluateExpression.R script, initiates the
+computation of expression QTL.  Several workunits are performed. The
+script ends with no further jobs being available or until a maximal
+number of hours has been invested.
+
+=name1 ENVIRONMENT
+
+=over 4
+
+=item TIMEOUT
+
+maximal number of hours to spend
+
+=item JOBNOMAX
+
+maximal number of workunits to perform
+
+=back
+
+=name1 AUTHORS
+
+Steffen Moeller <moeller@inb.uni-luebeck.de>
+Benedikt Bauer <bauer@cls.uni-luebeck.de>
+Ann-Kristin Grimm <grimm@cls.uni-luebeck.de>
+
+=cut
+
+	pod2man $0 | nroff -man | less
+	exit
+
 fi
 
 Rscript=evaluateQuery.R
