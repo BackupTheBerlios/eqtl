@@ -1,16 +1,17 @@
 #!/bin/bash
 
 if [ "-h" = "$1" -o "--help" = "$1" ]; then
-	cat <<EOHELP
+: <<=cut
 
-NAME
+=head1 NAME
+
 	update.sh - update cloned git repository with origin
 
-SYNOPSIS
+=head1 SYNOPSIS
 
 	update.sh [--no-pull|-np] projectname
 
-DESCRIPTION
+=head1 DESCRIPTION
 
 	Execute this script to update your local installation with the
 	latest that is on the Git repository. The script pulls with
@@ -21,17 +22,25 @@ DESCRIPTION
 	if this is not present or the projectname is specified, then in
 	conf_<projectname>.
 
-OPTIONS
+=head1 OPTIONS
 
-	--no-pull|-np	Don't execute 'git pull', only transform the
-	                templates.
+=over 4
 
-	--quiet|-q	Be quiet.
+=item --no-pull|-np
 
-	projectname	Expected as the suffix of a directory named
-			conf_projectname.
+Don't execute 'git pull', only transform the templates.
 
-AUTHORS
+=item --quiet|-q
+
+Be quiet.
+
+=item 	projectname
+
+Expected as the suffix of a directory named conf_projectname.
+
+=back
+
+=head1 AUTHORS
 
 	Steffen Moeller <moeller@inb.uni-luebeck.de>
 	Jan Kolbaum
@@ -40,7 +49,9 @@ AUTHORS
 
 	University of Luebeck, 2008-2009
 
-EOHELP
+=cut
+
+	pod2man $0 | nroff -man | less
 	exit 1
 fi
 
