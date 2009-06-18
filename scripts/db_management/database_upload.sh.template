@@ -4,14 +4,78 @@ TEMPLATEWARNINGHASH
 
 set -e
 
-#dbhost_eqtl=${DBHOSTEQTL:-DATABASEHOSTLOCAL}
-#dbhost_qtl=${DBHOSTQTL:-DATABASEHOSTLOCAL}
 usereqtl=${DBUSEREQTL:-DATABASEEQTLUSER}
 userqtl=${DBUSERQTL:-DATABASEQTLUSER}
 nameeqtl=${DBNAMEEQTL:-DATABASEEQTLNAME}
 nameqtl=${DBNAMEQTL:-DATABASEQTLNAME}
 
 d=$(date +"%Y%m%d")
+
+if [ "-h" = "$1" -o "--help" = "$1" ]; then
+
+: <<=cut
+
+=head1 NAME
+
+database_upload.sh  - upload an expression QTL database
+
+=head1 SYNOPSIS
+
+The script does not take any arguments, use defaults or set environment variables.
+
+=head1 DESCRIPTION
+
+This script is the reverse of the database_dump script.
+
+=head1 ENVIRONMENT
+
+  For expression QTL determine the following variables:
+
+=over 4
+
+=item DBHOSTEQTL  
+
+sets mysql server from which to dump data, defaults to 'DATABASEHOSTLOCAL'
+
+=item DBUSEREQTL  
+
+sets the mysql user with which to log in, defaults to 'DATABASEEQTLUSER'
+
+=item DBNAMEEQTL  
+
+sets the name of the database that needs to be dumped, defaults to 'DATABASEEQTLNAME'
+
+=back
+
+For classical QTL substitute EQTL with QTL in the variable names listed above.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item database_dump.sh
+
+script to download that data to localhost that can be uploaded with this script
+
+=back
+
+=head1 AUTHOR
+
+Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+GPL3+
+
+University of Luebeck, 2009
+
+=cut
+
+	pod2man $0 | nroff -man | less
+	exit
+
+fi
+
 
 fileeqtl="backup_db_${nameeqtl}_$d.sql.gz"
 fileqtl="backup_db_${nameqtl}_$d.sql.gz"

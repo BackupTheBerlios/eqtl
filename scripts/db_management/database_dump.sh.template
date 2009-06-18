@@ -14,38 +14,70 @@ nameqtl=${DBNAMEQTL:-DATABASEQTLNAME}
 d=$(date +"%Y%m%d")
 
 if [ "-h" = "$1" -o "--help" = "$1" ]; then
-	cat <<EOHELP
-NAME
 
-  `basename $0` - dump of an expression QTL database into two text files
+: <<=cut
 
-SYNOPSIS
+=head1 NAME
 
-  The script does not take any arguments.
+database_dump.sh  - download of an expression QTL database into two text files
 
-ENVIRONMENT
+=head1 SYNOPSIS
 
-  For expression QTL
+The script does not take any arguments, use defaults or set environment variables.
 
-  DBHOSTEQTL  - sets mysql server from which to dump data, defaults to 'DATABASEHOSTLOCAL'
-  DBUSEREQTL  - sets the mysql user with which to log in, defaults to 'DATABASEEQTLUSER'
-  DBNAMEEQTL  - sets the name of the database that needs to be dumped, defaults to 'DATABASEEQTLNAME'
+=head1 DESCRIPTION
 
-  For classical QTL substitute EQTL with QTL in the variable names listed above.
+The script allows for a regular dump of the expression QTL data. It creates two
+files, i.e. one for the expression QTL and one or the classical QTL. These can be used
+for backups or the transfer of data between installations. 
 
-SEE ALSO
+=head1 ENVIRONMENT
 
-  database_upload.sh - script to upload that data to localhost that were dumped with this script
+For expression QTL determine the following variables:
 
-AUTHOR
+=over 4
 
-  Steffen Moeller <moeller@inb.uni-luebeck.de>
+=item DBHOSTEQTL  
 
-COPYRIGHT
+sets mysql server from which to dump data, defaults to 'DATABASEHOSTLOCAL'
 
-  GPL3+
+=item DBUSEREQTL  
 
-EOHELP
+sets the mysql user with which to log in, defaults to 'DATABASEEQTLUSER'
+
+=item DBNAMEEQTL  
+
+sets the name of the database that needs to be dumped, defaults to 'DATABASEEQTLNAME'
+
+=back
+
+For classical QTL substitute EQTL with QTL in the variable names listed above.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item database_upload.sh
+
+script to upload that data to localhost that were dumped with this script
+
+=back
+
+=head1 AUTHOR
+
+Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+GPL3+
+
+University of Luebeck, 2009
+
+=cut
+
+	pod2man $0 | nroff -man | less
+	exit
+
 fi
 
 
