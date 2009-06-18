@@ -31,8 +31,9 @@ COPYRIGHT
   echo "<tr><td align = center>";
   echo FOOTERLOGOLEFT;
   echo '</td><td align=center>';
-  foreach (array("Interactions"=>"interaction.php", "Interactions(collapsed)"=>"interaction_collapsed.php", "Loci"=>"locus.php", "Markers"=>"marker.php",
-  	"QTL"=>"qtl.php", "Genes"=>"trait.php") as $a=>$b)
+  foreach (array("Interactions"=>"interaction.php", "Interactions(collapsed)"=>"interaction_collapsed.php",
+ 		 "Loci"=>"locus.php", "Markers"=>"marker.php",
+  		 "QTL"=>"qtl.php", "Genes"=>"trait.php", "Phens"=>"phen.php") as $a=>$b)
   {
 	echo "&nbsp;<a href=\"$b\">$a</a>&nbsp;";
   }
