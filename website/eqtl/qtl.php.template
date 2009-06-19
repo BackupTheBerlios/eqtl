@@ -216,8 +216,7 @@ ENDOFDOCUMENTATION
 					echo "<br>\n";
 				}
 			}
-			echo preg_replace("/_add/","(a)",
-				preg_replace("/_int/","(i)","$c"));
+			echo displayCovariates("$c");
 		}
 	?>
 	</i></font>

@@ -189,7 +189,7 @@ ENDOFDOCUMENTATION
 	echo "</table>\n";
 
 	$queryAllGroups = "SELECT qtl_id,qq.name,covariates,qq.source,qq.trait,start_cm,stop_cm,start_bps,stop_bps,locus.chr,count(*) as c "
-			 ."FROM qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry left join locus on locus_id=No left join qtl on locus.Name=qtl.Locus ";
+			 ."FROM qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry left join locus on locus_id=No join qtl on locus.Name=qtl.Locus ";
 
 	$queryAllGrous .= "WHERE species='ENSEMBLSPECIESDB' ";
 
@@ -258,11 +258,12 @@ ENDOFDOCUMENTATION
 		$cc=$line["covariates"];
 		array_push($chr,$line["chr"].":".$line["start_bps"]."-".$line["stop_bps"]);
 		if ("" == "$cc") $cc="none";
+
 		echo qtlGroupHtmlRef(
 				$line["qtl_id"],
-				preg_replace("/_add/","<sup>(a)</sup>",
-				  preg_replace("/_int/","<sup>(i)</sup>",$cc))
-				,$cc);
+				displayCovariates($cc),
+				$cc);
+
 		echo "(".$line["c"].")";
 		#$prevGroupname=$line["name"];
 		$prevGroupname=$line["qtl_id"];
