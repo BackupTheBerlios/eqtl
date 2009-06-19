@@ -170,6 +170,24 @@ ENDOFDOCUMENTATION
 	echo '<form action="qtl_group.php" method="post">'."\n";
 	echo '<input type=hidden name=submitted value=1>'."\n";
 
+	echo "<table width=100% border=0><tr><td>";
+	echo "<table border=0>\n";
+	echo "<tr><th>LOD:</th><td>";
+	echo "<input size=5 name=LODmin".(empty($LODmin)?"":" value=$LODmin").">";
+	echo " - ";
+	echo "<input size=5 name=LODmax".(empty($LODmax)?"":" value=$LODmax").">";
+	echo "</td></tr>";
+	echo "</table>\n";
+	echo "</td><td>Select minimal LOD score:<br>";
+	for($lod=3.5; $lod<15; $lod++) {
+		if (!empty($LODmin) and $lod==$LODmin) echo "<b><font size=+2>";
+		echo "<a href=\"http:qtl_groups.php?LODmin=$lod\">$lod</a>";
+		if (!empty($LODmin) and $lod==$LODmin) echo "</font></b>";
+		echo "\n";
+	}
+	echo "</td><td><input type=submit></td></tr>";
+	echo "</table>\n";
+
 	$queryAllGroups = "SELECT qtl_id,qq.name,covariates,qq.source,qq.trait,start_cm,stop_cm,start_bps,stop_bps,locus.chr,count(*) as c "
 			 ."FROM qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry left join locus on locus_id=No left join qtl on locus.Name=qtl.Locus ";
 
@@ -180,11 +198,11 @@ ENDOFDOCUMENTATION
 		$queryAllGroups .= " AND $LODmin <= LOD AND LOD <= $LODmax ";
 	}
 	elseif(!empty($LODmin)) {
-		echo "<p>Constraint: QTL LOD scores &gt; $LODmin.</p>";
+		echo "<p>Constraint: QTL LOD scores &gt;= $LODmin.</p>";
 		$queryAllGroups .= " AND $LODmin <= LOD ";
 	}
 	elseif(!empty($LODmax)) {
-		echo "<p>Constraint: QTL LOD scores &lt; $LODmax.</p>";
+		echo "<p>Constraint: QTL LOD scores &lt;= $LODmax.</p>";
 		$queryAllGroups .= " AND LOD <= $LODmax ";
 	}
 
