@@ -3,16 +3,16 @@
 
 /**
 STARTOFDOCUMENTATION
-NAME
+
+=head1 NAME
 
 	qtl_groups.php - display of groups of expression QTL
 
-
-SYNOPSIS
+=head1 SYNOPSIS
 
 	a dynamic web page to be called only from the web server
 
-DESCRIPTION
+=head1 DESCRIPTION
 
 	When inspecting a classical QTL, it is likely to find multiple
 	genes to be associated with the locus. Further inspections should
@@ -20,10 +20,15 @@ DESCRIPTION
 	a group. This web page caters for that point of view. To many,
 	it is represents the main entry ot the data.
 
-AUTHOR
+=head1 AUTHOR
 
 	Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
 	Universities of Rostock and Luebeck, 2003-2009
+
+=cut
 
 ENDOFDOCUMENTATION
 */
@@ -46,6 +51,26 @@ ENDOFDOCUMENTATION
 			"description"=>"The peak of the e-QTL overlaps with a classical QTL (true for all entries in this table)"
 		),
 	);
+
+
+	function qtlGroupHtmlRef($group_id,$group_name,$covariates,$direct=TRUE) {
+
+		global $LODmin; global $LODmax;
+
+		$r  =  "<a href=\"http:qtl.php?groups=".$group_id;
+		if (!empty($covariates)) {
+			$r .= "none"==$covariates?"&covariates=none":"&covariates=$covariates";
+		}
+		if ($direct) {
+			$r .= "&show_Trait=1&show_Chromosome=1&show_ExpressionOfGene=1&show_Locus=1&show_LOD=1";
+		}
+		if (!empty($LODmin)) $r .= "&LODmin=$LODmin";
+		if (!empty($LODmax)) $r .= "&LODmax=$LODmax";
+
+		$r .= "\">";
+		$r .= $group_name."</a>";
+		return($r);
+	}
 
 	$database="DATABASEEQTLNAME";
 	include("func_connect.php");
@@ -146,17 +171,34 @@ ENDOFDOCUMENTATION
 	echo '<input type=hidden name=submitted value=1>'."\n";
 
 	$queryAllGroups = "SELECT qtl_id,qq.name,covariates,qq.source,qq.trait,start_cm,stop_cm,start_bps,stop_bps,locus.chr,count(*) as c "
-			 ."FROM qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry left join locus on locus_id=No left join qtl on locus.Name=qtl.Locus "
-			 ."WHERE species='ENSEMBLSPECIESDB' "
-			 ."GROUP BY qtl_id,qq.name,covariates ORDER BY qtl_id,c DESC,covariates";
-	$result = mysql_query($queryAllGroups,$linkLocal);
+			 ."FROM qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry left join locus on locus_id=No left join qtl on locus.Name=qtl.Locus ";
+
+	$queryAllGrous .= "WHERE species='ENSEMBLSPECIESDB' ";
+
+	if (!empty($LODmin) and !empty($LODmax)) {
+		echo "<p>Constraint: QTL LOD scores between $LODmin and $LODmax.</p>";
+		$queryAllGroups .= " AND $LODmin <= LOD AND LOD <= $LODmax ";
+	}
+	elseif(!empty($LODmin)) {
+		echo "<p>Constraint: QTL LOD scores &gt; $LODmin.</p>";
+		$queryAllGroups .= " AND $LODmin <= LOD ";
+	}
+	elseif(!empty($LODmax)) {
+		echo "<p>Constraint: QTL LOD scores &lt; $LODmax.</p>";
+		$queryAllGroups .= " AND LOD <= $LODmax ";
+	}
+
+	$queryAllGroups .= " GROUP BY qtl_id,qq.name,covariates ORDER BY qtl_id,c DESC,covariates";
+
+	echo "<p>Query: $queryAllGroups</p>";
+
+	$result = mysql_query($queryAllGroups);
 	if (empty($result)) {
 		errorMessage(mysql_error($linkLocal)."</p><p>".$queryAllGroups."</p>");
 		mysql_close($linkLocal);
 		//echo "LinkLocal: "; print_r($linkLocal);
 		exit;
 	}
-
 	echo "<table>";
 	echo "<tr>";
 	echo "<th rowspan=2 bgcolor=\"lightgreen\">QTL name<br>(id)</th>";
@@ -183,7 +225,7 @@ ENDOFDOCUMENTATION
 			echo "<tr>";
 			echo "<td rowspan=2>";
 			echo "<input type=checkbox name=group value=".$line["qtl_id"].">";
-			echo "<a href=\"http:qtl.php?groups=".$line["qtl_id"]."\">".$line["name"]."</a>";
+			echo qtlGroupHtmlRef($line["qtl_id"],$line["name"],"");
 			echo "<br>(".$line["qtl_id"].")";
 			echo "</td>";
 			#."<td>".$line["chr"]."</td>";
@@ -195,7 +237,8 @@ ENDOFDOCUMENTATION
 		$cc=$line["covariates"];
 		array_push($chr,$line["chr"].":".$line["start_bps"]."-".$line["stop_bps"]);
 		if ("" == "$cc") $cc="none";
-		echo "<a href=\"qtl.php?groups=".$line["qtl_id"]."&covariates=$cc&submitted=1\">$cc</a> (".$line["c"].")";
+		echo qtlGroupHtmlRef($line["qtl_id"],$cc,$cc);
+		echo "(".$line["c"].")";
 		#$prevGroupname=$line["name"];
 		$prevGroupname=$line["qtl_id"];
 		$prevTrait=$line["trait"];
