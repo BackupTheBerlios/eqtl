@@ -3,29 +3,33 @@
 
 /**
 STARTOFDOCUMENTATION
-NAME
 
-	qtl.php
+=head1 NAME
 
-SYNOPSIS
+qtl.php - present singular effects as expression QTL
 
-	a dynamic weg page - may be invoked without parameters
+=head1 SYNOPSIS
 
-DESCRIPTION
+a dynamic weg page - may be invoked without parameters
 
-	The web page represents a first entry to the core results
-	that have been produced by the analysis. Users will find
-	useful to rank expression QTL by their statistical likelihood
-	and to sort/filter them by the chromosomal location or
-	covariates.
+=head1 DESCRIPTION
 
-AUTHOR
+The web page represents a first entry to the core results
+that have been produced by the analysis. Users will find
+useful to rank expression QTL by their statistical likelihood
+and to sort/filter them by the chromosomal location or
+covariates.
 
-	Steffen Moeller <moeller@inb.uni-luebeck.de>
+=head1 AUTHOR
 
-COPYRIGHT
+Steffen Moeller <moeller@inb.uni-luebeck.de>
 
-	Universities of Rostock and Luebeck, 2003-2009
+=head1 COPYRIGHT
+
+Universities of Rostock and Luebeck, 2003-2009
+
+=cut
+
 ENDOFDOCUMENTATION
 */
 
@@ -128,6 +132,12 @@ ENDOFDOCUMENTATION
 		echo "eae: "; print_r($eae);
 		echo "sum: "; print_r($sum);
 		echo "<br>\n";
+	}
+
+	if (!empty($covariates)) {
+		if (!is_array($covariates)) {
+			$covariates=preg_split("/,/",$covariates);
+		}
 	}
 
 	$a=array("Trait"=>1, "Groups"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
