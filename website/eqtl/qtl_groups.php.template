@@ -258,7 +258,11 @@ ENDOFDOCUMENTATION
 		$cc=$line["covariates"];
 		array_push($chr,$line["chr"].":".$line["start_bps"]."-".$line["stop_bps"]);
 		if ("" == "$cc") $cc="none";
-		echo qtlGroupHtmlRef($line["qtl_id"],$cc,$cc);
+		echo qtlGroupHtmlRef(
+				$line["qtl_id"],
+				preg_replace("/_add/","<sup>(a)</sup>",
+				  preg_replace("/_int/","<sup>(i)</sup>",$cc))
+				,$cc);
 		echo "(".$line["c"].")";
 		#$prevGroupname=$line["name"];
 		$prevGroupname=$line["qtl_id"];
