@@ -3,13 +3,23 @@
 
 /**
 
-AUTHOR
+=head1 NAME
+
+index.php - home for presentation of expression QTL
+
+=head1 SYNOPSIS
+
+to be accessed with no parameters
+
+=head1 AUTHOR
 
 	Steffen Moeller <moeller@inb.uni-luebeck.de>
 
-COPYRIGHT
+=head1 COPYRIGHT
 
 	Universities of Rostock and Luebeck, 2003-2009
+
+=cut
 
 */
 

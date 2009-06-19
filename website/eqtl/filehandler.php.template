@@ -3,25 +3,27 @@
 /*
 STARTOFDOCUMENATION
 
-NAME
+=head1 NAME
 
 	filehandler.php - presentation of details of loci
 
-SYNOPSIS
+=head1 SYNOPSIS
 
 	a dynamic web page
 
-DESCRIPTION
+=head1 DESCRIPTION
 
 	This PHP script is meant as a tool to retrieve files 
 	that describe chromosomal loci and the genes these contain.
 	The results are presented in an easily parseable
 	ASCII format.
 
-AUTHORS
+=head1 AUTHORS
 
 	Steffen Moeller <moeller@inb.uni-luebeck.de>
 	Ann-Kristin Grimm <grimm@inb.uni-luebeck.de>
+
+=cut
 
 ENDOFDOCUMENATION
 */

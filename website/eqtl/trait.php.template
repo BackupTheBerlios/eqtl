@@ -1,4 +1,36 @@
 <?php
+	TEMPLATEWARNINGHASH
+
+/**
+STARTOFDOCUMENTATION
+
+=head1 NAME
+
+trait.php - presentation of details to gene identifier (probesets)
+
+=head1 SYNOPSIS
+
+a dynamic weg page - may be invoked without parameters
+
+=head1 DESCRIPTION
+
+The page is supposed to gather all information that is required to
+learn about the identity of a gene. Projects are likely to differ
+in their presentation of such details.
+
+=head1 AUTHOR
+
+Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+Universities of Rostock and Luebeck, 2003-2009
+
+=cut
+
+ENDOFDOCUMENTATION
+*/
+
 	require_once("header.php");
 	$database="DATABASEEQTLNAME";
 	require_once("func_connect.php");
