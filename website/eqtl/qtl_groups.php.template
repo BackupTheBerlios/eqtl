@@ -167,7 +167,7 @@ ENDOFDOCUMENTATION
 		}
 	}
 
-	echo '<form action="qtl_group.php" method="post">'."\n";
+	echo '<form action="qtl_groups.php" method="post">'."\n";
 	echo '<input type=hidden name=submitted value=1>'."\n";
 
 	echo "<table width=100% border=0><tr><td>";
