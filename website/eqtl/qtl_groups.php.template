@@ -194,15 +194,15 @@ ENDOFDOCUMENTATION
 	$queryAllGrous .= "WHERE species='ENSEMBLSPECIESDB' ";
 
 	if (!empty($LODmin) and !empty($LODmax)) {
-		echo "<p>Constraint: QTL LOD scores between $LODmin and $LODmax.</p>";
+		// if ($debug) echo "<p>Constraint: QTL LOD scores between $LODmin and $LODmax.</p>";
 		$queryAllGroups .= " AND $LODmin <= LOD AND LOD <= $LODmax ";
 	}
 	elseif(!empty($LODmin)) {
-		echo "<p>Constraint: QTL LOD scores &gt;= $LODmin.</p>";
+		// if ($debug) echo "<p>Constraint: QTL LOD scores &gt;= $LODmin.</p>";
 		$queryAllGroups .= " AND $LODmin <= LOD ";
 	}
 	elseif(!empty($LODmax)) {
-		echo "<p>Constraint: QTL LOD scores &lt;= $LODmax.</p>";
+		// if ($debug) echo "<p>Constraint: QTL LOD scores &lt;= $LODmax.</p>";
 		$queryAllGroups .= " AND LOD <= $LODmax ";
 	}
 
