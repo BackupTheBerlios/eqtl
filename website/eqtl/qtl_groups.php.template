@@ -62,7 +62,7 @@ ENDOFDOCUMENTATION
 			$r .= "none"==$covariates?"&covariates=none":"&covariates=$covariates";
 		}
 		if ($direct) {
-			$r .= "&show_Trait=1&show_Chromosome=1&show_ExpressionOfGene=1&show_Locus=1&show_LOD=1";
+			$r .= "&show_Trait=1&show_Chromosome=1&show_ExpressionOfGene=1&show_Locus=1&show_LOD=1&submitted=1";
 		}
 		if (!empty($LODmin)) $r .= "&LODmin=$LODmin";
 		if (!empty($LODmax)) $r .= "&LODmax=$LODmax";
