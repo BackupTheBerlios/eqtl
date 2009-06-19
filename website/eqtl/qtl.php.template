@@ -55,7 +55,6 @@ ENDOFDOCUMENTATION
 
 	$database="DATABASEEQTLNAME";
 	include_once("func_connect.php");
-
 	$dataSelectionFieldsQTL = array(
 		"groups",
 		"Chromosome","ensemblversion",
@@ -798,6 +797,7 @@ ENDOFDOCUMENTATION
 			exit;
 		}
 
+		$traits=array();
 		if (!empty($onlyNumbers) and isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition)) {
 		#if (!empty($onlyNumbers) and isset($condition) and is_array($condition)) {
 		    $rowno=0;
@@ -1006,6 +1006,7 @@ ENDOFDOCUMENTATION
 					#echo "not empty: \$$f\n";
 					switch($n) {
 						case "Trait":
+							array_push($traits,$l);
 							echo "<td class=small align=right nowrap>"
 							."<a href=\"trait.php?direct=1&traitlist=$l\">$l</a> ["
 							."<a href=\"qtl.php?direct=1&traitlist=$l\">q</a>"
@@ -1149,6 +1150,13 @@ ENDOFDOCUMENTATION
 		    }
 		    else {
 			echo "<p>$rowno record".($rowno>1?"s":"")." found matching criteria.</p>";
+			 $linkgprofiler="http://biit.cs.ut.ee/gprofiler/index.cgi?query=";
+                        foreach($traits as $bla){
+                                $linkgprofiler.="$bla+";
+                        }
+                        $linkgprofiler.="&organism=rnorvegicus&significant=1&output=png";
+                        echo "<a href= $linkgprofiler><center><H5>Show gProfile for genes of this group</H5></center></a>";
+
 			if (file_exists("func_expressionview.php")) {
 				expressionviewlink("$ensemblorganism");
 			}

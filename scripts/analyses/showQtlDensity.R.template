@@ -125,7 +125,7 @@ show.multiple.qtl.densities <- function(data,
     })
     labels<-c(marker.expression,"end")
     cat("break.values: ",break.values,"\n")
-    pdf(file=paste("/nfshome/grimm/gitEqtlRepo/data/graphics/Chr_",chr,".pdf",sep=""))
+    pdf(file=paste("/nfshome/grimm/gitEqtlRepo/data/graphics/Chr_",chr,"_trans.pdf",sep=""))
     par.orig<-par(mfrow=c(1,length(covariates)/2))
     sapply(covariates,function(cov){
        data.tmp<-data[data[,"covariates"]==cov,]
@@ -159,9 +159,9 @@ colnames(m)<-c("Chromosome","Mbp_Peak","LOD")
 require(RMySQL)
 #example data for chromosome 1
 con <- dbConnect(MySQL(),user="DATABASEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
-#rs<-dbGetQuery(con, "select covariates, Chromosome, Mbp_Peak, LOD from qtl where covariates in ('','eae_add','sud_add','wl0_add','dud_add','totalIgG_add') and LOD>Quantile and LOD>3.5 and ((cis=1 and cis_dist>20000000) or cis=0 )order by covariates,Chromosome, LOD")
+rs<-dbGetQuery(con, "select covariates, Chromosome, Mbp_Peak, LOD from qtl where covariates in ('','eae_add','sud_add','wl0_add','dud_add','totalIgG_add') and LOD>Quantile and LOD>3.5 and ((cis=1 and cis_dist>20000000) or cis=0 )order by covariates,Chromosome, LOD")
 #rs<-dbGetQuery(con, "select covariates, Chromosome, Mbp_Peak, LOD from qtl where covariates in ('','eae_add','sud_add','wl0_add','dud_add','totalIgG_add') and LOD>Quantile and LOD>3.5 and cis=1 and cis_dist<20000000 order by covariates,Chromosome, LOD")
-rs<-dbGetQuery(con, "select covariates, Chromosome, Mbp_Peak, LOD from qtl where covariates in ('','eae_add','sud_add','wl0_add','dud_add','totalIgG_add') and LOD>Quantile and LOD>3.5 order by covariates,Chromosome, LOD")
+#rs<-dbGetQuery(con, "select covariates, Chromosome, Mbp_Peak, LOD from qtl where covariates in ('','eae_add','sud_add','wl0_add','dud_add','totalIgG_add') and LOD>Quantile and LOD>3.5 order by covariates,Chromosome, LOD")
 #get marker
 marker<-dbGetQuery(con, "select marker,Mbp,chr from map")
 dbDisconnect(con)
