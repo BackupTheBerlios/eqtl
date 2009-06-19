@@ -994,7 +994,7 @@ ENDOFDOCUMENTATION
 					}
 				}
 				echo "<th class=c>Public QTLs</th>";
-				echo "<th class=c>Links</th>";
+			#	echo "<th class=c>Links</th>";
 			#	echo "<th>Images</th>\n";
 				echo "</tr>\n</thead>\n<tbody>\n";
 			}
@@ -1124,6 +1124,7 @@ ENDOFDOCUMENTATION
 			}
 
 			echo "</td>";
+/*
 			echo "<td class=link>";
 			echo "<a href=\"genes_within.php?chr="
 				.$c
@@ -1137,6 +1138,7 @@ ENDOFDOCUMENTATION
 				          ."&analysis=$cofactor>$cofactor</a>";
 				}
 				echo "</td>";
+*/
 		#	echo "<td class=link>"
 		#	 . "<a href=\"images/".$line["Trait"]."_onescan.pdf\">one</a>"
 		#	 ." <a href=\"images/".$line["Trait"]."_nosex_twoscan.pdf\">two</a>"
