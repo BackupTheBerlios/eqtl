@@ -3,25 +3,28 @@
   TEMPLATEWARNINGHASH
 
 /**
-NAME
+
+=head1 NAME
 
 	footer.php
 
-SYNOPSIS
+=head1 SYNOPSIS
 
 	included by web pages
 
-DESCRIPTION
+=head1 DESCRIPTION
 
 	Common footer for all dynamic web pages.
 
-AUTHOR
+=head1 AUTHOR
 
 	Steffen Moeller <moeller@inb.uni-luebeck.de>
 
-COPYRIGHT
+=head1 COPYRIGHT
 	
 	Universities of Rostock and Luebeck, 2001-2009
+
+=cut
 
 */
 

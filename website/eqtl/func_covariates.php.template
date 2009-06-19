@@ -3,42 +3,45 @@
 TEMPLATEWARNINGHASH
 
 /**
+STARTOFDOCUMENTATION
 
-NAME
+=head1 NAME
 
-	func_covariates.php
+func_covariates.php
 
-SYNOPSIS
+=head1 SYNOPSIS
 
-	collection of routines to retrieve and present covariates
+To be included with
+  include_once("func_covariates.php")
+from other PHP-scripts.
 
-DESCRIPTION
 
+=head1 DESCRIPTION
 
-AUTHOR
+This file prepares collection of routines to retrieve and present covariates.
+The idea is that information about the available covariates are retrievable
+from the database schema.
 
-	Steffen Möller <moeller@inb.uni-luebeck.de>
+=cut
 
-COPYRIGHT
-
-	University of Luebeck, 2008-2009
-
+the documentation does not end here but is dispersed throught the document.
 */
 
 
 /**
-    The QTLs differ in their covariates. The database
-    accomodates for these.
- */
 
-/**
- * Configuration stores the covariate names as a
- * comma or blank separated string. This routine
- * converts this string into a workable array.
- *
- * That string should be the exact same as the
- * covariates are stored in the database. Don't change
- * one without the other.
+=head2 convert_string_to_covariates_array
+
+Configuration stores the covariate names as a
+comma or blank separated string. This routine
+converts this string into a workable array.
+
+That string should be the exact same as the
+covariates are stored in the database. Don't change
+one without the other.
+
+=cut
+
  */
 function convert_string_to_covariates_array($cov) {
 	if (!is_array($cov)) {
@@ -48,12 +51,14 @@ function convert_string_to_covariates_array($cov) {
 }
 
 
-/**
- * variable to store previously retrieved covariates
- */
-
 /*
- * Inspects table qtl to read out all occuring covariates and return these in a list.
+
+=head2 get_covars_on_your_own_from_qtl
+
+Inspects table qtl to read out all occuring covariates and return these in a list.
+
+=cut
+
  */
 function get_covars_on_your_own_from_qtl($dbh) {
 	global $debug;
@@ -72,6 +77,14 @@ function get_covars_on_your_own_from_qtl($dbh) {
 	return($retrieved);
 }
 
+
+/*
+
+=head2 get_covars_on_your_own_from_schema
+
+=cut
+
+*/
 function get_covars_on_your_own_from_schema($dbh) {
 	global $debug;
 	$query = 'DESCRIBE qtl';
@@ -96,11 +109,20 @@ function get_covars_on_your_own_from_schema($dbh) {
 	return($retrieved);
 }
 
+/**
+ * internal variable to store previously retrieved covariates
+ */
 $covariates_values=array();
 
 /**
- * Retrieval of covariates from database schema and assigning
- * values to the strings, accordingly.
+
+=head2 prepare_covariates_values_hash
+
+Retrieval of covariates from database schema and assigning
+values to the strings, accordingly.
+
+=cut
+
  */
 function prepare_covariates_values_hash($dbh) {
 	global $covariates_values;
@@ -118,6 +140,13 @@ function prepare_covariates_values_hash($dbh) {
 
 $covariates_statistics=array();
 
+/*
+
+=head2 prepare_covariates_statistics
+
+=cut
+
+*/
 function prepare_covariates_statistics($dbh,$initial=array()) {
 	global $covariates_statistics;
 	if (0==count($covariates_statistics)) {
@@ -138,6 +167,13 @@ function prepare_covariates_statistics($dbh,$initial=array()) {
 	return($covariates_statistics);
 }
 
+/*
+
+=head2 select_covariates
+
+=cut
+
+*/
 function select_covariates($dbh,$cov,$maxPerLine=6) {
 
 	global $_POST, $_GET; // still to be used.
@@ -193,4 +229,21 @@ function select_covariates($dbh,$cov,$maxPerLine=6) {
 	}
 	echo "</tr></table>\n";
 }
+
+/*
+
+=head1 AUTHOR
+
+Steffen Möller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of Luebeck, 2008-2009
+
+=cut
+
+ENDOFDOCUMENTATION
+
+*/
+
 ?>

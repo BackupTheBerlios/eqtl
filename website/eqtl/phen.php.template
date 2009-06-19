@@ -3,16 +3,16 @@
 
 /**
 STARTOFDOCUMENTATION
-NAME
+
+=head1 NAME
 
 	phen.php - access data via covariates
 
-
-SYNOPSIS
+=head1 SYNOPSIS
 
 	a dynamic web page to be called only from the web server
 
-DESCRIPTION
+=head1 DESCRIPTION
 
 	The covariates are of interest per se - since this is the
 	effect that one aims to reduce/increase with whatever 
@@ -25,10 +25,15 @@ DESCRIPTION
 	to the expression-traits/genes.
 	
 
-AUTHOR
+=head1 AUTHOR
 
 	Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
 	Universities of Rostock and Luebeck, 2003-2009
+
+=cut
 
 ENDOFDOCUMENTATION
 */

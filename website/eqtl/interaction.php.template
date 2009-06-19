@@ -3,15 +3,16 @@
 
 /**
 STARTOFDOCUMENTATION
-NAME
+
+=head1 NAME
 
 	interaction.php - query and display of interacting effects
 
-SYNOPSIS
+=head1 SYNOPSIS
 
 	a dynamic web page - no parameters required
 
-DESCRIPTION
+=head1 DESCRIPTION
 
 	This page represents the root of the web pages that are to
 	be presented to regular users of the expression QTL once
@@ -20,12 +21,16 @@ DESCRIPTION
 	The parameters, i.e. texts to introduce to the project, are
 	set in the configuration.
 
-AUTHOR
+=head1 AUTHOR
+
 	Steffen Moeller <moeller@inb.uni-luebeck.de>
 
-COPYRIGHT
+=head1 COPYRIGHT
 
 	Universities of Rostock and Luebeck, 2003-2009
+
+=cut
+
 ENDOFDOCUMENTATION
 */
 

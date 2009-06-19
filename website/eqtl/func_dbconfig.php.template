@@ -4,30 +4,26 @@ TEMPLATEWARNINGHASH
 
 /**
 STARTOFDOCUMENTATION
-NAME
 
-	func_dbconfig.php
+=head1 NAME
 
-SYNOPSIS
+func_dbconfig.php - preparation for database access
 
-	to be included by dynamic web pages
+=head1 SYNOPSIS
 
-DESCRIPTION
+to be included by dynamic web pages
 
-	The package contains a series of helper functions and global
-	variables for the interaction with local and remote databases,
-	i.e.  with Ensembl in its various versions.
+=head1 DESCRIPTION
 
-AUTHOR
+The package contains a series of helper functions and global
+variables for the interaction with local and remote databases,
+i.e.  with Ensembl in its various versions.
 
-	Steffen Moeller <moeller@inb.uni-luebeck.de>
+=cut
 
-COPYRIGHT
-
-	Universities of Rostock and Luebeck, 2003-2009
-
-ENDOFDOCUMENTATION
+The documentation does not end here but is dispersed throughout the file.
 */
+
 
 
 global $ensemblversion;
@@ -38,6 +34,15 @@ $ensemblversion=ENSEMBLVERSION;
 $ensemblversionLocal=ENSEMBLVERSION;
 $ensemblversionEnsembl=ENSEMBLVERSION;
 
+/*
+
+=head2 martdbname
+
+Returns name of Ensembl mart database.
+
+=cut
+
+*/
 function martdbname($version) {
 	$r = "ensembl_mart_$version";
 	if ($version<29) {
@@ -47,9 +52,15 @@ function martdbname($version) {
 }
 
 /**
- * Returns hostname:port to access Ensembl mart on
- * for MySQL queries in dependency of the Ensembl
- * version that is passed as an argument.
+
+=head2 martdbhost
+
+Returns hostname:port to access Ensembl mart on
+for MySQL queries in dependency of the Ensembl
+version that is passed as an argument.
+
+=cut
+
  */
 function martdbhost($version) {
 	$r="martdb.ensembl.org:3316";
@@ -61,9 +72,15 @@ function martdbhost($version) {
 
 
 /**
- * Returns the page with results from a search for a
- * probeset with that ID in Ensembl.
- */
+
+=head2 probe2ensemblUrl
+
+Returns the page with results from a search for a
+ probeset with that ID in Ensembl.
+
+=cut
+
+*/
 function probe2ensemblUrl($id,$species="Rattus_norvegicus"){
 	global $ensemblversionEnsembl;
 	return "http://www.ensembl.org/$species/Location/Genome?ftype=OligoFeature;id=".$id;
@@ -202,4 +219,22 @@ function show_config() {
 	echo "</table>\n";
 	echo "</td></tr></table>\n";
 }
+
+
+/*
+
+=head1 AUTHOR
+
+Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+Universities of Rostock and Luebeck, 2003-2009
+
+=cut
+
+ENDOFDOCUMENTATION
+
+*/
+
 ?>

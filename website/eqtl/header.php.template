@@ -3,31 +3,38 @@
     TEMPLATEWARNINGHASH
 
 /**
-NAME
+
+STARTOFDOCUMENTATION
+
+=head1 NAME
 
 	header.php - common header for dynamic web pages
 
-SYNOPSIS
+=head1 SYNOPSIS
 
 	to be included by PHP scripts
 
-DESCRIPTION
+=head1 DESCRIPTION
 
 	The title is passed as an argument.
 	Differences between projects are defined in the
 	configuration.
 
-AUTHOR
+=cut
 
-	Steffen Moeller <moeller@inb.uni-luebeck.de>
-
-COPYRIGHT
-
-	Universities of Rostock and Luebeck, 2003-2009
+The documentation does not end here but is dispersed throughout the file.
 
 */
 
     require_once("func_dbconfig.php");
+
+/*
+
+=head2 show_html_header
+
+=cut
+
+*/
 
     function show_html_header($title,$reldir="") {
 	echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
@@ -40,6 +47,16 @@ COPYRIGHT
 	echo "<META http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\" />\n  ";
 	echo "</head>\n  <body>\n";
     }
+
+
+
+/**
+
+=head2 show_small_header
+
+=cut
+
+*/
 
     function show_small_header($title,$show_html_header_flag=false,$prefix="") {
     	global $urlLogoLeft2,$urlLogoRightLarge,$urlLogoRight,$urlLogoLeft;
@@ -57,6 +74,16 @@ COPYRIGHT
 	    ."</td></tr>"
 	    ."</table>\n";
     }
+
+
+
+/**
+
+=head2 show_large_header
+
+=cut
+
+*/
 
     function show_large_header($title,$show_html_header_flag=TRUE,$preamble="") {
     	global $urlLogoLeft,$urlLogoRight,$urlLogoLeftLarge,$urlLogoRightLarge;
@@ -83,4 +110,20 @@ COPYRIGHT
 	echo "<img width=WIDTHLOGORIGHT src=\"" .$urlLogoRightLarge ."\" ALT=\"Logo\">";
 	echo "</td>\n" ."</tr></table>\n";
     }
+
+/**
+=head1 AUTHOR
+
+	Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+	Universities of Rostock and Luebeck, 2003-2009
+
+=cut
+
+ENDOFDOCUMENTATION
+
+*/
+
 ?>
