@@ -216,7 +216,7 @@ ENDOFDOCUMENTATION
 				#print_r($line);
 				echo "</td></tr>";
 				$cs=array_unique($chr);
-				echo "<td>";
+				echo "<tr bgcolor=lightyellow><td>";
 				echo "Chromosome".(count($cs)>1?"s":"")." ";
 				echo join(",",$cs)."</td><td>$prevSource</td><td>$prevTrait</td>";
 				echo "</tr>\n";
@@ -253,6 +253,7 @@ ENDOFDOCUMENTATION
 	else {
 		echo "</td></tr>";
 		$cs=array_unique($chr);
+		echo "<tr bgcolor=lightyellow>";
 		echo "<td>";
 		echo "Chromosome".(count($cs)>1?"s":"")." ";
 		echo join(",",array_unique($chr));
