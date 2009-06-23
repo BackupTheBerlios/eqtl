@@ -20,6 +20,20 @@ useful to rank expression QTL by their statistical likelihood
 and to sort/filter them by the chromosomal location or
 covariates.
 
+=head1 ATTRIBUTES
+
+The values displayed are derived from the output of R/qtl. Base
+pairs positions are derived by an interpolation from centi Morgen
+positions between the markers.
+
+=head2 cis
+
+The cis attribute is 1 for those traits that are assigned to genes
+that have their chromosomal location within the flanking markers.
+It is set to 0 for those traits that are assigned to genes on other
+chromosomes and may be NULL for traits with no gene assignment or
+for such assigned to a cluster of genes.
+
 =head1 AUTHOR
 
 Steffen Moeller <moeller@inb.uni-luebeck.de>
@@ -135,7 +149,12 @@ ENDOFDOCUMENTATION
 
 	if (!empty($covariates)) {
 		if (!is_array($covariates)) {
-			$covariates=preg_split("/,/",$covariates);
+			if ("none"=="$covariates") {
+				$covariates=array('');
+			}
+			else {
+				$covariates=preg_split("/,/",$covariates);
+			}
 		}
 	}
 
@@ -212,15 +231,15 @@ ENDOFDOCUMENTATION
 		foreach ($cvs as $n=>$c) {
 			if ($n>0) {
 				echo "; ";
-				if ( 0== $n%2) {
-					echo "<br>\n";
-				}
+				#if ( 0== $n%2) {
+				#	echo "<br>\n";
+				#}
 			}
 			echo displayCovariates("$c");
 		}
 	?>
 	</i></font>
-			</th><td colspan=3>
+			</th><td colspan=3 valign=top>
 	<?php
 					select_covariates($linkLocal, "qtl");
 	?>
@@ -335,16 +354,12 @@ ENDOFDOCUMENTATION
 			   <input type="radio" name="onlyNumbersGrouped" value="Chromosome" <?php ("Chromosome"=="$onlyNumbersGrouped"?" checked":"")?>>eQTL's Chromosome<br />
 			</p>
 
-			<p>Select from the following constraints:<br>
 			<?php
-			echo "<table>";
-			foreach($conditionList as $n=>$c) {
-				//print_r($c);
-				echo "<tr><td><input type=checkbox name=condition[] value=\"$n\"> $n :</td><td><i>".$c["description"]."</i></td</tr>\n";
-			}
-			echo "</table>\n";
+			require_once("func_conditions.php");
+			print_condition_form_element($conditionList,
+				"Select from the following constraints",
+				$condition);
 			?>
-			</p>
 		
 		</td><td align=right valign=top>
 			<small><small>
@@ -438,7 +453,7 @@ ENDOFDOCUMENTATION
 
 		$query  .= " FROM qtl ";
 
-		if (!empty($groups)) {
+		if (!empty($show_Groups) or !empty($groups)) {
 			$query .= " right join locus as l on qtl.Locus=l.Name right join qtl_groups on locus_id=l.No ";
 		}
 
