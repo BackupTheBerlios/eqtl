@@ -35,9 +35,20 @@ ENDOFDOCUMENTATION
 
 	require_once("header.php");
 	require_once("func_covariates.php");
+	require_once("func_conditions.php");
 	show_small_header("Expression QTL describing classical QTL",TRUE);
 	$err=array();
 	$conditionList=array(
+		"cis-acting" => array(
+			"constraint"=>"cis=1",
+			"description"=>"Gene located within flanking markers"
+		),
+		"trans-acting" => array(
+			"constraint"=>"cis=0",
+			"description"=>"Gene located outside flanking markers or on other chromosome"
+		)
+/*
+		,
 		"Equal Chromosomes" => array(
 			"constraint"=>"seqname = Chromosome",
 			"description"=>"The QTL and the gene it controls are on the same chromosome"
@@ -45,11 +56,13 @@ ENDOFDOCUMENTATION
 		"Unequal Chromosomes" => array(
 			"constraint"=>"seqname != Chromosome",
 			"description"=>"The QTL and the gene it controls are on different chromosomes"
-		),
+		)
+		,
 		"Within classical QTL" => array(
 			"constraint"=>"manual",
 			"description"=>"The peak of the e-QTL overlaps with a classical QTL (true for all entries in this table)"
-		),
+		)
+*/
 	);
 
 
@@ -84,7 +97,8 @@ ENDOFDOCUMENTATION
 		"LODdiffmin","LODdiffmax",
 		"cM_Peak_Min","cM_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
-		"locus","chrlist", "condition"
+		"locus","chrlist",
+		"condition"
 	);
 
 	$accessible_fields_in_POST_or_GET = array_merge(
@@ -178,14 +192,17 @@ ENDOFDOCUMENTATION
 	echo "<input size=5 name=LODmax".(empty($LODmax)?"":" value=$LODmax").">";
 	echo "</td></tr>";
 	echo "</table>\n";
-	echo "</td><td>Select minimal LOD score:<br>";
+	echo "</td><td rowspan=2>Select minimal LOD score:<br>";
 	for($lod=3.5; $lod<15; $lod++) {
 		if (!empty($LODmin) and $lod==$LODmin) echo "<b><font size=+2>";
 		echo "<a href=\"http:qtl_groups.php?LODmin=$lod\">$lod</a>";
 		if (!empty($LODmin) and $lod==$LODmin) echo "</font></b>";
 		echo "\n";
 	}
-	echo "</td><td><input type=submit></td></tr>";
+	echo "</td><td rowspan=2>";
+	print_condition_form_element($conditionList,"Select if cis- or trans-acting <i>(not yet implemented)</i>",$condition);
+	echo "</td></tr>";
+	echo "<tr><td><input type=submit></td></tr>";
 	echo "</table>\n";
 
 	$queryAllGroups = "SELECT qtl_id,qq.name,covariates,qq.source,qq.trait,start_cm,stop_cm,start_bps,stop_bps,locus.chr,count(*) as c "
