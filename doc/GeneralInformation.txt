@@ -15,8 +15,8 @@
   of the presented tools are understood sufficiently well to set up an
   expression QTL project by his/her own.
 
-  This file should be the first to read. References to other files
-  and folders are given where appropriate. It should be noted that every
+  This file should be the first to read. References to other files and
+  folders are given where appropriate. It should be noted that every
   file of the source code offers description itself, which explains what
   it is doing and what options are expected. Every folder contains the
   file README with further information. This way one is incrementally
@@ -51,17 +51,15 @@
 1.2 Database
 ------------
 
-   The database is the core unit of the whole dataflow.
-   It is storing the results and is used by the website
-   to present the results. Moreover it is controlling the
-   computation of the data.
-   For the description of the tables of the database,
-   see the database description file which is not there
-   yet but will be soon...
+   The database is the core unit of the whole dataflow.  It is storing the
+   results and is used by the website to present the results. Moreover
+   it is controlling the computation of the data.  For the description
+   of the tables of the database, see the database description file
+   which is not there yet but will be soon...
 
-   The name of the database should be that of your project
-   and be specified in the configuration files.
-   The database itself needs to contain the following tables.
+   The name of the database should be that of your project and be
+   specified in the configuration files.  The database itself needs to
+   contain the following tables.
 
 	   +----------------------+
 	   | Tables_in_Database   |
@@ -248,22 +246,24 @@
 	+-------------------------+-------------+------+-----+---------+-------+
 	 
 
-   None of the data is ultimately essential for the computation of expresssion QTL,
-   in the sense that the distribution of the data for the computation will in its
-   current implementation fall back to the file-respresentation of expression data.
-   For the display of data, however, and the sharing of the effort to display the
-   data between projects, the upload of the data to the database is preferable. To
-   amend the current scripts for retrieving all their data from the tables is work
-   in progress.
+   None of the data is ultimately essential for the computation of
+   expresssion QTL, in the sense that the distribution of the data for
+   the computation will in its current implementation fall back to the
+   file-respresentation of expression data.  For the display of data,
+   however, and the sharing of the effort to display the data between
+   projects, the upload of the data to the database is preferable. To
+   amend the current scripts for retrieving all their data from the
+   tables is work in progress.
 
-   The scripts that perform the subsequent updates of the trait table are suggested
-   not to access the database directly. To allow for manual verification,
-   it is preferable to let the scripts output SQL statements to 
-   STDOUT and pipe that to the database client. For instance, the initial upload to 
-   the traits table could only contain the trait_id and the name, which possibly are
-   also the first and second column of the possibly tab-separated text file. To have
-   the records with the primary keys uploaded, and thus prepared for subsequent updates
-   with other data, one shall execute a Perl script in analogy to
+   The scripts that perform the subsequent updates of the trait table
+   are suggested not to access the database directly. To allow for manual
+   verification, it is preferable to let the scripts output SQL statements
+   to STDOUT and pipe that to the database client. For instance, the
+   initial upload to the traits table could only contain the trait_id
+   and the name, which possibly are also the first and second column of
+   the possibly tab-separated text file. To have the records with the
+   primary keys uploaded, and thus prepared for subsequent updates with
+   other data, one shall execute a Perl script in analogy to
 
         $ cat <<EOPERL > trait_upload.pl
 	#!/usr/bin/perl
@@ -274,11 +274,13 @@
 		print "INSERT INTO trait SET trait_id='$fields[0]',name='$fields[1]';\n";
 	}
 	EOPERL
-	$ perl trait_upload.pl expressiondata.tsv | mysql -h yourhost -u yourself yourdatabase
+	$ perl trait_upload.pl expressiondata.tsv | \
+		mysql -h yourhost -u yourself yourdatabase
 
-   Templates for the reading of expression data for deriving the autocorrelation matrix
-   and the correlation between expression data and classical phenotypes can be found in
-   scripts/analyses. The data of the latter goes into the table trait_phen_cor:
+   Templates for the reading of expression data for deriving the
+   autocorrelation matrix and the correlation between expression data
+   and classical phenotypes can be found in scripts/analyses. The data
+   of the latter goes into the table trait_phen_cor:
 
 	desc trait_phen_cor;
 	+----------+-------------+------+-----+---------+-------+
@@ -318,16 +320,16 @@
    The configuration files in the folder 'conf_template' shall be
    copied into a folder that is named 'conf_projectname', substitute
    'projectname' with the respective name of your project. You may have
-   multiple projects maintained in parallel. Then edit all the
-   files in conf_projectname/ to suite your project.
+   multiple projects maintained in parallel. Then edit all the files in
+   conf_projectname/ to suite your project.
 
    The script 'update.sh' will perform the substitution of all the
    placeholders. The substitutions will be performed in the alphabetic
    order of the filenames of those files that contain the rules.
    Nevertheless, dependencies between rules should be strictly avoided.
-   The substitutions will be performed on all files ending with ".template"
-   and a new file will be created, without the ".template" suffix, that
-   has all the substitutions performed. 
+   The substitutions will be performed on all files ending with
+   ".template" and a new file will be created, without the ".template"
+   suffix, that has all the substitutions performed.
 
 
 
@@ -335,7 +337,7 @@
 ==========
 
    Once that update.sh was executed, your website shall be ready. There
-   are two websites to take care of. The scripts in 
+   are two websites to take care of. The scripts in
 
         website/*
 
@@ -372,10 +374,10 @@
 
 	website/evaluateQuery.R
 
-   		is the main script to start the computation of the data.
-		It is executed on the machine that performs the computation
-		and resides in this folder only to be easily accessible for
-		its distribution.
+		is the main script to start the computation of the
+		data.  It is executed on the machine that performs the
+		computation and resides in this folder only to be easily
+		accessible for its distribution.
 
 		To run this script, make sure that R/qtl is installed.
 		Started with this script, several files are used
@@ -387,12 +389,10 @@
 
 	website/recalc.pl.template
 
-	        is the first file to be called as it
-		determines what job should be executed next,
-		i.e. what clinical parameter shall be modelled
-		by which gene's expression levels with which
-		set of covariates and those additive or
-		interacting.
+		is the first file to be called as it determines what job
+		should be executed next, i.e. what clinical parameter
+		shall be modelled by which gene's expression levels with
+		which set of covariates and those additive or interacting.
 
 	        This script queries the database for the next job to compute.
 		The jobname is a concatenation, joined by interspersing "_"
@@ -403,17 +403,18 @@
 		   numberOfPermutations	always set to 1000
 		   (covariate1{_add|_int},covariate2{_add|_int})
 					list of covariates to be taken into account
-	        The extension _add or _int tells wether the covariate
-	        should be considered interactive or additive in the
-	        model.  If this information is missing, the covariate is
-	        automatically considered to be interactive.
+		The extension _add or _int tells wether the covariate
+		should be considered interactive or additive in the
+		model.	If this information is missing, the covariate
+		is automatically considered to be interactive.
 
-		The specification the syntax of jobnames can obviously be changed,
-		but many parts of the code as it is written today do depend on the
-		current formatting. 
+		The specification the syntax of jobnames can obviously
+		be changed, but many parts of the code as it is written
+		today do depend on the current formatting.
 
-		When no more jobs are pending to be computed, the script returns q("no")
-		which causes evaluateQuery.R to stop and to leave R.
+		When no more jobs are pending to be computed, the script
+		returns q("no") which causes evaluateQuery.R to stop
+		and to leave R.
 
 
 	website/getRscript.pl.template
@@ -445,10 +446,10 @@
 		qtl::read.cross() function, which is executed from the
 		R script that is generated by getRscript.pl.
 
-   After the execution of all those scripts, the result file
-   is written to the specified directory (default: ~/myTmp).
-   These files need to be retrieved from he host that performs
-   the computation to be then uploaded to the database.
+   After the execution of all those scripts, the result file is written
+   to the specified directory (default: ~/myTmp).  These files need to
+   be retrieved from he host that performs the computation to be then
+   uploaded to the database.
 
    Just a short checklist before you run evaluateQuery.R:
 
