@@ -6,32 +6,32 @@ STARTOFDOCUMENTATION
 
 =head1 NAME
 
-	phen.php - access data via covariates
+phen.php - access data via covariates
 
 =head1 SYNOPSIS
 
-	a dynamic web page to be called only from the web server
+a dynamic web page to be called only from the web server
 
 =head1 DESCRIPTION
 
-	The covariates are of interest per se - since this is the
-	effect that one aims to reduce/increase with whatever 
-	functional compounds that may be developed.
+The covariates are of interest per se - since this is the
+effect that one aims to reduce/increase with whatever 
+functional compounds that may be developed.
 
-	The traits and the expression QTL are ranked for their 
-	statistical association with the phenotype.
+The traits and the expression QTL are ranked for their 
+statistical association with the phenotype.
 
-	A primary focus of this form is to link the phenotypes
-	to the expression-traits/genes.
-	
+A primary focus of this form is to link the phenotypes
+to the expression-traits/genes.
+
 
 =head1 AUTHOR
 
-	Steffen Moeller <moeller@inb.uni-luebeck.de>
+Steffen Moeller <moeller@inb.uni-luebeck.de>
 
 =head1 COPYRIGHT
 
-	Universities of Rostock and Luebeck, 2003-2009
+Universities of Rostock and Luebeck, 2003-2009
 
 =cut
 

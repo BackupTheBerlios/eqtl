@@ -6,27 +6,27 @@ STARTOFDOCUMENTATION
 
 =head1 NAME
 
-	qtl_groups.php - display of groups of expression QTL
+qtl_groups.php - display of groups of expression QTL
 
 =head1 SYNOPSIS
 
-	a dynamic web page to be called only from the web server
+a dynamic web page to be called only from the web server
 
 =head1 DESCRIPTION
 
-	When inspecting a classical QTL, it is likely to find multiple
-	genes to be associated with the locus. Further inspections should
-	then be formed on that set of eQTL, them being understood as
-	a group. This web page caters for that point of view. To many,
-	it is represents the main entry ot the data.
+When inspecting a classical QTL, it is likely to find multiple
+genes to be associated with the locus. Further inspections should
+then be formed on that set of eQTL, them being understood as
+a group. This web page caters for that point of view. To many,
+it is represents the main entry ot the data.
 
 =head1 AUTHOR
 
-	Steffen Moeller <moeller@inb.uni-luebeck.de>
+Steffen Moeller <moeller@inb.uni-luebeck.de>
 
 =head1 COPYRIGHT
 
-	Universities of Rostock and Luebeck, 2003-2009
+Universities of Rostock and Luebeck, 2003-2009
 
 =cut
 

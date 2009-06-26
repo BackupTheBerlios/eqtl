@@ -1,6 +1,30 @@
 
 <?php
 
+/*
+
+=head1 NAME
+
+func_public_qtl.php - retrieval of classical QTL from local database
+
+=head1 SYNOPSIS
+
+to be included from PHP scripts
+
+=head1 DESCRIPTION
+
+The classical QTL are used for the filtering of expression QTL. This file
+provides the functionality to present a list of classical QTL on the web
+pages.
+
+=head1 AUTHOR
+
+Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+=cut
+
+*/
+
 	require_once("func_dbconfig.php");
 	global $databaseqtl;
 	require_once("func_species.php");

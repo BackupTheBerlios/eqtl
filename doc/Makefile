@@ -8,7 +8,7 @@
 #	in the form prescribed by POD.
 
 PERLSCRIPTS=$(shell find .. -name "*.pl" )
-PHPSCRIPTS=$(shell find .. -name "*.php" | grep -v 'website/index.php' )
+PHPSCRIPTS=$(shell find .. -name "*.php" | grep -v 'website/index.php' | grep -v 'func_species.php' | grep -v 'help.php' | grep -v 'ensemblconf' )
 SHELLSCRIPTS=$(shell find .. -name "*.sh" | sort | egrep -v 'website/.*update.sh' | egrep -v 'scripts/.*update.sh' | egrep -v 'doc/.*update.sh' )
 
 .SUFFIXES: .pl .ps
@@ -42,13 +42,16 @@ SHELLSCRIPTS=$(shell find .. -name "*.sh" | sort | egrep -v 'website/.*update.sh
 		echo "No help available for $<" | a2ps -o $@ --center-title $< ; \
 	fi 
 
-documentation: data_preparation_scripts.ps webinterface_scripts.ps
+documentation: data_preparation_scripts.ps webinterface_scripts.ps general_information.ps
 
 data_preparation_scripts.ps: perl shell $(wildcard tmp/shell/*.ps tmp/perl/*.ps)
 	psmerge -odata_preparation_scripts.ps $(wildcard tmp/shell/*.ps) $(wildcard tmp/perl*.ps)
 
 webinterface_scripts.ps: php $(wildcard tmp/php/*.ps)
 	psmerge -owebinterface_scripts.ps tmp/php/*.ps
+
+general_information.ps: GeneralInformation.txt
+	a2ps -o general_information.ps GeneralInformation.txt
 
 perl:	$(PERLSCRIPTS:.pl=.ps)
 	if [ ! -d tmp/perl ]; then mkdir -p tmp/perl; fi
@@ -63,6 +66,6 @@ php: $(PHPSCRIPTS:.php=.ps)
 	mv $(PHPSCRIPTS:.php=.ps) tmp/php
 
 clean:
-	rm -rf tmp supporting_scripts.ps webinterface_scripts.ps
+	rm -rf tmp supporting_scripts.ps webinterface_scripts.ps general_informatin.ps
 
 .PHONY: clean documentation perl shell php
