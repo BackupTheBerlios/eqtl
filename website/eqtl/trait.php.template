@@ -54,7 +54,8 @@ ENDOFDOCUMENTATION
 		}
 		elseif(isset($_GET[$vname])) {
 			$$vname = $_GET[$vname];
-			if ("expr_pos_cor_max" == "$vname") echo "found $vname to be " . $$vname . "\n";
+			//if ("expr_pos_cor_max" == "$vname") echo "found $vname to be " . $$vname . "\n";
+			//if ("phen" == "$vname") echo "found $vname to be " . $$vname . "\n";
 		}
 	}
 
@@ -149,7 +150,7 @@ ENDOFDOCUMENTATION
 					<code>-1</code> &lt; <input type=text name=expr_neg_cor_min size=7> &lt; <code>- cor</code> &lt; <input type=text name=expr_neg_cor_max size=7> &lt; <code>0</code>
 				</td></tr>
 
-				<td valign=top><b>Phen covariates correlation (to be implemented)</b><br>
+				<td valign=top><b>Phen covariates correlation</b><br>
 					<code>&nbsp;0</code> &lt; <input type=text name=phen_pos_cor_min size=7> &lt; <code>+ cor</code> &lt; <input type=text name=phen_pos_cor_max size=7> &lt; <code>1</code>
 					<br>
 					<code>-1</code> &lt; <input type=text name=phen_neg_cor_min size=7> &lt; <code>- cor</code> &lt; <input type=text name=phen_neg_cor_max size=7> &lt; <code>0</code>
@@ -158,14 +159,33 @@ ENDOFDOCUMENTATION
 <?php
 			$query = "select distinct phen from trait_phen_cor";
 			$result = mysql_query($query) or die('Query failed: ' . mysql_error());
-			echo "<b>Show only data for the following phen(s):</b></br>";
+			echo "<b>Show only data for the following phen(s):</b><br />";
+			/*
 			echo "<select name=phen multiple size=8>\n";
 			while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
-				echo "<option value=\"".$line[0]."\">"
+				echo "<option value=\"".$line["phen"]."\">"
 					.$line{"phen"}."</option>\n";
 			}
-			mysql_free_result($result);
 			echo "</select>\n";
+			*/
+
+			$lno=0;
+			echo "<table><tr>";
+			while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+				$lno++;
+				echo "<td>";
+				echo "<input name=\"phen\" type=\"checkbox\" "
+					. "value=\"".$line["phen"]."\">"
+					. $line["phen"];
+				echo "</td>";
+				if (0 == $lno % 5) {
+					echo "</tr><tr>";
+					#echo "<br />\n";
+				}
+			}
+			echo "</tr></table>\n";
+
+			mysql_free_result($result);
 ?>
 						</td></tr>
 			<tr><th align=right>order by:</th><td>
@@ -292,6 +312,16 @@ ENDOFDOCUMENTATION
 			if (!empty($phen_pos_cor_max)) {
 				if ("WHERE " != $where) $where .= " AND ";
 				$where .= " $phen_pos_cor_max>=trait_phen_cor.rho";
+			}
+		}
+
+		if (!empty($phen)) {
+			$p = preg_split("/,/",$phen);
+			if (1 == count($p)) {
+				$where .= " AND phen = '$phen' ";
+			}
+			else if (0 < count($p)) {
+				$where .= " AND phen in '".join("','",$p)."' ";
 			}
 		}
 
@@ -538,6 +568,11 @@ ENDOFDOCUMENTATION
 					else {
 						$phenquery .= "   AND p<=0.05";
 					}
+
+					if (!empty($phen)) {
+						$phenquery .= " AND phen='$phen' ";
+					}
+
 					$phenquery .= " ORDER BY p";
 					$resultPhen = mysql_query($phenquery,$linkLocal);
 					if (empty($resultPhen)) {
