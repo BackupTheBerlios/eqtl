@@ -1,4 +1,32 @@
 <?php
+
+/*
+
+=head1 NAME
+
+locus.php - presentation of expression QTL associated loci
+
+=head1 SYNOPSIS
+
+dynamic web page, to be invoked with or without arguments
+
+=head1 DESCRIPTION
+
+overview on associated traits from the perspective of single loci
+
+=head1 AUTHOR
+
+Steffen Moeller <moeller@inb.uni-luebeck.de>
+Jan Kolbaum
+
+=head1 COPYRIGHT
+
+Universities of Luebeck and Rostock, 2003-2009
+
+=cut
+
+*/
+
 	require_once("header.php");
 	require_once("func_dbconfig.php");
 	require_once("func_covariates.php");

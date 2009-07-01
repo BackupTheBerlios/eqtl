@@ -1,5 +1,29 @@
 <?php
 
+/*
+
+=head1 NAME
+
+marker.php
+
+=head1 SYNOPSIS
+
+dynamic web page to be invoked without arguments
+
+=head1 DESCRIPTION
+
+The page presents, with help by Ensembl, the chromosomal markers used
+for the analysis, the base pair positions, and prepares a routine for
+the conversion between Morgan and bp units.
+
+=head1 AUTHOR
+
+Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+=cut
+
+*/
+
 require_once("header.php");
 require_once("func_species.php");
 require_once("func_dbconfig.php");

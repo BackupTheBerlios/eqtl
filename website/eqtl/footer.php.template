@@ -6,23 +6,23 @@
 
 =head1 NAME
 
-	footer.php
+footer.php
 
 =head1 SYNOPSIS
 
-	included by web pages
+included by web pages
 
 =head1 DESCRIPTION
 
-	Common footer for all dynamic web pages.
+Common footer for all dynamic web pages.
 
 =head1 AUTHOR
 
-	Steffen Moeller <moeller@inb.uni-luebeck.de>
+Steffen Moeller <moeller@inb.uni-luebeck.de>
 
 =head1 COPYRIGHT
 	
-	Universities of Rostock and Luebeck, 2001-2009
+Universities of Rostock and Luebeck, 2001-2009
 
 =cut
 

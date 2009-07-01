@@ -8,17 +8,17 @@ STARTOFDOCUMENTATION
 
 =head1 NAME
 
-	header.php - common header for dynamic web pages
+header.php - common header for dynamic web pages
 
 =head1 SYNOPSIS
 
-	to be included by PHP scripts
+to be included by PHP scripts
 
 =head1 DESCRIPTION
 
-	The title is passed as an argument.
-	Differences between projects are defined in the
-	configuration.
+The title is passed as an argument.
+Differences between projects are defined in the
+configuration.
 
 =cut
 
@@ -114,11 +114,11 @@ The documentation does not end here but is dispersed throughout the file.
 /**
 =head1 AUTHOR
 
-	Steffen Moeller <moeller@inb.uni-luebeck.de>
+Steffen Moeller <moeller@inb.uni-luebeck.de>
 
 =head1 COPYRIGHT
 
-	Universities of Rostock and Luebeck, 2003-2009
+Universities of Rostock and Luebeck, 2003-2009
 
 =cut
 

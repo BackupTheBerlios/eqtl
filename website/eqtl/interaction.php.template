@@ -6,28 +6,28 @@ STARTOFDOCUMENTATION
 
 =head1 NAME
 
-	interaction.php - query and display of interacting effects
+interaction.php - query and display of interacting effects
 
 =head1 SYNOPSIS
 
-	a dynamic web page - no parameters required
+a dynamic web page - no parameters required
 
 =head1 DESCRIPTION
 
-	This page represents the root of the web pages that are to
-	be presented to regular users of the expression QTL once
-	that these are calculated.
+This page represents the root of the web pages that are to
+be presented to regular users of the expression QTL once
+that these are calculated.
 
-	The parameters, i.e. texts to introduce to the project, are
-	set in the configuration.
+The parameters, i.e. texts to introduce to the project, are
+set in the configuration.
 
 =head1 AUTHOR
 
-	Steffen Moeller <moeller@inb.uni-luebeck.de>
+Steffen Moeller <moeller@inb.uni-luebeck.de>
 
 =head1 COPYRIGHT
 
-	Universities of Rostock and Luebeck, 2003-2009
+Universities of Rostock and Luebeck, 2003-2009
 
 =cut
 

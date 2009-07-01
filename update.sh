@@ -5,22 +5,22 @@ if [ "-h" = "$1" -o "--help" = "$1" ]; then
 
 =head1 NAME
 
-	update.sh - update cloned git repository with origin
+update.sh - update cloned git repository with origin
 
 =head1 SYNOPSIS
 
-	update.sh [--no-pull|-np] projectname
+update.sh [--no-pull|-np] projectname
 
 =head1 DESCRIPTION
 
-	Execute this script to update your local installation with the
-	latest that is on the Git repository. The script pulls with
-	default settings from origin and subsequently performs all
-	substitutions for the templates.
+Execute this script to update your local installation with the
+latest that is on the Git repository. The script pulls with
+default settings from origin and subsequently performs all
+substitutions for the templates.
 
-	The configuration files are expected in a folder 'conf' or,
-	if this is not present or the projectname is specified, then in
-	conf_<projectname>.
+The configuration files are expected in a folder 'conf' or,
+if this is not present or the projectname is specified, then in
+conf_<projectname>.
 
 =head1 OPTIONS
 
@@ -42,12 +42,14 @@ Expected as the suffix of a directory named conf_projectname.
 
 =head1 AUTHORS
 
-	Steffen Moeller <moeller@inb.uni-luebeck.de>
-	Jan Kolbaum
-	Ann-Kristin Grimm
-	Benedikt Bauer
+Steffen Moeller <moeller@inb.uni-luebeck.de>,
+Jan Kolbaum,
+Ann-Kristin Grimm,
+Benedikt Bauer
 
-	University of Luebeck, 2008-2009
+=head1 COPYRIGHT
+
+University of Luebeck, 2008-2009
 
 =cut
 

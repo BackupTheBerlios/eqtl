@@ -1,5 +1,37 @@
 <?php
 
+/*
+
+=head1 NAME
+
+func_connect.php - direct establishment of database connection
+
+=head1 SYNOPSIS
+
+to be included when the connection to databases is needed.
+
+=head1 DESCRIPTION
+
+The script includes the func_dbconfig.php and uses those settings
+to create the database connection that is then stored as $linkLocal.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item func_dbconfig.php
+
+=back
+
+=head1 AUTHOR
+
+Steffen Moeller <moeller@inb.uni-luebeck.de>
+
+=cut
+
+*/
+
+
     global $hostname,$username,$database,$ensemblversion;
 
     require_once("func_dbconfig.php");
