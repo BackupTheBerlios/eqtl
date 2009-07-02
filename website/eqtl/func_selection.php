@@ -19,9 +19,9 @@ function print_selection_form($properties) {
 	if (!is_array($properties)) {
 		switch($properties) {
 		 case "all_qtl":
-			$properties = array("groups", "locus", "chrlist",
+			$properties = array("groups", "locus", 
 					    "chromosome", "LOD", "quantile", "LODdiff",
-					    "peak", "flanks", "traitlist", "trait",
+					    "peak", "flanks", "trait",
 					    "mean", "sd");
 			 break;
 		 case "all_qtl_groups":
