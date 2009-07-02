@@ -70,7 +70,7 @@ ENDOFDOCUMENTATION
 
 	function qtlGroupHtmlRef($group_id,$group_name,$covariates,$direct=TRUE) {
 
-		global $LODmin; global $LODmax;
+		global $LODmin, $LODmax, $MeanMin, $MeanMax, $SdMin, $SdMax;
 
 		$r  =  "<a href=\"http:qtl.php?groups=".$group_id;
 		if (!empty($covariates)) {
@@ -79,9 +79,10 @@ ENDOFDOCUMENTATION
 		if ($direct) {
 			$r .= "&show_Trait=1&show_Chromosome=1&show_ExpressionOfGene=1&show_Locus=1&show_LOD=1&submitted=1";
 		}
-		if (!empty($LODmin)) $r .= "&LODmin=$LODmin";
-		if (!empty($LODmax)) $r .= "&LODmax=$LODmax";
-
+		$vars = array("LODmin","LODmax","MeanMin","MeanMax","SdMin","SdMax");
+		foreach($vars as $v) {
+			if (!empty($$v)) $r .= "&$v=".$$v;
+		}
 		$r .= "\">";
 		$r .= $group_name."</a>";
 		return($r);
@@ -206,10 +207,15 @@ ENDOFDOCUMENTATION
 	$queryAllGroupsSelect = "SELECT "
 			      . "qtl_id,qq.name,covariates,qq.source,qq.trait,start_cm,stop_cm,start_bps,stop_bps,locus.chr,"
 			      . "count(*) as c ";
-	$queryAllGroupsFrom   = "FROM qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry "
-			      . "left join locus on locus_id=No join qtl on locus.Name=qtl.Locus ";
 
-	$queryAllGrousWhere .= "WHERE species='ENSEMBLSPECIESDB' ";
+	$queryAllGroupsFrom   = "FROM qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry ";
+	$queryAllGroupsFrom  .= "left join locus on locus_id=No join qtl on locus.Name=qtl.Locus ";
+	if (!empty($MeanMin) or !empty($MeanMin) or !empty($SdMin) or !empty($SdMin)) {
+		$queryAllGroupsFrom  .= "join trait on qtl.Trait=trait.trait_id ";
+	}
+
+
+	$queryAllGroupsWhere .= "WHERE species='ENSEMBLSPECIESDB' ";
 
 	if (!empty($LODmin) and !empty($LODmax)) {
 		// if ($debug) echo "<p>Constraint: QTL LOD scores between $LODmin and $LODmax.</p>";
@@ -223,10 +229,47 @@ ENDOFDOCUMENTATION
 		// if ($debug) echo "<p>Constraint: QTL LOD scores &lt;= $LODmax.</p>";
 		$queryAllGroupsWhere .= " AND LOD <= $LODmax ";
 	}
+	else {
+		echo "No LOD constraint defined.<br>\n";
+	}
+
+
+	if (!empty($MeanMin) and !empty($MeanMax)) {
+		// if ($debug) echo "<p>Constraint: mean expression levels between $MeanMin and $MeanMax.</p>";
+		$queryAllGroupsWhere .= " AND $MeanMin <= mean AND mean <= $MeanMax ";
+	}
+	elseif(!empty($MeanMin)) {
+		// if ($debug) echo "<p>Constraint: mean expression levels &gt;= $MeanMin.</p>";
+		$queryAllGroupsWhere .= " AND $MeanMin <= mean ";
+	}
+	elseif(!empty($MeanMax)) {
+		// if ($debug) echo "<p>Constraint: mean expression levels &lt;= $MeanMax.</p>";
+		$queryAllGroupsWhere .= " AND mean <= $MeanMax ";
+	}
+	else {
+		echo "No Mean expression level constraint defined.<br>\n";
+	}
+
+
+	if (!empty($SdMin) and !empty($SdMin)) {
+		// if ($debug) echo "<p>Constraint: sd of expression levels between $SdMin and $SdMax.</p>";
+		$queryAllGroupsWhere .= " AND $SdMin <= mean AND mean <= $SdMax ";
+	}
+	elseif(!empty($SdMin)) {
+		// if ($debug) echo "<p>Constraint: sd of expression levels &gt;= $SdMin.</p>";
+		$queryAllGroupsWhere .= " AND $SdMin <= mean ";
+	}
+	elseif(!empty($SdMax)) {
+		// if ($debug) echo "<p>Constraint: sd of expression levels &lt;= $SdMax.</p>";
+		$queryAllGroupsWhere .= " AND mean <= $SdMax ";
+	}
+	else {
+		echo "No SD constraint defined.<br>\n";
+	}
 
 	$queryAllGroupsRest = " GROUP BY qtl_id,qq.name,covariates ORDER BY qtl_id,c DESC,covariates";
 
-	$queryAllGroups = "$queryAllGroupsSelect $queryAllGroupsFrom $queryAllGrousWhere $queryAllGroupsRest";
+	$queryAllGroups = "$queryAllGroupsSelect $queryAllGroupsFrom $queryAllGroupsWhere $queryAllGroupsRest";
 
 	echo "<p>Query: $queryAllGroups</p>";
 
