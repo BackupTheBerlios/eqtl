@@ -129,25 +129,14 @@ function print_selection_form($properties) {
 			break;
 
 			case "LOD":
-
-	echo "<tr><th>LOD-score span:</th><td>";
-	echo "<input size=5 name=LODmin".(empty($LODmin)?"3.9":" value=$LODmin").">";
-	echo " - ";
-	echo "<input size=5 name=LODmax".(empty($LODmax)?"":" value=$LODmax").">";
-	echo "</td></tr>\n";
-
-			break;
+				if (empty($LODmin)) $LODmin=3.9;
+				print_row_two_text_single("LOD-score span","LODmin","LODmax",$LODmin,$LODmax,5);
+				break;
 
 			case "quantile":
-?>
-<tr><th class=r>95% quantile span:</th>
-    <td colspan=3>
-	<input type=text name=quantilemin size=4 value= <?php echo empty($quantilemin)?"":$quantilemin; ?>>
-	-
-	<input type=text name=quantilemax size=4<?php if (!empty($quantilemax)) echo " value=$quantilemax";?>>
-    </td></tr>
-<?php
-			break;
+				print_row_two_text_single("95% quantile span","quantilemin","quantilemax",
+								$quantilemin,$quantilemax,4);
+				break;
 
 			case "LODdiff":
 ?>
@@ -156,19 +145,12 @@ function print_selection_form($properties) {
 	<input type=text name=LODdiffmin size=4 value= <?php echo empty($LODdiffmin)?"0":$LODdiffmin; ?>>
     </td></tr>
 <?php
-			break;
+				break;
 
 			case "peak":
-?>
-<tr><th class=r>centi-Morgan span for peak:</th>
-    <td colspan=3>
-	<input type=text name=cM_Peak_Min size=4<?php if (!empty($cM_Peak_Min)) echo " value=$cM_Peak_Min";?>>
-	-
-	<input type=text name=cM_Peak_Max size=4<?php if (!empty($cM_Peak_Max)) echo " value=$cM_Peak_Max";?>>
-    </td>
-</tr>
-<?php
-			break;
+				print_row_two_text_single("centi-Morgan span for peak","cM_Peak_Min","cM_Peak_Max",
+								$cM_Peak_Min,$cM_Peak_Max,4);
+				break;
 			case "flanks":
 ?>
 <tr><th class=r>centi-Morgan position<br>within flanking positions</th>
@@ -177,7 +159,7 @@ function print_selection_form($properties) {
     </td>
 </tr>
 <?php
-			break;
+				break;
 
 			case "traitlist":
 			case "trait":
