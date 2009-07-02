@@ -36,6 +36,8 @@ ENDOFDOCUMENTATION
 	require_once("header.php");
 	require_once("func_covariates.php");
 	require_once("func_conditions.php");
+	require_once("func_selection.php"); // prints parts of the HTML for forms
+
 	show_small_header("Expression QTL describing classical QTL",TRUE);
 	$err=array();
 	$conditionList=array(
@@ -186,11 +188,7 @@ ENDOFDOCUMENTATION
 
 	echo "<table width=100% border=0><tr><td>";
 	echo "<table border=0>\n";
-	echo "<tr><th>LOD:</th><td>";
-	echo "<input size=5 name=LODmin".(empty($LODmin)?"":" value=$LODmin").">";
-	echo " - ";
-	echo "<input size=5 name=LODmax".(empty($LODmax)?"":" value=$LODmax").">";
-	echo "</td></tr>";
+	print_selection_form("all_qtl_groups");
 	echo "</table>\n";
 	echo "</td><td rowspan=2>Select minimal LOD score:<br>";
 	for($lod=3.5; $lod<15; $lod++) {
