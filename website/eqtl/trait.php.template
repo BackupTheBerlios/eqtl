@@ -34,6 +34,8 @@ ENDOFDOCUMENTATION
 	require_once("header.php");
 	$database="DATABASEEQTLNAME";
 	require_once("func_connect.php");
+	require_once("func_selection.php"); // prints parts of the HTML for forms
+
 	show_small_header("Selection of eTraits",TRUE);
 
 	foreach(array("direct",
@@ -60,7 +62,6 @@ ENDOFDOCUMENTATION
 	}
 
 	// specification of attributes to be shown in table
-// 	$a=array("Trait"=>1, "genes_associated"=>1, "MMSV_data"=>1, "LocusOfGene"=>1, "swissprot_ID"=>1);
 	$a=array("Trait"=>1,
 		"Rat_gene_associated"=>1, "Human_ontholog_gene"=>1, "transcript"=>1,
 		"mean_sd_variance"=>1,
@@ -118,30 +119,6 @@ ENDOFDOCUMENTATION
 			    <td><input type=text name=description lenth=70>
 			    </td>
 			</tr>-->
-			<tr><th align=right>Mean:</th>
-						<td>
-							<input type=text name=MeanMin size=7>
-						-
-							<input type=text name=MeanMax size=7>
-						</td></tr>
-			<tr><th align=right>Median:</th>
-						<td>
-							<input type=text name=MedianMin size=7>
-						-
-							<input type=text name=MedianMax size=7>
-						</td></tr>
-			<tr><th align=right>Sd:</th>
-						<td>
-							<input type=text name=SdMin size=7>
-						-
-							<input type=text name=SdMax size=7>
-						</td></tr>
-			<tr><th align=right>Variance:</th>
-						<td>
-							<input type=text name=VarianceMin size=7>
-						-
-							<input type=text name=VarianceMax size=7>
-						</td></tr>
 			<tr><th rowspan=3 align=left>Correlation</th>
 
 				<td valign=top><b>Expression correlation</b><br>
@@ -187,7 +164,10 @@ ENDOFDOCUMENTATION
 
 			mysql_free_result($result);
 ?>
-						</td></tr>
+		</td></tr>
+<?php
+			print_selection_form("all_qtl_trait");
+?>
 			<tr><th align=right>order by:</th><td>
 						<select name=order>
 						<option value=probeset_id>Trait Number</option>

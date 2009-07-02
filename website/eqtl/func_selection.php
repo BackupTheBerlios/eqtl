@@ -2,12 +2,38 @@
 
 require_once("func_dbconfig.php"); // errorMessage
 
+function print_input_text($name,$val,$td=FALSE,$size=7) {
+   if ($td) echo "<td>";
+   echo "<input type=text name=$name size=$size";
+   if (!(""=="$val" or empty($val))) {
+   	echo " value=\"$val\"";
+   }
+   echo ">";
+   if ($td) echo "</td>";
+}
+
+function print_two_input_text($name1,$name2,$val1,$val2,$td=TRUE,$size=7,$interspace=" - ") {
+   if ($td) echo "<td>";
+   print_input_text($name1,$val1,FALSE,$size);
+   echo "$interspace";
+   print_input_text($name2,$val2,FALSE,$size);
+   if ($td) echo "</td>";
+}
+
+function print_row_two_text_single($rname,$name1,$name2,$val1,$val2,$size=7,$interspace=" - ") {
+   echo "<tr>";
+   echo "<th align=right>$rname:</th>";
+   print_two_input_text($name1,$name2,$val1,$val2,TRUE,$size,$interspace);
+   echo "</tr>\n";
+}
+
+
 function print_selection_form($properties) {
 
 	global $LODmin,$LODmax,$quantilemin,$quantilemax,
 	       $LODdiffmin, $LODdiffmax, $cM_Peak_Min, $cM_Peak_Max,
 	       $cM_within, $groups, $locus, $chrlist,
-	       $MeanMin, $MeanMax, $SdMin, $SdMax
+	       $MeanMin, $MeanMax, $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax
 	;
 
 
@@ -27,6 +53,12 @@ function print_selection_form($properties) {
 		 case "all_qtl_groups":
 			$properties = array("mean", "sd", "LOD");
 			 break;
+		 
+		 case "all_qtl_trait":
+			$properties = array("mean", "sd", "median", "variance" #, "LOD"
+			);
+			 break;
+		 
 		 default: 
 			$properties = preg_split("/,/",$properties);
 			break;
@@ -167,51 +199,22 @@ function print_selection_form($properties) {
 <?php
 			break;
 
+
 			case "mean":
-?>
-			<tr><th class=r>Expression level mean min:</th>
-			    <td><input type=text name=MeanMin size=6 maxsize=6
-<?php
-	if (!empty($MeanMin)) {
-		echo "value=\"$MeanMin\"";
-	}
-?>
-			></td> &nbsp;
-			    <th class=r>Mean max:</th>
-			    <td><input type=text name=MeanMax size=6 maxsize=6
-<?php
-	if (!empty($MeanMax)) {
-		echo "value=\"$MeanMax\"";
-	}
-?>
-			></td></tr>
-<?php
-			break;
+				print_row_two_text_single("Expression Mean","MeanMin","MeanMax",$MeanMin,$MeanMax);
+				break;
+
+			case "median":
+				print_row_two_text_single("Expression Median","MedianMin","MedianMax",$MedianMin,$MedianMax);
+				break;
+
+			case "variance":
+				print_row_two_text_single("Expression Variance","VarianceMin","VarianceMax",$VarianceMin,$VarianceMax);
+				break;
 
 			case "sd":
-?>
-			<tr><th class=r>Expression level standard deviation min:</th>
-			    <td><input type=text name=SdMin size=6 maxsize=6
-<?php
-	if (!empty($SdMin)) {
-		echo "value=\"$SdMin\"";
-	}
-?>
-			></td> &nbsp;
-			    <th class=r>SD max:</th>
-			    <td><input type=text name=trait_sd_max size=6 maxsize=6
-<?php
-	if (!empty($SdMax)) {
-		if (is_array($SdMax)) {
-			echo "value=\"".join(",",$SdMax)."\"";
-		}
-		else {
-			echo "value=\"$SdMax\"";
-		}
-	}
-?>
-			></td></tr>
-<?php
+				print_row_two_text_single("Expression SD","SdMin","SdMax",$SdMin,$SdMax);
+				break;
 			break;
 
 			default:
