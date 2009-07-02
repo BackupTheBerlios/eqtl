@@ -194,7 +194,13 @@ ENDOFDOCUMENTATION
 	echo "</td><td rowspan=2>Select minimal LOD score:<br>";
 	for($lod=3.5; $lod<15; $lod++) {
 		if (!empty($LODmin) and $lod==$LODmin) echo "<b><font size=+2>";
-		echo "<a href=\"http:qtl_groups.php?LODmin=$lod\">$lod</a>";
+		echo "<a href=\"http:qtl_groups.php?LODmin=$lod";
+		foreach(array("MeanMin","MeanMax","SdMin","SdMax") as $f) {
+			if (!empty($$f)) {
+				echo "&".$f."=".$$f;
+			}
+		}
+		echo "\">$lod</a>";
 		if (!empty($LODmin) and $lod==$LODmin) echo "</font></b>";
 		echo "\n";
 	}
