@@ -251,17 +251,17 @@ ENDOFDOCUMENTATION
 	}
 
 
-	if (!empty($SdMin) and !empty($SdMin)) {
+	if (!empty($SdMin) and !empty($SdMax)) {
 		// if ($debug) echo "<p>Constraint: sd of expression levels between $SdMin and $SdMax.</p>";
-		$queryAllGroupsWhere .= " AND $SdMin <= mean AND mean <= $SdMax ";
+		$queryAllGroupsWhere .= " AND $SdMin <= sd AND sd <= $SdMax ";
 	}
 	elseif(!empty($SdMin)) {
 		// if ($debug) echo "<p>Constraint: sd of expression levels &gt;= $SdMin.</p>";
-		$queryAllGroupsWhere .= " AND $SdMin <= mean ";
+		$queryAllGroupsWhere .= " AND $SdMin <= sd ";
 	}
 	elseif(!empty($SdMax)) {
 		// if ($debug) echo "<p>Constraint: sd of expression levels &lt;= $SdMax.</p>";
-		$queryAllGroupsWhere .= " AND mean <= $SdMax ";
+		$queryAllGroupsWhere .= " AND sd <= $SdMax ";
 	}
 	else {
 		echo "No SD constraint defined.<br>\n";

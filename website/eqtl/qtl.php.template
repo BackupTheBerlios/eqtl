@@ -291,7 +291,7 @@ ENDOFDOCUMENTATION
 		}
 		include_once("func_public_qtl.php");
 
-		$where=FALSE;
+		$where="WHERE ";
 		$query = "SELECT ";
 		if ($onlyNumbers and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
 		#if ($onlyNumbers and !(isset($condition) and is_array($condition))) {
@@ -334,6 +334,10 @@ ENDOFDOCUMENTATION
 				$query .= ", trait.mean, trait.sd";
 			}
 		}
+
+		#
+		# F R O M
+		#
 
 		$query  .= " FROM qtl ";
 
@@ -404,6 +408,10 @@ ENDOFDOCUMENTATION
 			}
 		}
 
+		#
+		# W H E R E 
+		#
+
 		if (!empty($groups)) {
 			if (is_array($groups)) {
 				$g=$groups;
@@ -412,16 +420,12 @@ ENDOFDOCUMENTATION
 				$g=preg_split("/[ ,;\t\n\r]+/",$groups);
 			}
 			if (count($g)>0) {
-				if ($where) $query .= " AND ";
-				else {
-					$query .= " WHERE ";
-					$where = TRUE;
-				}
+				if ("WHERE " != $where) $where .= " AND ";
 				if (1==count($g)) {
-					$query .= " qtl_groups.qtl_id=".$g[0];
+					$where .= " qtl_groups.qtl_id=".$g[0];
 				}
 				else {
-					$query .= " qtl_groups.qtl_id in ('".join("','",$g)."')";
+					$where .= " qtl_groups.qtl_id in ('".join("','",$g)."')";
 				}
 			}
 		}
@@ -434,116 +438,87 @@ ENDOFDOCUMENTATION
 				$loci=preg_split("/[ ,;\t\n\r]+/",$locus);
 			}
 			if (count($loci)>0) {
-				if ($where) $query .= " AND ";
-				else {
-					$query .= " WHERE ";
-					$where = TRUE;
-				}
+				if ("WHERE " != $where) $where .= " AND ";
 				if (1==count($loci)) {
-					$query .= " qtl.Locus='".$loci[0]."'";
+					$where .= " qtl.Locus='".$loci[0]."'";
 				}
 				else {
-					$query .= " qtl.Locus in ('".join("','",$loci)."')";
+					$where .= " qtl.Locus in ('".join("','",$loci)."')";
 				}
 			}
 		}
 		if (!empty($chrlist)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " Chromosome";
-			#$query .= " Chr";
-			$query .= " in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " Chromosome";
+			$where .= " in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
 		}
 
                 if (!empty($traitlist)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " Trait in ('".join("','",preg_split("/[, ;]/",$traitlist))."') ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " Trait in ('".join("','",preg_split("/[, ;]/",$traitlist))."') ";
 		}
-		#
-		# SdExpression
-		#
-
-		if (!empty($SdMin) and !empty($SdMax)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " (trait.Sd between $SdMin and $SdMax) ";
-		}
-/*
-		elsif (!empty($SdMin)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " trait.Sd >= $SdMin ";
-		}
-		elsif (!empty($SdMax)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " trait.Sd <= $SdMax ";
-		}
-
-	*/
 
 		#
 		# MeanExpression
 		#
 
+		if (!empty($MedianMin) and !empty($MedianMax)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " (trait.Median between $MedianMin and $MedianMax) ";
+		}
+		elseif( !empty($MedianMin) ) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " median >= ".$MedianMin;
+		}
+		elseif( !empty($MedianMax) ) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " median <= ".$MedianMax;	
+		}
+
 		if (!empty($MeanMin) and !empty($MeanMax)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " (trait.Mean between $MeanMin and $MeanMax) ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " (trait.Mean between $MeanMin and $MeanMax) ";
 		}
-/*
-		elsif (!empty($MeanMin)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " trait.Mean >= $MeanMin ";
+		elseif( !empty($MeanMin) ) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " mean >= ".$MeanMin;	
 		}
-		elsif (!empty($MeanMax)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " trait.Mean <= $MeanMax ";
+		elseif( !empty($MeanMax) ) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " mean <= ".$MeanMax;
 		}
-	*/
+
+		if( !empty($SdMin) ) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " sd >= ".$SdMin;
+		}
+
+		if( !empty($SdMax) ) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " sd <= ".$SdMax;
+		}
+
+		if( !empty($VarianceMin) ) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " variance >= ".$VarianceMin;
+		}
+
+		if( !empty($VarianceMax) ) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " variance <= ".$VarianceMax;
+		}
 
 		#
 		#	Covariates - they are always queried
 		# 
 
 		if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
+			if ("WHERE " != $where) $where .= " AND ";
 			if (0==count($covariates)) {
-				$query .= " covariates='' ";
+				$where .= " covariates='' ";
 			}
 			else {
-				$query .= " covariates='".join(",",$covariates)."' ";
+				$where .= " covariates='".join(",",$covariates)."' ";
 			}
 		}
 
@@ -564,73 +539,41 @@ ENDOFDOCUMENTATION
 
 		if (!(empty($cM_Peak_Min) or empty($cM_Peak_Max))) {
 			# A region is specified
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " (cMorgan_Peak BETWEEN ".$cM_Peak_Min." AND ".$cM_Peak_Max.") ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " (cMorgan_Peak BETWEEN ".$cM_Peak_Min." AND ".$cM_Peak_Max.") ";
 		}
 		else {
 			if (!empty($cM_Peak_Min)) {
-				if ($where) $query .= " AND ";
-				else {
-					$query .= " WHERE ";
-					$where = TRUE;
-				}
-				$query .= " cMorgan_Peak >= ".$cM_Peak_Min." ";
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " cMorgan_Peak >= ".$cM_Peak_Min." ";
 			}
 			if (!empty($cM_Peak_Max)) {
-				if ($where) $query .= " AND ";
-				else {
-					$query .= " WHERE ";
-					$where = TRUE;
-				}
-				$query .= " cMorgan_Peak <= ".$cM_Peak_Max." ";
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " cMorgan_Peak <= ".$cM_Peak_Max." ";
 			}
 		}
 
 		if (!empty($cM_within)||"0"==$cM_within) {
 			if (!is_numeric($cM_within)) array_push($err,"The position to be within a QTL must be numeric ($cM_within).\n");
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " ($cM_within between cMorgan_Min and cMorgan_Max) ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " ($cM_within between cMorgan_Min and cMorgan_Max) ";
 		}
 
 		if (!empty($LODmin)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " LOD >= ".$LODmin." ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " LOD >= ".$LODmin." ";
 		}
 		if (!empty($LODmax)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " LOD <= ".$LODmax." ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " LOD <= ".$LODmax." ";
 		}
 		if (!empty($quantilemin)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " Quantile >= ".$quantilemin." ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " Quantile >= ".$quantilemin." ";
 		}
 		if (!empty($quantilemax)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " Quantile <= ".$quantilemax." ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " Quantile <= ".$quantilemax." ";
 		}
 
 		// LODdiff = LOD - Quantile
@@ -639,26 +582,19 @@ ENDOFDOCUMENTATION
 				array_push($err, "LOD score difference must be numeric.\n");
 			}
 			else {
-				if ($where) $query .= " AND ";
-				else {
-					$query .= " WHERE ";
-					$where = TRUE;
-				}
-				#$query .= " LODdiff >= ".$LODdiffmin." "; # not understood by MySQL
-				$query .= " (LOD - Quantile) >= ".$LODdiffmin." ";
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " (LOD - Quantile) >= ".$LODdiffmin." ";
 			}
 		}
 		
 		if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
 			if ("manual" != $conditionList[$c]["constraint"]) {
-				if ($where) $query .= " AND ";
-				else {
-					$query .= " WHERE ";
-					$where = TRUE;
-				}
-				$query .= " ".$conditionList[$c]["constraint"]." ";
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " ".$conditionList[$c]["constraint"]." ";
 			}
 		}
+
+		$query .= " $where ";
 
 		#if (!empty($onlyNumbers) and !empty($onlyNumbersGrouped) and "totals" != "$onlyNumbersGrouped") {
 		if (!empty($onlyNumbers) and !empty($onlyNumbersGrouped) and "totals" != "$onlyNumbersGrouped" and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
