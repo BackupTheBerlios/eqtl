@@ -203,25 +203,30 @@ ENDOFDOCUMENTATION
 	echo "<tr><td><input type=submit></td></tr>";
 	echo "</table>\n";
 
-	$queryAllGroups = "SELECT qtl_id,qq.name,covariates,qq.source,qq.trait,start_cm,stop_cm,start_bps,stop_bps,locus.chr,count(*) as c "
-			 ."FROM qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry left join locus on locus_id=No join qtl on locus.Name=qtl.Locus ";
+	$queryAllGroupsSelect = "SELECT "
+			      . "qtl_id,qq.name,covariates,qq.source,qq.trait,start_cm,stop_cm,start_bps,stop_bps,locus.chr,"
+			      . "count(*) as c ";
+	$queryAllGroupsFrom   = "FROM qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry "
+			      . "left join locus on locus_id=No join qtl on locus.Name=qtl.Locus ";
 
-	$queryAllGrous .= "WHERE species='ENSEMBLSPECIESDB' ";
+	$queryAllGrousWhere .= "WHERE species='ENSEMBLSPECIESDB' ";
 
 	if (!empty($LODmin) and !empty($LODmax)) {
 		// if ($debug) echo "<p>Constraint: QTL LOD scores between $LODmin and $LODmax.</p>";
-		$queryAllGroups .= " AND $LODmin <= LOD AND LOD <= $LODmax ";
+		$queryAllGroupsWhere .= " AND $LODmin <= LOD AND LOD <= $LODmax ";
 	}
 	elseif(!empty($LODmin)) {
 		// if ($debug) echo "<p>Constraint: QTL LOD scores &gt;= $LODmin.</p>";
-		$queryAllGroups .= " AND $LODmin <= LOD ";
+		$queryAllGroupsWhere .= " AND $LODmin <= LOD ";
 	}
 	elseif(!empty($LODmax)) {
 		// if ($debug) echo "<p>Constraint: QTL LOD scores &lt;= $LODmax.</p>";
-		$queryAllGroups .= " AND LOD <= $LODmax ";
+		$queryAllGroupsWhere .= " AND LOD <= $LODmax ";
 	}
 
-	$queryAllGroups .= " GROUP BY qtl_id,qq.name,covariates ORDER BY qtl_id,c DESC,covariates";
+	$queryAllGroupsRest = " GROUP BY qtl_id,qq.name,covariates ORDER BY qtl_id,c DESC,covariates";
+
+	$queryAllGroups = "$queryAllGroupsSelect $queryAllGroupsFrom $queryAllGrousWhere $queryAllGroupsRest";
 
 	echo "<p>Query: $queryAllGroups</p>";
 
