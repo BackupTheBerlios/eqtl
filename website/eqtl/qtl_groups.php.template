@@ -205,7 +205,7 @@ ENDOFDOCUMENTATION
 		echo "\n";
 	}
 	echo "</td><td rowspan=2>";
-	print_condition_form_element($conditionList,"Select if cis- or trans-acting <i>(not yet implemented)</i>",$condition);
+	print_condition_form_element($conditionList,"Select if cis- or trans-acting",$condition,"radio");
 	echo "</td></tr>";
 	echo "<tr><td><input type=submit></td></tr>";
 	echo "</table>\n";
@@ -271,6 +271,29 @@ ENDOFDOCUMENTATION
 	}
 	else {
 		echo "No SD constraint defined.<br>\n";
+	}
+
+
+	// Interpret the list of extra conditions
+
+	if (!empty($condition)) {
+		if (!is_array($condition)) {
+			errorMessage("Expected array for conditions.");
+			print_r($condition);
+		}
+		foreach($condition as $c) {
+			if (!empty($c)) {
+				$e = $conditionList[$c];
+				if (empty($e)) {
+					errorMessage("Could not find condition to match '$c'.");
+					print_r($conditionList);
+				}
+				else {
+					$queryAllGroupsWhere .= " AND ";
+					$queryAllGroupsWhere .= $e["constraint"] . " ";
+				}
+			}
+		}
 	}
 
 	$queryAllGroupsRest = " GROUP BY qtl_id,qq.name,covariates ORDER BY qtl_id,c DESC,covariates";
