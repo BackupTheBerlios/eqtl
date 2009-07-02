@@ -70,7 +70,7 @@ ENDOFDOCUMENTATION
 
 	function qtlGroupHtmlRef($group_id,$group_name,$covariates,$direct=TRUE) {
 
-		global $LODmin, $LODmax, $MeanMin, $MeanMax, $SdMin, $SdMax;
+		global $LODmin, $LODmax, $MeanMin, $MeanMax, $SdMin, $SdMax, $condition;
 
 		$r  =  "<a href=\"http:qtl.php?groups=".$group_id;
 		if (!empty($covariates)) {
@@ -82,6 +82,11 @@ ENDOFDOCUMENTATION
 		$vars = array("LODmin","LODmax","MeanMin","MeanMax","SdMin","SdMax");
 		foreach($vars as $v) {
 			if (!empty($$v)) $r .= "&$v=".$$v;
+		}
+		if(!empty($condition)) {
+			foreach($condition as $c) {
+				$r .= "&condition[]=$c";
+			}
 		}
 		$r .= "\">";
 		$r .= $group_name."</a>";

@@ -66,6 +66,14 @@ ENDOFDOCUMENTATION
 			"constraint"=>"manual",
 			"description"=>"The peak of the e-QTL overlaps with a classical QTL"
 		),
+		"cis-acting" => array(
+			"constraint"=>"cis=1",
+			"description"=>"Gene located within flanking markers"
+		),
+		"trans-acting" => array(
+			"constraint"=>"cis=0",
+			"description"=>"Gene located outside flanking markers or on other chromosome"
+		)
 	);
 
 
