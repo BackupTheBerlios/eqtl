@@ -49,15 +49,19 @@ function print_selection_form($properties) {
 					    "chromosome", "LOD", "quantile", "LODdiff",
 					    "peak", "flanks", "trait",
 					    "mean", "sd");
-			 break;
+			break;
 		 case "all_qtl_groups":
 			$properties = array("mean", "sd", "LOD");
-			 break;
+			break;
+		 
+		 case "all_qtl_phen":
+			$properties = array("mean", "sd", "median", "variance");
+			break;
 		 
 		 case "all_qtl_trait":
 			$properties = array("mean", "sd", "median", "variance" #, "LOD"
 			);
-			 break;
+			break;
 		 
 		 default: 
 			$properties = preg_split("/,/",$properties);

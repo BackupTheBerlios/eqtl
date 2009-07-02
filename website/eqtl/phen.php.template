@@ -40,6 +40,8 @@ ENDOFDOCUMENTATION
 
 	require_once("header.php");
 	require_once("func_covariates.php");
+	require_once("func_selection.php"); // prints parts of the HTML for forms
+
 	show_small_header("Classical phenotypes as covariates",TRUE);
 	$err=array();
 	$conditionList=array(
@@ -141,6 +143,11 @@ ENDOFDOCUMENTATION
 
 	echo '<form action="phen.php" method="post">'."\n";
 	echo '<input type=hidden name=submitted value=1>'."\n";
+
+	echo "<table>";
+	print_selection_form("all_qtl_phen"); 
+	echo "<tr><td><input type=submit></td></tr>";
+	echo "</table>";
 
 	$queryPhenotypes = "SELECT DISTINCT phen FROM trait_phen_cor";
 	$queryPhenotypes .= " LIMIT 1000"; # just to be on the save side

@@ -205,6 +205,11 @@ ENDOFDOCUMENTATION
 				echo "&".$f."=".$$f;
 			}
 		}
+		if(!empty($condition)) {
+			foreach($condition as $c) {
+				$r .= "&condition[]=$c";
+			}
+		}
 		echo "\">$lod</a>";
 		if (!empty($LODmin) and $lod==$LODmin) echo "</font></b>";
 		echo "\n";
