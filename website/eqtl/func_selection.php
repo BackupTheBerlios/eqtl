@@ -62,7 +62,7 @@ function print_selection_form($properties) {
 			break;
 		 
 		 case "all_qtl_phen":
-			$properties = array("mean", "sd", "median", "variance","numtraitstoshow");
+			$properties = array("mean", "sd", "median", "variance","limit");
 			break;
 		 
 		 case "all_qtl_trait":
@@ -209,9 +209,9 @@ function print_selection_form($properties) {
 				print_row_two_text_single("Expression SD","SdMin","SdMax",$SdMin,$SdMax);
 				break;
 
-			case "numtraitstoshow":
-				if (empty($numgenestoshow)) $numgenestoshow=10;
-				print_row_one_text_single("# traits to show","numgenestoshow",$numgenestoshow,4);
+			case "limit":
+				if (empty($limit)) $limit=10;
+				print_row_one_text_single("Limit","limit",$limit,4);
 				break;
 
 			default:
