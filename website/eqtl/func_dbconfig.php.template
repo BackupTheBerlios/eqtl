@@ -103,7 +103,7 @@ $databaseEnsembl=martdbname($ensemblversionEnsembl);
 
 $ensemblhost=$hostnameEnsembl;
 $ensembluser="anonymous";
-$ensemblorganism="Rattus_norvegicus";
+$ensemblorganism="ENSEMBLSPECIESSEARCHURL";
 $ensembldatabase=$databaseEnsembl;
 
 

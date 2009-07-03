@@ -463,7 +463,7 @@ ENDOFDOCUMENTATION
 					case "transcript":
 						$b=explode(".",$l);
 						echo "<td><a href=\""
-							.gene2ensemblUrl($b[0],$species_name_ensembl_core)
+							.gene2ensemblUrl($b[0],$species_name_latin)
 							."\">$l</a></td>";
 						break;
 // 					case "MMSV_data":
