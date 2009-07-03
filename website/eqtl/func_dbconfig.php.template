@@ -87,10 +87,26 @@ function probe2ensemblUrl($id,$species="Rattus_norvegicus"){
 }
 
 /**
+ * Returns URL of page summarising a particular gene.
+ */
+function gene2ensemblUrl($id,$species="Rattus_norvegicus"){
+	global $ensemblversionEnsembl;
+	return "http://www.ensembl.org/".$species."/Gene/Summary?g=".$id;
+}
+
+/**
+ * Returns URL of page summarising a particular transcript.
+ */
+function transcript2ensemblUrl($id,$species="Rattus_norvegicus"){
+	global $ensemblversionEnsembl;
+	return "http://www.ensembl.org/".$species."/Transcript/Summary?t=".$id;
+}
+
+/**
  * Returns the page with results from a search for a
  * gene with that ID in Ensembl.
  */
-function gene2ensemblUrl($id,$species="Rattus_norvegicus"){
+function transcript2ensemblSearchUrl($id,$species="Rattus_norvegicus"){
 	global $ensemblversionEnsembl;
 	return "http://www.ensembl.org/".$species."/Search/Summary?species="
 		.$species.";idx=;q=".$id;

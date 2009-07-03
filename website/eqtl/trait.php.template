@@ -460,10 +460,16 @@ ENDOFDOCUMENTATION
 // 					case "LocusOfGene":
 // 						echo "<td>".$line["Chr"]."</td><td>".$line["start"]."</td><td>".$line["stop"]."</td>";
 // 						break;
-					case "transcript":
+					case "Rat_gene_associated":
 						$b=explode(".",$l);
 						echo "<td><a href=\""
 							.gene2ensemblUrl($b[0],$species_name_latin)
+							."\">$l</a></td>";
+						break;
+					case "transcript":
+						$b=explode(".",$l);
+						echo "<td><a href=\""
+							.transcript2ensemblUrl($b[0],$species_name_latin)
 							."\">$l</a></td>";
 						break;
 // 					case "MMSV_data":
