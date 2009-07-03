@@ -199,12 +199,76 @@ ENDOFDOCUMENTATION
 		$os=array("DESC","ASC");
 		foreach ($os as $o) {
 			echo "<td>";
-			$queryAllCorrelations = "SELECT trait_id,rho,p "
-				 ."FROM trait_phen_cor "
-				 ."WHERE phen='$p' "
-				 ."ORDER BY rho $o "
-				 ."LIMIT $limit";
+			$where = "WHERE phen='$p' ";
+
+
+			if (!empty($phen)) {
+				$p = preg_split("/,/",$phen);
+				if (1 == count($p)) {
+					$where .= " AND phen = '$phen' ";
+				}
+				else if (0 < count($p)) {
+					$where .= " AND phen in '".join("','",$p)."' ";
+				}
+			}
+
+			if (!empty($traits)) {
+				$traitsArray=preg_split("/[, \t\n]+/",$traits);
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " BEARatChip.probeset_id IN ('".join("','",$traitsArray)."') ";
+			}
+
+			if( !empty($MedianMin) ) {
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " median >= ".$MedianMin;
+			}
+
+			if( !empty($MedianMax) ) {
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " median <= ".$MedianMax;	
+			}
+
+			if( !empty($MeanMin) ) {
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " mean >= ".$MeanMin;	
+			}
+
+			if( !empty($MeanMax) ) {
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " mean <= ".$MeanMax;
+			}
+
+			if( !empty($SdMin) ) {
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " sd >= ".$SdMin;
+			}
+
+			if( !empty($SdMax) ) {
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " sd <= ".$SdMax;
+			}
+
+			if( !empty($VarianceMin) ) {
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " variance >= ".$VarianceMin;
+			}
+
+			if( !empty($VarianceMax) ) {
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " variance <= ".$VarianceMax;
+			}
+
+
+			$queryAllCorrelations = "SELECT trait_phen_cor.trait_id,rho,p "
+				 ." FROM trait_phen_cor "
+				 . ((empty($MeanMin) and empty($MeanMax) and empty($SdMin) and empty($SdMax))?"":"right join trait using(trait_id)")
+				 ." $where "
+				 ." ORDER BY rho $o " ."LIMIT $limit";
 			;
+
+
+			echo "Query: '$queryAllCorrelations'<br>";
+
 			$result = mysql_query($queryAllCorrelations,$linkLocal);
 			if (empty($result)) {
 				errorMessage(mysql_error($linkLocal)."</p><p>".$queryAllCorrelations."</p>");
@@ -214,7 +278,7 @@ ENDOFDOCUMENTATION
 			}
 			while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
 				echo "<a href=\"http:trait.php?traits=".$line["trait_id"]."\">".$line["trait_id"]."</a> ";
-				echo $line["rho"]." (".$line["p"].")\n";
+				echo round($line["rho"],3)." (".round($line["p"],5).")\n";
 			}
 			mysql_free_result($result);
 			echo "</td>";
