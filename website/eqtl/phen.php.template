@@ -71,6 +71,7 @@ ENDOFDOCUMENTATION
 		"LODdiffmin","LODdiffmax",
 		"cM_Peak_Min","cM_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
+		"MedianMin","MedianMax","VarianceMin","VarianceMax",
 		"locus","chrlist", "condition"
 	);
 
@@ -261,7 +262,8 @@ ENDOFDOCUMENTATION
 
 			$queryAllCorrelations = "SELECT trait_phen_cor.trait_id,rho,p "
 				 ." FROM trait_phen_cor "
-				 . ((empty($MeanMin) and empty($MeanMax) and empty($SdMin) and empty($SdMax))?"":"right join trait using(trait_id)")
+				 . ((empty($MeanMin) and empty($MeanMax) and empty($SdMin) and empty($SdMax) and
+				     empty($MedianMin) and empty($MedianMax) and empty($VarianceMin) and empty($VarianceMax))?"":"right join trait using(trait_id)")
 				 ." $where "
 				 ." ORDER BY rho $o " ."LIMIT $limit";
 			;
