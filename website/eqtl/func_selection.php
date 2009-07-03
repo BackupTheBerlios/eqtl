@@ -27,6 +27,13 @@ function print_row_two_text_single($rname,$name1,$name2,$val1,$val2,$size=7,$int
    echo "</tr>\n";
 }
 
+function print_row_one_text_single($rname,$name1,$val1,$size=7) {
+   echo "<tr>";
+   echo "<th align=right>$rname:</th>";
+   print_input_text($name1,$val1,TRUE,$size);
+   echo "</tr>\n";
+}
+
 
 function print_selection_form($properties) {
 
@@ -55,7 +62,7 @@ function print_selection_form($properties) {
 			break;
 		 
 		 case "all_qtl_phen":
-			$properties = array("mean", "sd", "median", "variance");
+			$properties = array("mean", "sd", "median", "variance","numtraitstoshow");
 			break;
 		 
 		 case "all_qtl_trait":
@@ -201,7 +208,11 @@ function print_selection_form($properties) {
 			case "sd":
 				print_row_two_text_single("Expression SD","SdMin","SdMax",$SdMin,$SdMax);
 				break;
-			break;
+
+			case "numtraitstoshow":
+				if (empty($numgenestoshow)) $numgenestoshow=10;
+				print_row_one_text_single("# traits to show","numgenestoshow",$numgenestoshow,4);
+				break;
 
 			default:
 				errorMessage("print_selection_form: Unknown parameter '$p'\n");
