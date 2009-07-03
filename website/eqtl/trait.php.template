@@ -73,7 +73,8 @@ ENDOFDOCUMENTATION
 #		 "traits_pos_cor_most"=>1, "traits_pos_cor_most_rho"=>1,
 #		 "traits_neg_cor"=>1, "traits_neg_cor_rho"=>1,
 #		 "traits_neg_cor_most"=>1, "traits_neg_cor_most_rho"=>1,
-		 "Chromosome"=>1, "start"=>1, "stop"=>1);
+		 # "Chromosome"=>1, 
+		 "seqname"=>1, "start"=>1, "stop"=>1);
 
 	foreach ($a as $vname =>$v) {
 		$vname = "show_".$vname;
@@ -251,16 +252,13 @@ ENDOFDOCUMENTATION
 				else if ("phen_correlation"=="$n") {
 				# the one-to-many relationship cannot be reasonably well
 				# resolved for the display of the data. Instead, a second
-				# query will be performed.
-				#	$query .= ",trait_phen_cor.phen";
-				#	$query .= ",trait_phen_cor.rho";
-				#	$query .= ",trait_phen_cor.p";
-				#	$from  .= " left join trait_phen_cor using(trait_id) ";
+				# query will be performed while presening the results from
+				# this 'outer' query..
 				}
 				else {
 					$query .= ", $n";
 				}
-				if ("transcript"=="$n" or "Chromosome"=="$n"
+				if ("transcript"=="$n" or "Chromosome"=="$n" or "seqname"=="$n"
 				      or "start"=="$n" or "stop"=="$n")
 				{
 					if( !$joinedTrait ) {
@@ -410,9 +408,18 @@ ENDOFDOCUMENTATION
 				foreach($line as $n=>$l) {
 					$f="show_".$n;
 					if (!empty($$f)) {
-						echo "<th><small>$n</small></th>";
-						if ("LocusOfGene"==$n && !empty($show_LocusOfGene)) {
-							echo "<th colspan=3><small>Locus chr,start,stop</small></th>";
+						switch($n) {
+						case "seqname": // shown together with 'start'
+						case "stop": // shown together with 'start'
+							continue; 
+							break;
+
+						case "start":
+							echo "<th><small>chr :<br>start - stop</small></th>";
+							break;
+
+						default:
+							echo "<th><small>$n</small></th>";
 						}
 					}
 					else if("traits_pos_cor"=="$n") {
@@ -457,9 +464,6 @@ ENDOFDOCUMENTATION
 						."<a href=\"interaction.php?traitlist=$l&type=Y\">j</a>"
 						."]</td>";
 							break;
-// 					case "LocusOfGene":
-// 						echo "<td>".$line["Chr"]."</td><td>".$line["start"]."</td><td>".$line["stop"]."</td>";
-// 						break;
 					case "Rat_gene_associated":
 						$b=explode(".",$l);
 						echo "<td><a href=\""
@@ -472,6 +476,20 @@ ENDOFDOCUMENTATION
 							.transcript2ensemblUrl($b[0],$species_name_latin)
 							."\">$l</a></td>";
 						break;
+
+					case "start":
+						echo "<td align=center>";
+						if (!empty($line["seqname"])) echo $line["seqname"] . " : ";
+						echo $line["start"];
+						if (!empty($line["stop"])) echo " - ".$line["stop"];
+						echo "</td>";
+						break;
+
+					case "seqname":
+					case "stop":
+						// dealt with in 'start'
+						break;
+
 // 					case "MMSV_data":
 // 						echo "<td>".$line["mean"]."</td><td>".$line["median"]."</td><td>".$line["sd"]."</td><td>".$line["variance"]."</td>";
 // 						break;
