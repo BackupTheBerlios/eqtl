@@ -2,10 +2,11 @@ package de.uni_luebeck.inb.krabbenh;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.AnnotationConfiguration;
-import org.hibernate.cfg.Configuration;
 
-import de.uni_luebeck.inb.krabbenh.entities.Mouse;
-import de.uni_luebeck.inb.krabbenh.entities.MouseExpression;
+import de.uni_luebeck.inb.krabbenh.entities.Covariate;
+import de.uni_luebeck.inb.krabbenh.entities.ExpressionQTL;
+import de.uni_luebeck.inb.krabbenh.entities.Locus;
+import de.uni_luebeck.inb.krabbenh.entities.MarkerInterpolation;
 import de.uni_luebeck.inb.krabbenh.entities.Snip;
 
 public class HibernateUtil {
@@ -16,9 +17,11 @@ public class HibernateUtil {
         try {
             // Create the SessionFactory from hibernate.cfg.xml
             sessionFactory = new AnnotationConfiguration().configure()
-            .addAnnotatedClass(Mouse.class)
-            .addAnnotatedClass(MouseExpression.class)
-            .addAnnotatedClass(Snip.class)
+            .addAnnotatedClass(Covariate.class)
+             .addAnnotatedClass(MarkerInterpolation.class)
+             .addAnnotatedClass(Locus.class)
+             .addAnnotatedClass(Snip.class)
+            .addAnnotatedClass(ExpressionQTL.class)
             .buildSessionFactory();
         } catch (Throwable ex) {
             // Make sure you log the exception, as it might be swallowed

@@ -1,84 +1,74 @@
 package de.uni_luebeck.inb.krabbenh.entities;
 
-import java.util.Set;
+import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
-
 
 
 @Entity
-public class Snip implements java.io.Serializable {
+public class Snip implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	private int id;
-	private Set<MouseExpression> expressions;
-	private String accession;
-	private String symbol;
-	private int start;
-	private String probeSequence;
-	private String description;
+	private long entrezId;
+
+	private String chromosome;
+	private boolean positiveStrand;
+	private long fromBp;
+	private long toBp;
+
+	@Id
+	@GeneratedValue
+	@Column(unique = true, nullable = false)
+	public int getId() {
+		return id;
+	}
 
 	public void setId(int id) {
 		this.id = id;
 	}
 
-	@Id
-	public int getId() {
-		return id;
+	public long getEntrezId() {
+		return entrezId;
 	}
 
-	public void setExpressions(Set<MouseExpression> expressions) {
-		this.expressions = expressions;
+	public void setEntrezId(long entrezId) {
+		this.entrezId = entrezId;
 	}
 
-	@OneToMany(mappedBy="snip")
-	public Set<MouseExpression> getExpressions() {
-		return expressions;
+	public String getChromosome() {
+		return chromosome;
 	}
 
-	public void setAccession(String accession) {
-		this.accession = accession;
+	public void setChromosome(String chromosome) {
+		this.chromosome = chromosome;
 	}
 
-	@Column(nullable=false)
-	public String getAccession() {
-		return accession;
+	public boolean isPositiveStrand() {
+		return positiveStrand;
 	}
 
-	public void setSymbol(String symbol) {
-		this.symbol = symbol;
+	public void setPositiveStrand(boolean positiveStrand) {
+		this.positiveStrand = positiveStrand;
 	}
 
-	@Column(nullable=false)
-	public String getSymbol() {
-		return symbol;
+	public long getFromBp() {
+		return fromBp;
 	}
 
-	public void setStart(int start) {
-		this.start = start;
+	public void setFromBp(long fromBp) {
+		this.fromBp = fromBp;
 	}
 
-	@Column(nullable=false)
-	public int getStart() {
-		return start;
+	public long getToBp() {
+		return toBp;
 	}
 
-	public void setProbeSequence(String probeSequence) {
-		this.probeSequence = probeSequence;
+	public void setToBp(long toBp) {
+		this.toBp = toBp;
 	}
 
-	@Column(nullable=false)
-	public String getProbeSequence() {
-		return probeSequence;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	@Column(nullable=false, length=2048)
-	public String getDescription() {
-		return description;
-	}
 }
