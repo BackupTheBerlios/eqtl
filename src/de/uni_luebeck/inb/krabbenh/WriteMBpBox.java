@@ -56,11 +56,11 @@ public class WriteMBpBox {
 						MillionBasepairBox_StatisticsCis statisticsCis = null;
 
 						for (MillionBasepairBox_StatisticsAll cur : box.getStatisticsAll())
-							if (cur.getCovariate().getId() == covariate.getId())
+							if (cur.getCovariate() == covariate.getId())
 								statisticsAll = cur;
 
 						for (MillionBasepairBox_StatisticsCis cur : box.getStatisticsCis())
-							if (cur.getCovariate().getId() == covariate.getId())
+							if (cur.getCovariate() == covariate.getId())
 								statisticsCis = cur;
 
 						if (statisticsAll == null)
