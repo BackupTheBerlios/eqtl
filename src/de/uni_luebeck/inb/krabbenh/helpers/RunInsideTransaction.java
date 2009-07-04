@@ -1,4 +1,4 @@
-package de.uni_luebeck.inb.krabbenh;
+package de.uni_luebeck.inb.krabbenh.helpers;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;

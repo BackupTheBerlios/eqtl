@@ -1,4 +1,4 @@
-package de.uni_luebeck.inb.krabbenh;
+package de.uni_luebeck.inb.krabbenh.preparation;
 
 import java.io.IOException;
 import java.util.List;
@@ -8,6 +8,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import de.uni_luebeck.inb.krabbenh.entities.ExpressionQTL;
+import de.uni_luebeck.inb.krabbenh.helpers.RunInsideTransaction;
 
 public class CalculateEqtlDist {
 	public static void main(String[] args) throws IOException {

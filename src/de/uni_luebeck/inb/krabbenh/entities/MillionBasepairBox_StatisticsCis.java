@@ -62,7 +62,8 @@ public class MillionBasepairBox_StatisticsCis implements Serializable {
 
 
 	@Column(name="STDDEV_lod")
-	public Double getLodStdDev() {
+	public double getLodStdDev() {
+		if(lodStdDev == null) return 0;
 		return lodStdDev;
 	}
 
@@ -87,7 +88,8 @@ public class MillionBasepairBox_StatisticsCis implements Serializable {
 
 
 	@Column(name="STDDEV_distance")
-	public Double getDistanceStdDev() {
+	public double getDistanceStdDev() {
+		if(distanceStdDev == null) return 0;
 		return distanceStdDev;
 	}
 

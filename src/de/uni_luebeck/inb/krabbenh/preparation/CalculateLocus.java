@@ -1,4 +1,4 @@
-package de.uni_luebeck.inb.krabbenh;
+package de.uni_luebeck.inb.krabbenh.preparation;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,6 +9,8 @@ import org.hibernate.Transaction;
 
 import de.uni_luebeck.inb.krabbenh.entities.Locus;
 import de.uni_luebeck.inb.krabbenh.entities.MarkerInterpolation;
+import de.uni_luebeck.inb.krabbenh.helpers.Morgan2BP;
+import de.uni_luebeck.inb.krabbenh.helpers.RunInsideTransaction;
 
 public class CalculateLocus {
 	public static void main(String[] args) throws IOException {

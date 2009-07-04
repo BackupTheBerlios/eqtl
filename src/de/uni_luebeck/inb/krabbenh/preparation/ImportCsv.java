@@ -1,4 +1,4 @@
-package de.uni_luebeck.inb.krabbenh;
+package de.uni_luebeck.inb.krabbenh.preparation;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -14,6 +14,7 @@ import de.uni_luebeck.inb.krabbenh.entities.ExpressionQTL;
 import de.uni_luebeck.inb.krabbenh.entities.Locus;
 import de.uni_luebeck.inb.krabbenh.entities.MarkerInterpolation;
 import de.uni_luebeck.inb.krabbenh.entities.Snip;
+import de.uni_luebeck.inb.krabbenh.helpers.RunInsideTransaction;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 public class ImportCsv {

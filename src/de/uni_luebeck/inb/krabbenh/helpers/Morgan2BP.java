@@ -1,4 +1,4 @@
-package de.uni_luebeck.inb.krabbenh;
+package de.uni_luebeck.inb.krabbenh.helpers;
 
 import java.util.HashMap;
 import java.util.Map;

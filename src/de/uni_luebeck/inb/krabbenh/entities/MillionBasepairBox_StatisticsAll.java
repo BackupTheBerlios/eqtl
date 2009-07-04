@@ -53,7 +53,8 @@ public class MillionBasepairBox_StatisticsAll implements Serializable {
 	}
 
 	@Column(name = "STDDEV_lod")
-	public Double getLodStdDev() {
+	public double getLodStdDev() {
+		if(lodStdDev == null) return 0;
 		return lodStdDev;
 	}
 

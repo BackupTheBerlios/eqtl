@@ -10,7 +10,7 @@ import org.hibernate.Transaction;
 import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox;
 import de.uni_luebeck.inb.krabbenh.helpers.RunInsideTransaction;
 
-public class WriteMBpBox {
+public class DrawChromosomeImages {
 	public static void main(String[] args) throws IOException {
 		new RunInsideTransaction() {
 			@Override
