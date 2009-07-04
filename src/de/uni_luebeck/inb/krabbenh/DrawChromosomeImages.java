@@ -1,6 +1,7 @@
 package de.uni_luebeck.inb.krabbenh;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -22,7 +23,7 @@ public class DrawChromosomeImages {
 
 	public static void main(String[] args) throws IOException {
 
-		final SortedMap<String, Image> chr2img = new TreeMap<String, Image>();
+		final SortedMap<Integer, Image> chr2img = new TreeMap<Integer, Image>();
 
 		new DrawChromosomeImagesHelper() {
 			@Override
@@ -84,7 +85,7 @@ public class DrawChromosomeImages {
 
 			@Override
 			protected void imageForChromosomeComplete(String chromosome, BufferedImage subimage) {
-				chr2img.put(chromosome, subimage);
+				chr2img.put(Integer.valueOf(chromosome), subimage);
 			}
 
 		}.run();
@@ -92,7 +93,7 @@ public class DrawChromosomeImages {
 		int width = 0, height = 0;
 		for (Image img : chr2img.values()) {
 			width += img.getWidth(null) + 10;
-			height = Math.max(height, img.getHeight(null) + 30);
+			height = Math.max(height, img.getHeight(null) + 60);
 		}
 
 		int curx = 5;
@@ -101,9 +102,10 @@ public class DrawChromosomeImages {
 		graphics.setColor(Color.WHITE);
 		graphics.fillRect(0, 0, complete.getWidth(), complete.getHeight());
 		graphics.setColor(Color.BLACK);
-		for (Map.Entry<String, Image> cur : chr2img.entrySet()) {
-			graphics.drawImage(cur.getValue(), curx, 25, null);
-			graphics.drawString("Chromosome " + cur.getKey(), curx, 15);
+		graphics.setFont(new Font("Calibri", Font.BOLD, 50));
+		for (Map.Entry<Integer, Image> cur : chr2img.entrySet()) {
+			graphics.drawImage(cur.getValue(), curx, 60, null);
+			graphics.drawString("" + cur.getKey(), curx, 55);
 			curx += cur.getValue().getWidth(null) + 10;
 		}
 		graphics.dispose();
