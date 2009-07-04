@@ -2,7 +2,7 @@ package de.uni_luebeck.inb.krabbenh.entities;
 
 import java.io.Serializable;
 
-public class MillionBasepairBox_StatisticsShared implements Serializable {
+public class MillionBasepairBox_StatisticsPrimaryKey implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private int millionBasepairBox;
@@ -41,7 +41,7 @@ public class MillionBasepairBox_StatisticsShared implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		MillionBasepairBox_StatisticsShared other = (MillionBasepairBox_StatisticsShared) obj;
+		MillionBasepairBox_StatisticsPrimaryKey other = (MillionBasepairBox_StatisticsPrimaryKey) obj;
 		if (covariate != other.covariate)
 			return false;
 		if (millionBasepairBox != other.millionBasepairBox)

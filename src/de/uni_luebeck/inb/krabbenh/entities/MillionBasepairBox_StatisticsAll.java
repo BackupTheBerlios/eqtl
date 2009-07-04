@@ -14,7 +14,7 @@ import org.hibernate.annotations.Immutable;
 @Entity
 @Table(name = "millionbasepairbox_statistics_all")
 @Immutable
-@IdClass(MillionBasepairBox_StatisticsShared.class)
+@IdClass(MillionBasepairBox_StatisticsPrimaryKey.class)
 public class MillionBasepairBox_StatisticsAll implements Serializable {
 	private static final long serialVersionUID = 1L;
 

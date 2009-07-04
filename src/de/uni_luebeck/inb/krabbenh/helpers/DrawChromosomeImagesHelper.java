@@ -5,16 +5,12 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-
-import javax.imageio.ImageIO;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -28,6 +24,7 @@ import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox;
 public abstract class DrawChromosomeImagesHelper extends RunInsideTransaction {
 	public static interface MillionBasepairBoxValueProvider {
 		public abstract void addToMap(Map<MillionBasepairBox, Double> box2value, MillionBasepairBox cur);
+
 		public abstract String getTitle();
 	}
 
@@ -107,7 +104,6 @@ public abstract class DrawChromosomeImagesHelper extends RunInsideTransaction {
 
 	protected abstract void imageForChromosomeComplete(String chromosome, BufferedImage subimage);
 
-
 	protected abstract int drawPseudocolorTracks(Covariate covariate, int curX, DrawPseudoColorTrackParameter pseudocolorParameters);
 
 	private int drawBpLines(long fromBP, int bpPerPixel, int yStart, BufferedImage image, Graphics g, int curX, Set<Long> drawPos) {
@@ -152,11 +148,13 @@ public abstract class DrawChromosomeImagesHelper extends RunInsideTransaction {
 		AffineTransform fontAT = new AffineTransform();
 		fontAT.rotate(-Math.PI / 2.0);
 		parameterObject.g.setFont(theFont.deriveFont(fontAT));
-		parameterObject.g.drawString(new DecimalFormat("#.#").format(minVal), curX + 12, parameterObject.contentHeight);
+		if (minVal != Double.MAX_VALUE && maxVal != Double.MIN_VALUE)
+			parameterObject.g.drawString(new DecimalFormat("#.#").format(minVal), curX + 12, parameterObject.contentHeight);
 		fontAT = new AffineTransform();
 		fontAT.rotate(Math.PI / 2.0);
 		parameterObject.g.setFont(theFont.deriveFont(fontAT));
-		parameterObject.g.drawString(new DecimalFormat("#.#").format(maxVal), curX, parameterObject.contentHeight + 100);
+		if (minVal != Double.MAX_VALUE && maxVal != Double.MIN_VALUE)
+			parameterObject.g.drawString(new DecimalFormat("#.#").format(maxVal), curX, parameterObject.contentHeight + 100);
 
 		String trackTitle = provider.getTitle();
 		parameterObject.g.drawString(trackTitle, curX, 0);
@@ -171,10 +169,12 @@ public abstract class DrawChromosomeImagesHelper extends RunInsideTransaction {
 					(int) ((cur.getToBP() - cur.getFromBP()) / parameterObject.bpPerPixel));
 		}
 
-		for (int i = 0; i <= 4; i++) {
-			double value = (maxVal - minVal) * (double) i / 4.0 + minVal;
-			parameterObject.g.setColor(fakeColors[(int) Math.floor((value - minVal) / (maxVal - minVal) * 255.99)]);
-			parameterObject.g.fillRect(curX, parameterObject.contentHeight + i * 20, width, 20);
+		if (minVal != Double.MAX_VALUE && maxVal != Double.MIN_VALUE) {
+			for (int i = 0; i <= 4; i++) {
+				double value = (maxVal - minVal) * (double) i / 4.0 + minVal;
+				parameterObject.g.setColor(fakeColors[(int) Math.floor((value - minVal) / (maxVal - minVal) * 255.99)]);
+				parameterObject.g.fillRect(curX, parameterObject.contentHeight + i * 20, width, 20);
+			}
 		}
 
 		return curX + width * 4 / 3;

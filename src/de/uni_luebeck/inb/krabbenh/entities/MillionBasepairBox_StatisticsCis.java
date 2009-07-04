@@ -13,7 +13,7 @@ import org.hibernate.annotations.Immutable;
 @Entity
 @Table(name="millionbasepairbox_statistics_cis")
 @Immutable
-@IdClass(MillionBasepairBox_StatisticsShared.class)
+@IdClass(MillionBasepairBox_StatisticsPrimaryKey.class)
 public class MillionBasepairBox_StatisticsCis implements Serializable {
 	private static final long serialVersionUID = 1L;
 
