@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
+import org.hibernate.annotations.Index;
+
 @Entity
 public class MarkerInterpolation implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -32,6 +34,7 @@ public class MarkerInterpolation implements Serializable {
 		this.id = id;
 	}
 
+	@Index(name="chromosome_index")
 	public String getChromosome() {
 		return chromosome;
 	}
@@ -40,6 +43,7 @@ public class MarkerInterpolation implements Serializable {
 		this.chromosome = chromosome;
 	}
 
+	@Index(name="interpolatedFrom_index")
 	public double getInterpolatedFrom() {
 		return interpolatedFrom;
 	}
@@ -48,6 +52,7 @@ public class MarkerInterpolation implements Serializable {
 		this.interpolatedFrom = interpolatedFrom;
 	}
 
+	@Index(name="interpolatedTo_index")
 	public double getInterpolatedTo() {
 		return interpolatedTo;
 	}

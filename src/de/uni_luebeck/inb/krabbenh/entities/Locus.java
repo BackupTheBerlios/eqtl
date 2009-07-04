@@ -8,6 +8,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.Index;
+
 @Entity
 public class Locus implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -42,6 +44,7 @@ public class Locus implements Serializable {
 		this.name = name;
 	}
 
+	@Index(name="chromosome_index")
 	public String getChromosome() {
 		return chromosome;
 	}
@@ -58,6 +61,7 @@ public class Locus implements Serializable {
 		this.position = position;
 	}
 
+	@Index(name="positionBP_index")
 	public long getPositionBP() {
 		return positionBP;
 	}

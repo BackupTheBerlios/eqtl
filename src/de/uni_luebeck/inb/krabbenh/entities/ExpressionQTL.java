@@ -6,6 +6,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.Index;
+
 @Entity
 public class ExpressionQTL implements java.io.Serializable {
 	private static final long serialVersionUID = 1L;
@@ -47,6 +49,7 @@ public class ExpressionQTL implements java.io.Serializable {
 	}
 	
 	@ManyToOne(optional=false)
+	@Index(name="locus_index")
 	public Locus getLocus() {
 		return locus;
 	}
@@ -55,6 +58,7 @@ public class ExpressionQTL implements java.io.Serializable {
 	}
 	
 	@ManyToOne(optional=false)
+	@Index(name="snip_index")
 	public Snip getSnip() {
 		return snip;
 	}
@@ -73,6 +77,4 @@ public class ExpressionQTL implements java.io.Serializable {
 	public void setDistanceBP(long distanceBP) {
 		this.distanceBP = distanceBP;
 	}
-
-	
 }

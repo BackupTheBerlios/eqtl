@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
+import org.hibernate.annotations.Index;
+
 
 @Entity
 public class Snip implements Serializable {
@@ -39,6 +41,7 @@ public class Snip implements Serializable {
 		this.entrezId = entrezId;
 	}
 
+	@Index(name="chromosome_index")
 	public String getChromosome() {
 		return chromosome;
 	}
@@ -55,6 +58,7 @@ public class Snip implements Serializable {
 		this.positiveStrand = positiveStrand;
 	}
 
+	@Index(name="fromBP_index")
 	public long getFromBp() {
 		return fromBp;
 	}
@@ -63,6 +67,7 @@ public class Snip implements Serializable {
 		this.fromBp = fromBp;
 	}
 
+	@Index(name="toBP_index")
 	public long getToBp() {
 		return toBp;
 	}
