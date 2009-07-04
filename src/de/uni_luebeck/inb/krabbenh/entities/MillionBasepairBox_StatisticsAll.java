@@ -5,17 +5,41 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Immutable;
 
 @Entity
 @Table(name = "millionbasepairbox_statistics_all")
 @Immutable
+@IdClass(MillionBasepairBox_StatisticsShared.class)
 public class MillionBasepairBox_StatisticsAll implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private int id;
+	
+	private int millionBasepairBox;
+	private int covariate;
+
+	@Id
+	public int getMillionBasepairBox() {
+		return millionBasepairBox;
+	}
+
+	protected void setMillionBasepairBox(int millionBasepairBox) {
+		this.millionBasepairBox = millionBasepairBox;
+	}
+
+	@Id
+	public int getCovariate() {
+		return covariate;
+	}
+
+	protected void setCovariate(int covariate) {
+		this.covariate = covariate;
+	}
+
 
 	private int eqtlCount;
 
@@ -25,12 +49,6 @@ public class MillionBasepairBox_StatisticsAll implements Serializable {
 	private Double lodStdDev; // may be null
 
 	private double frequencySameChromosome;
-
-	@Id
-	@Column(name = "millionbasepairbox_id")
-	public int getId() {
-		return id;
-	}
 
 	@Column(name = "eqtlcount")
 	public int getEqtlCount() {
@@ -62,9 +80,10 @@ public class MillionBasepairBox_StatisticsAll implements Serializable {
 	public double getFrequencySameChromosome() {
 		return frequencySameChromosome;
 	}
-
-	protected void setId(int id) {
-		this.id = id;
+	
+	@Transient
+	public double getFrequencyCis() {
+		return getFrequencySameChromosome();
 	}
 
 	protected void setEqtlCount(int eqtlCount) {

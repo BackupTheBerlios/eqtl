@@ -5,6 +5,7 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Immutable;
@@ -12,11 +13,34 @@ import org.hibernate.annotations.Immutable;
 @Entity
 @Table(name="millionbasepairbox_statistics_cis")
 @Immutable
+@IdClass(MillionBasepairBox_StatisticsShared.class)
 public class MillionBasepairBox_StatisticsCis implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private int id;
+
 	
+	private int millionBasepairBox;
+	private int covariate;
+
+	@Id
+	public int getMillionBasepairBox() {
+		return millionBasepairBox;
+	}
+
+	protected void setMillionBasepairBox(int millionBasepairBox) {
+		this.millionBasepairBox = millionBasepairBox;
+	}
+
+	@Id
+	public int getCovariate() {
+		return covariate;
+	}
+
+	protected void setCovariate(int covariate) {
+		this.covariate = covariate;
+	}
+
+
 	private int eqtlCount;
 	
 	private double lodAverage;
@@ -30,13 +54,6 @@ public class MillionBasepairBox_StatisticsCis implements Serializable {
 	private Double distanceStdDev; // may be null
 
 	
-	@Id
-	@Column(name="millionbasepairbox_id")
-	public int getId() {
-		return id;
-	}
-
-
 	@Column(name="eqtlcount")
 	public int getEqtlCount() {
 		return eqtlCount;
@@ -94,11 +111,6 @@ public class MillionBasepairBox_StatisticsCis implements Serializable {
 	}
 
 
-	protected void setId(int id) {
-		this.id = id;
-	}
-
-
 	protected void setEqtlCount(int eqtlCount) {
 		this.eqtlCount = eqtlCount;
 	}
@@ -142,4 +154,5 @@ public class MillionBasepairBox_StatisticsCis implements Serializable {
 	protected void setDistanceStdDev(Double distanceStdDev) {
 		this.distanceStdDev = distanceStdDev;
 	}
+
 }

@@ -8,9 +8,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.OneToMany;
 
 @Entity
 public class MillionBasepairBox implements Serializable {
@@ -24,8 +24,8 @@ public class MillionBasepairBox implements Serializable {
 
 	private Set<ExpressionQTL> containedExpressionQTLs = new HashSet<ExpressionQTL>();
 
-	private MillionBasepairBox_StatisticsAll statisticsAll;
-	private MillionBasepairBox_StatisticsCis statisticsCis;
+	private Set<MillionBasepairBox_StatisticsAll> statisticsAll;
+	private Set<MillionBasepairBox_StatisticsCis> statisticsCis;
 
 	@Id
 	@GeneratedValue
@@ -71,23 +71,23 @@ public class MillionBasepairBox implements Serializable {
 		this.containedExpressionQTLs = containedExpressionQTLs;
 	}
 
-	@OneToOne
-	@PrimaryKeyJoinColumn
-	public MillionBasepairBox_StatisticsAll getStatisticsAll() {
+	@OneToMany
+	@JoinColumn(referencedColumnName="id", name="millionbasepairbox")
+	public Set<MillionBasepairBox_StatisticsAll> getStatisticsAll() {
 		return statisticsAll;
 	}
 
-	public void setStatisticsAll(MillionBasepairBox_StatisticsAll statisticsAll) {
+	protected void setStatisticsAll(Set<MillionBasepairBox_StatisticsAll> statisticsAll) {
 		this.statisticsAll = statisticsAll;
 	}
 
-	@OneToOne
-	@PrimaryKeyJoinColumn
-	public MillionBasepairBox_StatisticsCis getStatisticsCis() {
+	@OneToMany
+	@JoinColumn(referencedColumnName="id", name="millionbasepairbox")
+	public Set<MillionBasepairBox_StatisticsCis> getStatisticsCis() {
 		return statisticsCis;
 	}
 
-	public void setStatisticsCis(MillionBasepairBox_StatisticsCis statisticsCis) {
+	protected void setStatisticsCis(Set<MillionBasepairBox_StatisticsCis> statisticsCis) {
 		this.statisticsCis = statisticsCis;
 	}
 
