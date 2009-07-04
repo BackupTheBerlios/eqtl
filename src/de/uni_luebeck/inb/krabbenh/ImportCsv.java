@@ -22,6 +22,7 @@ public class ImportCsv {
 		new RunInsideTransaction() {
 			@Override
 			public void work(Transaction transaction, Session session) throws Exception {
+				session.createQuery("delete from MillionBasepairBox").executeUpdate();
 				session.createQuery("delete from ExpressionQTL").executeUpdate();
 				session.createQuery("delete from Covariate").executeUpdate();
 				session.createQuery("delete from Locus").executeUpdate();

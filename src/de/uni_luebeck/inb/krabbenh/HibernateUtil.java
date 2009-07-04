@@ -7,6 +7,7 @@ import de.uni_luebeck.inb.krabbenh.entities.Covariate;
 import de.uni_luebeck.inb.krabbenh.entities.ExpressionQTL;
 import de.uni_luebeck.inb.krabbenh.entities.Locus;
 import de.uni_luebeck.inb.krabbenh.entities.MarkerInterpolation;
+import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox;
 import de.uni_luebeck.inb.krabbenh.entities.Snip;
 
 public class HibernateUtil {
@@ -22,6 +23,7 @@ public class HibernateUtil {
              .addAnnotatedClass(Locus.class)
              .addAnnotatedClass(Snip.class)
             .addAnnotatedClass(ExpressionQTL.class)
+            .addAnnotatedClass(MillionBasepairBox.class)
             .buildSessionFactory();
         } catch (Throwable ex) {
             // Make sure you log the exception, as it might be swallowed
