@@ -9,6 +9,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
 
 @Entity
 public class MillionBasepairBox implements Serializable {
@@ -19,8 +21,11 @@ public class MillionBasepairBox implements Serializable {
 	private String chromosome;
 	private long fromBP;
 	private long toBP;
-	
+
 	private Set<ExpressionQTL> containedExpressionQTLs = new HashSet<ExpressionQTL>();
+
+	private MillionBasepairBox_StatisticsAll statisticsAll;
+	private MillionBasepairBox_StatisticsCis statisticsCis;
 
 	@Id
 	@GeneratedValue
@@ -64,6 +69,26 @@ public class MillionBasepairBox implements Serializable {
 
 	public void setContainedExpressionQTLs(Set<ExpressionQTL> containedExpressionQTLs) {
 		this.containedExpressionQTLs = containedExpressionQTLs;
+	}
+
+	@OneToOne
+	@PrimaryKeyJoinColumn
+	public MillionBasepairBox_StatisticsAll getStatisticsAll() {
+		return statisticsAll;
+	}
+
+	public void setStatisticsAll(MillionBasepairBox_StatisticsAll statisticsAll) {
+		this.statisticsAll = statisticsAll;
+	}
+
+	@OneToOne
+	@PrimaryKeyJoinColumn
+	public MillionBasepairBox_StatisticsCis getStatisticsCis() {
+		return statisticsCis;
+	}
+
+	public void setStatisticsCis(MillionBasepairBox_StatisticsCis statisticsCis) {
+		this.statisticsCis = statisticsCis;
 	}
 
 }
