@@ -19,13 +19,13 @@ import de.uni_luebeck.inb.krabbenh.helpers.RunInsideTransaction;
 
 public class DrawChromosomeCovariateChanges {
 
-	private static final class CovListFetcher extends RunInsideTransaction {
+	public static final class CovListFetcher extends RunInsideTransaction {
 		List<Covariate> covariates;
 
 		@SuppressWarnings("unchecked")
 		@Override
 		public void work(Transaction transaction, Session session) throws Exception {
-			covariates = session.createQuery("from Covariate as c join fetch c.names").list();
+			covariates = session.createQuery("from Covariate as c left join fetch c.names").list();
 		}
 	}
 

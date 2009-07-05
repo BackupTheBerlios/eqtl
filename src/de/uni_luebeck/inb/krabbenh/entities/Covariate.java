@@ -38,4 +38,8 @@ public class Covariate implements Serializable {
 		this.names = names;
 	}
 
+	@Override
+	public String toString() {
+		return "Covariate" + id + "-" + names.toString();
+	}
 }

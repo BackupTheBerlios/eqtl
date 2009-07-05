@@ -29,8 +29,14 @@ public abstract class DrawChromosomeImagesHelper extends RunInsideTransaction {
 	}
 
 	private Color[] fakeColors;
+	private boolean scaleOverAllImages;
 
 	public DrawChromosomeImagesHelper() {
+		this(false);
+	}
+
+	public DrawChromosomeImagesHelper(boolean scaleOverAllImages) {
+		this.scaleOverAllImages = scaleOverAllImages;
 		fakeColors = new Color[256];
 		for (int i = 0; i < fakeColors.length; i++) {
 			fakeColors[i] = new Color(Math.min(1, (float) (256 - i) / 128.0f), Math.min(1, (float) i / 128.0f), 0, 1);
@@ -50,55 +56,59 @@ public abstract class DrawChromosomeImagesHelper extends RunInsideTransaction {
 
 		FetchEnsemblDas ensemblDas = new FetchEnsemblDas();
 		List<String> chromosomes = session.createQuery("select chromosome from Locus group by chromosome").list();
-		for (String chromosome : chromosomes) {
-			EnsemblBand[] ensemblBands = ensemblDas.getEnsemblBands(chromosome);
-			List<MillionBasepairBox> mbpbl = session.createQuery("from MillionBasepairBox as mbpb join fetch mbpb.statistics where chromosome=:chr").setParameter("chr", chromosome).list();
-			if (mbpbl.size() == 0)
-				continue;
+		for (int loop = 0; loop < (scaleOverAllImages ? 2 : 1); loop++) {
+			for (String chromosome : chromosomes) {
+				EnsemblBand[] ensemblBands = ensemblDas.getEnsemblBands(chromosome);
+				List<MillionBasepairBox> mbpbl = session.createQuery("from MillionBasepairBox as mbpb join fetch mbpb.statistics where chromosome=:chr").setParameter("chr", chromosome).list();
+				if (mbpbl.size() == 0)
+					continue;
 
-			long fromBP = Long.MAX_VALUE;
-			long toBP = Long.MIN_VALUE;
-			for (MillionBasepairBox cur : mbpbl) {
-				fromBP = Math.min(fromBP, cur.getFromBP());
-				toBP = Math.max(toBP, cur.getToBP());
+				long fromBP = Long.MAX_VALUE;
+				long toBP = Long.MIN_VALUE;
+				for (MillionBasepairBox cur : mbpbl) {
+					fromBP = Math.min(fromBP, cur.getFromBP());
+					toBP = Math.max(toBP, cur.getToBP());
+				}
+				for (EnsemblBand cur : ensemblBands) {
+					fromBP = Math.min(fromBP, cur.from);
+					toBP = Math.max(toBP, cur.to);
+				}
+
+				int bpPerPixel = 100 * 1000;
+				int yStart = 150;
+				int contentHeight = (int) ((toBP - fromBP) / bpPerPixel) + yStart;
+				BufferedImage image = new BufferedImage(2000, contentHeight + 350, BufferedImage.TYPE_INT_RGB);
+				Graphics g = image.getGraphics();
+				g.setColor(new Color(0.0f, 0.0f, 0.3f, 1.0f));
+				g.fillRect(0, 0, image.getWidth(), image.getHeight());
+				g.setColor(Color.WHITE);
+				g.fillRect(0, contentHeight, image.getWidth(), image.getHeight() - contentHeight);
+				g.fillRect(0, 0, image.getWidth(), 100);
+				contentHeight += 100;
+				int curX = 0;
+				Color col4type[] = new Color[] { Color.BLACK, Color.GRAY, Color.WHITE };
+				Color icol4type[] = new Color[] { Color.WHITE, Color.BLACK, Color.BLACK };
+				Set<Long> drawPos = new TreeSet<Long>();
+				for (EnsemblBand ensemblBand : ensemblBands) {
+					g.setColor(col4type[ensemblBand.type - 1]);
+					g.fillRect(curX, yStart + (int) ((ensemblBand.from - fromBP) / bpPerPixel), 30, (int) ((ensemblBand.to - ensemblBand.from) / bpPerPixel + 1));
+					g.setColor(icol4type[ensemblBand.type - 1]);
+					g.drawString(ensemblBand.label, curX, yStart + (int) (((ensemblBand.to + ensemblBand.from) / 2 - fromBP) / bpPerPixel) + 5);
+					drawPos.add(ensemblBand.from);
+					drawPos.add(ensemblBand.to);
+				}
+				curX += 30;
+				curX = drawBpLines(fromBP, bpPerPixel, yStart, image, g, curX, drawPos);
+
+				DrawPseudoColorTrackParameter pseudocolorParameters = new DrawPseudoColorTrackParameter(mbpbl, covariate, fromBP, bpPerPixel, contentHeight, g, yStart);
+				curX = drawPseudocolorTracks(covariate, curX, pseudocolorParameters);
+
+				g.dispose();
+				if (!scaleOverAllImages || loop == 1) {
+					BufferedImage subimage = image.getSubimage(0, 0, curX, image.getHeight());
+					imageForChromosomeComplete(chromosome, subimage);
+				}
 			}
-			for (EnsemblBand cur : ensemblBands) {
-				fromBP = Math.min(fromBP, cur.from);
-				toBP = Math.max(toBP, cur.to);
-			}
-
-			int bpPerPixel = 100 * 1000;
-			int yStart = 150;
-			int contentHeight = (int) ((toBP - fromBP) / bpPerPixel) + yStart;
-			BufferedImage image = new BufferedImage(2000, contentHeight + 350, BufferedImage.TYPE_INT_RGB);
-			Graphics g = image.getGraphics();
-			g.setColor(new Color(0.0f, 0.0f, 0.3f, 1.0f));
-			g.fillRect(0, 0, image.getWidth(), image.getHeight());
-			g.setColor(Color.WHITE);
-			g.fillRect(0, contentHeight, image.getWidth(), image.getHeight() - contentHeight);
-			g.fillRect(0, 0, image.getWidth(), 100);
-			contentHeight += 100;
-			int curX = 0;
-			Color col4type[] = new Color[] { Color.BLACK, Color.GRAY, Color.WHITE };
-			Color icol4type[] = new Color[] { Color.WHITE, Color.BLACK, Color.BLACK };
-			Set<Long> drawPos = new TreeSet<Long>();
-			for (EnsemblBand ensemblBand : ensemblBands) {
-				g.setColor(col4type[ensemblBand.type - 1]);
-				g.fillRect(curX, yStart + (int) ((ensemblBand.from - fromBP) / bpPerPixel), 30, (int) ((ensemblBand.to - ensemblBand.from) / bpPerPixel + 1));
-				g.setColor(icol4type[ensemblBand.type - 1]);
-				g.drawString(ensemblBand.label, curX, yStart + (int) (((ensemblBand.to + ensemblBand.from) / 2 - fromBP) / bpPerPixel) + 5);
-				drawPos.add(ensemblBand.from);
-				drawPos.add(ensemblBand.to);
-			}
-			curX += 30;
-			curX = drawBpLines(fromBP, bpPerPixel, yStart, image, g, curX, drawPos);
-
-			DrawPseudoColorTrackParameter pseudocolorParameters = new DrawPseudoColorTrackParameter(mbpbl, covariate, fromBP, bpPerPixel, contentHeight, g, yStart);
-			curX = drawPseudocolorTracks(covariate, curX, pseudocolorParameters);
-
-			g.dispose();
-			BufferedImage subimage = image.getSubimage(0, 0, curX, image.getHeight());
-			imageForChromosomeComplete(chromosome, subimage);
 		}
 	}
 
@@ -128,6 +138,9 @@ public abstract class DrawChromosomeImagesHelper extends RunInsideTransaction {
 		return curX;
 	}
 
+	private Map<String, Double> trackname2min = new HashMap<String, Double>();
+	private Map<String, Double> trackname2max = new HashMap<String, Double>();
+
 	protected int drawPseudoColorTrack(DrawPseudoColorTrackParameter parameterObject, int curX, MillionBasepairBoxValueProvider provider, int width) {
 		Map<MillionBasepairBox, Double> box2value = new HashMap<MillionBasepairBox, Double>();
 		for (MillionBasepairBox cur : parameterObject.mbpbl)
@@ -135,12 +148,22 @@ public abstract class DrawChromosomeImagesHelper extends RunInsideTransaction {
 
 		double minVal = Double.MAX_VALUE;
 		double maxVal = Double.MIN_VALUE;
+		if (scaleOverAllImages) {
+			if (trackname2min.containsKey(provider.getTitle()))
+				minVal = trackname2min.get(provider.getTitle());
+			if (trackname2max.containsKey(provider.getTitle()))
+				maxVal = trackname2max.get(provider.getTitle());
+		}
 		for (MillionBasepairBox cur : parameterObject.mbpbl) {
 			if (!box2value.containsKey(cur))
 				continue;
 			double value = box2value.get(cur);
 			minVal = Math.min(minVal, value);
 			maxVal = Math.max(maxVal, value);
+		}
+		if (scaleOverAllImages) {
+			trackname2min.put(provider.getTitle(), minVal);
+			trackname2max.put(provider.getTitle(), maxVal);
 		}
 
 		parameterObject.g.setColor(Color.BLACK);
