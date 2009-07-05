@@ -52,7 +52,7 @@ public abstract class DrawChromosomeImagesHelper extends RunInsideTransaction {
 		List<String> chromosomes = session.createQuery("select chromosome from Locus group by chromosome").list();
 		for (String chromosome : chromosomes) {
 			EnsemblBand[] ensemblBands = ensemblDas.getEnsemblBands(chromosome);
-			List<MillionBasepairBox> mbpbl = session.createQuery("from MillionBasepairBox where chromosome=:chr").setParameter("chr", chromosome).list();
+			List<MillionBasepairBox> mbpbl = session.createQuery("from MillionBasepairBox as mbpb join fetch mbpb.statistics where chromosome=:chr").setParameter("chr", chromosome).list();
 			if (mbpbl.size() == 0)
 				continue;
 
@@ -70,7 +70,7 @@ public abstract class DrawChromosomeImagesHelper extends RunInsideTransaction {
 			int bpPerPixel = 100 * 1000;
 			int yStart = 150;
 			int contentHeight = (int) ((toBP - fromBP) / bpPerPixel) + yStart;
-			BufferedImage image = new BufferedImage(500, contentHeight + 350, BufferedImage.TYPE_INT_RGB);
+			BufferedImage image = new BufferedImage(2000, contentHeight + 350, BufferedImage.TYPE_INT_RGB);
 			Graphics g = image.getGraphics();
 			g.setColor(new Color(0.0f, 0.0f, 0.3f, 1.0f));
 			g.fillRect(0, 0, image.getWidth(), image.getHeight());
@@ -104,7 +104,7 @@ public abstract class DrawChromosomeImagesHelper extends RunInsideTransaction {
 
 	protected abstract void imageForChromosomeComplete(String chromosome, BufferedImage subimage);
 
-	protected abstract int drawPseudocolorTracks(Covariate covariate, int curX, DrawPseudoColorTrackParameter pseudocolorParameters);
+	protected abstract int drawPseudocolorTracks(Covariate noCovariatesCovariate, int curX, DrawPseudoColorTrackParameter pseudocolorParameters);
 
 	private int drawBpLines(long fromBP, int bpPerPixel, int yStart, BufferedImage image, Graphics g, int curX, Set<Long> drawPos) {
 		g.setColor(Color.WHITE);

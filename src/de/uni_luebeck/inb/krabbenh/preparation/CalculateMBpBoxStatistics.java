@@ -1,25 +1,17 @@
 package de.uni_luebeck.inb.krabbenh.preparation;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.List;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import de.uni_luebeck.inb.krabbenh.entities.Covariate;
-import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox;
-import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox_Statistics;
 import de.uni_luebeck.inb.krabbenh.helpers.RunInsideTransaction;
 
 public class CalculateMBpBoxStatistics {
 
 	public static void main(String[] args) throws IOException {
 		new RunInsideTransaction() {
-			@SuppressWarnings("unchecked")
 			@Override
 			public void work(Transaction transaction, Session session) throws Exception {
 				String sqlAll = "SELECT nextval ('hajo_eqtl.hibernate_sequence'), millionbasepairbox_expressionqtl.millionbasepairbox_id, "

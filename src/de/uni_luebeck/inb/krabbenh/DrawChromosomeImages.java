@@ -27,7 +27,7 @@ public class DrawChromosomeImages {
 		new DrawChromosomeImagesHelper() {
 			@Override
 			protected int drawPseudocolorTracks(final Covariate covariate, int curX, DrawPseudoColorTrackParameter pseudocolorParameters) {
-				String[] getters = new String[] { "getAllEqtlCount", "getAllLodAverage", "getAllLodMin", "getAllLodMax", "getAllLodStdDev", "getFrequencySameChromosome", "getCisEqtlCount", "getCisLodAverage", "getCisLodMin", "getCisLodMax", "getCisLodStdDev", "getCisDistanceAverage", "getCisDistanceMin", "getCisDistanceMax", "getCisDistanceStdDev" };
+				String[] getters = new String[] { "getAllEqtlCount", "getAllLodSum", "getCisEqtlCount", "getCisLodSum",   "getAllLodAverage", "getAllLodMin", "getAllLodMax", "getAllLodStdDev", "getFrequencySameChromosome", "getCisLodAverage", "getCisLodMin", "getCisLodMax", "getCisLodStdDev", "getCisDistanceAverage", "getCisDistanceMin", "getCisDistanceMax", "getCisDistanceStdDev" };
 				for (final String gettername : getters) {
 					MillionBasepairBoxValueProvider provider = new MillionBasepairBoxValueProvider() {
 						public void addToMap(Map<MillionBasepairBox, Double> box2value, MillionBasepairBox cur) {
@@ -51,7 +51,7 @@ public class DrawChromosomeImages {
 							return gettername.substring(3);
 						}
 					};
-					curX = drawPseudoColorTrack(pseudocolorParameters, curX, provider, gettername.equals("getEqtlCount") ? 30 : 15);
+					curX = drawPseudoColorTrack(pseudocolorParameters, curX, provider, gettername.contains("LodSum") ? 30 : 15);
 				}
 				return curX;
 			}
