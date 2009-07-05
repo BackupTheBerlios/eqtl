@@ -6,12 +6,14 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 @Entity
 public class MillionBasepairBox_Statistics implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private int id;
+	private MillionBasepairBox millionBasepairBox;
 	private Covariate covariate;
 
 	private int allEqtlCount;
@@ -48,6 +50,16 @@ public class MillionBasepairBox_Statistics implements Serializable {
 		this.id = id;
 	}
 
+	@ManyToOne
+	public MillionBasepairBox getMillionBasepairBox() {
+		return millionBasepairBox;
+	}
+
+	public void setMillionBasepairBox(MillionBasepairBox millionBasepairBox) {
+		this.millionBasepairBox = millionBasepairBox;
+	}
+
+	@ManyToOne
 	public Covariate getCovariate() {
 		return covariate;
 	}

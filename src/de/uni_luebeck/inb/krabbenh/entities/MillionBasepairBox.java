@@ -68,7 +68,7 @@ public class MillionBasepairBox implements Serializable {
 		this.containedExpressionQTLs = containedExpressionQTLs;
 	}
 
-	@OneToMany
+	@OneToMany(mappedBy="millionBasepairBox")
 	public Set<MillionBasepairBox_Statistics> getStatistics() {
 		return statistics;
 	}
