@@ -8,8 +8,7 @@ import de.uni_luebeck.inb.krabbenh.entities.ExpressionQTL;
 import de.uni_luebeck.inb.krabbenh.entities.Locus;
 import de.uni_luebeck.inb.krabbenh.entities.MarkerInterpolation;
 import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox;
-import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox_StatisticsAll;
-import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox_StatisticsCis;
+import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox_Statistics;
 import de.uni_luebeck.inb.krabbenh.entities.Snip;
 
 public class HibernateUtil {
@@ -25,8 +24,7 @@ public class HibernateUtil {
              .addAnnotatedClass(Locus.class)
              .addAnnotatedClass(Snip.class)
             .addAnnotatedClass(ExpressionQTL.class)
-            .addAnnotatedClass(MillionBasepairBox_StatisticsAll.class)
-            .addAnnotatedClass(MillionBasepairBox_StatisticsCis.class)
+            .addAnnotatedClass(MillionBasepairBox_Statistics.class)
             .addAnnotatedClass(MillionBasepairBox.class)
             .buildSessionFactory();
         } catch (Throwable ex) {

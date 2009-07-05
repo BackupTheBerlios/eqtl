@@ -9,8 +9,7 @@ import org.hibernate.Transaction;
 
 import de.uni_luebeck.inb.krabbenh.entities.Covariate;
 import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox;
-import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox_StatisticsAll;
-import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox_StatisticsCis;
+import de.uni_luebeck.inb.krabbenh.entities.MillionBasepairBox_Statistics;
 import de.uni_luebeck.inb.krabbenh.helpers.RunInsideTransaction;
 
 public class WriteMBpBox {
@@ -52,39 +51,30 @@ public class WriteMBpBox {
 						writer.write(box.getFromBP() + "\t");
 						writer.write(box.getToBP() + "\t");
 
-						MillionBasepairBox_StatisticsAll statisticsAll = null;
-						MillionBasepairBox_StatisticsCis statisticsCis = null;
+						MillionBasepairBox_Statistics statistics = null;
 
-						for (MillionBasepairBox_StatisticsAll cur : box.getStatisticsAll())
-							if (cur.getCovariate() == covariate.getId())
-								statisticsAll = cur;
+						for (MillionBasepairBox_Statistics cur : box.getStatistics())
+							if (cur.getCovariate().getId() == covariate.getId())
+								statistics = cur;
 
-						for (MillionBasepairBox_StatisticsCis cur : box.getStatisticsCis())
-							if (cur.getCovariate() == covariate.getId())
-								statisticsCis = cur;
-
-						if (statisticsAll == null)
-							writer.write("0\t0\t0\t0\t0\t0");
+						if (statistics == null)
+							writer.write("0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\n");
 						else {
-							writer.write(statisticsAll.getEqtlCount() + "\t");
-							writer.write(statisticsAll.getLodAverage() + "\t");
-							writer.write(statisticsAll.getLodMin() + "\t");
-							writer.write(statisticsAll.getLodMax() + "\t");
-							writer.write(statisticsAll.getLodStdDev() + "\t");
-							writer.write(statisticsAll.getFrequencySameChromosome() + "\t");
-						}
-						if (statisticsCis == null)
-							writer.write("0\t0\t0\t0\t0\t0\t0\t0\t0\n");
-						else {
-							writer.write(statisticsCis.getEqtlCount() + "\t");
-							writer.write(statisticsCis.getLodAverage() + "\t");
-							writer.write(statisticsCis.getLodMin() + "\t");
-							writer.write(statisticsCis.getLodMax() + "\t");
-							writer.write(statisticsCis.getLodStdDev() + "\t");
-							writer.write(statisticsCis.getDistanceAverage() + "\t");
-							writer.write(statisticsCis.getDistanceMin() + "\t");
-							writer.write(statisticsCis.getDistanceMax() + "\t");
-							writer.write(statisticsCis.getDistanceStdDev() + "\n");
+							writer.write(statistics.getAllEqtlCount() + "\t");
+							writer.write(statistics.getAllLodAverage() + "\t");
+							writer.write(statistics.getAllLodMin() + "\t");
+							writer.write(statistics.getAllLodMax() + "\t");
+							writer.write(statistics.getAllLodStdDev() + "\t");
+							writer.write(statistics.getFrequencySameChromosome() + "\t");
+							writer.write(statistics.getCisEqtlCount() + "\t");
+							writer.write(statistics.getCisLodAverage() + "\t");
+							writer.write(statistics.getCisLodMin() + "\t");
+							writer.write(statistics.getCisLodMax() + "\t");
+							writer.write(statistics.getCisLodStdDev() + "\t");
+							writer.write(statistics.getCisDistanceAverage() + "\t");
+							writer.write(statistics.getCisDistanceMin() + "\t");
+							writer.write(statistics.getCisDistanceMax() + "\t");
+							writer.write(statistics.getCisDistanceStdDev() + "\n");
 						}
 					}
 				}
