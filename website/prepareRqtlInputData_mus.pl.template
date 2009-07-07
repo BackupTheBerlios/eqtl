@@ -240,7 +240,10 @@ while (FCGI::accept >= 0) {
 			}
 		}
         }
-#	print join($sep,@scoreselection)."\n";
+
+	#
+	# Building index-vector for the scoreselection
+	#
 
 	my @index;
 	my $k;
@@ -254,8 +257,6 @@ while (FCGI::accept >= 0) {
 		}
 	}
 	@vals=@vals[@index];
-#	print join($sep,@vals)."\n";
-#	print join($sep,@index)."\n";
 
         if( !defined( $probeID ) && $#ARGV == 2 ){
                 $probeID = $ARGV[2];                            #id of probset to insert
@@ -269,7 +270,7 @@ while (FCGI::accept >= 0) {
                 exit(-1);
         }
 	
-if (exists($expressiondata{$probeID})) {
+	if (exists($expressiondata{$probeID})) {
                 print "Expressiondata($probeID): ". $expressiondata{$probeID}."\n" if ($test);
         }
         else {
@@ -301,6 +302,11 @@ if (exists($expressiondata{$probeID})) {
 	my $i=0;
 
 	print "Experiment_position: " . join("\t",keys %experiment_position) . "\n" if ($test);
+
+
+	#
+	# Going through each mouse.
+	#
 
 	foreach my $exp (keys %experiment_position) {
 
