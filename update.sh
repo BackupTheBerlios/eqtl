@@ -73,7 +73,7 @@ do
 	elif [ -z "$projectname" ]; then
 		projectname="$i"
 	else
-		echo "Attempt to set project name twice (was '$projectname', now '$i'.\n"
+		echo "Attempt to set project name twice (was '$projectname', now '$i')."
 		exit -1
 	fi
 done
