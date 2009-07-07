@@ -238,7 +238,7 @@ while (FCGI::accept >= 0) {
 			      push(@covars_add, $cov);
 			   }
 			   else{
-                              errorMessage($execParams{'cov_meth'}." is not a vaild option for cov_meth [add (=additive) | int (=interactiv)]");
+                              errorMessage($execParams{'cov_meth'}." is not a valid option for cov_meth [add (=additive) | int (=interactiv)]");
 			      next;
                            } 
 			}
