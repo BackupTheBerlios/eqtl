@@ -12,7 +12,6 @@ insertQTLDataToSql.pl [ --verbose ] [ --force ] --filename <name of file with re
 
 insertQTLDataToSql.pl --help
 
-
 =head1 DESCRIPTION
 
 This script is not meant to be executed by the regular user but
@@ -39,11 +38,13 @@ shows these instructions and exists
 
 =back
 
-=head1 AUTHORs
+=head1 AUTHORS
 
-Jan Kolbaum <kolbaum@inb.uni-luebeck.de>, Ann-Kristin Grimm, Steffen Moeller <moeller@inb.uni-luebeck.de>
+Jan Kolbaum <kolbaum@inb.uni-luebeck.de>, Ann-Kristin Grimm, Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
 
-	University of Luebeck, 2008-2009
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2008-2009
 
 =cut
 
@@ -71,14 +72,8 @@ unless (GetOptions(
 	exit -3;
 }
 	
-
-if (defined($help)) {
-	print <<EOHELP
-	FIXME: Need to update for pod-usage
-EOHELP
-;
-	exit -3;
-}
+pod2usage(-verbose => 1) if ($help or "-h" eq "$ARGV[0]");
+pod2usage(-verbose => 2) if ($man);
 
 my $dbh = DBI->connect( DATABASECON );
 if ($!) {

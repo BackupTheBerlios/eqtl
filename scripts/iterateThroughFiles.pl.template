@@ -2,6 +2,53 @@
 
 TEMPLATEWARNINGHASH
 
+=head1 NAME
+
+iterateThroughFiles  -  inspect returned result files and upload to DB when appropriate
+
+=head1 SYNOPSIS
+
+iterateThroughFiles <path to storage folder>
+
+=head1 DESCRIPTION
+
+Once the computations have been performed, all data needs to be transferred to
+a machine from which this script is executed. It will inspect these files and upload
+the findings to the results database. It is that database from which all analyses
+are performed and without this script, no data will get there.
+
+The only argument is the folder that contains the results.
+
+=head1 OPTIONS
+
+=over 4
+
+=item verbose
+
+=item unlink
+
+=item --help
+
+shows quick overview
+
+=item --man
+
+shows more elaborate description
+
+=back
+
+=head1 AUTHORS
+
+Ann-Kristin Grimm <grimm@inb.uni-luebeck.de>,
+Jan Kolbaum,
+Steffen ME<ouml>ller
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
+
+=cut
+
 BEGIN {
 	push @INC,"./scripts";
 }
@@ -11,6 +58,7 @@ use File::Path;
 use File::Copy;
 use Getopt::Long;
 use DBI;
+use Pod::Usage;
 
 use insertQTLDataToSql;
 
@@ -21,6 +69,7 @@ GetOptions(
 	"force" => \$force,
 	"f" => \$force,
 	"help" => \$help,
+	"man" => \$help,
 	"verbose" => \$verbose,
 	"unlink" => \$unlink,
 	"dryrun" => \$dryrun
@@ -30,41 +79,8 @@ if( !(@ARGV) || $#ARGV < 0 ){
 	die "Usage: ./SCRIPTNAME <list of folders or files to upload>";
 }
 
-if ( $help or "-h" eq "$ARGV[0]" or "--help" eq "$ARGV[0]" ) {
-	print <<EOHELP;
-NAME
-	iterateThroughFiles  -  inspect returned result files and upload to DB when appropriate
-
-SYNOPSIS
-
-	iterateThroughFiles <path to storage folder>
-
-DESCRIPTION
-
-	Once the computations have been performed, all data needs to be transferred to
-	a machine from which this script is executed. It will inspect these files and upload
-	the findings to the results database. It is that database from which all analyses
-	are performed and without this script, no data will get there.
-
-	The only argument is the folder that contains the results.
-
-OPTIONS
-
-	verbose
-
-	unlink
-
-AUTHORS
-
-	Ann-Kristin Grimm <grimm\@inb.uni-luebeck.de>
-	Jan Kolbaum
-	Steffen Möller
-
-	University of Lübeck, 2009
-
-EOHELP
-
-}
+pod2usage(-verbose => 1) if ($help or "-h" eq "$ARGV[0]");
+pod2usage(-verbose => 2) if ($man);
 
 my $dbh = DBI->connect( DATABASECON ) or die "Could not open connection to database.\n";
 

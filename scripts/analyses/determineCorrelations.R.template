@@ -1,31 +1,46 @@
 
 TEMPLATEWARNINGHASH
 
-# NAME
-#
-#	determineCorrelations.R - prepare upload of correlation data
-#
-# SYNOPSIS
-#
-#	echo 'source("determineCorrelations.R')" | R --vanilla --no-save
-#
-# DESCRIPTION
-#
-#	This script calculates all correlations between 
-#	 * the expression levels of all genes
-#	 * between expression levels and the classical traits.
-#	For larger projects, only the calculation of the correlaction
-#	coefficients is practical to be applied for gene-gene comparisons.
-#	
-#	For comparisons with classical phenotypes and smaller projects
-#	may also determine # the p-Value for the likelihood
-#	to make this observation on uncorrelated data.
-#
-# AUTHOR
-#
-#	Steffen Möller <moeller@inb.uni-luebeck.de>
-#	2009 University of Lübeck
-#
+doc<-"
+
+=head1 NAME
+
+determineCorrelations.R - prepare upload of correlation data
+
+=head1 SYNOPSIS
+
+echo source('determineCorrelations.R') | R --vanilla --no-save
+
+=head1 DESCRIPTION
+
+This script calculates all correlations between 
+
+=over 4
+
+=item the expression levels of all genes
+
+=item between expression levels and the classical traits.
+
+=back
+
+For larger projects, only the calculation of the correlaction
+coefficients is practical to be applied for gene-gene comparisons.
+
+For comparisons with classical phenotypes and smaller projects
+may also determine the p-Value for the likelihood
+to make this observation on uncorrelated data.
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
+
+=cut
+
+"
 
 TEMPLATEWARNINGHASH
 

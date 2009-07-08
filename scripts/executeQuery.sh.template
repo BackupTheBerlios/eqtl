@@ -4,22 +4,22 @@ if [ "-h" = "$1" -o "--help" = "$1" ]; then
 
 : <<=cut
 
-=name1 NAME
+=head1 NAME
 
 executeQuery.sh - calculate several expression QTL
 
-=name1 SYNOPSIS
+=head1 SYNOPSIS
 
 executeQuery.sh
 
-=name1 DESCRIPTION
+=head1 DESCRIPTION
 
 This script, a wrapper of the evaluateExpression.R script, initiates the
 computation of expression QTL.  Several workunits are performed. The
 script ends with no further jobs being available or until a maximal
 number of hours has been invested.
 
-=name1 ENVIRONMENT
+=head1 ENVIRONMENT
 
 =over 4
 
@@ -33,11 +33,15 @@ maximal number of workunits to perform
 
 =back
 
-=name1 AUTHORS
+=head1 AUTHORS
 
-Steffen Moeller <moeller@inb.uni-luebeck.de>
-Benedikt Bauer <bauer@cls.uni-luebeck.de>
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+Benedikt Bauer <bauer@cls.uni-luebeck.de>,
 Ann-Kristin Grimm <grimm@cls.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
 
 =cut
 

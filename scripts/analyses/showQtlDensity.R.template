@@ -1,18 +1,35 @@
 
+doc <- "
 
-# show QtlDensity.R
-#
-# The script gathers code for the display of expression QTL
-# densities on a chromosomal level.
-#
-# It is motivated by the observed shift in hot spots for QTL
-# when raising the threshold for LOD scores. Here, the selection
-# criterion and the chromosomal distribution are shown together.
-#
-# Steffen Möller <moeller@inb.uni-luebeck.de>,
-# Ann-Kristin Grimm <grimm@inb.uni-luebeck.de>
-#
-# University of Lübeck, 2009
+=head1 NAME
+
+showQtlDensity.R - graphical overview on the number of eQTL at various LOD scores
+
+=head1 SYNOPSIS 
+
+to be sourced within an R shell
+
+=head1 DESCRIPTION
+
+The script gathers code for the display of expression QTL
+densities on a chromosomal level.
+
+It is motivated by the observed shift in hot spots for QTL
+when raising the threshold for LOD scores. Here, the selection
+criterion and the chromosomal distribution are shown together.
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+Ann-Kristin Grimm <grimm@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
+
+=cut
+
+"
 
 # substituting the 'hist' function to derive density data
 my.density <-function(data,breaks=NULL,interval.length=NA,max.value=NA) {

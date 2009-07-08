@@ -4,24 +4,31 @@ TEMPLATEWARNINGHASH
 
 =head1 NAME
 
-genotypesAndEisen.pl
+prepareRqtlInputData_mus.pl - preparation of input files for 'mus' project
 
 =head1 SYNOPSIS
 
+prepareRqtlInputData_mus.pl <scoreselection> "separator"  <geneselection> [test]
+
 =head1 DESCRIPTION
 
-This script is executed by the webserver.
-It provides files with expression information about the mice for each trait_id.
-It needs the expression-file and the genotyping-file. Further it needs the file with the classical scoring data.
+This script is executed by the webserver.  It provides files with
+expression information about the mice for each trait_id.  It needs the
+expression-file and the genotyping-file. Further it needs the file with
+the classical scoring data.
 
-	USAGE: me.pl <scoreselection> "separator"  <geneselection> [test]
-
-If executed with "test" as last argument, it's beeing presumed, that the script has been executed from the command line and therefore the script will provide output on the command line.
+If executed with "test" as last argument, it's beeing presumed, that the
+script has been executed from the command line and therefore the script
+will provide output on the command line.
 
 =AUTHOR
 
-Steffen Moeller <moeller@inb.uni-luebeck.de>
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
 Benedikt Bauer <bauer@informatik.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
 
 =cut
 
