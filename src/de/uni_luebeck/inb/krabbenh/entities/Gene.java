@@ -11,7 +11,7 @@ import org.hibernate.annotations.Index;
 
 
 @Entity
-public class Snip implements Serializable {
+public class Gene implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private int id;

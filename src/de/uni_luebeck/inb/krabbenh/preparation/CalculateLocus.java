@@ -7,9 +7,9 @@ import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import de.uni_luebeck.inb.krabbenh.entities.EnsemblMarker;
 import de.uni_luebeck.inb.krabbenh.entities.Locus;
 import de.uni_luebeck.inb.krabbenh.entities.MarkerInterpolation;
-import de.uni_luebeck.inb.krabbenh.helpers.Morgan2BP;
 import de.uni_luebeck.inb.krabbenh.helpers.RunInsideTransaction;
 
 public class CalculateLocus {
@@ -17,8 +17,6 @@ public class CalculateLocus {
 		new RunInsideTransaction() {
 			@Override
 			public void work(Transaction transaction, Session session) throws Exception {
-				Morgan2BP morgan2BP = new Morgan2BP();
-
 				List<?> chromosomes = session.createQuery("select chromosome from Locus group by chromosome").list();
 				for (Object curo : chromosomes) {
 					String chromosome = (String) curo;
@@ -26,7 +24,8 @@ public class CalculateLocus {
 					List<?> markero = session.createQuery("select position from Locus where interpolatedPosition = false and chromosome=:chr order by position asc").setParameter("chr", chromosome)
 							.list();
 
-					Double last = (Double) session.createQuery("select position from Locus where chromosome=:chr order by position desc").setParameter("chr", chromosome).setMaxResults(1).uniqueResult();
+					Double last = (Double) session.createQuery("select position from Locus where chromosome=:chr order by position desc").setParameter("chr", chromosome).setMaxResults(1)
+							.uniqueResult();
 
 					ArrayList<Double> marker = new ArrayList<Double>();
 					for (Object curoo : markero)
@@ -35,14 +34,18 @@ public class CalculateLocus {
 
 					double curpos = 0;
 					for (Double position : marker) {
-						if(Math.abs(curpos-position) < 0.001) continue;
-						
+						if (Math.abs(curpos - position) < 0.001)
+							continue;
+
 						MarkerInterpolation interpolation = new MarkerInterpolation();
 						interpolation.setChromosome(chromosome);
 						interpolation.setInterpolatedFrom(curpos);
 						interpolation.setInterpolatedTo(position);
-						interpolation.setInterpolatedFromBP(morgan2BP.cM2bp(interpolation.getChromosome(), interpolation.getInterpolatedFrom()));
-						interpolation.setInterpolatedToBP(morgan2BP.cM2bp(interpolation.getChromosome(), interpolation.getInterpolatedTo()));
+						// NOTE: since the borders are real markers, we should
+						// have ENSEMBL position info
+
+						interpolation.setInterpolatedFromBP(getEnsemblMarkerForPosition(session, chromosome, curpos).getPositionBP());
+						interpolation.setInterpolatedToBP(getEnsemblMarkerForPosition(session, chromosome, position).getPositionBP());
 						session.persist(interpolation);
 						curpos = position;
 					}
@@ -54,22 +57,28 @@ public class CalculateLocus {
 				List<?> loci = session.createQuery("from Locus").list();
 				for (Object locuso : loci) {
 					Locus locus = (Locus) locuso;
-					locus.setPositionBP(morgan2BP.cM2bp(locus.getChromosome(), locus.getPosition()));
 					List<?> inter = query.setParameter("chr", locus.getChromosome()).setParameter("pos", locus.getPosition()).list();
-					if(inter.size() == 0 && !locus.isInterpolatedPosition()) {
-						inter = session.createQuery("from MarkerInterpolation where chromosome=:chr and (interpolatedFrom=:pos or interpolatedTo=:pos)")
-						.setParameter("chr", locus.getChromosome()).setParameter("pos", locus.getPosition()).list();
+					if (inter.size() == 0 && !locus.isInterpolatedPosition()) {
+						inter = session.createQuery("from MarkerInterpolation where chromosome=:chr and (interpolatedFrom=:pos or interpolatedTo=:pos)").setParameter("chr", locus.getChromosome())
+								.setParameter("pos", locus.getPosition()).list();
 					}
 					assert inter.size() == 1;
-					if(inter.size() > 0)
+					if (inter.size() > 0)
 						locus.setMarkerInterpolation((MarkerInterpolation) inter.get(0));
-					session.persist(locus);
+					locus.setPositionBP(locus.getMarkerInterpolation().getInterpolatedBpFor(locus.getPosition()));
 				}
 
 				session.flush();
 
 			}
 		}.run();
+	}
+
+	private static EnsemblMarker getEnsemblMarkerForPosition(Session session, String chromosome, double curpos) {
+		Locus locus = (Locus) session.createQuery("from Locus where interpolatedPosition = false and chromosome=:chr and position=:pos").setParameter("chr", chromosome).setParameter("pos", curpos)
+				.uniqueResult();
+		EnsemblMarker fromEnsembl = (EnsemblMarker) session.createQuery("from EnsemblMarker where name=?").setParameter(1, locus.getName()).uniqueResult();
+		return fromEnsembl;
 	}
 
 }

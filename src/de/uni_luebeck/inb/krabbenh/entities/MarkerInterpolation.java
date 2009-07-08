@@ -1,11 +1,14 @@
 package de.uni_luebeck.inb.krabbenh.entities;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 
 import org.hibernate.annotations.Index;
 
@@ -19,9 +22,11 @@ public class MarkerInterpolation implements Serializable {
 
 	private double interpolatedFrom; // in cMorgan
 	private double interpolatedTo; // in cMorgan
-	
+
 	private long interpolatedFromBP;
 	private long interpolatedToBP;
+
+	private Set<ExpressionQTL> containedExpressionQTLs = new HashSet<ExpressionQTL>();
 
 	@Id
 	@GeneratedValue
@@ -34,7 +39,7 @@ public class MarkerInterpolation implements Serializable {
 		this.id = id;
 	}
 
-	@Index(name="chromosome_index")
+	@Index(name = "chromosome_index")
 	public String getChromosome() {
 		return chromosome;
 	}
@@ -43,7 +48,7 @@ public class MarkerInterpolation implements Serializable {
 		this.chromosome = chromosome;
 	}
 
-	@Index(name="interpolatedFrom_index")
+	@Index(name = "interpolatedFrom_index")
 	public double getInterpolatedFrom() {
 		return interpolatedFrom;
 	}
@@ -52,7 +57,7 @@ public class MarkerInterpolation implements Serializable {
 		this.interpolatedFrom = interpolatedFrom;
 	}
 
-	@Index(name="interpolatedTo_index")
+	@Index(name = "interpolatedTo_index")
 	public double getInterpolatedTo() {
 		return interpolatedTo;
 	}
@@ -77,4 +82,19 @@ public class MarkerInterpolation implements Serializable {
 		this.interpolatedToBP = interpolatedToBP;
 	}
 
+	@ManyToMany
+	public Set<ExpressionQTL> getContainedExpressionQTLs() {
+		return containedExpressionQTLs;
+	}
+
+	public void setContainedExpressionQTLs(Set<ExpressionQTL> containedExpressionQTLs) {
+		this.containedExpressionQTLs = containedExpressionQTLs;
+	}
+
+	public long getInterpolatedBpFor(double position) {
+		assert interpolatedFrom <= position;
+		assert interpolatedTo >= position;
+		double perc = (position - interpolatedFrom) / (interpolatedTo - interpolatedFrom);
+		return interpolatedFromBP + (long) ((interpolatedToBP - interpolatedFromBP) * perc);
+	}
 }

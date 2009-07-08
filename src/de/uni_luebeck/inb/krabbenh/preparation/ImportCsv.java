@@ -13,7 +13,7 @@ import de.uni_luebeck.inb.krabbenh.entities.Covariate;
 import de.uni_luebeck.inb.krabbenh.entities.ExpressionQTL;
 import de.uni_luebeck.inb.krabbenh.entities.Locus;
 import de.uni_luebeck.inb.krabbenh.entities.MarkerInterpolation;
-import de.uni_luebeck.inb.krabbenh.entities.Snip;
+import de.uni_luebeck.inb.krabbenh.entities.Gene;
 import de.uni_luebeck.inb.krabbenh.helpers.RunInsideTransaction;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
@@ -27,7 +27,7 @@ public class ImportCsv {
 				session.createQuery("delete from ExpressionQTL").executeUpdate();
 				session.createQuery("delete from Covariate").executeUpdate();
 				session.createQuery("delete from Locus").executeUpdate();
-				session.createQuery("delete from Snip").executeUpdate();
+				session.createQuery("delete from Gene").executeUpdate();
 				session.createQuery("delete from MarkerInterpolation").executeUpdate();
 				session.flush();
 
@@ -52,7 +52,7 @@ public class ImportCsv {
 					name2locus.put(parts[0].toLowerCase(), locus);
 				}
 
-				Map<Integer, Snip> probeset2snip = new HashMap<Integer, Snip>();
+				Map<Integer, Gene> probeset2snip = new HashMap<Integer, Gene>();
 				// 10723943 1 - 157453059 157490563 293144
 				read = new BufferedReader(new InputStreamReader(new FileInputStream("BEARatChip.txt")));
 				while ((line = read.readLine()) != null) {
@@ -61,7 +61,7 @@ public class ImportCsv {
 						System.out.println("skipping probeset_id " + parts[0]);
 						continue;
 					}
-					Snip snip = new Snip();
+					Gene snip = new Gene();
 					snip.setChromosome(parts[1]);
 					snip.setPositiveStrand(parts[2].equals("+"));
 					snip.setFromBp(Long.valueOf(parts[3]));
@@ -90,7 +90,7 @@ public class ImportCsv {
 						continue;
 					}
 					eqtl.setLocus(locus);
-					Snip snip = probeset2snip.get(Integer.valueOf(parts[1]));
+					Gene snip = probeset2snip.get(Integer.valueOf(parts[1]));
 					if (snip == null) {
 						System.err.println("skipping qtl because of missing snip. locus " + parts[0] + " trait " + parts[1]);
 						continue;
