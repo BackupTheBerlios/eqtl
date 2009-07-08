@@ -23,44 +23,60 @@ if [ -z "$1" -o "-h" = "$1" -o "--help" = "$1" ]; then
 fi
 
 if [ -n "$showHelp" ]; then
-cat <<EOHELP
-NAME
 
-	submitToTorqueLocally.sh - script to submit expression QTL analyses to a local queueing system
+: <<=cut
 
-SYNOPSIS
+=head1 NAME
 
-	submitToTorqueLocally.sh <duration> <number>
+submitToTorqueLocally.sh - script to submit expression QTL analyses to a local queueing system
 
-DESCRIPTION
+=head1 SYNOPSIS
 
-	The default is to submit 1 jobs, otherwise the second argument
-	to the script should specify the number of jobs. The number of
-	jobs is not identical to the nubmer of workunits that are going
-	to be calculated. There are multiple workunits per job.
+submitToTorqueLocally.sh <duration> <number>
 
-	The duration is 4 hours (only time unit).  As many jobs as
-	possible will be created in that time. The cputime of the job
-	will be set to the duration specified this way.
+=head1 DESCRIPTION
 
-ENVIRONMENT
+The default is to submit 1 jobs, otherwise the second argument
+to the script should specify the number of jobs. The number of
+jobs is not identical to the nubmer of workunits that are going
+to be calculated. There are multiple workunits per job.
 
-	RSCRIPTTOEXECUTE - script to be executed by R in the queue
-		(set to '$RSCRIPTTOEXECUTE')
+The duration is 4 hours (only time unit).  As many jobs as
+possible will be created in that time. The cputime of the job
+will be set to the duration specified this way.
 
-	NODES        - the name of the nodes to submit to (set to '$NODES')
+=head1 ENVIRONMENT
 
-	NAME         - identifier to appear as eQTL_\${NAME}_\$jobnumber
+=over 4
 
-	CALCULATIONS - number of Scanone or Scantwo calculations to
-	               perform per submitted queue job
+=item RSCRIPTTOEXECUTE
 
-AUTHOR
+script to be executed by R in the queue
 
-	Steffen Moeller <moeller@inb.uni-luebeck.de>
+=item NODES
 
-EOHELP
-	exit 0
+the name of the nodes to submit to
+
+=item NAME
+
+identifier to appear as eQTL_\${NAME}_\$jobnumber
+
+=item CALCULATIONS
+
+number of Scanone or Scantwo calculations to perform per submitted
+queue job
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2008-2009
+
+=cut
+        pod2man $0 | nroff -man | less
+        exit
 fi
 
 if [ ! -r "$RSCRIPTTOEXECUTE" ]; then
