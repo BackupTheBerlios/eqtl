@@ -46,7 +46,7 @@ public class ImportCsv {
 					locus.setName(parts[0]);
 					locus.setChromosome(parts[1]);
 					locus.setPosition(Double.valueOf(parts[2]));
-					locus.setInterpolatedPosition(locus.getName().startsWith("c"));
+					locus.setInterpolatedPosition(!locus.getName().startsWith("D"));
 					locus.setMarkerInterpolation(dummy);
 					session.persist(locus);
 					name2locus.put(parts[0].toLowerCase(), locus);
@@ -95,7 +95,7 @@ public class ImportCsv {
 						System.err.println("skipping qtl because of missing snip. locus " + parts[0] + " trait " + parts[1]);
 						continue;
 					}
-					eqtl.setSnip(snip);
+					eqtl.setGene(snip);
 					String covName = parts.length > 3 ? parts[3] : "";
 					if (! name2cov.containsKey(covName)) {
 						Covariate covariate = new Covariate();

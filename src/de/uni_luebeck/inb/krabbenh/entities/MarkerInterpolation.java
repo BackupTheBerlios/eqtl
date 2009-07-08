@@ -92,6 +92,7 @@ public class MarkerInterpolation implements Serializable {
 	}
 
 	public long getInterpolatedBpFor(double position) {
+		if(interpolatedFromBP < 0 || interpolatedToBP < 0) return -1; // clearly mark positions outside our marker range
 		assert interpolatedFrom <= position;
 		assert interpolatedTo >= position;
 		double perc = (position - interpolatedFrom) / (interpolatedTo - interpolatedFrom);

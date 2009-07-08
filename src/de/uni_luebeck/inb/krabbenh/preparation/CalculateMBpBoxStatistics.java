@@ -50,9 +50,10 @@ public class CalculateMBpBoxStatistics {
 						+ ") AS source WHERE source.millionbasepairbox_id=statis.millionbasepairbox_id and source.covariate_id=statis.covariate_id");
 
 				session.createQuery("delete from MillionBasepairBox_Statistics").executeUpdate();
+				session.flush();
 				queryAll.executeUpdate();
 				queryCis.executeUpdate();
-				session.createQuery("UPDATE hajo_eqtl.millionbasepairbox_statistics set frequencysamechromosome = ciseqtlcount / (alleqtlcount + ciseqtlcount)").executeUpdate();
+				session.createSQLQuery("UPDATE hajo_eqtl.millionbasepairbox_statistics set frequencysamechromosome = ciseqtlcount / (alleqtlcount + ciseqtlcount)").executeUpdate();
 			}
 		}.run();
 	}

@@ -31,10 +31,10 @@ public class CalculateEqtlDist {
 					l = createQuery.list();
 					for (Object curo : l) {
 						ExpressionQTL eqtl = (ExpressionQTL) curo;
-						eqtl.setSameChromosome(eqtl.getLocus().getChromosome().equals(eqtl.getSnip().getChromosome()));
+						eqtl.setSameChromosome(eqtl.getLocus().getChromosome().equals(eqtl.getGene().getChromosome()));
 						if (eqtl.isSameChromosome()) {
-							long dstA = eqtl.getLocus().getPositionBP() - eqtl.getSnip().getFromBp();
-							long dstB = eqtl.getLocus().getPositionBP() - eqtl.getSnip().getToBp();
+							long dstA = eqtl.getLocus().getPositionBP() - eqtl.getGene().getFromBp();
+							long dstB = eqtl.getLocus().getPositionBP() - eqtl.getGene().getToBp();
 							eqtl.setDistanceBP(Math.min(Math.abs(dstA), Math.abs(dstB)));
 						} else {
 							eqtl.setDistanceBP(Long.MAX_VALUE);

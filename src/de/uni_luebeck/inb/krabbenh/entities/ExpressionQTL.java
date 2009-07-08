@@ -17,7 +17,7 @@ public class ExpressionQTL implements java.io.Serializable {
 	
 	private double LOD;
 	private Locus locus;
-	private Gene snip;
+	private Gene gene;
 	
 	//calculated:
 	private boolean sameChromosome; // for snip and locus
@@ -59,11 +59,11 @@ public class ExpressionQTL implements java.io.Serializable {
 	
 	@ManyToOne(optional=false)
 	@Index(name="snip_index")
-	public Gene getSnip() {
-		return snip;
+	public Gene getGene() {
+		return gene;
 	}
-	public void setSnip(Gene snip) {
-		this.snip = snip;
+	public void setGene(Gene gene) {
+		this.gene = gene;
 	}
 	public boolean isSameChromosome() {
 		return sameChromosome;

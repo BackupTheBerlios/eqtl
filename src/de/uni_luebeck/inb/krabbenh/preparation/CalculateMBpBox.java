@@ -22,7 +22,14 @@ public class CalculateMBpBox {
 		new RunInsideTransaction() {
 			@Override
 			public void work(Transaction transaction, Session session) throws Exception {
-				session.createQuery("delete from MillionBasepairBox").executeUpdate();
+			List<?> boxes = session.createQuery("from MillionBasepairBox").list();
+			for (Object box : boxes) {
+				((MillionBasepairBox)box).getContainedExpressionQTLs().clear();
+				((MillionBasepairBox)box).getStatistics().clear();
+			}
+			session.flush();
+			session.createQuery("delete from MillionBasepairBox_Statistics").executeUpdate();
+			session.createQuery("delete from MillionBasepairBox").executeUpdate();
 				chromosomes = session.createQuery("select chromosome from Locus group by chromosome").list();
 			}
 		}.run();
@@ -50,7 +57,7 @@ public class CalculateMBpBox {
 
 						List<?> eqtls = session
 								.createQuery(
-										"from ExpressionQTL where locus.id in (select id from Locus where chromosome=:chr and positionBP >= :from and positionBP <= :to) or snip.id in (select id from Snip where chromosome=:chr and toBP >= :from and fromBp <= :to)")
+										"from ExpressionQTL where locus.id in (select id from Locus where chromosome=:chr and positionBP >= :from and positionBP <= :to) or gene.id in (select id from Gene where chromosome=:chr and toBP >= :from and fromBp <= :to)")
 								.setParameter("chr", chromosome).setParameter("from", box.getFromBP()).setParameter("to", box.getToBP()).list();
 						box.getContainedExpressionQTLs().clear();
 						for (Object eqtl : eqtls) {
@@ -58,6 +65,7 @@ public class CalculateMBpBox {
 						}
 						session.persist(box);
 					}
+					session.flush();
 				}
 			}.run();
 		}
