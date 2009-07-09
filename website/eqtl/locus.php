@@ -16,12 +16,12 @@ overview on associated traits from the perspective of single loci
 
 =head1 AUTHOR
 
-Steffen Moeller <moeller@inb.uni-luebeck.de>
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
 Jan Kolbaum
 
 =head1 COPYRIGHT
 
-Universities of Luebeck and Rostock, 2003-2009
+Universities of LE<uuml>beck and Rostock, 2003-2009
 
 =cut
 
