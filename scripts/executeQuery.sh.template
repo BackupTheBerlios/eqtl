@@ -1,5 +1,7 @@
 #!/bin/sh
 
+TEMPLATEWARNINGHASH
+
 if [ "-h" = "$1" -o "--help" = "$1" ]; then
 
 : <<=cut
@@ -74,7 +76,7 @@ if ! cd RECALCDIR; then
 fi
 
 
-if -r ../evaluatedQueries.tar; then
+if [ -r ../evaluatedQueries.tar ]; then
 	echo "!!!!ATTENTION!!!! There is another evaluatedQueries.tar file. Not continueing. Please check!"
 elif tar cf ../evaluatedQueries.tar *.gz; then
 	echo "Taring RECALCDIR/*.gz was successful."
