@@ -10,20 +10,13 @@ getRscript.pl - should better be named 'prepare R/qtl input data'
 
 getRscript.pl
 
+In the regular installation, this script is called from the web server
+but it may also be invoked from the shell e.g. for testing purposes.
+
 =head1 DESCRIPTION
 
-The script is called from the web server but may also be invoked from the shell
-e.g. for testing purposes.
-
-=head1 AUTHORS
-
-Jan Kolbaum,
-Ann-Kristin Grimm,
-Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
-
-=head1 COPYRIGHT
-
-2008-2009, University of LE<uuml>beck
+Every workunit gets a tailored R script to execute. This Perl script
+prepares it.
 
 =cut
 
@@ -76,6 +69,12 @@ sub errorMessage($) {
 my $probeCNT = 0;
 
 
+=head2 main loop
+
+The script is prepared for FastCGI. A series of parameters may be passed
+
+=cut
+
 while (FCGI::accept >= 0) {
 
 	# 
@@ -97,6 +96,42 @@ while (FCGI::accept >= 0) {
 	my $pc;
 	my $mode = 'scanone';
 
+
+=over 4
+
+=item perms
+
+the number of permutations, predefined by the PERMS configuration parameter
+
+=item alpha
+
+the quantile in the permutations against which the real LOD score competes, 
+predefined by the configuration parameter ALPHA
+
+=item method
+
+a parameter passed to R/qtl, set to 'hk'.
+
+=item cov_meth
+
+a parameter passed to R/qtl, set to 'int'.
+
+=item d
+
+preset by RECALCDIR
+
+=item h
+
+preset by RECALCHOST
+
+=item p
+
+preset by RECALCPORT
+
+=back
+
+=cut
+
 	my %execParams = (
 				'perms' => PERMS,
 				'alpha' => ALPHA,
@@ -111,7 +146,9 @@ while (FCGI::accept >= 0) {
 				'd'=>'RECALCDIR',
 				'h'=>'RECALCHOST',
 				'p'=>'RECALCPORT'
+
 	);
+
 
 	#
 	# Read parameters from website
@@ -492,3 +529,15 @@ EOWRITETODISK
 	}
 
 }
+
+=head1 AUTHORS
+
+Jan Kolbaum,
+Ann-Kristin Grimm,
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2008-2009
+
+=cut
