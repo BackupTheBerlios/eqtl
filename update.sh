@@ -36,7 +36,9 @@ Be quiet.
 
 =item 	projectname
 
-Expected as the suffix of a directory named conf_projectname.
+Expected as the suffix of a directory named conf_projectname.  This
+parameter becomes optional when there is a folder with configuration files
+(or a symbolic link to such) that is called 'conf'.
 
 =back
 
