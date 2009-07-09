@@ -68,4 +68,20 @@ if ! TIMEOUT=70 R CMD BATCH $Rscript; then
 	echo "Collecting results to the degree that these are available";
 fi
 
-cd RECALCDIR && tar cf ../evaluatedQueries.tar *.gz
+if ! cd RECALCDIR; then
+	echo "Could not change into 'RECALCDIR', exiting."
+	exit -1
+fi
+
+
+if -r ../evaluatedQueries.tar; then
+	echo "!!!!ATTENTION!!!! There is another evaluatedQueries.tar file. Not continueing. Please check!"
+elif tar cf ../evaluatedQueries.tar *.gz; then
+	echo "Taring RECALCDIR/*.gz was successful."
+	rm -f *.gz
+else
+	echo "Could not tar *.gz files, leaving everything as it was."
+fi
+
+
+
