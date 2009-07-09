@@ -9,7 +9,7 @@ recalc.pl - select job to be computed and return R script
 =head1 SYNOPSIS
 
 The script is called from Apache. It expects not arguments.
-It can be started from the comand line and should print
+It can be started from the command line and should print
 HTML that would otherwise be shown via the webserver.
 
 =head1 DESCRIPTION

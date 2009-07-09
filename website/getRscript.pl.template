@@ -337,12 +337,13 @@ writeToDisk <- function( toWrite ){
 }
 EOWRITETODISK
 
-	my $getData = <<EOWRITETODISK;
-my.cross <- read.cross( "csv",dir="",file="URLGETDATA?probesetid=$probeID",
-			genotypes=RQTLREADCROSSGENOTYPES, alleles=RQTLREADCROSSALLELES,
-			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )
-my.cross <- calc.genoprob( my.cross, step=$steps, error.prob=$execParams{'errorP'} )
-EOWRITETODISK
+	my $getData = 'my.cross <- read.cross( "csv",dir="",file="URLGETDATA?probesetid='.$probeID.'&score='
+		      .join(",",@covars) # this join causes the trouble
+		      .'", '
+		      .'genotypes=RQTLREADCROSSGENOTYPES, alleles=RQTLREADCROSSALLELES,'
+		      .'na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )'."\n"
+		      ."my.cross <- calc.genoprob( my.cross, step=$steps, error.prob=$execParams{'errorP'} )\n";
+
 	if( $mode eq 'scantwo' ){
 		$getData .= <<EOWRITETODISK;
 my.cross <- sim.geno(my.cross, step=$steps, n.draws=$execParams{'draws'})

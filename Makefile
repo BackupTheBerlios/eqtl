@@ -20,6 +20,6 @@ clean:
 	done
 
 count:
-	wc -l `find scripts -name "*.pl" -o -name "*.R" -o -name "*.php" -o -name "*.sh"` `find website -name "*.pl" -o -name "*.R" -o -name "*.php" -o -name "*.sh"`
+	wc -l `find scripts \( -name "*.pl" -o -name "*.R" -o -name "*.php" -o -name "*.sh" \) -a \! -type l` `find website \( -name "*.pl" -o -name "*.R" -o -name "*.php" -o -name "*.sh" \) -a \! -type l`
 
 .PHONY: udpate clean count
