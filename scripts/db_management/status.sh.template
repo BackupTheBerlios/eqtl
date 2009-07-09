@@ -1,0 +1,29 @@
+#!/bin/bash
+
+:<<=cut
+
+=head1 NAME
+
+status.sh - inform user about current state of calculations
+
+=head1 SYNOPSIS
+
+status.sh
+
+=head1 DESCRIPTION
+
+A MySQL query is performed to count the number of jobs that
+are being executed, are queued for execution, or have already
+been executed.
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
+
+=cut
+
+echo "SELECT application,status,count(*) as number FROM computation GROUP BY application,status ORDER BY application,number;" | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
