@@ -11,19 +11,21 @@ PERLSCRIPTS=$(shell find .. -name "*.pl" )
 PHPSCRIPTS=$(shell find .. -name "*.php" | grep -v 'website/index.php' | grep -v 'func_species.php' | grep -v 'help.php' | grep -v 'ensemblconf' )
 SHELLSCRIPTS=$(shell find .. -name "*.sh" | sort | egrep -v 'website/.*update.sh' | egrep -v 'scripts/.*update.sh' | egrep -v 'doc/.*update.sh' )
 
+POD2MAN = pod2man --center="expression QTL infrastructure" 
+
 .SUFFIXES: .pl .ps
 
 %.ps: %.pl
 	test -x /usr/bin/groff
 	test -x /usr/bin/pod2man
-	pod2man $< |groff -man > $@
+	$(POD2MAN) $< |groff -man > $@
 
 %.ps: %.sh
 	test -x /usr/bin/a2ps
 	test -x /usr/bin/groff
 	test -x /usr/bin/pod2man
 	if grep -q -- '=head1' $<; then \
-		pod2man $< |groff -man > $@ ; \
+		$(POD2MAN) $< |groff -man > $@ ; \
 	elif grep -- --help $<; then \
 		bash $< --help | a2ps -o $@ --center-title $< ; \
 	else \
@@ -35,7 +37,7 @@ SHELLSCRIPTS=$(shell find .. -name "*.sh" | sort | egrep -v 'website/.*update.sh
 	test -x /usr/bin/groff
 	test -x /usr/bin/pod2man
 	if grep -q '=head1' $<; then \
-		pod2man $< |groff -man > $@ ; \
+		$(POD2MAN) $< |groff -man > $@ ; \
 	elif grep -q STARTOFDOCUMENT $< | grep -q ENDOFDOCUMENT; then \
 		cat $< | sed -e '1,/STARTOFDOCUMENTATION/d' -e '/ENDOFDOCUMENTATION/,$$d' | a2ps -o $@ --center-title $<; \
 	else \

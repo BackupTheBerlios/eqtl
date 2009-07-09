@@ -4,14 +4,25 @@ TEMPLATEWARNINGHASH
 
 =head1 NAME
 
+showSRC.pl - print source code of file
+
 =head1 SYNOPSIS
 
+called from web server
+
 =head1 DESCRIPTION
+
+The idea behind this tool was that every part of
+the system, except for the data until this is published,
+shall be inspectable from a mere web access.
 
 =head1 AUTHORS
 
 Jan Kolbaum
-2008-09-01
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2008
 
 =cut
 
