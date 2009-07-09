@@ -52,7 +52,7 @@ function doit {
 			echo '# Skippted because of format: $f'
 			continue;
 		fi
-		echo "update computation set status='$operation' where jobname='$f';"
+		echo "update computation set status='$operation' where jobname='`basename $f`';"
 	done
 }
 
