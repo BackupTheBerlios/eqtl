@@ -32,7 +32,11 @@ analogous projects.
 
 =head1 AUTHORS
 
-Steffen Moeller <moeller@inb.uni-luebeck.de>
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2008-2009
 
 =cut
 
@@ -108,6 +112,9 @@ foreach my $f (@ARGV) {
 		open(FNEW,">$fnew") or die "Could not write to file '$fnew', $@\n";
 		print FNEW $ftext;
 		close(FNEW);
+		if ($ftext =~ /^#!/) {
+			chmod(0755, $fnew) or die "Could not change permissions of '$fnew', $@\n";
+		}
 	}
 	else {
 		print STDERR "  Transforming '$f'.\n";
