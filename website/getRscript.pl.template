@@ -300,7 +300,7 @@ writeToDisk <- function( toWrite ){
 }
 EOWRITETODISK
 
-	my $getData = 'my.cross <- read.cross( "csv",dir="",file="URLGETDATA?probesetid=$probeID&score='
+	my $getData = 'my.cross <- read.cross( "csv",dir="",file="URLGETDATA?probesetid='.$probeID.'&score='
 		      .join(",",@covars) # this join causes the trouble
 		      .'", '
 		      .'genotypes=RQTLREADCROSSGENOTYPES, alleles=RQTLREADCROSSALLELES,'
