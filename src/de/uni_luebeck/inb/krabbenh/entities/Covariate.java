@@ -18,6 +18,9 @@ public class Covariate implements Serializable {
 	private int id;
 	private List<String> names = new ArrayList<String>();
 
+	public Covariate() {
+	}
+	
 	@Id
 	@GeneratedValue
 	@Column(unique = true, nullable = false)

@@ -23,6 +23,9 @@ public class ExpressionQTL implements java.io.Serializable {
 	private boolean sameChromosome; // for snip and locus
 	private long distanceBP;
 	
+	public ExpressionQTL() {
+	}
+	
 	@Id
 	@GeneratedValue
 	@Column(unique = true, nullable = false)

@@ -12,6 +12,8 @@ import javax.persistence.ManyToMany;
 
 import org.hibernate.annotations.Index;
 
+import de.uni_luebeck.inb.krabbenh.helpers.IgnoreOnWebService;
+
 @Entity
 public class MarkerInterpolation implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -28,6 +30,9 @@ public class MarkerInterpolation implements Serializable {
 
 	private Set<ExpressionQTL> containedExpressionQTLs = new HashSet<ExpressionQTL>();
 
+	public MarkerInterpolation() {
+	}
+	
 	@Id
 	@GeneratedValue
 	@Column(unique = true, nullable = false)
@@ -82,6 +87,7 @@ public class MarkerInterpolation implements Serializable {
 		this.interpolatedToBP = interpolatedToBP;
 	}
 
+	@IgnoreOnWebService
 	@ManyToMany
 	public Set<ExpressionQTL> getContainedExpressionQTLs() {
 		return containedExpressionQTLs;

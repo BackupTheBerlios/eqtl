@@ -22,6 +22,9 @@ public class Gene implements Serializable {
 	private long fromBp;
 	private long toBp;
 
+	public Gene() {
+	}
+	
 	@Id
 	@GeneratedValue
 	@Column(unique = true, nullable = false)

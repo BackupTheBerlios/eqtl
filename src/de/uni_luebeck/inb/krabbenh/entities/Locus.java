@@ -25,6 +25,9 @@ public class Locus implements Serializable {
 	private boolean interpolatedPosition;
 	private MarkerInterpolation markerInterpolation; //if not interpolated, use range that contains me as start
 	
+	public Locus() {
+	}
+	
 	@Id
 	@GeneratedValue
 	@Column(unique = true, nullable = false)
