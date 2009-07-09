@@ -1,6 +1,8 @@
 #
 TEMPLATEWARNINGHASH
 
+doc <- "
+
 =head1 NAME
 
 evaluateQuery.R
@@ -43,6 +45,8 @@ Benedikt Bauer <bauer@cls.uni-luebeck.de>
 University of LE<uuml>beck, 2008-2009
 
 =cut
+
+"
 
 
 # Test if the package qtl is already installed 
