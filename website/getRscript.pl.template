@@ -118,7 +118,7 @@ a parameter passed to R/qtl, set to 'int'.
 
 =item d
 
-preset by RECALCDIR
+the directory at which (on the client side) the results are stored, preset by RECALCDIR
 
 =item h
 
