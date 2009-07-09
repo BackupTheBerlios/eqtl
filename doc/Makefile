@@ -44,7 +44,11 @@ POD2MAN = pod2man --center="expression QTL infrastructure"
 		echo "No help available for $<" | a2ps -o $@ --center-title $< ; \
 	fi 
 
-documentation: data_preparation_scripts.ps webinterface_scripts.ps general_information.ps
+%.pdf: %.ps
+	test -x /usr/bin/ps2pdf
+	ps2pdf $<
+
+documentation: data_preparation_scripts.pdf webinterface_scripts.pdf general_information.pdf
 
 data_preparation_scripts.ps: perl shell $(wildcard tmp/shell/*.ps tmp/perl/*.ps)
 	psmerge -odata_preparation_scripts.ps $(wildcard tmp/shell/*.ps) $(wildcard tmp/perl*.ps)
