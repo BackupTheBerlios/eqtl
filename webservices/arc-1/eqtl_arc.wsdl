@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="wsdl-viewer.xsl"?>
+<wsdl:definitions name="eqtl_arc" targetNamespace="http://uni-luebeck.de/eqtl/arc"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:eqtl="http://uni-luebeck.de/eqtl/arc">
+	<wsdl:types>
+		<xsd:schema targetNamespace="http://uni-luebeck.de/eqtl/arc"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:eqtl="http://uni-luebeck.de/eqtl/arc">
+			<xsd:complexType name="FilterParameters">
+				<xsd:sequence maxOccurs="1" minOccurs="1">
+					<xsd:element name="lodScore" type="eqtl:DoubleRange"
+						maxOccurs="1" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								which lod ranges to search. if not
+								specified
+								search all. a higher lod means there is a higher propability of
+								an effect between locus and gene expression.
+                			</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="position" type="eqtl:RangeOnChromosome"
+						maxOccurs="unbounded" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>an optional list of chromosomes regions to
+								search.
+								if not specified then search everywhere
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="sameChromosome" type="xsd:int"
+						maxOccurs="1" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>do the gene and the locus need to be on the
+								same chromosome?
+								1 = need same chr 0 or missing = dont
+								care -1 =
+								may not be same chr
+                			</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="locusToGeneDistance" type="eqtl:LongRange"
+						maxOccurs="1" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								the distance in BP between the locus and
+								the
+								gene position needs to be in this
+								range. if the positions are on
+								different
+								genomes, the distance is considered to
+								be infinite.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="orderBy" type="xsd:string"
+						maxOccurs="1" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								default is "LodScore"
+                			</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="maxNumResults" type="xsd:int"
+						maxOccurs="1" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								if missing or less than or equal to
+								zero,
+								return all results
+                			</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+
+
+
+			</xsd:complexType>
+
+			<xsd:complexType name="DoubleRange">
+				<xsd:sequence maxOccurs="1" minOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation></xsd:documentation>
+					</xsd:annotation>
+					<xsd:element name="from" type="xsd:double" maxOccurs="1"
+						minOccurs="0"></xsd:element>
+					<xsd:element name="to" type="xsd:double" maxOccurs="1"
+						minOccurs="0"></xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+
+			<xsd:complexType name="RangeOnChromosome">
+				<xsd:annotation>
+					<xsd:documentation>this specifies a base pair range on a
+						chromosome</xsd:documentation>
+				</xsd:annotation>
+				<xsd:sequence maxOccurs="1" minOccurs="1">
+					<xsd:element name="chromosome" type="xsd:string"
+						maxOccurs="1" minOccurs="1"></xsd:element>
+					<xsd:element name="fromBP" type="xsd:long" maxOccurs="1"
+						minOccurs="0"></xsd:element>
+					<xsd:element name="toBP" type="xsd:long" maxOccurs="1"
+						minOccurs="0"></xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+
+			<xsd:complexType name="LongRange">
+				<xsd:sequence maxOccurs="1" minOccurs="1">
+					<xsd:element name="from" type="xsd:long" maxOccurs="1"
+						minOccurs="0"></xsd:element>
+					<xsd:element name="to" type="xsd:long" maxOccurs="1"
+						minOccurs="0"></xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="QTL_FindByPosition">
+				<xsd:complexType>
+					<xsd:sequence maxOccurs="1" minOccurs="1">
+						<xsd:element name="searchType" type="xsd:string"
+							maxOccurs="1" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>specify what needs to be in the
+									searched area: "marker", "gene" or "both"
+</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="searchRequest" type="eqtl:FilterParameters"
+							maxOccurs="1" minOccurs="1">
+							<xsd:annotation>
+								<xsd:documentation>this specifies which interactions we
+									want, how many of them, and in which region they need to be
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="QTL_FindByPositionResponse">
+				<xsd:complexType>
+					<xsd:sequence maxOccurs="1" minOccurs="1">
+						<xsd:element name="qtls" type="eqtl:expressionQTL"
+							maxOccurs="unbounded" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>a list of expression qtls found by your
+									search request</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+
+
+
+			<xsd:complexType name="expressionQTL">
+				<xsd:annotation>
+					<xsd:documentation>this type specifies a single expression qtl.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:sequence maxOccurs="1" minOccurs="1">
+
+					<xsd:element name="lod" type="xsd:double">
+						<xsd:annotation>
+							<xsd:documentation>how much evidence is there to suggest an
+								effect?</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="marker" type="eqtl:NamedLocus"
+						maxOccurs="1" minOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>the marker or locus which affects the gene
+								expression</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="geneEntrezID" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>the entrez id of the gene which is being
+								expressed. you can search ensembl for this.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="genePosition" type="eqtl:RangeOnChromosome"
+						maxOccurs="1" minOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>the position of the affected gene on the
+								genome</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="statistics" type="eqtl:ExpressionStatistics"
+						maxOccurs="1" minOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>statistical information about the
+								gene expression as seen on all subjects.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+
+			<xsd:complexType name="NamedLocus">
+				<xsd:sequence maxOccurs="1" minOccurs="1">
+					<xsd:element name="name" type="xsd:string" maxOccurs="1"
+						minOccurs="0"></xsd:element>
+					<xsd:element name="chromosome" type="xsd:string"
+						maxOccurs="1" minOccurs="0"></xsd:element>
+					<xsd:element name="positionBP" type="xsd:long"
+						maxOccurs="1" minOccurs="0"></xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+
+			<xsd:complexType name="ExpressionStatistics">
+				<xsd:sequence maxOccurs="1" minOccurs="1">
+					<xsd:element name="mean" type="xsd:double" maxOccurs="1"
+						minOccurs="1"></xsd:element>
+					<xsd:element name="median" type="xsd:double" maxOccurs="1"
+						minOccurs="1"></xsd:element>
+					<xsd:element name="sd" type="xsd:double" maxOccurs="1"
+						minOccurs="1"></xsd:element>
+					<xsd:element name="variance" type="xsd:double"
+						maxOccurs="1" minOccurs="1"></xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+
+
+			<xsd:element name="QTL_FindByPosition_R">
+				<xsd:complexType>
+					<xsd:sequence maxOccurs="1" minOccurs="1">
+						<xsd:element name="searchType" type="xsd:string"
+							maxOccurs="1" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									specify what needs to be in the
+									searched area:
+									"marker", "gene" or
+									"both"
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="searchRequest" type="eqtl:FilterParameters"
+							maxOccurs="1" minOccurs="1">
+							<xsd:annotation>
+								<xsd:documentation>
+									this specifies which interactions we
+									want, how
+									many of them, and in which
+									region they need to be
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="script" type="xsd:string"
+							maxOccurs="1" minOccurs="1">
+							<xsd:annotation>
+								<xsd:documentation>this script will be executed in R. it can read a variable called "data" which contains the data from the search query as matrix. it can also write to a variable called "attachmentList" to list files that are supposed to be send back to the user as attachments.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="QTL_FindByPosition_RResponse">
+				<xsd:complexType>
+                    <xsd:sequence maxOccurs="1" minOccurs="1">
+                        <xsd:element name="scriptResults" type="eqtl:RScriptResults" maxOccurs="1" minOccurs="1">
+						</xsd:element>
+                        <xsd:element name="attachments" maxOccurs="1"
+                        	minOccurs="1" type="eqtl:RAttachmentResults">
+                        </xsd:element>
+                        
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+
+			<xsd:complexType name="RScriptResults">
+				<xsd:sequence maxOccurs="1" minOccurs="1">
+					<xsd:element name="output" type="xsd:string" maxOccurs="unbounded"
+						minOccurs="0"></xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+		
+			<xsd:complexType name="AttachedFile">
+				<xsd:sequence>
+					<xsd:element name="name" type="xsd:string"
+						maxOccurs="1" minOccurs="1">
+					</xsd:element>
+					<xsd:element name="data" type="xsd:base64Binary" maxOccurs="1" minOccurs="1"></xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+		
+			<xsd:complexType name="RAttachmentResults">
+				<xsd:sequence maxOccurs="1" minOccurs="1">
+					<xsd:element name="files" type="eqtl:AttachedFile" maxOccurs="unbounded" minOccurs="0"></xsd:element>
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="QTL_FindByPositionRequest">
+		<wsdl:part name="parameters" element="eqtl:QTL_FindByPosition"></wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="QTL_FindByPositionResponse">
+		<wsdl:part name="parameters" element="eqtl:QTL_FindByPositionResponse"></wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="QTL_FindByPosition_RRequest">
+		<wsdl:part name="parameters" element="eqtl:QTL_FindByPosition_R"></wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="QTL_FindByPosition_RResponse">
+		<wsdl:part name="parameters" element="eqtl:QTL_FindByPosition_RResponse"></wsdl:part>
+	</wsdl:message>
+	<wsdl:portType name="eqtl_arc_porttype">
+		<wsdl:operation name="QTL_FindByPosition">
+			<wsdl:documentation>find expression qtls. an expression qtl is a
+				location on the genome which affects the expression of a certain
+				gene. this process may also be affected by covariates.
+			</wsdl:documentation>
+			<wsdl:input message="eqtl:QTL_FindByPositionRequest"></wsdl:input>
+			<wsdl:output message="eqtl:QTL_FindByPositionResponse"></wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="QTL_FindByPosition_R">
+			<wsdl:input message="eqtl:QTL_FindByPosition_RRequest"></wsdl:input>
+			<wsdl:output message="eqtl:QTL_FindByPosition_RResponse"></wsdl:output>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="eqtl_arc_binding" type="eqtl:eqtl_arc_porttype">
+		<soap:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="QTL_FindByPosition">
+			<soap:operation soapAction="http://uni-luebeck.de/eqtl/arc/QTL_FindByPosition" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="QTL_FindByPosition_R">
+			<soap:operation soapAction="http://uni-luebeck.de/eqtl/arc/QTL_FindByPosition_R" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="eqtl_arc">
+		<wsdl:port name="eqtl_arc_port" binding="eqtl:eqtl_arc_binding">
+			<soap:address location="http://192.168.1.101:60000/eqtl" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>
