@@ -2,6 +2,7 @@ package de.uni_luebeck.inb.krabbenh.preparation;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,15 +12,25 @@ import org.hibernate.Transaction;
 
 import de.uni_luebeck.inb.krabbenh.entities.Covariate;
 import de.uni_luebeck.inb.krabbenh.entities.ExpressionQTL;
+import de.uni_luebeck.inb.krabbenh.entities.Gene;
 import de.uni_luebeck.inb.krabbenh.entities.Locus;
 import de.uni_luebeck.inb.krabbenh.entities.MarkerInterpolation;
-import de.uni_luebeck.inb.krabbenh.entities.Gene;
 import de.uni_luebeck.inb.krabbenh.helpers.RunInsideTransaction;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 public class ImportCsv {
+	public static void main(String[] args) throws IOException {
+		importDataCSVs();
+		CalculateEqtlDist.main(args);
+		ImportEnsemblCsv.main(args);
+		CalculateLocus.main(args);
+		CalculateMBpBox.main(args);
+		CalculateMBpBoxStatistics.main(args);
+		CalculateEQtlsForMarkerInterpolation.main(args);
+	}
+
 	@SuppressWarnings("unchecked")
-	public static void main(String[] args) {
+	private static void importDataCSVs() {
 		new RunInsideTransaction() {
 			@Override
 			public void work(Transaction transaction, Session session) throws Exception {
@@ -97,7 +108,7 @@ public class ImportCsv {
 					}
 					eqtl.setGene(snip);
 					String covName = parts.length > 3 ? parts[3] : "";
-					if (! name2cov.containsKey(covName)) {
+					if (!name2cov.containsKey(covName)) {
 						Covariate covariate = new Covariate();
 						if (covName.length() > 0) {
 							if (covName.contains(","))
@@ -117,7 +128,6 @@ public class ImportCsv {
 
 			}
 		}.run();
-
 	}
 
 }
