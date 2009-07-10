@@ -24,7 +24,11 @@ decision may be forwarded to this traits table.
 
 =head1 AUTHORS
 
-Steffen Moeller <moeller@inb.uni-luebeck.de>
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2008-2009
 
 =cut
 

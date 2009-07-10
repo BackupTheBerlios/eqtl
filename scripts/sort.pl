@@ -10,7 +10,11 @@ sort.pl [source folder (base)] [destination folder (base)]";
 
 =head1 AUTHORS
 
-Jan Kohlbaum
+Jan Kolbaum
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2008-2009
 
 =cut
 
