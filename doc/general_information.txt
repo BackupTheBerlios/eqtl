@@ -494,9 +494,36 @@
 3.  Analyses
 ============
 
-   cis - trans QTL
+   Analyses are technically performed on multiple levels. Generally,
+   the results from an R/qtl run (performed with the script generated
+   by getRscript.pl) should be uploaded to the database and then
+   be analysed from there, with no fallback on the raw result data.
+   
+   A series of scripts in the folder "scripts/analyses" is then executed
+   to extend the data with additional information, i.e. the mean
+   expression levels of genes across all individuals and their standard
+   deviations, and multiple ways to represent eQTL density information.
+   Also, the extra fields on cis/trans eQTL are updated in this manner.
+   The file 'scripts/analyses/README' also provides a respective 
+   overview:
 
-   QTL density plots
+      determineCorrelations.R
 
-   correlations between genes and between genes and phenotypes
+         correlations between genes and between genes and phenotypes
 
+      scatter_all.R
+
+          2D scatter plot of chromosomal locations of eQTL and the trait
+          Every phenotype is presented on a separate graph.
+
+      showQtlDensity.R
+
+         QTL density plots
+
+      FIXME: move script to right folder
+
+         cis - trans QTL
+
+
+   The remaining challenge is now to allow the human intuition to 
+   prepare queries that integrate all the collected facts.
