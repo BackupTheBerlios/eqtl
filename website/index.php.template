@@ -36,7 +36,9 @@ if (!$enter) $enter=((time()-filemtime("status.txt"))>(60*1));
 
 if ($enter) {
     if ($handle=@fopen("status.txt","w")) {
-	$query="select status,application,count(*) from computation group by status,application;";
+	$query="SELECT status,application,COUNT(*) as number "
+	      . "FROM computation "
+	      . "GROUP BY status,application ORDER BY number;";
 	$result = mysql_query($query) or die('Query failed: ' . mysql_error());
 	#$vals_single=array();
 	fwrite($handle, "<table>");
