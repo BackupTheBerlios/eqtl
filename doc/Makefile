@@ -56,7 +56,7 @@ data_preparation_scripts.ps: perl shell $(wildcard tmp/shell/*.ps tmp/perl/*.ps)
 webinterface_scripts.ps: php $(wildcard tmp/php/*.ps)
 	psmerge -owebinterface_scripts.ps tmp/php/*.ps
 
-general_information.ps: GeneralInformation.txt
+general_information.ps: general_information.txt
 	a2ps -o general_information.ps GeneralInformation.txt
 
 perl:	$(PERLSCRIPTS:.pl=.ps)
