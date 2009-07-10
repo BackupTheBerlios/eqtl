@@ -18,7 +18,11 @@ the conversion between Morgan and bp units.
 
 =head1 AUTHOR
 
-Steffen Moeller <moeller@inb.uni-luebeck.de>
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+Universities of Rostock and LE<uuml>beck, 2003-2009
 
 =cut
 

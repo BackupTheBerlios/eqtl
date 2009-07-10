@@ -25,7 +25,11 @@ to create the database connection that is then stored as $linkLocal.
 
 =head1 AUTHOR
 
-Steffen Moeller <moeller@inb.uni-luebeck.de>
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
 
 =cut
 

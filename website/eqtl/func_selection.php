@@ -1,6 +1,43 @@
 <?php
 
+/*
+
+=head1 NAME
+
+func_selection.php - assignment to common fields to entry forms
+
+=head1 SYNOPSIS
+
+In PHP scripts: require_once("func_selection.php")
+
+=head1 DESCRIPTION
+
+The PHP scripts of this system generally have two parts. The first
+specifies the layout of the HTML entry widgets, the second performs
+the query and displays the result.
+
+This PHP script shares the specification of the individual elements
+of the entry form between the various interfaces.
+
+=cut
+
+*/
+
+
 require_once("func_dbconfig.php"); // errorMessage
+
+
+/*
+
+=head2 Internal functions
+
+=over 4
+
+=item print_input_text
+
+=cut
+
+*/
 
 function print_input_text($name,$val,$td=FALSE,$size=7) {
    if ($td) echo "<td>";
@@ -12,6 +49,15 @@ function print_input_text($name,$val,$td=FALSE,$size=7) {
    if ($td) echo "</td>";
 }
 
+
+/*
+
+=item print_two_input_text
+
+=cut
+
+*/
+
 function print_two_input_text($name1,$name2,$val1,$val2,$td=TRUE,$size=7,$interspace=" - ") {
    if ($td) echo "<td>";
    print_input_text($name1,$val1,FALSE,$size);
@@ -20,12 +66,30 @@ function print_two_input_text($name1,$name2,$val1,$val2,$td=TRUE,$size=7,$inters
    if ($td) echo "</td>";
 }
 
+
+/*
+
+=item print_row_two_text_ingle
+
+=cut
+
+*/
+
 function print_row_two_text_single($rname,$name1,$name2,$val1,$val2,$size=7,$interspace=" - ") {
    echo "<tr>";
    echo "<th align=right>$rname:</th>";
    print_two_input_text($name1,$name2,$val1,$val2,TRUE,$size,$interspace);
    echo "</tr>\n";
 }
+
+
+/*
+
+=item print_row_one_text_single
+
+=cut
+
+*/
 
 function print_row_one_text_single($rname,$name1,$val1,$size=7) {
    echo "<tr>";
@@ -34,6 +98,17 @@ function print_row_one_text_single($rname,$name1,$val1,$size=7) {
    echo "</tr>\n";
 }
 
+
+
+/*
+
+=head2 Public function
+
+=item print_selection_form
+
+=cut
+
+*/
 
 function print_selection_form($properties) {
 
@@ -220,5 +295,19 @@ function print_selection_form($properties) {
 		} // switch
 	} // for
 } // function
+
+/*
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
+
+=cut
+
+*/
 
 ?>
