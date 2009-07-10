@@ -206,7 +206,7 @@ preset by RECALCPORT
 	#
 
 	if( !defined( $probeID ) ){
-		errorMessage("getRscript.pl: Spotted probeID to be undefined.");
+		errorMessage("getRscript.pl: Spotted probeID to be undefined, pass probesetid=10 as extra argument.");
 		next;
 	}
 	
@@ -350,64 +350,6 @@ my.cross <- sim.geno(my.cross, step=$steps, n.draws=$execParams{'draws'})
 EOWRITETODISK
 	}
 
-	my $tryPermutations = <<EOWRITETODISK;
-print( paste(date(), ": Doing first ",n.perm=$execParams{'perms'}/100, " permutations:", sep="") )
-my.$mode.P <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, n.perm=$execParams{'perms'}/100, verbose=FALSE )
-my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, verbose=FALSE )
-my.quants <- summary(my.$mode.P,alpha=1-$execParams{'epsilon'})
-perms.done <- $execParams{'perms'}
-thresh = my.quants[[1]];
-EOWRITETODISK
-	if( $mode eq 'scantwo' ){
-		$tryPermutations .= <<EOWRITETODISK;
-for( i in 2:5 ){
-	thresh = c(thresh, my.quants[[i]])
-}
-EOWRITETODISK
-	}
-	$tryPermutations .= <<EOWRITETODISK;
-my.$mode.S.summary <- summary( my.$mode.S, threshold=thresh )
-my.$mode.P.summary <- summary( my.$mode.P )
-EOWRITETODISK
-	if( $mode eq 'scanone' ){
-		$tryPermutations .= <<EOWRITETODISK;
-if( max(my.$mode.S\$lod) > my.quants[1] ){
-EOWRITETODISK
-	}else{
-		$tryPermutations .= <<EOWRITETODISK;
-if( max(my.$mode.S)\$lod.full > my.quants[['full']] ){
-EOWRITETODISK
-	}
-	$tryPermutations .= <<EOWRITETODISK;
-	print( paste(date(), ": Candidate found, doing remaining permutations!", sep="") )
-	for ( i in 2:10 ){
-		my.$mode.P <- c(my.$mode.P,$mode( my.cross, method="$execParams{'method'}", n.perm=$execParams{'perms'}/100, verbose=FALSE ))
-	}
-}else{
-	print( paste(date(),": No candidate found, aborting.", sep="") )
-	perms.done = $execParams{'perms'}/100
-}
-my.$mode.S.P.summary <- summary( my.$mode.S, perms=my.$mode.P, alpha=$execParams{'alpha'}, pvalues=TRUE)
-EOWRITETODISK
-if($mode eq 'scanone'){
-		$tryPermutations .= <<EOWRITETODISK;
-my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
-EOWRITETODISK
-
-}else{
-		$tryPermutations .= <<EOWRITETODISK;
-my.quants <- summary(my.$mode.P,alpha=1-c(0,0.25,0.5,0.75,0.9,0.9,0.95,0.99,1))
-EOWRITETODISK
-
-}
-#my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
-#EOWRITETODISK
-
-
-#^^my.quants <- summary(my.$mode.P,alpha=1-c(0,0.25,0.5,0.75,0.9,0.9,0.95,0.99,1))
-#^^my.quants <- quantile(my.$mode.P, $execParams{'epsilon'})
-#^^my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
-
 	my $printCov_add ="";
 	if( @covars_add ){
 		my $concat = "\"".join("\",\"",@covars_add)."\"";
@@ -427,42 +369,75 @@ cov_int <- my.cross\$pheno[,c($concat_int)]
 EOWRITETODISK
 	}
 
-	my $doPermutations = <<EOWRITETODISK;
-print( paste(date(), ": Doing ", n.perm=$execParams{'perms'}/100, " permutations:", sep="") )
-my.$mode.P <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, n.perm=$execParams{'perms'}, verbose=FALSE )
+
+	my $tryPermutations = <<EOWRITETODISK;
+
 my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, verbose=FALSE )
-my.quants <- summary(my.$mode.P,alpha=1-$execParams{'epsilon'})
-thresh = my.quants[[1]];
-for( i in 2:length(my.quants) ){
-	thresh = c(thresh, my.quants[[i]])
+
+# initial presumption on the eQTLs found being acceptable
+acceptable <- T
+
+# if acceotable, perform check on maximal LOD found
+if (acceptable) {
+	if (3.5>max(my.$mode.S\$lod)) {
+		acceptable <- F
+	}
 }
-my.$mode.S.summary <- summary( my.$mode.S, threshold=thresh )
-my.$mode.P.summary <- summary( my.$mode.P )
-my.$mode.S.P.summary <- summary( my.$mode.S, perms=my.$mode.P, alpha=$execParams{'alpha'}, pvalues=TRUE)
-my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
+
 EOWRITETODISK
 
-	my $noPermutations = <<EOWRITETODISK;
-my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr )
-my.$mode.S.summary <- summary( my.$mode.S, threshold=$execParams{'threshold'} )
+if ($execParams{'perms'} > 0) {
+
+	$tryPermutations .= <<EOWRITETODISK;
+
+# if still acceptable, perform permutation tests
+if (acceptable) {
+	perm.checks<-list(c(  25,$execParams{'alpha'}-0.2),
+			  c( 100,$execParams{'alpha'}-0.02),
+			  c( 200,$execParams{'alpha'}),
+			  c( 500,$execParams{'alpha'}),
+			  c(1000,$execParams{'alpha'}))
+	perm.summary<-NULL
+	perm.no.prev.round<-0
+	for(X in perm.checks) {
+		print( paste(date(),": Performing ",X[1]," permutations, checking against quantile ",X[2],"\\n",sep="") )
+		my.$mode.P <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, n.perm=X[1]-perm.no.prev.round, verbose=FALSE )
+		if (is.null(perm.summary)) {
+			perm.summary <- my.$mode.P
+		} else {
+			perm.summary <- rbind(perm.summary,my.$mode.P)
+		}
+
+		my.quants <- summary(perm.summary,alpha=(1-X[2]))
+		thresh = my.quants[[1]];
 EOWRITETODISK
 
-	my $c = join(",", @covars);
-	my $toDisk = <<EOWRITETODISK;
-my.success <- length(my.$mode.S.P.summary[[1]])
-writeToDisk( paste("<=$mode($probeID) success(",my.success,") method($execParams{'method'}) permutations($execParams{'perms'}) threshold($execParams{'threshold'}) covariates($c) cov_meth($execParams{'cov_meth'}) alpha($execParams{'alpha'}) offset($execParams{'epsilon'}) steps($steps) errorP($execParams{'errorP'}) draws($execParams{'draws'}) phenocol($pc) permsDone(",perms.done,") qtlversion(",qtlversion(),") R.Version(",R.Version()[["major"]],".",R.Version()[["minor"]],") platform(",R.Version()[["platform"]],")=>", sep="") )
-writeToDisk( "<ENV>" )
-writeToDisk( system("hostname -f") )
-writeToDisk( Sys.info() )
-writeToDisk( Sys.time() )
-writeToDisk( "</ENV>" )
-writeToDisk( "<SUMMARY::$mode.S>" )
-writeToDisk( my.$mode.S.summary )
-writeToDisk( "</SUMMARY>" )
+		if( $mode eq 'scantwo' ) {
+			$tryPermutations .= <<EOWRITETODISK;
+		for( i in 2:5 ){ thresh = c(thresh, my.quants[[i]]) };
+		if( max(my.$mode.S)\$lod.full < my.quants[['full']] ){
+			print( paste(date(), ": failed assertion max(lod)>=quantile: ", max(my.$mode.S\$lod),">=", X[2], " <=> FALSE\\n",sep="") )
+			acceptable <- FALSE
+			break;
+		}
 EOWRITETODISK
+		}
+		else {
+			$tryPermutations .= <<EOWRITETODISK;
+		if( max(my.$mode.S\$lod) < thresh ) {
+			print( paste(date(), ": failed assertion max(lod)>=quantile: ", max(my.$mode.S\$lod),">=", thresh, " <=> FALSE\\n",sep="") )
+			acceptable <- FALSE
+			break;
+		}
+		perm.no.prev.round<-X[1]
+	}
+EOWRITETODISK
+		}
 
-	if( PERMS > 0 ){
-		$toDisk .= <<EOWRITETODISK;
+		$tryPermutations .= <<EOWRITETODISK;
+	if (acceptable) {
+		my.$mode.S.P.summary <- summary( my.$mode.S, perms=my.$mode.P, alpha=$execParams{'alpha'}, pvalues=TRUE)
+		my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
 writeToDisk( "<SUMMARY::$mode.P>" )
 writeToDisk( my.$mode.P.summary )
 writeToDisk( "</SUMMARY>" )
@@ -473,16 +448,53 @@ writeToDisk( "<SUMMARY::quants>" )
 writeToDisk( my.quants )
 writeToDisk( "</SUMMARY>" )
 EOWRITETODISK
-	}
 
-	$toDisk .= <<EOWRITETODISK;
-writeToDisk( "<DATA::$mode.S>" )
-writeToDisk( my.$mode.S )
-writeToDisk( "</DATA>" )
+$tryPermutations .= <<EOWRITETODISK;
+		# now that the threshold is known, the eQTL of interest are determined
+		my.$mode.S.summary <- summary( my.$mode.S, threshold=thresh )
+	}
+}
+
+EOWRITETODISK
+
+} # if ($execParams{'perms'})
+else {
+	# not executed in production, but handy for debugging
+	$tryPermutations .= "my.$mode.S.summary <- summary( my.$mode.S, threshold=".$execParams{'threshold'}." )\n";
+} # if-else ($execParams{'perms'})
+
+$tryPermutations .= <<EOWRITETODISK;
+
+if (acceptable) {
+	# write plain results of $mode
+	writeToDisk( "<DATA::$mode.S>" )
+	writeToDisk( my.$mode.S )
+	writeToDisk( "</DATA>" )
+	writeToDisk( "<SUMMARY::$mode.S>" )
+	writeToDisk( my.$mode.S.summary )
+	writeToDisk( "</SUMMARY>" )
+}
+EOWRITETODISK
+
+
+if (0) {
+#FIXME: need way to write away warning and reset them
+$tryPermutations .= <<EOWRITETODISK;
 writeToDisk( "<WARNINGS>" )
 writeToDisk( "</WARNINGS>" )
 EOWRITETODISK
+}
 
+	my $c = join(",", @covars);
+	my $toDisk = <<EOWRITETODISK;
+my.success <- length(my.$mode.S.P.summary[[1]])
+writeToDisk( paste("<=$mode($probeID) success(",my.success,") method($execParams{'method'}) permutations($execParams{'perms'}) threshold($execParams{'threshold'}) covariates($c) cov_meth($execParams{'cov_meth'}) alpha($execParams{'alpha'}) offset($execParams{'epsilon'}) steps($steps) errorP($execParams{'errorP'}) draws($execParams{'draws'}) phenocol($pc) permsDone(",perms.done,") qtlversion(",qtlversion(),") R.Version(",R.Version()[["major"]],".",R.Version()[["minor"]],") platform(",R.Version()[["platform"]],")=>", sep="") )
+writeToDisk( "<ENV>" )
+writeToDisk( system("hostname -f") )
+writeToDisk( Sys.info() )
+writeToDisk( Sys.time() )
+writeToDisk( "</ENV>" )
+EOWRITETODISK
 	my $status = "print( \"\" ) \n";
 
 	if( @covars ){
@@ -506,15 +518,7 @@ EOWRITETODISK
 		print $printCov_int;
 	}
 
-	if( $execParams{'perms'} > 0 ){
-		if( $execParams{'perms'} >= 1000 ){
-			print $tryPermutations;
-		}else{
-			print $doPermutations;
-		}
-	}else{
-		print $noPermutations;
-	}
+	print $tryPermutations;
 
 	print $toDisk;
 
