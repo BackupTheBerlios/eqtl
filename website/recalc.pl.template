@@ -148,11 +148,23 @@ while (FCGI::accept >= 0) {
 			# the retrieval
 			#
 
-			$content = get "URLGETSCRIPT"
+			my $u = "URLGETSCRIPT"
 				."?"."mode=".$mode
 				."&"."probesetid=" .$probesetid
 				."&"."covar=$covars&num=1&of=1"
 				."&h=RECALCHOST&p=RECALCPORT&d=RECALCDIR&phenocol=PHENOCOL";
+
+			my $a = get $u;
+
+			if ( -n "$a" ) ; then
+				$content = $a;
+			}
+			else {
+				#
+				# presenting an explanation for the exit
+				#
+				print STDERR "# page retrieved from '$u' was empty\n";
+			}
 		}
 		else {
 			#
