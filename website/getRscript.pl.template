@@ -487,6 +487,7 @@ EOWRITETODISK
 
 	if( @covars ){
 		$status .= "print( \"!-using covariates: ".join(",",@covars)."\" )\n";
+		$status .= "print( \"!-mode:$mode\tprobe:$probeID\" )\n";
 	}
 
 	$status .=  <<EOWRITETODISK;
