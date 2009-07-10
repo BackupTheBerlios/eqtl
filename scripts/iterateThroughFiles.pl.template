@@ -65,7 +65,7 @@ use Pod::Usage;
 use insertQTLDataToSql;
 
 
-my ($force, $help, $man, $unlink, $verbose, $dryrun) = (undef, 0, undef, 0, 0, $0);
+my ($force, $help, $man, $unlink, $verbose, $dryrun) = (undef, 0, undef, undef, 0, 0, $0);
 
 GetOptions(
 	"force" => \$force,
