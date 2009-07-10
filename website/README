@@ -1,3 +1,16 @@
+This folder offers a complete web representation of
+a single eQTL project, from the calculations to the
+presentation of results.
 
-evaluateQuery.R		- main script to start when running
-			  analyses
+eqtl/		- subfolder for the presentation of results
+
+evaluateQuery.R	- main script to start when running analyses
+
+getRscript.pl	- script to prepare the R script to run analyses
+
+recalc.pl	- retrieval of next workunit
+
+prepareRqtlInputData_mus.pl and
+prepareRqtlInputData.pl
+		- preparation of comma-separated input files for R/qtl
+		  for two different projects
