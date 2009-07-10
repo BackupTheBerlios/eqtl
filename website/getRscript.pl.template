@@ -485,13 +485,6 @@ EOWRITETODISK
 
 	my $status = "print( \"\" ) \n";
 
-	if ($execParams{'num'}) {
-		$status .= "print( \"!-Case: $execParams{'num'} of $execParams{'of'}\" )\n";
-	}
-	else {
-		$status .= "print( \"!-Case: $probeCNT\" )\n";
-	}
-
 	if( @covars ){
 		$status .= "print( \"!-using covariates: ".join(",",@covars)."\" )\n";
 	}

@@ -242,8 +242,21 @@ while (FCGI::accept >= 0) {
                         $probeID = $tmp[1];
                 }
 		elsif( $tmp[0] =~ m/score/ ){
-			if ($tmp[1] ne "sex"){
-				push(@scoreselection,$tmp[1]);
+			# commonly, score selections are passed as comma-separated list
+			my @ts=split(/,/,$tmp[1]);
+			# making sure that every score is added
+			foreach my $t (@ts) {
+				my $found=0;
+				# after being tested for redundancy (e.g. sex)
+				foreach my $s (@scoreselection) {
+					if ("$s" eq "$t") {
+						$found=1;
+						last;
+					}
+				}
+				if (0 == $found){
+					push(@scoreselection,$t);
+				}
 			}
 		}
         }
