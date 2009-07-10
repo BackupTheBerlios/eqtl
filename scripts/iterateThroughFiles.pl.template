@@ -23,9 +23,11 @@ The only argument is the folder that contains the results.
 
 =over 4
 
-=item verbose
+=item --verbose
 
-=item unlink
+=item --unlink
+
+removes tar file after it has been successfully untared
 
 =item --help
 
@@ -63,24 +65,25 @@ use Pod::Usage;
 use insertQTLDataToSql;
 
 
-my ($force, $help, $unlink, $verbose, $dryrun) = (undef, 0, undef, 0, 0, $0);
+my ($force, $help, $man, $unlink, $verbose, $dryrun) = (undef, 0, undef, 0, 0, $0);
 
 GetOptions(
 	"force" => \$force,
 	"f" => \$force,
 	"help" => \$help,
-	"man" => \$help,
+	"man" => \$man,
 	"verbose" => \$verbose,
 	"unlink" => \$unlink,
 	"dryrun" => \$dryrun
 ) or die("Could not parse options: $@\n");
 
+
+pod2usage(-verbose => 1) if $help;
+pod2usage(-verbose => 2) if $man;
+
 if( !(@ARGV) || $#ARGV < 0 ){
 	die "Usage: ./SCRIPTNAME <list of folders or files to upload>";
 }
-
-pod2usage(-verbose => 1) if ($help or "-h" eq "$ARGV[0]");
-pod2usage(-verbose => 2) if ($man);
 
 my $dbh = DBI->connect( DATABASECON ) or die "Could not open connection to database.\n";
 
