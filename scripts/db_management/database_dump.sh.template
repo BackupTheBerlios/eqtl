@@ -89,14 +89,14 @@ fi
 
 echo -n "Backing up database '$nameeqtl'"
 
-if $mysqldump -h $dbhost_eqtl -u $usereqtl $nameeqtl | gzip -c9 > backup_db_${nameeqtl}_${d}.sql.gz ; then
+if $mysqldump --create-options -h $dbhost_eqtl -u $usereqtl $nameeqtl | gzip -c9 > backup_db_${nameeqtl}_${d}.sql.gz ; then
 	echo " [ok]"
 else
 	echo " [failed]."
 fi
 
 echo -n "Backing up database '$nameqtl'"
-if $mysqldump -h $dbhost_qtl -u $userqtl $nameqtl | gzip -c9 > backup_db_${nameqtl}_${d}.sql.gz ; then
+if $mysqldump --create-options -h $dbhost_qtl -u $userqtl $nameqtl | gzip -c9 > backup_db_${nameqtl}_${d}.sql.gz ; then
 	echo " [ok]"
 else
 	echo " [failed]"
