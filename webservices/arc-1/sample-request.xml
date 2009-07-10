@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:arc="http://uni-luebeck.de/eqtl/arc">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <arc:QTL_FindByPosition>
+         <!--Optional:-->
+         <searchType>?</searchType>
+         <searchRequest>
+            <!--Optional:-->
+            <lodScore>
+               <from>?</from>
+               <to>?</to>
+            </lodScore>
+            <!--Zero or more repetitions:-->
+            <position>
+               <chromosome>?</chromosome>
+               <fromBP>?</fromBP>
+               <toBP>?</toBP>
+            </position>
+            <!--Optional:-->
+            <sameChromosome>?</sameChromosome>
+            <!--Optional:-->
+            <locusToGeneDistance>
+               <from>?</from>
+               <to>?</to>
+            </locusToGeneDistance>
+            <!--Optional:-->
+            <orderBy>?</orderBy>
+            <!--Optional:-->
+            <maxNumResults>?</maxNumResults>
+         </searchRequest>
+      </arc:QTL_FindByPosition>
+   </soapenv:Body>
+</soapenv:Envelope>
