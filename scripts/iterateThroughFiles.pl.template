@@ -63,13 +63,13 @@ use Pod::Usage;
 use insertQTLDataToSql;
 
 
-my ($force, $help, $unlink, $verbose, $dryrun) = (undef, 0, undef, 0, 0, $0);
+my ($force, $help, $man, $unlink, $verbose, $dryrun) = (undef, undef, undef, undef, 0, 0, $0);
 
 GetOptions(
 	"force" => \$force,
 	"f" => \$force,
 	"help" => \$help,
-	"man" => \$help,
+	"man" => \$man,
 	"verbose" => \$verbose,
 	"unlink" => \$unlink,
 	"dryrun" => \$dryrun
