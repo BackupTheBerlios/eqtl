@@ -377,6 +377,7 @@ my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, 
 # initial presumption on the eQTLs found being acceptable
 acceptable <- T
 my.success<-0
+perms.done<-0
 
 # if acceotable, perform check on maximal LOD found
 if (acceptable) {
@@ -400,10 +401,9 @@ if (acceptable) {
 			  c( 500,1-$execParams{'alpha'}),
 			  c(1000,1-$execParams{'alpha'}))
 
-	print(perm.checks)
+	#print(perm.checks)
 	perm.summary<-NULL
 	perm.no.prev.round<-0
-	perms.done<-0
 	for(X in perm.checks) {
 		print( paste(date(),": Performing ",X[1]," permutations, checking against quantile ",X[2],"\\n",sep="") )
 		my.$mode.P <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, n.perm=X[1]-perm.no.prev.round, verbose=FALSE )
@@ -442,11 +442,11 @@ EOWRITETODISK
 
 		$tryPermutations .= <<EOWRITETODISK;
 	if (acceptable) {
-		my.$mode.S.P.summary <- summary( my.$mode.S, perms=my.$mode.P, alpha=$execParams{'alpha'}, pvalues=TRUE)
+		my.$mode.S.P.summary <- summary( my.$mode.S, perms=perm.summary, alpha=$execParams{'alpha'}, pvalues=TRUE)
 		my.success <- length(my.$mode.S.P.summary[[1]])
 		my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
 writeToDisk( "<SUMMARY::$mode.P>" )
-writeToDisk( my.$mode.P.summary )
+writeToDisk( perm.summary )
 writeToDisk( "</SUMMARY>" )
 writeToDisk( "<SUMMARY::$mode.S.P>" )
 writeToDisk( my.$mode.S.P.summary )
