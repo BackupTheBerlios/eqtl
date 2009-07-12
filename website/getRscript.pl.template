@@ -380,7 +380,8 @@ my.success<-0
 
 # if acceotable, perform check on maximal LOD found
 if (acceptable) {
-	if (3.5>max(my.$mode.S\$lod)) {
+	if (THRESHOLD>max(my.$mode.S\$lod)) {
+		cat(paste("Rejected: max(lod)=",max(my.$mode.S\$lod),"<THRESHOLD\\n",sep=""))
 		acceptable <- F
 	}
 }
