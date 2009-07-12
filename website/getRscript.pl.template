@@ -376,6 +376,7 @@ my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, 
 
 # initial presumption on the eQTLs found being acceptable
 acceptable <- T
+my.success<-0
 
 # if acceotable, perform check on maximal LOD found
 if (acceptable) {
@@ -392,13 +393,16 @@ if ($execParams{'perms'} > 0) {
 
 # if still acceptable, perform permutation tests
 if (acceptable) {
-	perm.checks<-list(c(  25,$execParams{'alpha'}-0.2),
-			  c( 100,$execParams{'alpha'}-0.02),
-			  c( 200,$execParams{'alpha'}),
-			  c( 500,$execParams{'alpha'}),
-			  c(1000,$execParams{'alpha'}))
+	perm.checks<-list(c(  25,1-$execParams{'alpha'}-0.2),
+			  c( 100,1-$execParams{'alpha'}-0.02),
+			  c( 200,1-$execParams{'alpha'}),
+			  c( 500,1-$execParams{'alpha'}),
+			  c(1000,1-$execParams{'alpha'}))
+
+	print(perm.checks)
 	perm.summary<-NULL
 	perm.no.prev.round<-0
+	perms.done<-0
 	for(X in perm.checks) {
 		print( paste(date(),": Performing ",X[1]," permutations, checking against quantile ",X[2],"\\n",sep="") )
 		my.$mode.P <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, n.perm=X[1]-perm.no.prev.round, verbose=FALSE )
@@ -410,6 +414,7 @@ if (acceptable) {
 
 		my.quants <- summary(perm.summary,alpha=(1-X[2]))
 		thresh = my.quants[[1]];
+		perms.done<-X[1]
 EOWRITETODISK
 
 		if( $mode eq 'scantwo' ) {
@@ -437,6 +442,7 @@ EOWRITETODISK
 		$tryPermutations .= <<EOWRITETODISK;
 	if (acceptable) {
 		my.$mode.S.P.summary <- summary( my.$mode.S, perms=my.$mode.P, alpha=$execParams{'alpha'}, pvalues=TRUE)
+		my.success <- length(my.$mode.S.P.summary[[1]])
 		my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
 writeToDisk( "<SUMMARY::$mode.P>" )
 writeToDisk( my.$mode.P.summary )
@@ -487,7 +493,6 @@ EOWRITETODISK
 
 	my $c = join(",", @covars);
 	my $toDisk = <<EOWRITETODISK;
-my.success <- length(my.$mode.S.P.summary[[1]])
 writeToDisk( paste("<=$mode($probeID) success(",my.success,") method($execParams{'method'}) permutations($execParams{'perms'}) threshold($execParams{'threshold'}) covariates($c) cov_meth($execParams{'cov_meth'}) alpha($execParams{'alpha'}) offset($execParams{'epsilon'}) steps($steps) errorP($execParams{'errorP'}) draws($execParams{'draws'}) phenocol($pc) permsDone(",perms.done,") qtlversion(",qtlversion(),") R.Version(",R.Version()[["major"]],".",R.Version()[["minor"]],") platform(",R.Version()[["platform"]],")=>", sep="") )
 writeToDisk( "<ENV>" )
 writeToDisk( system("hostname -f") )

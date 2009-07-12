@@ -562,10 +562,10 @@ $version++;
 							}
 							$sth_jobexists->finish;
 							if($loc_name eq ""){
-							$sth_loc->execute($lineFields[0],
-									     $lineFields[1], 
-										$lineFields[2], $NULL);
-							$sth_loc->finish;
+								$sth_loc->execute($lineFields[0],
+										     $lineFields[1], 
+											$lineFields[2], $NULL);
+								$sth_loc->finish;
 							}
 							elsif ($loc_name eq $lineFields[0] and $loc_pos ne $lineFields[2]){
 								$sth_loc_update->execute("$lineFields[2]","$loc_name")

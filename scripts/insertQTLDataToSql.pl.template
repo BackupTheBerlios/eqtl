@@ -32,7 +32,11 @@ if set, every file will be interpreted, even those that the system did not expec
 
 =item --help	
 
-shows these instructions and exists
+usage description
+
+=item --man
+
+complete description
 
 =item --verbose	
 
@@ -52,6 +56,7 @@ University of LE<uuml>beck, 2008-2009
 use strict;
 use DBI;
 use Getopt::Long;
+use Pod::Usage;
 
 BEGIN {
 	push @INC,"./scripts";
@@ -59,21 +64,22 @@ BEGIN {
 
 use insertQTLDataToSql;
 
-my ($filename, $force, $help, $verbose) = (undef, 0, undef, 0);
+my ($filename, $force, $help, $man, $verbose) = (undef, 0, undef, undef, 0);
 
 unless (GetOptions(
         "filename:s" => \$filename,
 	"force" => \$force,
 	"f" => \$force,
 	"help" => \$help,
+	"man" => \$man,
 	"verbose" => \$verbose
 )) {
 	print STDERR "Could not parse options: $@\n";
 	exit -3;
 }
 	
-pod2usage(-verbose => 1) if ($help or "-h" eq "$ARGV[0]");
-pod2usage(-verbose => 2) if ($man);
+pod2usage(-verbose => 1) if $help;
+pod2usage(-verbose => 2) if $man;
 
 my $dbh = DBI->connect( DATABASECON );
 if ($!) {
