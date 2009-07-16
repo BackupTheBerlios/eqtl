@@ -501,6 +501,14 @@ writeToDisk( Sys.info() )
 writeToDisk( Sys.time() )
 writeToDisk( "</ENV>" )
 EOWRITETODISK
+
+
+	#
+	# PRITING OF FILE STARTS HERE
+	#
+
+	print "cat( \"<eqtl>\\\\n\")\n";
+
 	my $status = "print( \"\" ) \n";
 
 	if( @covars ){
@@ -509,8 +517,8 @@ EOWRITETODISK
 	}
 
 	$status .=  <<EOWRITETODISK;
-print( paste("!-",date(),sep="") )
-print( "" )
+cat( paste("!-",date(),"\\n",sep="") )
+cat( "\\n" )
 EOWRITETODISK
 
 	print $status;
@@ -527,6 +535,8 @@ EOWRITETODISK
 	print $tryPermutations;
 
 	print $toDisk;
+
+	print "cat( \"</eqtl>\\\\n\")\n";
 
 	print "\n".'"completed"'."\n"; 
 
