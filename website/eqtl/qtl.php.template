@@ -4,6 +4,8 @@
 /**
 STARTOFDOCUMENTATION
 
+=pod
+
 =head1 NAME
 
 qtl.php - present singular effects as expression QTL
@@ -25,6 +27,41 @@ covariates.
 The values displayed are derived from the output of R/qtl. Base
 pairs positions are derived by an interpolation from centi Morgen
 positions between the markers.
+
+The fields to be shown in the table can be selected in the the
+check boxes. Also, all QTLs known to the system are displayed. 
+A click on these will show the same form again, with values for 
+the chromosomal region filled in.
+
+=head2 Common attributes
+
+=over 4
+
+=item Covariates
+
+=item Groups
+
+=item Locus
+
+=item Chromosomes
+
+=item LOD-score span
+
+=item 95% quantile span
+
+=item Min diff of LOD score to 95% quantile
+
+=item cM of peak
+
+=item cM position within flanking positions
+
+=item Trait names
+
+=item Expression mean
+
+=item Expression SD
+
+=back
 
 =head2 cis
 
