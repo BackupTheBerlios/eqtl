@@ -329,9 +329,27 @@ ENDOFDOCUMENTATION
 				. ", cMorgan_Peak, cMorgan_Min, cMorgan_Max"
 			;
 			$query .= ", Quantile"
-				. ", (LOD-Quantile) as LODdiff "
-				. ", unigene, swissprot_ID, gene_assignment"
-				. ", first_symbol, first_name, ProbeSequence";
+				. ", (LOD-Quantile) as LODdiff ";
+
+			if (!empty($show_unigene)) {
+				$query .= ", unigene";
+			}
+			
+			if (!empty($show_swissprot_ID)) {
+				$query .= ", swissprot_ID";
+			}
+			
+			if (!empty($show_gene_assignment)) {
+				$query .= ", gene_assignment";
+			}
+
+			if (!empty($show_first_symbol)) {
+				$query .= ", first_symbol, first_name";
+			}
+			
+			if (!empty($show_ProbeSequence)) {
+				$query .= ", ProbeSequence";
+			}
 
 			if (!empty($show_LocusOfGene)) {
 				$query .= ", seqname as chr_name, strand"
@@ -358,7 +376,10 @@ ENDOFDOCUMENTATION
 		# These extra joins are not needed for every kind of query, some optimisation
 		# would help to speed things up!
 
-		$query .= " left join BEARatChip as c on Trait=c.probeset_id ";
+		if (!(empty($show_LocusOfGene) and empty($show_Chromosome) and empty($show_unigene) and empty($show_swissprot_ID)
+		  and empty($show_gene_assignment) and empty($show_first_symbol) and empty($show_Definition) and empty($show_ProbeSequence)  )) {
+			$query .= " left join BEARatChip as c on Trait=c.probeset_id ";
+		}
 
 		$needingMart=!empty($show_LocusOfGene);
 		if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
