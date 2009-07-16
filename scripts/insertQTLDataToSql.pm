@@ -405,7 +405,7 @@ for( my $lineno=0; $lineno<=$#file; $lineno++ ){
 	}
 }
 
-if( !($file[$#file] =~ /<\/DATA>/ ) && !($file[$#file] =~ /<\/WARNINGS>/ ) ){
+if( !($file[$#file] =~ /<\/DATA>/ ) && !($file[$#file] =~ /<\/WARNINGS>/ ) &&!($file[$#file]=~ /<\/ENV>/ ) ){
 	open( OUT, ">>/nfshome/kolbaum/gitEqtl/data/misc/toReDo" );
 	print OUT $trait."_".join(",", @covars_array)."\n";
 	close( OUT );
