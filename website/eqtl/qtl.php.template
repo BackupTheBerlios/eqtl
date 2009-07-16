@@ -405,9 +405,24 @@ ENDOFDOCUMENTATION
 		$query  .= " FROM qtl ";
 
 		if (!empty($show_Groups) or !empty($groups)) {
-			$query .= " right join locus as l on qtl.Locus=l.Name right join qtl_groups on locus_id=l.No ";
-		}
+			if (empty($groups)) {
+				# every QTL shall be inspected
+				$query .= " left ";
+			}
+			else {
+				# presumed more efficient since the group is considerably constraining
+				$query .= " right ";
+			}
+			$query .= " join locus as l on qtl.Locus=l.Name ";
 
+			if (empty($groups)) {
+				$query .= " left ";
+			}
+			else {
+				$query .= " right ";
+			}
+			$query .= " join qtl_groups on locus_id=l.No ";
+		}
 
 		# The counting of QTLs should now be influencing the numbers of QTLs shown
 		# These extra joins are not needed for every kind of query, some optimisation
