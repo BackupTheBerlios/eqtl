@@ -4,6 +4,8 @@
 /**
 STARTOFDOCUMENTATION
 
+=pod
+
 =head1 NAME
 
 qtl.php - present singular effects as expression QTL
@@ -25,6 +27,41 @@ covariates.
 The values displayed are derived from the output of R/qtl. Base
 pairs positions are derived by an interpolation from centi Morgen
 positions between the markers.
+
+The fields to be shown in the table can be selected in the the
+check boxes. Also, all QTLs known to the system are displayed. 
+A click on these will show the same form again, with values for 
+the chromosomal region filled in.
+
+=head2 Common attributes
+
+=over 4
+
+=item Covariates
+
+=item Groups
+
+=item Locus
+
+=item Chromosomes
+
+=item LOD-score span
+
+=item 95% quantile span
+
+=item Min diff of LOD score to 95% quantile
+
+=item cM of peak
+
+=item cM position within flanking positions
+
+=item Trait names
+
+=item Expression mean
+
+=item Expression SD
+
+=back
 
 =head2 cis
 
@@ -329,9 +366,27 @@ ENDOFDOCUMENTATION
 				. ", cMorgan_Peak, cMorgan_Min, cMorgan_Max"
 			;
 			$query .= ", Quantile"
-				. ", (LOD-Quantile) as LODdiff "
-				. ", unigene, swissprot_ID, gene_assignment"
-				. ", first_symbol, first_name, ProbeSequence";
+				. ", (LOD-Quantile) as LODdiff ";
+
+			if (!empty($show_unigene)) {
+				$query .= ", unigene";
+			}
+			
+			if (!empty($show_swissprot_ID)) {
+				$query .= ", swissprot_ID";
+			}
+			
+			if (!empty($show_gene_assignment)) {
+				$query .= ", gene_assignment";
+			}
+
+			if (!empty($show_first_symbol)) {
+				$query .= ", first_symbol, first_name";
+			}
+			
+			if (!empty($show_ProbeSequence)) {
+				$query .= ", ProbeSequence";
+			}
 
 			if (!empty($show_LocusOfGene)) {
 				$query .= ", seqname as chr_name, strand"
@@ -350,15 +405,33 @@ ENDOFDOCUMENTATION
 		$query  .= " FROM qtl ";
 
 		if (!empty($show_Groups) or !empty($groups)) {
-			$query .= " right join locus as l on qtl.Locus=l.Name right join qtl_groups on locus_id=l.No ";
-		}
+			if (empty($groups)) {
+				# every QTL shall be inspected
+				$query .= " left ";
+			}
+			else {
+				# presumed more efficient since the group is considerably constraining
+				$query .= " right ";
+			}
+			$query .= " join locus as l on qtl.Locus=l.Name ";
 
+			if (empty($groups)) {
+				$query .= " left ";
+			}
+			else {
+				$query .= " right ";
+			}
+			$query .= " join qtl_groups on locus_id=l.No ";
+		}
 
 		# The counting of QTLs should now be influencing the numbers of QTLs shown
 		# These extra joins are not needed for every kind of query, some optimisation
 		# would help to speed things up!
 
-		$query .= " left join BEARatChip as c on Trait=c.probeset_id ";
+		if (!(empty($show_LocusOfGene) and empty($show_Chromosome) and empty($show_unigene) and empty($show_swissprot_ID)
+		  and empty($show_gene_assignment) and empty($show_first_symbol) and empty($show_Definition) and empty($show_ProbeSequence)  )) {
+			$query .= " left join BEARatChip as c on Trait=c.probeset_id ";
+		}
 
 		$needingMart=!empty($show_LocusOfGene);
 		if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
@@ -993,9 +1066,10 @@ ENDOFDOCUMENTATION
 			echo "<p>No records found matching criteria.</p>";
 		    }
 		    else {
-			echo "<p>$rowno record".($rowno>1?"s":"")." found matching criteria.</p>";
+			$traits_unique = array_unique($traits);
+			echo "<p>$rowno record".($rowno>1?"s":"")." found matching criteria for ".count($traits_unique)." traits.</p>\n";
 			 $linkgprofiler="http://biit.cs.ut.ee/gprofiler/index.cgi?query=";
-                        foreach($traits as $bla){
+                        foreach($traits_unique as $bla){
                                 $linkgprofiler.="$bla+";
                         }
                         $linkgprofiler.="&organism=rnorvegicus&significant=1&output=png";
