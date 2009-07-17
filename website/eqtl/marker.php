@@ -2,6 +2,8 @@
 
 /*
 
+=pod
+
 =head1 NAME
 
 marker.php
@@ -15,6 +17,38 @@ dynamic web page to be invoked without arguments
 The page presents, with help by Ensembl, the chromosomal markers used
 for the analysis, the base pair positions, and prepares a routine for
 the conversion between Morgan and bp units.
+
+=head2 Common attributes
+
+=over 4
+
+=item 
+
+=back
+
+=head2 Preparation of updated func_conversion.php
+
+For every organism with every new release of Ensembl - or at least with
+every new genome assembly - the function must be updated the performs
+the translation between centi-Morgan units and base pairs. And also
+this function need to be updated when R/qtl is passed different 
+centi-Morgan information for the markers it works with - and passes on
+as a result. 
+
+To prepare a new version, one needs to specify the ensembl database
+from which the marker-bp assignment can be retrieved. The respective
+fields are offered at the head of the entry form, prefilled with the
+current setting. If the "prepare conversion script" checkbox is selected,
+upon submission the conversion script will be shown in a separate field,
+next to the previous version. The administrator of the site should 
+inspect it and save it to substitute the previous version. The Ensembl
+version is a part of the filename of the script, hence multiple versions
+can be held in parallel.
+
+For markers that are not known to Ensembl, the user should manually
+search for the marker sequences and thus specify the genomic location
+in base pairs manually.
+
 
 =head1 AUTHOR
 

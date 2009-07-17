@@ -4,6 +4,8 @@
 /**
 STARTOFDOCUMENTATION
 
+=pod
+
 =head1 NAME
 
 trait.php - presentation of details to gene identifier (probesets)
@@ -17,6 +19,14 @@ a dynamic weg page - may be invoked without parameters
 The page is supposed to gather all information that is required to
 learn about the identity of a gene. Projects are likely to differ
 in their presentation of such details.
+
+=head2 Common attributes
+
+=over 4
+
+=item 
+
+=back
 
 =head1 AUTHOR
 

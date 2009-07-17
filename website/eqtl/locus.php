@@ -14,6 +14,15 @@ dynamic web page, to be invoked with or without arguments
 
 overview on associated traits from the perspective of single loci
 
+=head2 Common attributes
+
+=over 4
+
+=item 
+
+=back
+
+
 =head1 AUTHOR
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
