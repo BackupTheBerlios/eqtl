@@ -379,7 +379,7 @@ acceptable <- T
 my.success<-0
 perms.done<-0
 
-# if acceotable, perform check on maximal LOD found
+# if acceptable, perform check on maximal LOD found
 if (acceptable) {
 	if (THRESHOLD>max(my.$mode.S\$lod)) {
 		cat(paste("Rejected: max(lod)=",max(my.$mode.S\$lod),"<THRESHOLD\\n",sep=""))
@@ -393,7 +393,7 @@ if ($execParams{'perms'} > 0) {
 
 	$tryPermutations .= <<EOWRITETODISK;
 
-# if still acceptable, perform permutation tests
+# if still acceotable, perform permutation tests
 if (acceptable) {
 	perm.checks<-list(c(  25,1-$execParams{'alpha'}-0.2),
 			  c( 100,1-$execParams{'alpha'}-0.02),
