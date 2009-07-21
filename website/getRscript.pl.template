@@ -369,7 +369,7 @@ cov_int <- my.cross\$pheno[,c($concat_int)]
 EOWRITETODISK
 	}
 
-
+	my $writePermutations;
 	my $tryPermutations = <<EOWRITETODISK;
 
 my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, verbose=FALSE )
@@ -445,15 +445,18 @@ EOWRITETODISK
 		my.$mode.S.P.summary <- summary( my.$mode.S, perms=perm.summary, alpha=$execParams{'alpha'}, pvalues=TRUE)
 		my.success <- length(my.$mode.S.P.summary[[1]])
 		my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
+EOWRITETODISK
+
+		$writePermutations = <<EOWRITETODISK;
 writeToDisk( "<SUMMARY::$mode.P>" )
 writeToDisk( perm.summary )
-writeToDisk( "</SUMMARY>" )
+writeToDisk( "</SUMMARY::$mode.P>" )
 writeToDisk( "<SUMMARY::$mode.S.P>" )
 writeToDisk( my.$mode.S.P.summary )
-writeToDisk( "</SUMMARY>" )
+writeToDisk( "</SUMMARY::$mode.S.P>" )
 writeToDisk( "<SUMMARY::quants>" )
 writeToDisk( my.quants )
-writeToDisk( "</SUMMARY>" )
+writeToDisk( "</SUMMARY::quants>" )
 EOWRITETODISK
 
 $tryPermutations .= <<EOWRITETODISK;
@@ -470,7 +473,7 @@ else {
 	$tryPermutations .= "my.$mode.S.summary <- summary( my.$mode.S, threshold=".$execParams{'threshold'}." )\n";
 } # if-else ($execParams{'perms'})
 
-$tryPermutations .= <<EOWRITETODISK;
+$writePermutations .= <<EOWRITETODISK;
 
 if (acceptable) {
 	# write plain results of $mode
@@ -486,7 +489,7 @@ EOWRITETODISK
 
 if (0) {
 #FIXME: need way to write away warning and reset them
-$tryPermutations .= <<EOWRITETODISK;
+$writePermutations .= <<EOWRITETODISK;
 writeToDisk( "<WARNINGS>" )
 writeToDisk( "</WARNINGS>" )
 EOWRITETODISK
@@ -507,11 +510,7 @@ EOWRITETODISK
 	# PRINTING OF FILE STARTS HERE
 	#
 
-	print "cat( \"<eqtl mode=\"$mode\" probe=\"$probeID\" covars=\"".join(",",@covars)."\">\\n\")\n";
-
-	print $status;
-
-	print $toDisk;
+	print "cat( \"<eqtl mode=\\\"$mode\\\" probe=\\\"$probeID\\\" covars=\\\"".join(",",@covars)."\\\">\\n\")\n";
 
 	print $writeToDisk;
 
@@ -537,6 +536,12 @@ EOWRITETODISK
 	}
 
 	print $tryPermutations;
+
+	print $status;
+
+	print $toDisk;
+
+	print $writePermutations;
 
 	print "cat( \"</eqtl>\\\\n\")\n";
 
