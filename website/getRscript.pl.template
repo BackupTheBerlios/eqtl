@@ -77,13 +77,6 @@ The script is prepared for FastCGI. A series of parameters may be passed
 
 while (FCGI::accept >= 0) {
 
-	# 
-	# The early setting of the content type ensures that the error
-	# messages correctly appear on the web page. Otherwise they
-	# are possibly not forwarded to the end user.
-	#
-
-	print "Content-type: text/plain\n\n";
 
 	#
 	# A counter of the number of tasks prepared
@@ -146,7 +139,6 @@ preset by RECALCPORT
 				'd'=>'RECALCDIR',
 				'h'=>'RECALCHOST',
 				'p'=>'RECALCPORT'
-
 	);
 
 
@@ -155,10 +147,25 @@ preset by RECALCPORT
 	#
 
 	if (exists($ENV{'QUERY_STRING'})) {
+
+		# 
+		# The early setting of the content type ensures that the error
+		# messages correctly appear on the web page. Otherwise they
+		# are possibly not forwarded to the end user.
+		#
+		# This conditional setting shall help to render the output
+		# directly executable even if not produced by a web server
+		#
+
+		print "Content-type: text/plain\n\n";
+
+		#
+		# Assignment of arguments to internal presentation
+		#
 		@params = split(/&/, $ENV{'QUERY_STRING'});
 	}
 	else {
-		print STDERR "getRscript.pl: Presuming to be run from the command line - testing only.\n";
+		print STDERR "# getRscript.pl: Presuming to be run from the command line - testing only.\n";
 		@params=(
 			"covar=EAE",
 			"probesetid=007",
@@ -300,13 +307,15 @@ preset by RECALCPORT
 
 
 	my $writeToDisk = <<EOWRITETODISK;
-writeToDisk <- function( toWrite ){
+writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 	my.file <- gzfile(description=paste("$execParams{'d'}/$keyData.csv.gz",sep=""),
 				open = "a", encoding = getOption("encoding"),compression = 6)
-	if( is.list(toWrite) ){
+	if ( is.list(toWrite) ) {
+		cat("*** DEBUG START*** Now I am printing a list.\n")
 		vert <- labels( toWrite )
 		write.table( print(toWrite), file=my.file, append=TRUE )
-	}else if( is.vector( toWrite ) ){
+		cat("*** DEBUG END*** Now I am printing a list.\n")
+	} else if ( is.vector(toWrite) ) {
 		label <- labels( toWrite )
 		if( label[1] != 1 ){
 			header <- label[1]
@@ -322,7 +331,9 @@ writeToDisk <- function( toWrite ){
 			out <- paste( out, toWrite[i], sepalpha=",")
 		}
 		write( out, file=my.file, append=TRUE )
-	}else if( is.numeric( toWrite ) ){
+	} else if ( is.matrix(toWrite) ) {
+		write.table(toWrite,file=my.file,col.names=col.names,row.names=row.names,sep=",")
+	} else if ( is.numeric(toWrite) ) {
 		tmplabel <- labels( toWrite )
 		label = tmplabel[1]
 		for( i in 2:length(tmplabel)){
@@ -330,7 +341,7 @@ writeToDisk <- function( toWrite ){
 		}
 		write( label, file=my.file, append=TRUE, sep="," )
 		write( toWrite, file=my.file, append=TRUE, sep="," )
-	}else{
+	} else {
 		write( toWrite, file=my.file, append=TRUE, sep="," )
 	}
 	close( my.file )
@@ -449,9 +460,9 @@ EOWRITETODISK
 
 		$writePermutations = <<EOWRITETODISK;
 	if (acceptable) {
-writeToDisk( "<SUMMARY::$mode.P>" )
-writeToDisk( perm.summary )
-writeToDisk( "</SUMMARY::$mode.P>" )
+writeToDisk( "<DATA::$mode.P>" )
+writeToDisk( perm.summary, row.names=FALSE )
+writeToDisk( "</DATA::$mode.P>" )
 writeToDisk( "<SUMMARY::$mode.S.P>" )
 writeToDisk( my.$mode.S.P.summary )
 writeToDisk( "</SUMMARY::$mode.S.P>" )
