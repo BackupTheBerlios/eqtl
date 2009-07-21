@@ -448,6 +448,7 @@ EOWRITETODISK
 EOWRITETODISK
 
 		$writePermutations = <<EOWRITETODISK;
+	if (acceptable) {
 writeToDisk( "<SUMMARY::$mode.P>" )
 writeToDisk( perm.summary )
 writeToDisk( "</SUMMARY::$mode.P>" )
@@ -457,6 +458,7 @@ writeToDisk( "</SUMMARY::$mode.S.P>" )
 writeToDisk( "<SUMMARY::quants>" )
 writeToDisk( my.quants )
 writeToDisk( "</SUMMARY::quants>" )
+	}
 EOWRITETODISK
 
 $tryPermutations .= <<EOWRITETODISK;
