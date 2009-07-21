@@ -165,11 +165,13 @@ preset by RECALCPORT
 		@params = split(/&/, $ENV{'QUERY_STRING'});
 	}
 	else {
+		print "#!/usr/bin/r\n";
+
 		print STDERR "# getRscript.pl: Presuming to be run from the command line - testing only.\n";
 		@params=(
 			"covar=EAE",
-			"probesetid=007",
-			"phenocol=3",
+			"probesetid=31",
+			"phenocol=PHENOCOL",
 			"mode=scanone"
 		);
 	}
