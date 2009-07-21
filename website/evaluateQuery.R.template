@@ -83,9 +83,9 @@ valuable information is stored with a single compute node.
 
 "
 
-jobnomax <- as.numeric(Sys.getenv("JOBNOMAX"))
-if (is.na(jobnomax)) {
-	jobnomax <- -1;
+jobCountMax <- as.numeric(Sys.getenv("JOBNOMAX"))
+if (is.na(jobCountMax)) {
+	jobCountMax <- -1;
 }
 
 
@@ -111,21 +111,21 @@ start <- Sys.time()
 u <- "hours"
 
 # counter of jobs
-jobno<-0
+jobCount<-0
 
-while( (-1 == jobnomax || jobno < jobnomax) && (-1 == timeout || as.double(difftime(Sys.time(), start, unit=u))<timeout) ){
-	jobno<-jobno+1
-	cat(paste("Starting job #",jobno," (max=",jobnomax,") at delta time ",difftime(Sys.time(), start, unit=u),".\n",sep=""))
-	a<-setdiff(ls(all=TRUE),c("d","u","timeout","start","jobno","jobnomax"))
+while( (-1 == jobCountMax || jobCount < jobCountMax) && (-1 == timeout || as.double(difftime(Sys.time(), start, unit=u))<timeout) ){
+	jobCount<-jobCount+1
+	cat(paste("Starting job #",jobCount," (max=",jobCountMax,") at delta time ",difftime(Sys.time(), start, unit=u),".\n",sep=""))
+	a<-setdiff(ls(all=TRUE),c("d","u","timeout","start","jobCount","jobCountMax"))
 	rm(list=a)
 	url<-"URLWEBSITE/RECALCPATH?h=RECALCHOST&p=RECALCPORT&d=RECALCDIR"
 	cat("Accessing ",url,"\n")
 	try(b<-source(url))
 	if (any(ls()=="b") && "completed"==b$value) {
-		cat("Computation of job ",jobno," completed successfully.\n")
+		cat("Computation of job ",jobCount," completed successfully.\n")
 		rm("b")
 	} else {
-		cat("***** TECHNICAL FAILURE OF JOB #",jobno," **** EXITING *******\n")
+		cat("***** TECHNICAL FAILURE OF JOB #",jobCount," **** EXITING *******\n")
 		if (any(ls()=="b")) {
 			cat("b="); print(b)
 		}
@@ -136,7 +136,7 @@ while( (-1 == jobnomax || jobno < jobnomax) && (-1 == timeout || as.double(difft
 if(-1!=timeout && as.double(difftime(Sys.time(), start, unit=u))>=timeout) {
 	cat("Running past max compute time of ",timeout," ",u,".\n")
 }
-cat("Performed on ",jobno," jobs of max. ",jobnomax,".\n",sep="")
+cat("Performed on ",jobCount," jobs of max. ",jobCountMax,".\n",sep="")
 
 
 doc <- "
