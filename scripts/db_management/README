@@ -1,0 +1,11 @@
+This folder harbors those scripts that are implementing the
+preparation of the database for the major computations.
+
+calculate.sh		- set jobs to state 'calculate'
+database_dump.sh	- dump database
+database_upload.sh	- upload database dump
+processing.sh		- set jobs to state 'processing'
+recalculate.sh		- set jobs to state 'recalculate'
+reprocessing.sh		- set jobs to state 'reprocessing'
+status.sh		- print summary of progress in computation
+uploadExpectedFiles.pl	- prepare table computation
