@@ -62,13 +62,13 @@ use DBI;
 my $mode;
 my $dir;
 if( $#ARGV < 0 ){
-	die "Usage: ./createExpectedFiles (scanone|scantwo|both) covariates\n";
+	die "Usage: uploadExpectedFiles (scanone|scantwo|both) covariates\n";
 }
 
 my @A=@ARGV;
 $mode = shift @A;
 if( $mode ne 'scanone' && $mode ne 'scantwo' && $mode ne 'both' ){
-	die "Usage: ./createExpectedFiles (scanone|scantwo|both)\nInvalid mode of analysis: '".$mode."'\n"; 
+	die "Usage: uploadExpectedFiles (scanone|scantwo|both)\nInvalid mode of analysis: '".$mode."'\n"; 
 }
 
 my $dbh = DBI->connect( DATABASECON ) || die "Database connection not made: $DBI::errstr";
