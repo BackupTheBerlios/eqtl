@@ -476,10 +476,10 @@ if (acceptable) {
 	# write plain results of $mode
 	writeToDisk( "<DATA::$mode.S>" )
 	writeToDisk( my.$mode.S )
-	writeToDisk( "</DATA>" )
+	writeToDisk( "</DATA::$mode.S>" )
 	writeToDisk( "<SUMMARY::$mode.S>" )
 	writeToDisk( my.$mode.S.summary )
-	writeToDisk( "</SUMMARY>" )
+	writeToDisk( "</SUMMARY::$mode.S>" )
 }
 EOWRITETODISK
 
@@ -507,22 +507,26 @@ EOWRITETODISK
 	# PRINTING OF FILE STARTS HERE
 	#
 
-	print "cat( \"<eqtl>\\\\n\")\n";
+	print "cat( \"<eqtl mode=\"$mode\" probe=\"$probeID\" covars=\"".join(",",@covars)."\">\\n\")\n";
+
+	print $status;
+
+	print $toDisk;
+
+	print $writeToDisk;
 
 	my $status = "print( \"\" ) \n";
 
 	if( @covars ){
 		$status .= "print( \"!-using covariates: ".join(",",@covars)."\" )\n";
-		$status .= "print( \"!-mode:$mode\tprobe:$probeID\" )\n";
 	}
+	$status .= "print( \"!-mode:$mode\tprobe:$probeID\" )\n";
 
 	$status .=  <<EOWRITETODISK;
 cat( paste("!-",date(),"\\n",sep="") )
 cat( "\\n" )
 EOWRITETODISK
 
-	print $status;
-	print $writeToDisk;
 	print $getData;
 
 	if( @covars_add ){
@@ -531,8 +535,6 @@ EOWRITETODISK
 	if( @covars_int ){
 		print $printCov_int;
 	}
-
-	print $toDisk;
 
 	print $tryPermutations;
 
