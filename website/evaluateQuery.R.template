@@ -157,6 +157,7 @@ while( (-1 == jobCountMax || jobCount < jobCountMax) && (-1 == errorCountMax || 
 		cat("***** TECHNICAL FAILURE OF JOB #",jobCount," **** EXITING *******\n")
 		if (any(ls()=="b")) {
 			cat("b="); print(b)
+			rm("b")
 		}
 		errorCount<-errorCount+1
 	}
