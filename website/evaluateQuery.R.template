@@ -36,7 +36,7 @@ doc <- "
 The only non-standard library that is required for the execution
 of these scripts is the R library I<qtl>, available from (http://www.rqtl.org).
 It can by installed directly via CRAN (http://cran.r-project.org)
-via the install.packages("qtl") command. Also, packages
+via the install.packages('qtl') command. Also, packages
 for Debian and Ubuntu are available. The latest version should
 be chosen, at least one greater than 1.09-43 to ensure
 the coverage of X chromosomes.

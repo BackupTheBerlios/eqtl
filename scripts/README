@@ -26,4 +26,3 @@ Files
    update.sh               reads template and conf files an
                            generates the executed code from there.
 
-   uploadExpectedFiles.pl.template
