@@ -88,6 +88,24 @@ if (is.na(jobCountMax)) {
 	jobCountMax <- -1;
 }
 
+doc <- "
+
+=item ERRORCOUNTMAX
+
+Maximal number of erroros that this R script shall be allowed
+to experience consecutively before its execution will be stopped.
+This comes handy when there are too many parallel processes requesting
+information which provokes the job distributor to throw a timeout
+at times.
+
+=cut
+
+"
+
+errorCountMax <- as.numeric(Sys.getenv("ERRORCOUNTMAX"))
+if (is.na(errorCountMax)) {
+	errorCountMax <- 5;
+}
 
 doc <- "
 
@@ -113,10 +131,14 @@ u <- "hours"
 # counter of jobs
 jobCount<-0
 
-while( (-1 == jobCountMax || jobCount < jobCountMax) && (-1 == timeout || as.double(difftime(Sys.time(), start, unit=u))<timeout) ){
+# counter of consecutive errors
+errorCount<-0
+
+while( (-1 == jobCountMax || jobCount < jobCountMax) && (-1 == errorCountMax || errorCount < errorCountMax)
+						     && (-1 == timeout || as.double(difftime(Sys.time(), start, unit=u))<timeout) ){
 	jobCount<-jobCount+1
 	cat(paste("Starting job #",jobCount," (max=",jobCountMax,") at delta time ",difftime(Sys.time(), start, unit=u),".\n",sep=""))
-	a<-setdiff(ls(all=TRUE),c("d","u","timeout","start","jobCount","jobCountMax"))
+	a<-setdiff(ls(all=TRUE),c("d","u","timeout","start","jobCount","jobCountMax","errorCount","errorCountMax"))
 	rm(list=a)
 	url<-"URLWEBSITE/RECALCPATH?h=RECALCHOST&p=RECALCPORT&d=RECALCDIR"
 	cat("Accessing ",url,"\n")
@@ -124,12 +146,13 @@ while( (-1 == jobCountMax || jobCount < jobCountMax) && (-1 == timeout || as.dou
 	if (any(ls()=="b") && "completed"==b$value) {
 		cat("Computation of job ",jobCount," completed successfully.\n")
 		rm("b")
+		errorCount<-0
 	} else {
 		cat("***** TECHNICAL FAILURE OF JOB #",jobCount," **** EXITING *******\n")
 		if (any(ls()=="b")) {
 			cat("b="); print(b)
 		}
-		break;
+		errorCount<-errorCount+1
 	}
 }
 
@@ -140,6 +163,22 @@ cat("Performed on ",jobCount," jobs of max. ",jobCountMax,".\n",sep="")
 
 
 doc <- "
+
+=head1 SEE ALSO
+
+=over 4
+
+=item http://www.rqtl.org
+
+Development of QTL analysis
+
+=item http://www.nordugrid.org
+
+Computational grid prepared to analyse expression QTL
+
+=item http://eqtl.berlios.de
+
+=back
 
 =head1 AUTHORS
 
