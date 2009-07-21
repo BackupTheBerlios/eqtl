@@ -504,7 +504,7 @@ EOWRITETODISK
 
 
 	#
-	# PRITING OF FILE STARTS HERE
+	# PRINTING OF FILE STARTS HERE
 	#
 
 	print "cat( \"<eqtl>\\\\n\")\n";
@@ -532,9 +532,9 @@ EOWRITETODISK
 		print $printCov_int;
 	}
 
-	print $tryPermutations;
-
 	print $toDisk;
+
+	print $tryPermutations;
 
 	print "cat( \"</eqtl>\\\\n\")\n";
 
