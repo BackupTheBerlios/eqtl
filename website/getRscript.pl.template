@@ -402,6 +402,8 @@ if (acceptable) {
 
 EOWRITETODISK
 
+	my $permutationSuccessBlock;
+
 if ($execParams{'perms'} > 0) {
 
 	$tryPermutations .= <<EOWRITETODISK;
@@ -458,7 +460,10 @@ EOWRITETODISK
 		my.$mode.S.P.summary <- summary( my.$mode.S, perms=perm.summary, alpha=$execParams{'alpha'}, pvalues=TRUE)
 		my.success <- length(my.$mode.S.P.summary[[1]])
 		my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
-EOWRITETODISK
+
+		# now that the threshold is known, the eQTL of interest are determined
+		my.$mode.S.summary <- summary( my.$mode.S, threshold=thresh )
+	}
 
 		$writePermutations = <<EOWRITETODISK;
 	if (acceptable) {
@@ -474,10 +479,6 @@ writeToDisk( "</SUMMARY::quants>" )
 	}
 EOWRITETODISK
 
-$tryPermutations .= <<EOWRITETODISK;
-		# now that the threshold is known, the eQTL of interest are determined
-		my.$mode.S.summary <- summary( my.$mode.S, threshold=thresh )
-	}
 }
 
 EOWRITETODISK
