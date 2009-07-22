@@ -218,7 +218,7 @@ preset by RECALCPORT
 		errorMessage("getRscript.pl: Spotted probeID to be undefined, pass probesetid=10 as extra argument.");
 		next;
 	}
-	
+
 	#
 	# The 'keyData' variable determines the file name and shall be easily parseable 
 	# to retrieve the most essential information directly from it.
@@ -247,7 +247,10 @@ preset by RECALCPORT
 		}else{
 			errorMessage("getRscript.pl: column with major phenotype "
 				."(most likely the expression level) "
-				."not indicated (probeID='$probeID').");
+				."not indicated (probeID='$probeID')."
+				." "
+				."You may want to add &phenocol=PHENOCOL to the URL."
+				);
 			next;
 			#$phenocol = "pheno.col=3,";
 			#$pc = $probeID;
@@ -313,10 +316,10 @@ writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 	my.file <- gzfile(description=paste("$execParams{'d'}/$keyData.csv.gz",sep=""),
 				open = "a", encoding = getOption("encoding"),compression = 6)
 	if ( is.list(toWrite) ) {
-		cat("*** DEBUG START*** Now I am printing a list.\n")
+		cat("*** DEBUG START*** Now I am printing a list.\\n")
 		vert <- labels( toWrite )
 		write.table( print(toWrite), file=my.file, append=TRUE )
-		cat("*** DEBUG END*** Now I am printing a list.\n")
+		cat("*** DEBUG END*** Now I am printing a list.\\n")
 	} else if ( is.vector(toWrite) ) {
 		label <- labels( toWrite )
 		if( label[1] != 1 ){
@@ -410,25 +413,27 @@ if ($execParams{'perms'} > 0) {
 
 # if still acceotable, perform permutation tests
 if (acceptable) {
-	perm.checks<-list(c(  25,1-$execParams{'alpha'}-0.2),
-			  c( 100,1-$execParams{'alpha'}-0.02),
-			  c( 200,1-$execParams{'alpha'}),
-			  c( 500,1-$execParams{'alpha'}),
-			  c(1000,1-$execParams{'alpha'}))
+	# list of pairs identifying the number of permutations and the quantils that is to be reached
+	perm.checks<-list(c(  25,                1-$execParams{'alpha'}-0.2),
+			  c( 100,                1-$execParams{'alpha'}-0.02),
+			  c($execParams{perms}/4,1-$execParams{'alpha'}),
+			  c($execParams{perms}/2,1-$execParams{'alpha'}),
+			  c($execParams{perms}  ,1-$execParams{'alpha'}))
 
+	# iteration over partial permutations, the permutation results are stored in perm.collection
 	#print(perm.checks)
-	perm.summary<-NULL
+	perm.collection<-NULL
 	perm.no.prev.round<-0
 	for(X in perm.checks) {
 		print( paste(date(),": Performing ",X[1]," permutations, checking against quantile ",X[2],"\\n",sep="") )
 		my.$mode.P <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, n.perm=X[1]-perm.no.prev.round, verbose=FALSE )
-		if (is.null(perm.summary)) {
-			perm.summary <- my.$mode.P
+		if (is.null(perm.collection)) {
+			perm.collection <- my.$mode.P
 		} else {
-			perm.summary <- rbind(perm.summary,my.$mode.P)
+			perm.collection <- rbind(perm.collection,my.$mode.P)
 		}
 
-		my.quants <- summary(perm.summary,alpha=(1-X[2]))
+		my.quants <- summary(perm.collection,alpha=(1-X[2]))
 		thresh = my.quants[[1]];
 		perms.done<-X[1]
 EOWRITETODISK
@@ -457,7 +462,7 @@ EOWRITETODISK
 
 		$tryPermutations .= <<EOWRITETODISK;
 	if (acceptable) {
-		my.$mode.S.P.summary <- summary( my.$mode.S, perms=perm.summary, alpha=$execParams{'alpha'}, pvalues=TRUE)
+		my.$mode.S.P.summary <- summary( my.$mode.S, perms=perm.collection, alpha=$execParams{'alpha'}, pvalues=TRUE)
 		my.success <- length(my.$mode.S.P.summary[[1]])
 		my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
 
@@ -468,21 +473,28 @@ EOWRITETODISK
 
 EOWRITETODISK
 
+
 		$writePermutations = <<EOWRITETODISK;
-	if (acceptable) {
-		if (0) {
-			# we don't learn from seeing the permutations
-			writeToDisk( "<DATA::$mode.P>" )
-			writeToDisk( perm.summary, row.names=FALSE )
-			writeToDisk( "</DATA::$mode.P>" )
-		}
-		writeToDisk( "<SUMMARY::$mode.S.P>" )
-		writeToDisk( my.$mode.S.P.summary )
-		writeToDisk( "</SUMMARY::$mode.S.P>" )
-		writeToDisk( "<SUMMARY::quants>" )
-		writeToDisk( my.quants )
-		writeToDisk( "</SUMMARY::quants>" )
-	}
+
+if (acceptable) {
+
+	# write significant SNPs evaluated by permutations for their p-values
+	writeToDisk( "<SUMMARY::$mode.S.P>" )
+	writeToDisk( my.$mode.S.P.summary )
+	writeToDisk( "</SUMMARY::$mode.S.P>" )
+
+	# write quantiles of permutations
+	writeToDisk( "<SUMMARY::quants>" )
+	writeToDisk( my.quants )
+	writeToDisk( "</SUMMARY::quants>" )
+
+	# write raw data of permutations
+	writeToDisk( "<DATA::$mode.P>" )
+	writeToDisk( perm.collection, row.names=FALSE )
+	writeToDisk( "</DATA::$mode.P>" )
+
+}
+
 EOWRITETODISK
 
 
@@ -562,7 +574,7 @@ EOWRITETODISK
 
 	print $writePermutations;
 
-	print "cat( \"</eqtl>\\\\n\")\n";
+	print "cat( \"</eqtl>\\n\\n\")\n";
 
 	print "\n".'"completed"'."\n"; 
 
