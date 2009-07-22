@@ -453,7 +453,7 @@ EOWRITETODISK
 		perm.no.prev.round<-X[1]
 	}
 EOWRITETODISK
-		}
+		} # else of if (scantwo)
 
 		$tryPermutations .= <<EOWRITETODISK;
 	if (acceptable) {
@@ -463,25 +463,28 @@ EOWRITETODISK
 
 		# now that the threshold is known, the eQTL of interest are determined
 		my.$mode.S.summary <- summary( my.$mode.S, threshold=thresh )
-	}
+	} # if acceptable after having done the permutation tests
+} # if acceptable to enter permutation tests
+
+EOWRITETODISK
 
 		$writePermutations = <<EOWRITETODISK;
 	if (acceptable) {
-writeToDisk( "<DATA::$mode.P>" )
-writeToDisk( perm.summary, row.names=FALSE )
-writeToDisk( "</DATA::$mode.P>" )
-writeToDisk( "<SUMMARY::$mode.S.P>" )
-writeToDisk( my.$mode.S.P.summary )
-writeToDisk( "</SUMMARY::$mode.S.P>" )
-writeToDisk( "<SUMMARY::quants>" )
-writeToDisk( my.quants )
-writeToDisk( "</SUMMARY::quants>" )
+		if (0) {
+			# we don't learn from seeing the permutations
+			writeToDisk( "<DATA::$mode.P>" )
+			writeToDisk( perm.summary, row.names=FALSE )
+			writeToDisk( "</DATA::$mode.P>" )
+		}
+		writeToDisk( "<SUMMARY::$mode.S.P>" )
+		writeToDisk( my.$mode.S.P.summary )
+		writeToDisk( "</SUMMARY::$mode.S.P>" )
+		writeToDisk( "<SUMMARY::quants>" )
+		writeToDisk( my.quants )
+		writeToDisk( "</SUMMARY::quants>" )
 	}
 EOWRITETODISK
 
-}
-
-EOWRITETODISK
 
 } # if ($execParams{'perms'})
 else {
