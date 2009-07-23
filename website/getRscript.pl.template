@@ -528,9 +528,19 @@ writeToDisk( "</WARNINGS>" )
 EOWRITETODISK
 }
 
+
+	# status report - the first to parse
+
 	my $c = join(",", @covars);
 	my $toDisk = <<EOWRITETODISK;
 writeToDisk( paste("<=$mode($probeID) success(",my.success,") method($execParams{'method'}) permutations($execParams{'perms'}) threshold($execParams{'threshold'}) covariates($c) cov_meth($execParams{'cov_meth'}) alpha($execParams{'alpha'}) steps($steps) errorP($execParams{'errorP'}) draws($execParams{'draws'}) phenocol($pc) permsDone(",perms.done,") qtlversion(",qtlversion(),") R.Version(",R.Version()[["major"]],".",R.Version()[["minor"]],") platform(",R.Version()[["platform"]],")=>", sep="") )
+
+EOWRITETODISK
+
+	# system status - the final line, upload checks on end with </ENV>
+
+	my $toEnd = <<EOWRITETODISK;
+
 writeToDisk( "<ENV>" )
 writeToDisk( system("hostname -f") )
 writeToDisk( Sys.info() )
@@ -575,6 +585,8 @@ EOWRITETODISK
 	print $toDisk;
 
 	print $writePermutations;
+
+	print $toEnd;
 
 	print "cat( \"</eqtl>\\n\\n\")\n";
 
