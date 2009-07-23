@@ -409,9 +409,9 @@ EOWRITETODISK
 
 	my $permutationSuccessBlock;
 
-if ($execParams{'perms'} > 0) {
+	if ($execParams{'perms'} > 0) {
 
-	$tryPermutations .= <<EOWRITETODISK;
+		$tryPermutations .= <<EOWRITETODISK;
 
 # if still acceotable, perform permutation tests
 if (acceptable) {
@@ -500,13 +500,13 @@ if (acceptable) {
 EOWRITETODISK
 
 
-} # if ($execParams{'perms'})
-else {
-	# not executed in production, but handy for debugging
-	$tryPermutations .= "my.$mode.S.summary <- summary( my.$mode.S, threshold=".$execParams{'threshold'}." )\n";
-} # if-else ($execParams{'perms'})
+	} # if ($execParams{'perms'})
+	else {
+		# not executed in production, but handy for debugging
+		$tryPermutations .= "my.$mode.S.summary <- summary( my.$mode.S, threshold=".$execParams{'threshold'}." )\n";
+	} # if-else ($execParams{'perms'})
 
-$writePermutations .= <<EOWRITETODISK;
+	$writePermutations .= <<EOWRITETODISK;
 
 if (acceptable) {
 	# write plain results of $mode
@@ -520,13 +520,13 @@ if (acceptable) {
 EOWRITETODISK
 
 
-if (0) {
-#FIXME: need way to write away warning and reset them
-$writePermutations .= <<EOWRITETODISK;
+	if (0) {
+	#FIXME: need way to write away warning and reset them
+		$writePermutations .= <<EOWRITETODISK;
 writeToDisk( "<WARNINGS>" )
 writeToDisk( "</WARNINGS>" )
 EOWRITETODISK
-}
+	}
 
 
 	# status report - the first to parse
