@@ -603,13 +603,15 @@ sub perform {
 					$scanonelineno++; # skip header line
 					while( $file[++$scanonelineno] !~ /<\/SUMMARY>/ ){
 						$scanoneline = $file[$scanonelineno];
+						print STDERR "scanoneline: $scanoneline\n" if $verbose;
+						# the table may be comma-separated - most likely not
 						my @lineFields = split( /,/, $scanoneline );
 						if( $#lineFields < 1 ){ @lineFields = split(/ /, $lineFields[0]); }
 						for( my $lineFieldNo=0; $lineFieldNo<=$#lineFields; $lineFieldNo++ ){
 							$lineFields[$lineFieldNo] =~ s/\"//g;		#"
 						}
-						###########hier scantwo ergebnisse schreiben und neue spalte mit einfügen
-						print STDERR "Writing single effect into QTL table."
+
+						print STDERR "Writing single effect into QTL table - scanoneline:$scanoneline\n"
 							if $verbose;
 						unless ($dryrun) {
 							$sth_qtl->execute($compute_id, $lineFields[0], $trait,
@@ -618,12 +620,12 @@ sub perform {
 							$sth_qtl->finish;
 
 							if( ! exists($committed_loci{$lineFields[0]}) ){
-								print STDERR "Also preparing entry for locus.\n"
+								print STDERR "Also preparing entry for locus - scanoneline:$scanoneline\n"
 									if $verbose;
 								my $loc_name = "";
 								my $loc_pos;
 								if ($dryrun) {
-									print "Testing if locus exists.\n" if $verbose;
+									print "Testing if locus exists - scanoneline:$scanoneline\n" if $verbose;
 								}
 								else {
 									if ( ! $sth_loc_select->execute("$lineFields[0]")) {
