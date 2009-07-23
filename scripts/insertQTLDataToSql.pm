@@ -432,7 +432,8 @@ sub perform {
 	
 		if( $line =~ /^<\// ) {
 			if( --$sectioncount < 0 ){
-				harmless("\tERROR: can\'t close more sections\n",-2); #hier müsste das file kaputt sein
+				resetStatusOfComputationForRecalculation($dbh,$filename,$dryrun);
+				harmless("\tERROR: can\'t close more sections\n",-2); # file is broken
 				return($exitcode);
 			}
 		}
@@ -441,11 +442,21 @@ sub perform {
 		}
 
 		if( $line =~ /<ENV>/ ){
-			my $time = $file[$lineno+4];
+			# assume old format
+			my $time = $file[$lineno+3];
+			# test for new
+			if ($file[$lineno+2] =~ /^Time:\s*(\S+))/ {
+				$time = $1;
+			}
+			if ($time =~ /ENV/) {
+				# file is broken
+				resetStatusOfComputationForRecalculation($dbh,$filename,$dryrun);
+				harmless("The ENV section does not have time information properly indicated.\n",-2);
+				return($exitcode);
+			}
 			($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($time);
 			$year += 1900;
 			$filetime = "$year-$mon-$mday $hour:$min:$sec";
-		
 		}
 	
 		if( $line =~ /<SUMMARY::quants>/ ){

@@ -337,7 +337,6 @@ writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 		}
 		write( out, file=my.file, append=TRUE )
 		cat("*** DEBUG END*** Now I am printing a VECTOR.\\n")
-	} else if ( is.vector(toWrite) ) {
 	} else if ( is.matrix(toWrite) ) {
 		write.table(toWrite,file=my.file,col.names=col.names,row.names=row.names,sep=",")
 	} else if ( is.numeric(toWrite) ) {
@@ -355,12 +354,19 @@ writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 }
 EOWRITETODISK
 
-	my $getData = 'my.cross <- read.cross( "csv",dir="",file="URLGETDATA?probesetid='.$probeID.'&score='
-		      .join(",",@covars) # this join causes the trouble
-		      .'", '
-		      .'genotypes=RQTLREADCROSSGENOTYPES, alleles=RQTLREADCROSSALLELES,'
-		      .'na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )'."\n"
-		      ."my.cross <- calc.genoprob( my.cross, step=$steps, error.prob=$execParams{'errorP'} )\n";
+	my $getDataUrl='URLGETDATA?probesetid='.$probeID.'&score='.join(",",@covars); # this join causes the trouble
+	my $getData = <<EOWRITETODISK;
+
+cat("Fetching data from url '$getDataUrl'.\\n")
+
+my.cross <- read.cross(	format="csv", dir="",
+                       	file="$getDataUrl",
+		        genotypes=RQTLREADCROSSGENOTYPES,
+			alleles=RQTLREADCROSSALLELES,
+			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )
+my.cross <- calc.genoprob( my.cross, step=$steps, error.prob=$execParams{'errorP'} )
+
+EOWRITETODISK
 
 	if( $mode eq 'scantwo' ){
 		$getData .= <<EOWRITETODISK;
@@ -409,9 +415,9 @@ EOWRITETODISK
 
 	my $permutationSuccessBlock;
 
-if ($execParams{'perms'} > 0) {
+	if ($execParams{'perms'} > 0) {
 
-	$tryPermutations .= <<EOWRITETODISK;
+		$tryPermutations .= <<EOWRITETODISK;
 
 # if still acceotable, perform permutation tests
 if (acceptable) {
@@ -500,13 +506,13 @@ if (acceptable) {
 EOWRITETODISK
 
 
-} # if ($execParams{'perms'})
-else {
-	# not executed in production, but handy for debugging
-	$tryPermutations .= "my.$mode.S.summary <- summary( my.$mode.S, threshold=".$execParams{'threshold'}." )\n";
-} # if-else ($execParams{'perms'})
+	} # if ($execParams{'perms'})
+	else {
+		# not executed in production, but handy for debugging
+		$tryPermutations .= "my.$mode.S.summary <- summary( my.$mode.S, threshold=".$execParams{'threshold'}." )\n";
+	} # if-else ($execParams{'perms'})
 
-$writePermutations .= <<EOWRITETODISK;
+	$writePermutations .= <<EOWRITETODISK;
 
 if (acceptable) {
 	# write plain results of $mode
@@ -520,13 +526,13 @@ if (acceptable) {
 EOWRITETODISK
 
 
-if (0) {
-#FIXME: need way to write away warning and reset them
-$writePermutations .= <<EOWRITETODISK;
+	if (0) {
+	#FIXME: need way to write away warning and reset them
+		$writePermutations .= <<EOWRITETODISK;
 writeToDisk( "<WARNINGS>" )
 writeToDisk( "</WARNINGS>" )
 EOWRITETODISK
-}
+	}
 
 
 	# status report - the first to parse
@@ -542,9 +548,8 @@ EOWRITETODISK
 	my $toEnd = <<EOWRITETODISK;
 
 writeToDisk( "<ENV>" )
-writeToDisk( system("hostname -f") )
 writeToDisk( Sys.info() )
-writeToDisk( Sys.time() )
+writeToDisk( paste(\"Time: \",Sys.time(),\"\\n\",sep=\"\") )
 writeToDisk( "</ENV>" )
 EOWRITETODISK
 
@@ -553,7 +558,11 @@ EOWRITETODISK
 	# PRINTING OF FILE STARTS HERE
 	#
 
-	print "cat( \"<eqtl mode=\\\"$mode\\\" probe=\\\"$probeID\\\" covars=\\\"".join(",",@covars)."\\\">\\n\")\n";
+	print "cat( \"<eqtl mode=\\\"$mode\\\" probe=\\\"$probeID\\\""
+		." covars=\\\""    .join(",",@covars)."\\\""
+		." covars_add=\\\"".join(",",@covars_add)."\\\""
+		." covars_int=\\\"".join(",",@covars_int)."\\\""
+		.">\\n\")\n";
 
 	print $writeToDisk;
 
@@ -588,7 +597,7 @@ EOWRITETODISK
 
 	print $toEnd;
 
-	print "cat( \"</eqtl>\\n\\n\")\n";
+	print "cat(\"</eqtl>\\n\\n\")\n";
 
 	print "\n".'"completed"'."\n"; 
 
