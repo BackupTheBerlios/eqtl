@@ -8,23 +8,22 @@ prepareRqtlInputData_mus.pl - preparation of input files for 'mus' project
 
 =head1 SYNOPSIS
 
-prepareRqtlInputData_mus.pl <scoreselection> "separator"  <geneselection> [test]
+prepareRqtlInputData_mus.pl
 
 =head1 DESCRIPTION
 
-This script is executed by the webserver.  It provides files with
+This script is executed by the webserver. It provides files with
 expression information about the mice for each trait_id.  It needs the
 expression-file and the genotyping-file. Further it needs the file with
 the classical scoring data.
 
-If executed with "test" as last argument, it's beeing presumed, that the
-script has been executed from the command line and therefore the script
-will provide output on the command line.
+The script can also be executed from the command line e.g. for testing
+purposes. In this case it will provide output on the command line.
 
 =AUTHOR
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
-Benedikt Bauer <bauer@informatik.uni-luebeck.de>
+Benedikt Bauer <bauer@cls.uni-luebeck.de>
 
 =head1 COPYRIGHT
 
@@ -54,7 +53,13 @@ my ($markers,$chromosomes,$mouseid,$l);
 my (@experiments,$geneid,$probeid);
 my @vals;
 my $sep=",";
-my $test=undef;
+my $test;
+
+if (!exists($ENV{'QUERY_STRING'})) {
+	$test=1;
+        print STDERR "prepareRqtlInputData_mus.pl: Presuming to be run from the command line - testing only.\n";
+}
+
 
 open(GENO, $base.$database.$data{'genofile'}) || open(GENO,$database.$data{'genofile'}) || open(GENO,$data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;               #open the file wich contains probe-data
 
@@ -112,9 +117,9 @@ if ($openworks) {
 	}
 }
 
-#
-# read in expression data and store it in memory
-#
+		#
+		# read in expression data and store it in memory
+		#
 
 @experiments=split(/[\t,]/,readline(EXPR));
 my $expressionHasName=0;
@@ -171,34 +176,16 @@ close(EXPR);
 
 open(SCORE, $base.$database.$data{'scorefile'}) || open(SCORE,$database.$data{'scorefile'}) || open(SCORE,$data{'scorefile'}) || die "No such score-file at ".$database.$data{'scorefile'}.": ".$@;               #open the file wich contains score-data
 
-#@scoreselection=("sex");
-#while ($ARGV[0] ne "separator") {
-##	push(@scoreselection,$ARGV[$i]) unless ($ARGV[$i] eq "sex" || $ARGV[$i] eq "pgm");
-#	if ($ARGV[0] ne "sex") {
-#		push(@scoreselection,shift(@ARGV));
-#	}
-#	else {
-#		shift(@ARGV);
-#	}
-#}
-#
-#$geno=shift(@ARGV);
-#$expr=shift(@ARGV);
-
 my $scoreline=readline(SCORE);
 chomp $scoreline;
 my @scoreline=split($sep,$scoreline);
 shift @scoreline;
-#for ($i=0;$i<=$#scoreline;$i++) {
-#        my $j;
-#        for ($j=0;$j<=$#scoreselection;$j++) {
-#                if ($scoreline[$i] eq $scoreselection[$j]) {
-#                        push(@index,$i);
-#                        $j=$#scoreselection+1;
-#                }
-#        }
-#}
 my %scoredata;
+
+		#
+		# read in scoredata and store it in memory
+		#
+
 while(<SCORE>) {
         chomp;
         @vals = split(/[\t,]/,$_);
@@ -231,35 +218,43 @@ while (FCGI::accept >= 0) {
 
         print   "Content-type: text/plain\n\n";                                 #sign page-type as plain
 
-        #check if argument has been given
-        my @params = split(/&/, $ENV{'QUERY_STRING'});
 	my ($probeID,@scoreselection);
 	@scoreselection=("sex");
 
-	foreach my $key (@params){
-		my @tmp = split(/=/,$key);
-                if( $tmp[0] =~ m/probesetid/ ){
-                        $probeID = $tmp[1];
-                }
-		elsif( $tmp[0] =~ m/score/ ){
-			# commonly, score selections are passed as comma-separated list
-			my @ts=split(/,/,$tmp[1]);
-			# making sure that every score is added
-			foreach my $t (@ts) {
-				my $found=0;
-				# after being tested for redundancy (e.g. sex)
-				foreach my $s (@scoreselection) {
-					if ("$s" eq "$t") {
-						$found=1;
-						last;
+        #check if argument has been given and read parameters from the website
+        if (exists($ENV{'QUERY_STRING'})) {
+	        my @params = split(/&/, $ENV{'QUERY_STRING'});
+		foreach my $key (@params){
+			my @tmp = split(/=/,$key);
+			if( $tmp[0] =~ m/probesetid/ ){
+				$probeID = $tmp[1];
+			}
+			elsif( $tmp[0] =~ m/score/ ){
+				# commonly, score selections are passed as comma-separated list
+				my @ts=split(/,/,$tmp[1]);
+				# making sure that every score is added
+				foreach my $t (@ts) {
+					my $found=0;
+					# after being tested for redundancy (e.g. sex)
+					foreach my $s (@scoreselection) {
+						if ("$s" eq "$t") {
+							$found=1;
+							last;
+						}
 					}
-				}
-				if (0 == $found){
-					push(@scoreselection,$t);
+					if (0 == $found){
+						push(@scoreselection,$t);
+					}
 				}
 			}
 		}
-        }
+	}
+	# setting testing parameters, if called from the command line
+	else {
+		@scoreselection=('sex','severity');
+		$probeID=31;
+	}
+	
 
 	#
 	# Building index-vector for the scoreselection
@@ -383,39 +378,4 @@ while (FCGI::accept >= 0) {
         }
 
 	print $ret;
-
-#	open(PROBEFILE, $base.$database."scripts/results/$probeID.csv.gz") || open(PROBEFILE,$database."scripts/results/$probeID.csv.gz") || open(PROBEFILE,"$probeID.csv.gz") || die "No such probeID: $probeID"               #open the file wich contains score-data
-
-#	my @probeFile;
-#	while(<PROBEFILE>){
-#       	chomp;
-#	      	push (@probeFile,$_);
-#	}
-#	close(PROBEFILE);
-#
-#	my $lastIndex=$#probeFile;
-#	for(my $i=0; $i<=$lastIndex; $i++){
-#		my @probe_line=split(',',$probeFile[$i]);
-#		my @score_line=split(',',$scoreFile[$i]);
-#		my $mouseid=shift(@score_line);
-#		
-#		my $ret=shift(@probe_line).$sep.shift(@probe_line).$sep;
-#		if(0==$i){
-#			$ret.=join($sep,@score_line).$sep.join($sep,@probe_line);
-#		}
-#		
-#		elsif (1==$i){
-#			$ret.=$sep x $#score_line .$sep.join($sep,@probe_line);
-#		}
-#		else {
-#			$ret.=join($sep,@score_line).$sep.join($sep,@probe_line);
-#		}
-#               print $ret."\n";
-#
-#	}
 }
-#shift(@ARGV);
-#if ($ARGV[$#ARGV] eq "test") {
-#	$test=1;
-#	pop(@ARGV);
-#}
