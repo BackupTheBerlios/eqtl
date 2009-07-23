@@ -70,33 +70,36 @@ mysql> desc locus; desc locusInteraction; desc map; desc qtl; desc trait;
 +----------+--------------+------+-----+---------+----------------+
 
 mysql> desc locusInteraction;
-+----------------+-----------------------------------+------+-----+---------+----------------+
-| Field          | Type                              | Null | Key | Default | Extra          |
-+----------------+-----------------------------------+------+-----+---------+----------------+
-| No             | int(11)                           | NO   | PRI | NULL    | auto_increment |
-| computation_id | int(11)                           | YES  |     | NULL    |                |
-| Trait          | char(100)                         | NO   | MUL |         |                |
-| A              | char(10)                          | NO   | MUL |         |                |
-| B              | char(10)                          | NO   | MUL |         |                |
-| LogP           | char(100)                         | YES  |     | NULL    |                |
-| Type           | char(5)                           | NO   |     |         |                |
-| Analysis       | enum('interactive','additive')    | YES  |     | NULL    |                |
-| covariates     | set('eae_add','eae_int', ...)     | YES  |     | NULL    |                |
-| lod_full       | float(255,8)                      | YES  |     | NULL    |                |
-| lod_fv1        | float(255,8)                      | YES  |     | NULL    |                |
-| lod_int        | float(255,8)                      | YES  |     | NULL    |                |
-| lod_add        | float(255,8)                      | YES  |     | NULL    |                |
-| lod_av1        | float(255,8)                      | YES  |     | NULL    |                |
-| qlod_full      | float(255,8)                      | YES  |     | NULL    |                |
-| qlod_fv1       | float(255,8)                      | YES  |     | NULL    |                |
-| qlod_int       | float(255,8)                      | YES  |     | NULL    |                |
-| qlod_add       | float(255,8)                      | YES  |     | NULL    |                |
-| qlod_av1       | float(255,8)                      | YES  |     | NULL    |                |
-| cis            | enum('00','01','10','11')         | YES  |     | NULL    |                |
-| locComb        | int(11)                           | YES  |     | NULL    |                |
-| cis_dist_A     | int(11)                           | YES  |     | NULL    |                |
-| cis_dist_B     | int(11)                           | YES  |     | NULL    |                |
-+----------------+-----------------------------------+------+-----+---------+----------------+
++-----------------+-----------------------------------+------+-----+---------+----------------+
+| Field           | Type                              | Null | Key | Default | Extra          |
++-----------------+-----------------------------------+------+-----+---------+----------------+
+| No              | int(11)                           | NO   | PRI | NULL    | auto_increment |
+| computation_id  | int(11)                           | YES  |     | NULL    |                |
+| Trait           | char(100)                         | NO   | MUL |         |                |
+| A               | char(10)                          | NO   | MUL |         |                |
+| B               | char(10)                          | NO   | MUL |         |                |
+| LogP            | char(100)                         | YES  |     | NULL    |                |
+| Type            | char(5)                           | NO   |     |         |                |
+| Analysis        | enum('interactive','additive')    | YES  |     | NULL    |                |
+| covariates      | set('eae_add','eae_int', ...)     | YES  |     | NULL    |                |
+| lod_full        | float(255,8)                      | YES  |     | NULL    |                |
+| lod_fv1         | float(255,8)                      | YES  |     | NULL    |                |
+| lod_int         | float(255,8)                      | YES  |     | NULL    |                |
+| lod_add         | float(255,8)                      | YES  |     | NULL    |                |
+| lod_av1         | float(255,8)                      | YES  |     | NULL    |                |
+| qlod_full       | float(255,8)                      | YES  |     | NULL    |                |
+| qlod_fv1        | float(255,8)                      | YES  |     | NULL    |                |
+| qlod_int        | float(255,8)                      | YES  |     | NULL    |                |
+| qlod_add        | float(255,8)                      | YES  |     | NULL    |                |
+| qlod_av1        | float(255,8)                      | YES  |     | NULL    |                |
+| cis             | enum('00','01','10','11')         | YES  |     | NULL    |                |
+| locComb         | int(11)                           | YES  |     | NULL    |                |
+| cis_dist_A      | int(11)                           | YES  |     | NULL    |                |
+| cis_dist_B      | int(11)                           | YES  |     | NULL    |                |
+| pvalue          | float                                         | YES  |     | NULL              |                |
+| pvalue_conf_min | float                                         | YES  |     | NULL              |                |
+| pvalue_conf_max | float                                         | YES  |     | NULL              |                |
++-----------------+-----------------------------------+------+-----+---------+----------------+
 
 mysql> desc map;
 
