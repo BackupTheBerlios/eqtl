@@ -354,12 +354,19 @@ writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 }
 EOWRITETODISK
 
-	my $getData = 'my.cross <- read.cross( "csv",dir="",file="URLGETDATA?probesetid='.$probeID.'&score='
-		      .join(",",@covars) # this join causes the trouble
-		      .'", '
-		      .'genotypes=RQTLREADCROSSGENOTYPES, alleles=RQTLREADCROSSALLELES,'
-		      .'na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )'."\n"
-		      ."my.cross <- calc.genoprob( my.cross, step=$steps, error.prob=$execParams{'errorP'} )\n";
+	my $getDataUrl='URLGETDATA?probesetid='.$probeID.'&score='.join(",",@covars); # this join causes the trouble
+	my $getData = <<EOWRITETODISK
+
+cat("Fetching data from url '$getDataUrl'.\\n")
+
+my.cross <- read.cross(	format="csv", dir="",
+                       	file="$getDataUrl",
+		        genotypes=RQTLREADCROSSGENOTYPES,
+			alleles=RQTLREADCROSSALLELES,
+			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )
+my.cross <- calc.genoprob( my.cross, step=$steps, error.prob=$execParams{'errorP'} )
+
+EOWRITETODISK
 
 	if( $mode eq 'scantwo' ){
 		$getData .= <<EOWRITETODISK;
