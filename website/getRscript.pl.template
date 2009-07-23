@@ -549,7 +549,7 @@ EOWRITETODISK
 
 writeToDisk( "<ENV>" )
 writeToDisk( Sys.info() )
-writeToDisk( Sys.time() )
+writeToDisk( paste(\"Time: \",Sys.time(),\"\\n\",sep=\"\") )
 writeToDisk( "</ENV>" )
 EOWRITETODISK
 
@@ -597,7 +597,7 @@ EOWRITETODISK
 
 	print $toEnd;
 
-	print "cat( \"</eqtl>\\n\\n\")\n";
+	print "cat(\"</eqtl>\\n\\n\")\n";
 
 	print "\n".'"completed"'."\n"; 
 
