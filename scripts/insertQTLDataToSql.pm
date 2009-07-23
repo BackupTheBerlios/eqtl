@@ -216,24 +216,26 @@ my $version;
 if ($dryrun) {
 	print "Testing if job exists.\n" if $verbose;
 }
-elsif ( ! $sth_jobexists->execute("$filename")) {
-	harmless($DBI::errstr,-1);
-	return($exitcode);
+else {
+	if ( ! $sth_jobexists->execute("$filename")) {
+		harmless($DBI::errstr,-1);
+		return($exitcode);
+	}
+	while( my @data = $sth_jobexists->fetchrow_array() ){
+		$compute_id = $data[0];
+		$status = $data[1];
+		$version = $data[2];
+		$cnt++;
+	}
+	$sth_jobexists->finish;
 }
-while( my @data = $sth_jobexists->fetchrow_array() ){
-	$compute_id = $data[0];
-	$status = $data[1];
-	$version = $data[2];
-        $cnt++;
-}
-$sth_jobexists->finish;
 
 if($cnt>1){
-	harmless("More than one entry for job found... please check database\n",-3); ##da muss die datenbank irgendwie kaputt sein
+	harmless("More than one entry for job found... please check database\n",-3); ## this is not expected, database likely to be corrupt
 	return($exitcode);
 }
 if($cnt ==0){
-	harmless("No entry for job found. Please verify database consistency.\n",-1);##überprüfen warums jobeintrag nicht gibt 
+	harmless("No entry for job found. Please verify database consistency.\n",-1);## every entry request should be existing
 	return($exitcode);
 }
 
@@ -307,11 +309,13 @@ for( my $lineno=0; $lineno<=$#file; $lineno++ ){
 				if ($dryrun) {
 					print STDERR "Resetting database entry.\n";
 				}
-				elsif ( ! $statement_to_execute->execute("$filename") ) {
-					harmless($DBI::errstr,-1);
-					return($exitcode);
+				else {
+					if ( ! $statement_to_execute->execute("$filename") ) {
+						harmless($DBI::errstr,-1);
+						return($exitcode);
+					}
+					$statement_to_execute->finish;
 				}
-				$statement_to_execute->finish;
 
 				
 				###################################
@@ -552,10 +556,12 @@ $version++;
 							if ($dryrun) {
 								print "Testing if locus exists.\n" if $verbose;
 							}
-							elsif ( ! $sth_loc_select->execute("$lineFields[0]")) {
-								harmless($DBI::errstr,-1);
-								return($exitcode);
-							}		
+							else {
+								if ( ! $sth_loc_select->execute("$lineFields[0]")) {
+									harmless($DBI::errstr,-1);
+									return($exitcode);
+								}		
+							}
 							while( my @data = $sth_loc_select->fetchrow_array() ){
 								$loc_name = $data[0];
 								$loc_pos = $data[1];
