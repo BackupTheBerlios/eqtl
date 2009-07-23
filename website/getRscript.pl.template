@@ -548,7 +548,6 @@ EOWRITETODISK
 	my $toEnd = <<EOWRITETODISK;
 
 writeToDisk( "<ENV>" )
-writeToDisk( system("hostname -f") )
 writeToDisk( Sys.info() )
 writeToDisk( Sys.time() )
 writeToDisk( "</ENV>" )
