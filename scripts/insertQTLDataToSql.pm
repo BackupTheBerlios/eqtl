@@ -161,8 +161,8 @@ sub perform {
 		my $sql_delete_qtl = "DELETE from qtl where computation_id = ?";
 		my $sql_compute = "UPDATE computation SET status=\"DONE\", version= ?, "
 			  ."timestamp = ? where computation_id = ?";
-		my $sql_qtl_scantwo = qq{INSERT INTO  locusInteraction (computation_id, Trait,A, B, LogP, covariates, lod_full, lod_fv1, lod_int, lod_add, lod_av1, qlod_full, qlod_fv1, qlod_int, qlod_add, qlod_av1 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)};
-		my $sql_qtl_scanone = qq{INSERT INTO  qtl (computation_id, Locus, Trait, LOD, Chromosome, cMorgan_Peak, Quantile, covariates, phenocol) VALUES (?,?,?,?,?,?,?,?,?)};
+		my $sql_qtl_scantwo = qq{INSERT INTO  locusInteraction (computation_id, Trait,A, B, LogP, covariates, lod_full, lod_fv1, lod_int, lod_add, lod_av1, qlod_full, qlod_fv1, qlod_int, qlod_add, qlod_av1, pvalue ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)};
+		my $sql_qtl_scanone = qq{INSERT INTO  qtl (computation_id, Locus, Trait, LOD, pvalue, Chromosome, cMorgan_Peak, Quantile, covariates, phenocol) VALUES (?,?,?,?,?,?,?,?,?,?)};
 
 		$sth_loc = $dbh->prepare( $sql_loc );
 		$sth_loc_update = $dbh->prepare( $sql_loc_update );
@@ -614,9 +614,15 @@ sub perform {
 						print STDERR "\tWriting single effect into QTL table - scanoneline:$scanoneline" if $verbose;
 
 						unless ($dryrun) {
-							$sth_qtl->execute($compute_id, $lineFields[0], $trait,
-								$lineFields[3], $lineFields[1], $lineFields[2],
-								$quant[0], join(",",@covars_array), $phenocol);
+							$sth_qtl->execute($compute_id,
+										$lineFields[0], # Locus/Marker
+										$trait,
+										$lineFields[3], # LOD score
+										$lineFields[4], # p-Value
+										$lineFields[1], # Chromosome
+										$lineFields[2], # cMorgan
+										$quant[0],
+										join(",",@covars_array), $phenocol);
 							$sth_qtl->finish;
 
 							if( ! exists($committed_loci{$lineFields[0]}) ){
