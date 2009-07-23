@@ -355,7 +355,7 @@ writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 EOWRITETODISK
 
 	my $getDataUrl='URLGETDATA?probesetid='.$probeID.'&score='.join(",",@covars); # this join causes the trouble
-	my $getData = <<EOWRITETODISK
+	my $getData = <<EOWRITETODISK;
 
 cat("Fetching data from url '$getDataUrl'.\\n")
 
@@ -559,7 +559,11 @@ EOWRITETODISK
 	# PRINTING OF FILE STARTS HERE
 	#
 
-	print "cat( \"<eqtl mode=\\\"$mode\\\" probe=\\\"$probeID\\\" covars=\\\"".join(",",@covars)."\\\">\\n\")\n";
+	print "cat( \"<eqtl mode=\\\"$mode\\\" probe=\\\"$probeID\\\""
+		." covars=\\\""    .join(",",@covars)."\\\""
+		." covars_add=\\\"".join(",",@covars_add)."\\\""
+		." covars_int=\\\"".join(",",@covars_int)."\\\""
+		.">\\n\")\n";
 
 	print $writeToDisk;
 
