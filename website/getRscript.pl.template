@@ -441,7 +441,7 @@ if (acceptable) {
 	perm.collection<-NULL
 	perm.no.prev.round<-0
 	for(X in perm.checks) {
-		print( paste(date(),": Performing ",X[1]," permutations, checking against quantile ",X[2],"\\n",sep="") )
+		print( paste(date(),": Performing ",X[1]," permutations, checking against quantile 1-",X[2],"\\n",sep="") )
 		my.$mode.P <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, n.perm=X[1]-perm.no.prev.round, verbose=FALSE )
 		if (is.null(perm.collection)) {
 			perm.collection <- my.$mode.P
@@ -450,31 +450,31 @@ if (acceptable) {
 		}
 
 		my.quants <- summary(perm.collection,alpha=(1-X[2]))
-		thresh = my.quants[[1]];
 		perms.done<-X[1]
 EOWRITETODISK
 
 		if( $mode eq 'scantwo' ) {
 			$tryPermutations .= <<EOWRITETODISK;
-		for( i in 2:5 ){ thresh = c(thresh, my.quants[[i]]) };
-		if( max(my.$mode.S)\$lod.full < my.quants[['full']] ){
-			print( paste(date(), ": failed assertion max(lod)>=quantile: ", max(my.$mode.S\$lod),">=", X[2], " <=> FALSE\\n",sep="") )
-			acceptable <- FALSE
-			break;
-		}
+		thresh<-my.quants[['full']]
+		my.max<-max(my.$mode.S)\$lod.full
 EOWRITETODISK
 		}
 		else {
 			$tryPermutations .= <<EOWRITETODISK;
-		if( max(my.$mode.S\$lod) < thresh ) {
-			print( paste(date(), ": failed assertion max(lod)>=quantile: ", max(my.$mode.S\$lod),">=", thresh, " <=> FALSE\\n",sep="") )
-			acceptable <- FALSE
-			break;
-		}
+		thresh<-my.quants[['lod']]
+		my.max<-max(my.$mode.S\$lod
 EOWRITETODISK
 		} # else of if (scantwo)
 
 		$tryPermutations .= <<EOWRITETODISK;
+		cat("Determined the following quantiles:\\n")
+		print(my.quants)
+		cat("Threshold: ",thresh,"\\n")
+		if( my.max < thresh ){
+			print( paste(date(), ": failed assertion max(lod)>=quantile: ", my.max,">=", thresh, " <=> FALSE\\n",sep="") )
+			acceptable <- FALSE
+			break;
+		}
 		perm.no.prev.round<-X[1]
 	}
 
