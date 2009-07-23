@@ -545,7 +545,7 @@ sub perform {
 				
 				if( $scantwoline =~ /<SUMMARY::scantwo.S.P>/ ){	#getting qtl informations
 					$scantwolineno++; # skip header line
-					while( $file[++$scantwolineno] !~ /<\/SUMMARY>/ ){
+					while( $file[++$scantwolineno] !~ /<\/SUMMARY(::scantwo.S.P)?>/ ){
 						$scantwoline = $file[$scantwolineno];
 						my @tmpQuote = split( /\"/, $scantwoline );		#"
 						my @chr = split( /:/, $tmpQuote[1] );
@@ -601,7 +601,7 @@ sub perform {
 				
 				if( $scanoneline =~ /<SUMMARY::scanone.S.P>/ ){	#getting qtl informations
 					$scanonelineno++; # skip header line
-					while( $file[++$scanonelineno] !~ /<\/SUMMARY>/ ){
+					while( $file[++$scanonelineno] !~ /<\/SUMMARY(::scanone.S.P)?>/ ){
 						$scanoneline = $file[$scanonelineno];
 						my @lineFields = split( /,/, $scanoneline );
 						if( $#lineFields < 1 ){ @lineFields = split(/ /, $lineFields[0]); }
@@ -609,7 +609,7 @@ sub perform {
 							$lineFields[$lineFieldNo] =~ s/\"//g;		#"
 						}
 						###########hier scantwo ergebnisse schreiben und neue spalte mit einfügen
-						print STDERR "Writing single effect into QTL table."
+						print STDERR "\tWriting single effect into QTL table - scanoneline:$scanoneline"
 							if $verbose;
 						unless ($dryrun) {
 							$sth_qtl->execute($compute_id, $lineFields[0], $trait,
@@ -618,12 +618,12 @@ sub perform {
 							$sth_qtl->finish;
 
 							if( ! exists($committed_loci{$lineFields[0]}) ){
-								print STDERR "Also preparing entry for locus.\n"
+								print STDERR "\tAlso preparing entry for locus - scanoneline:$scanoneline\n"
 									if $verbose;
 								my $loc_name = "";
 								my $loc_pos;
 								if ($dryrun) {
-									print "Testing if locus exists.\n" if $verbose;
+									print "\tTesting if locus exists - scanoneline:$scanoneline\n" if $verbose;
 								}
 								else {
 									if ( ! $sth_loc_select->execute("$lineFields[0]")) {
