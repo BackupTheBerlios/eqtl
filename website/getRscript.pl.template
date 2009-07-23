@@ -337,7 +337,6 @@ writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 		}
 		write( out, file=my.file, append=TRUE )
 		cat("*** DEBUG END*** Now I am printing a VECTOR.\\n")
-	} else if ( is.vector(toWrite) ) {
 	} else if ( is.matrix(toWrite) ) {
 		write.table(toWrite,file=my.file,col.names=col.names,row.names=row.names,sep=",")
 	} else if ( is.numeric(toWrite) ) {
