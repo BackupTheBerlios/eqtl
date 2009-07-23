@@ -471,12 +471,13 @@ EOWRITETODISK
 			acceptable <- FALSE
 			break;
 		}
-		perm.no.prev.round<-X[1]
-	}
 EOWRITETODISK
 		} # else of if (scantwo)
 
 		$tryPermutations .= <<EOWRITETODISK;
+		perm.no.prev.round<-X[1]
+	}
+
 	if (acceptable) {
 		my.$mode.S.P.summary <- summary( my.$mode.S, perms=perm.collection, alpha=$execParams{'alpha'}, pvalues=TRUE)
 		my.success <- length(my.$mode.S.P.summary[[1]])
