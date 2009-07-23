@@ -112,28 +112,31 @@ mysql> desc map;
 
 mysql> desc qtl;
 
-+----------------+-----------------------------------------------+------+-----+-------------------+----------------+
-| Field          | Type                                          | Null | Key | Default           | Extra          |
-+----------------+-----------------------------------------------+------+-----+-------------------+----------------+
-| No             | int(11)                                       | NO   | PRI | NULL              | auto_increment |
-| computation_id | int(11)                                       | YES  | MUL | NULL              |                |
-| Name           | char(255)                                     | YES  | MUL | NULL              |                |
-| Locus          | char(15)                                      | NO   | MUL |                   |                |
-| Trait          | char(100)                                     | NO   | MUL |                   |                |
-| Timestamp      | timestamp                                     | YES  |     | CURRENT_TIMESTAMP |                |
-| LOD            | float(255,8)                                  | YES  | MUL | NULL              |                |
-| Description    | text                                          | YES  |     | NULL              |                |
-| Chromosome     | varchar(2)                                    | YES  | MUL | NULL              |                |
-| cMorgan_Min    | float                                         | YES  |     | NULL              |                |
-| cMorgan_Max    | float                                         | YES  |     | NULL              |                |
-| cMorgan_Peak   | float                                         | YES  |     | NULL              |                |
-| Quantile       | float                                         | YES  |     | NULL              |                |
-| covariates     | set('eae_add','eae_int',...)                  | YES  |     | NULL              |                |
-| phenocol       | char(10)                                      | YES  |     | NULL              |                |
-| Analysis       | enum('none','interactive','additive')         | YES  |     | NULL              |                |
-| cis            | tinyint(1)                                    | YES  |     | NULL              |                |
-| cis_dist       | int(11)                                       | YES  |     | NULL              |                |
-+----------------+-----------------------------------------------+------+-----+-------------------+----------------+
++-----------------+-----------------------------------------------+------+-----+-------------------+----------------+
+| Field           | Type                                          | Null | Key | Default           | Extra          |
++-----------------+-----------------------------------------------+------+-----+-------------------+----------------+
+| No              | int(11)                                       | NO   | PRI | NULL              | auto_increment |
+| computation_id  | int(11)                                       | YES  | MUL | NULL              |                |
+| Name            | char(255)                                     | YES  | MUL | NULL              |                |
+| Locus           | char(15)                                      | NO   | MUL |                   |                |
+| Trait           | char(100)                                     | NO   | MUL |                   |                |
+| Timestamp       | timestamp                                     | YES  |     | CURRENT_TIMESTAMP |                |
+| LOD             | float(255,8)                                  | YES  | MUL | NULL              |                |
+| Description     | text                                          | YES  |     | NULL              |                |
+| Chromosome      | varchar(2)                                    | YES  | MUL | NULL              |                |
+| cMorgan_Min     | float                                         | YES  |     | NULL              |                |
+| cMorgan_Max     | float                                         | YES  |     | NULL              |                |
+| cMorgan_Peak    | float                                         | YES  |     | NULL              |                |
+| Quantile        | float                                         | YES  |     | NULL              |                |
+| covariates      | set('eae_add','eae_int',...)                  | YES  |     | NULL              |                |
+| phenocol        | char(10)                                      | YES  |     | NULL              |                |
+| Analysis        | enum('none','interactive','additive')         | YES  |     | NULL              |                |
+| cis             | tinyint(1)                                    | YES  |     | NULL              |                |
+| cis_dist        | int(11)                                       | YES  |     | NULL              |                |
+| pvalue          | float                                         | YES  |     | NULL              |                |
+| pvalue_conf_min | float                                         | YES  |     | NULL              |                |
+| pvalue_conf_max | float                                         | YES  |     | NULL              |                |
++-----------------+-----------------------------------------------+------+-----+-------------------+----------------+
 
 mysql> desc trait;
 
