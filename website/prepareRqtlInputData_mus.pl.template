@@ -20,17 +20,7 @@ the classical scoring data.
 The script can also be executed from the command line e.g. for testing
 purposes. In this case it will provide output on the command line.
 
-=AUTHOR
-
-Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
-Benedikt Bauer <bauer@cls.uni-luebeck.de>
-
-=head1 COPYRIGHT
-
-University of LE<uuml>beck, 2009
-
 =cut
-
 
 use CGI::Carp qw(fatalsToBrowser);
 use strict;
@@ -53,13 +43,9 @@ my ($markers,$chromosomes,$mouseid,$l);
 my (@experiments,$geneid,$probeid);
 my @vals;
 my $sep=",";
-my $test;
-
-if (!exists($ENV{'QUERY_STRING'})) {
-	$test=1;
-        print STDERR "prepareRqtlInputData_mus.pl: Presuming to be run from the command line - testing only.\n";
-}
-
+my $test=0;
+# uncomment for debugging:
+#$test=1;
 
 open(GENO, $base.$database.$data{'genofile'}) || open(GENO,$database.$data{'genofile'}) || open(GENO,$data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;               #open the file wich contains probe-data
 
@@ -249,8 +235,9 @@ while (FCGI::accept >= 0) {
 			}
 		}
 	}
-	# setting testing parameters, if called from the command line
 	else {
+		$test=1;
+		print STDERR "prepareRqtlInputData_mus.pl: Presuming to be run from the command line - testing only.\n";
 		@scoreselection=('sex','severity');
 		$probeID=31;
 	}
@@ -379,3 +366,18 @@ while (FCGI::accept >= 0) {
 
 	print $ret;
 }
+
+1;
+
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+Benedikt Bauer <bauer@cls.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
+
+=cut
+
