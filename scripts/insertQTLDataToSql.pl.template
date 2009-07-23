@@ -40,6 +40,10 @@ complete description
 
 =item --verbose	
 
+=item --dryrun
+
+set to dump all ouput to STDOUT rather than to the database server
+
 =back
 
 =head1 AUTHORS
@@ -62,9 +66,14 @@ BEGIN {
 	push @INC,"./scripts";
 }
 
+# this module does the real work while this file only wraps it
+
 use insertQTLDataToSql;
 
-my ($filename, $force, $help, $man, $verbose) = (undef, 0, undef, undef, 0);
+
+# parsing options
+
+my ($filename, $force, $help, $man, $verbose, $dryrun) = (undef, 0, undef, undef, 0, 0);
 
 unless (GetOptions(
         "filename:s" => \$filename,
@@ -72,7 +81,8 @@ unless (GetOptions(
 	"f" => \$force,
 	"help" => \$help,
 	"man" => \$man,
-	"verbose" => \$verbose
+	"verbose" => \$verbose,
+	"dryrun" => \$dryrun
 )) {
 	print STDERR "Could not parse options: $@\n";
 	exit -3;
@@ -81,12 +91,19 @@ unless (GetOptions(
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 
+# creating databse contact
+
 my $dbh = DBI->connect( DATABASECON );
 if ($!) {
 	print STDERR "Database connection not made: $DBI::errstr";
 	exit(-3);
 }
 
-my $exitcode = perform($dbh, $filename, $force, $verbose);
+# call module's function
+
+my $exitcode = perform($dbh, $filename, $force, $verbose, $dryrun);
+
+# exiting with that function's return code
+
 exit($exitcode);
 
