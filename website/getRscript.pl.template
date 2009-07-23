@@ -130,7 +130,6 @@ preset by RECALCPORT
 				'alpha' => ALPHA,
 				'stepsSO' => STEPSSO,
 				'stepsST' => STEPSST,
-				'epsilon' => EPSILON,
 				'errorP' => ERRORP,
 				'draws' => DRAWS,
 				'threshold' => THRESHOLD,
@@ -183,7 +182,7 @@ preset by RECALCPORT
 	my $probeID;
 	
 	# get value to params
-	# [ covar=X1,X2,X3,... | probesetid=X | perms=X | alpha=X | steps=X | epsilon=X | errorP=X | draws=X | threshold=X | method=X ]
+	# [ covar=X1,X2,X3,... | probesetid=X | perms=X | alpha=X | steps=X | errorP=X | draws=X | threshold=X | method=X ]
 	# at parameter covar  use FCGI;X1 will always be main covariate
 	foreach my $paramElement (@params){
 		my @value = split(/=/,$paramElement);
@@ -528,7 +527,7 @@ EOWRITETODISK
 
 	my $c = join(",", @covars);
 	my $toDisk = <<EOWRITETODISK;
-writeToDisk( paste("<=$mode($probeID) success(",my.success,") method($execParams{'method'}) permutations($execParams{'perms'}) threshold($execParams{'threshold'}) covariates($c) cov_meth($execParams{'cov_meth'}) alpha($execParams{'alpha'}) offset($execParams{'epsilon'}) steps($steps) errorP($execParams{'errorP'}) draws($execParams{'draws'}) phenocol($pc) permsDone(",perms.done,") qtlversion(",qtlversion(),") R.Version(",R.Version()[["major"]],".",R.Version()[["minor"]],") platform(",R.Version()[["platform"]],")=>", sep="") )
+writeToDisk( paste("<=$mode($probeID) success(",my.success,") method($execParams{'method'}) permutations($execParams{'perms'}) threshold($execParams{'threshold'}) covariates($c) cov_meth($execParams{'cov_meth'}) alpha($execParams{'alpha'}) steps($steps) errorP($execParams{'errorP'}) draws($execParams{'draws'}) phenocol($pc) permsDone(",perms.done,") qtlversion(",qtlversion(),") R.Version(",R.Version()[["major"]],".",R.Version()[["minor"]],") platform(",R.Version()[["platform"]],")=>", sep="") )
 writeToDisk( "<ENV>" )
 writeToDisk( system("hostname -f") )
 writeToDisk( Sys.info() )
