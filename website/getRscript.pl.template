@@ -317,7 +317,14 @@ EOGENERATEDFILEWARNING
 	if( $mode eq 'scanone' ){ $steps = $execParams{'stepsSO'}; }
 	else{ $steps = $execParams{'stepsST'}; }
 
+=head2 writeToDisk - R function
 
+This function writes the result files. It ensures that the right file
+is written to and that the results are easily parseable from the
+Perl script that is performing the upload to the expression QTL
+database.
+
+=cut
 	my $writeToDisk = <<EOWRITETODISK;
 writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 	my.file <- gzfile(description=paste("$execParams{'d'}/$keyData.csv.gz",sep=""),
@@ -328,14 +335,14 @@ writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 		write.table( print(toWrite), file=my.file, append=TRUE )
 		#cat("*** DEBUG END*** Now I am printing a list.\\n")
 	} else if ( is.vector(toWrite) ) {
-		cat("*** DEBUG START*** Now I am printing a VECTOR.\\n")
+		#cat("*** DEBUG START*** Now I am printing a VECTOR.\\n")
 		label <- labels( toWrite )
 		if( label[1] != 1 ){
 			# FIXME: clarify what Jan meant by label[1]!=1   Steffen
 			write( paste(label,collapse=" , ",sep=""), file=my.file, append=TRUE )
 		}
 		write( paste(toWrite, collapse=" , ", sep=""), file=my.file, append=TRUE )
-		cat("*** DEBUG END*** Now I am printing a VECTOR.\\n")
+		#cat("*** DEBUG END*** Now I am printing a VECTOR.\\n")
 	} else if ( is.matrix(toWrite) ) {
 		write.table(toWrite,file=my.file,col.names=col.names,row.names=row.names,sep=",")
 	} else if ( is.numeric(toWrite) ) {
