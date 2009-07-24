@@ -331,19 +331,10 @@ writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 		cat("*** DEBUG START*** Now I am printing a VECTOR.\\n")
 		label <- labels( toWrite )
 		if( label[1] != 1 ){
-			header <- label[1]
-			for( i in 2:length(label)){
-				if( is.na(toWrite[i]) ){break}
-				header <- paste(header, label[i], sep=",")
-			}
-			write( header, file=my.file, append=TRUE )
+			# FIXME: clarify what Jan meant by label[1]!=1   Steffen
+			write( paste(label,collapse=" , ",sep=""), file=my.file, append=TRUE )
 		}
-		out <- toWrite[1]
-		for(i in 2:length(toWrite)){
-			if( is.na(toWrite[i]) ){break}
-			out <- paste( out, toWrite[i], sepalpha=",")
-		}
-		write( out, file=my.file, append=TRUE )
+		write( paste(toWrite, collapse=" , ", sep=""), file=my.file, append=TRUE )
 		cat("*** DEBUG END*** Now I am printing a VECTOR.\\n")
 	} else if ( is.matrix(toWrite) ) {
 		write.table(toWrite,file=my.file,col.names=col.names,row.names=row.names,sep=",")
