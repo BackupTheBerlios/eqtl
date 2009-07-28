@@ -441,7 +441,7 @@ if (acceptable) {
 	perm.collection<-NULL
 	perm.no.prev.round<-0
 	for(X in perm.checks) {
-		print( paste(date(),": Performing ",X[1]," permutations, checking against quantile 1-",X[2],"\\n",sep="") )
+		cat( paste("\\n",date(),": Performing ",X[1]," permutations, checking against quantile 1-",X[2],"\\n",sep="") )
 		my.$mode.P <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, n.perm=X[1]-perm.no.prev.round, verbose=FALSE )
 		if (is.null(perm.collection)) {
 			perm.collection <- my.$mode.P
