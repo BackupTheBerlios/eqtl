@@ -32,7 +32,7 @@ submitToTorqueLocally.sh - script to submit expression QTL analyses to a local q
 
 =head1 SYNOPSIS
 
-submitToTorqueLocally.sh <duration> <number>
+NAME="AUC" NODES="some node" submitToTorqueLocally.sh <duration> <number>
 
 =head1 DESCRIPTION
 
