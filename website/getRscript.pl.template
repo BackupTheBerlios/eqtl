@@ -408,14 +408,15 @@ my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, 
 acceptable <- T
 my.success<-0
 perms.done<-0
+my.max<-max(my.$mode.S\$lod)
 
 # if acceptable, perform check on maximal LOD found
 if (acceptable) {
-	if (THRESHOLD>max(my.$mode.S\$lod)) {
-		cat(paste("Rejected: max(lod)=",max(my.$mode.S\$lod),"<THRESHOLD\\n",sep=""))
+	if (THRESHOLD>my.max) {
+		cat(paste("Rejected: max(lod)=",my.max,"<THRESHOLD\\n",sep=""))
 		acceptable <- F
 	} else {
-		cat(paste("\\nRegular LOD score achieved ($mode) : ",max(my.$mode.S\$lod),"\\n",sep=""))
+		cat(paste("\\nRegular LOD score achieved ($mode) : ",my.max,"\\n",sep=""))
 	}
 }
 
@@ -458,13 +459,11 @@ EOWRITETODISK
 		if( $mode eq 'scantwo' ) {
 			$tryPermutations .= <<EOWRITETODISK;
 		thresh<-my.quants[['full']][1]
-		my.max<-max(my.$mode.S\$lod.full)
 EOWRITETODISK
 		}
 		else {
 			$tryPermutations .= <<EOWRITETODISK;
 		thresh<-my.quants[1,'lod']
-		my.max<-max(my.$mode.S\$lod)
 EOWRITETODISK
 		} # else of if (scantwo)
 
@@ -473,7 +472,7 @@ EOWRITETODISK
 		print(my.quants)
 		cat("Threshold: ",thresh,"\\n")
 		if( my.max < thresh ){
-			print( paste(date(), ": failed assertion max(lod)>=quantile: ", my.max,">=", thresh, " <=> FALSE\\n",sep="") )
+			print( paste(date(), ": failed assertion max(lod)>=quantile:  ", my.max,">=", thresh, " <=> FALSE\\n",sep="") )
 			acceptable <- FALSE
 			break;
 		}
