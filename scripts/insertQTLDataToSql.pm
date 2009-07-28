@@ -227,6 +227,11 @@ sub perform {
 
 =cut
 
+	unless(defined($filename)) {
+		print STDERR "insertQTLDataToSql.pm: perform: filename not defined.\n";
+		exit(-1);
+	}
+
 	if ($filename =~ /.gz$/) {
 		open (FH,"gzip -dc '$filename' |") or die "Could not uncompress and open file '$filename': $@\n";
 	}
@@ -444,8 +449,8 @@ sub perform {
 		if( $line =~ /<ENV>/ ){
 			# assume old format
 			my $time = $file[$lineno+3];
-			# test for new
-			if ($file[$lineno+2] =~ /^Time:\s*(\S+)/) {
+			$time = $file[$lineno+2] if $time =~ /^s*$/; # empty line
+			if ($time =~ /^Time:\s*(\S+.*)/) {
 				$time = $1;
 			}
 			if ($time =~ /ENV/) {
@@ -454,9 +459,16 @@ sub perform {
 				harmless("The ENV section does not have time information properly indicated.\n",-2);
 				return($exitcode);
 			}
-			($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($time);
-			$year += 1900;
-			$filetime = "$year-$mon-$mday $hour:$min:$sec";
+
+			# checking if time was printed as "number of seconds" or as real time
+			if ($time =~ /^\d+$/) {
+				($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($time);
+				$year += 1900;
+				$filetime = "$year-$mon-$mday $hour:$min:$sec";
+			}
+			else {
+				$filetime = $time;
+			}
 		}
 	
 		if( $line =~ /<SUMMARY::quants>/ ){
