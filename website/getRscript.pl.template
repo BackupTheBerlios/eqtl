@@ -457,7 +457,7 @@ EOWRITETODISK
 
 		if( $mode eq 'scantwo' ) {
 			$tryPermutations .= <<EOWRITETODISK;
-		thresh<-my.quants[,'full']
+		thresh<-my.quants[['full']][1]
 		my.max<-max(my.$mode.S\$lod.full)
 EOWRITETODISK
 		}
