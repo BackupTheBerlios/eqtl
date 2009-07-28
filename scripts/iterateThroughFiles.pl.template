@@ -29,6 +29,10 @@ The only argument is the folder that contains the results.
 
 removes tar file after it has been successfully untared
 
+=item --filter regex
+
+Looking only at files that match the regex
+
 =item --help
 
 shows quick overview
@@ -65,7 +69,7 @@ use Pod::Usage;
 use insertQTLDataToSql;
 
 
-my ($force, $help, $man, $unlink, $verbose, $dryrun) = (undef, undef, undef, undef, 0, 0, $0);
+my ($force, $help, $man, $unlink, $filter, $verbose, $dryrun) = (undef, undef, undef, undef, 0, undef, 0, $0);
 
 GetOptions(
 	"force" => \$force,
@@ -74,12 +78,15 @@ GetOptions(
 	"man" => \$man,
 	"verbose" => \$verbose,
 	"unlink" => \$unlink,
+	"filter" => \$filter,
 	"dryrun" => \$dryrun
 ) or die("Could not parse options: $@\n");
 
 
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
+
+die "Don't filter and unlink at the same time.\n" if $filter and $unlink;
 
 if( !(@ARGV) || $#ARGV < 0 ){
 	die "Usage: ./SCRIPTNAME <list of folders or files to upload>";
@@ -167,6 +174,11 @@ print join("\n", @storage) if $verbose and $number<=50;
 
 my $storageFileNo=0;
 foreach my $file (@storage) {
+
+	if ($filter) {
+		next unless $file =~ /$filter/;
+	}
+
 	$storageFileNo++;
 	print "File #".$storageFileNo." of $number ('$file').\n";
 	my $indicator = perform($dbh, $file, $force, $verbose, $dryrun);
