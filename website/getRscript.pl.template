@@ -415,7 +415,11 @@ if (acceptable) {
 		cat(paste("Rejected: max(lod)=",max(my.$mode.S\$lod),"<THRESHOLD\\n",sep=""))
 		acceptable <- F
 	}
+} else {
+	cat(paste("Regular LOD score achieved ($mode) : ",max(my.$mode.S\$lod),"\\n",sep=""))
 }
+
+
 
 EOWRITETODISK
 
