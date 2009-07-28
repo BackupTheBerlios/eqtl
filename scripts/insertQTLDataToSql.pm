@@ -445,7 +445,7 @@ sub perform {
 			# assume old format
 			my $time = $file[$lineno+3];
 			# test for new
-			if ($file[$lineno+2] =~ /^Time:\s*(\S+))/ {
+			if ($file[$lineno+2] =~ /^Time:\s*(\S+)/) {
 				$time = $1;
 			}
 			if ($time =~ /ENV/) {
