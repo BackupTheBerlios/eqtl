@@ -150,7 +150,7 @@ sub perform {
 =cut
 
 	unless (defined($sth_loc) and defined($sth_qtl_scanone)) {
-		my $sql_loc = qq{INSERT INTO locus (Name, Chr, cMorgan, Organism, Marker) VALUES (?,?,?,"Rattus norvegicus",?)};
+		my $sql_loc = qq{INSERT INTO locus (Name, Chr, cMorgan, Organism, Marker) VALUES (?,?,?,"NCBITAXONOMYSPECIESNAME",?)};
 		my $sql_loc_update = qq{UPDATE locus set cMorgan =? where Name=?};
 		my $sql_loc_select = qq{select Name, cMorgan from locus where Name=?};
 		my $query_jobexists = "select computation_id, status, version from computation where jobname = ?;";
