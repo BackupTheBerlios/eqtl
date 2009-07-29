@@ -15,12 +15,16 @@ to be included once by PHP scripts that show constraints to be selected from
 
 When attributes are queried against that are shared between forms,
 then the associated code should move into this file. The constraint themselves
-are defined as an array of "name","SQL code" pairs. This shall help to reduce
+are defined as an array of ("name","SQL code") pairs. This shall help to reduce
 the amount of redundant code between web forms.
 
 =head1 AUTHORS
 
-Steffen Moeller <moeller@inb.uni-luebeck.de>
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+Universities of Rostock and LE<uuml>beck, 2003-2009
 
 =cut
 
