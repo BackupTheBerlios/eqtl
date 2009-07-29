@@ -161,8 +161,8 @@ sub perform {
 		my $sql_delete_qtl = "DELETE from qtl where computation_id = ?";
 		my $sql_compute = "UPDATE computation SET status=\"DONE\", version= ?, "
 			  ."timestamp = ? where computation_id = ?";
-		my $sql_qtl_scantwo = qq{INSERT INTO  locusInteraction (computation_id, Trait,A, B, LogP, covariates, lod_full, lod_fv1, lod_int, lod_add, lod_av1, qlod_full, qlod_fv1, qlod_int, qlod_add, qlod_av1 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)};
-		my $sql_qtl_scanone = qq{INSERT INTO  qtl (computation_id, Locus, Trait, LOD, Chromosome, cMorgan_Peak, Quantile, covariates, phenocol) VALUES (?,?,?,?,?,?,?,?,?)};
+		my $sql_qtl_scantwo = qq{INSERT INTO  locusInteraction (computation_id, Trait,A, B, LogP, covariates, lod_full, lod_fv1, lod_int, lod_add, lod_av1, qlod_full, qlod_fv1, qlod_int, qlod_add, qlod_av1, pvalue ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)};
+		my $sql_qtl_scanone = qq{INSERT INTO  qtl (computation_id, Locus, Trait, LOD, pvalue, Chromosome, cMorgan_Peak, Quantile, covariates, phenocol) VALUES (?,?,?,?,?,?,?,?,?,?)};
 
 		$sth_loc = $dbh->prepare( $sql_loc );
 		$sth_loc_update = $dbh->prepare( $sql_loc_update );
@@ -226,6 +226,11 @@ sub perform {
 =item opening file and reading all lines into single variable 
 
 =cut
+
+	unless(defined($filename)) {
+		print STDERR "insertQTLDataToSql.pm: perform: filename not defined.\n";
+		exit(-1);
+	}
 
 	if ($filename =~ /.gz$/) {
 		open (FH,"gzip -dc '$filename' |") or die "Could not uncompress and open file '$filename': $@\n";
@@ -432,7 +437,8 @@ sub perform {
 	
 		if( $line =~ /^<\// ) {
 			if( --$sectioncount < 0 ){
-				harmless("\tERROR: can\'t close more sections\n",-2); #hier müsste das file kaputt sein
+				resetStatusOfComputationForRecalculation($dbh,$filename,$dryrun);
+				harmless("\tERROR: can\'t close more sections\n",-2); # file is broken
 				return($exitcode);
 			}
 		}
@@ -441,11 +447,28 @@ sub perform {
 		}
 
 		if( $line =~ /<ENV>/ ){
-			my $time = $file[$lineno+4];
-			($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($time);
-			$year += 1900;
-			$filetime = "$year-$mon-$mday $hour:$min:$sec";
-		
+			# assume old format
+			my $time = $file[$lineno+3];
+			$time = $file[$lineno+2] if $time =~ /^s*$/; # empty line
+			if ($time =~ /^Time:\s*(\S+.*)/) {
+				$time = $1;
+			}
+			if ($time =~ /ENV/) {
+				# file is broken
+				resetStatusOfComputationForRecalculation($dbh,$filename,$dryrun);
+				harmless("The ENV section does not have time information properly indicated.\n",-2);
+				return($exitcode);
+			}
+
+			# checking if time was printed as "number of seconds" or as real time
+			if ($time =~ /^\d+$/) {
+				($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($time);
+				$year += 1900;
+				$filetime = "$year-$mon-$mday $hour:$min:$sec";
+			}
+			else {
+				$filetime = $time;
+			}
 		}
 	
 		if( $line =~ /<SUMMARY::quants>/ ){
@@ -545,7 +568,7 @@ sub perform {
 				
 				if( $scantwoline =~ /<SUMMARY::scantwo.S.P>/ ){	#getting qtl informations
 					$scantwolineno++; # skip header line
-					while( $file[++$scantwolineno] !~ /<\/SUMMARY>/ ){
+					while( $file[++$scantwolineno] !~ /<\/SUMMARY(::scantwo.S.P)?>/ ){
 						$scantwoline = $file[$scantwolineno];
 						my @tmpQuote = split( /\"/, $scantwoline );		#"
 						my @chr = split( /:/, $tmpQuote[1] );
@@ -601,29 +624,36 @@ sub perform {
 				
 				if( $scanoneline =~ /<SUMMARY::scanone.S.P>/ ){	#getting qtl informations
 					$scanonelineno++; # skip header line
-					while( $file[++$scanonelineno] !~ /<\/SUMMARY>/ ){
+					while( $file[++$scanonelineno] !~ /<\/SUMMARY(::scanone.S.P)?>/ ){
 						$scanoneline = $file[$scanonelineno];
+						print STDERR "scanoneline: $scanoneline\n" if $verbose;
+						# the table may be comma-separated - most likely not
 						my @lineFields = split( /,/, $scanoneline );
 						if( $#lineFields < 1 ){ @lineFields = split(/ /, $lineFields[0]); }
 						for( my $lineFieldNo=0; $lineFieldNo<=$#lineFields; $lineFieldNo++ ){
 							$lineFields[$lineFieldNo] =~ s/\"//g;		#"
 						}
-						###########hier scantwo ergebnisse schreiben und neue spalte mit einfügen
-						print STDERR "Writing single effect into QTL table."
-							if $verbose;
+
+						print STDERR "\tWriting single effect into QTL table - scanoneline:$scanoneline" if $verbose;
+
 						unless ($dryrun) {
-							$sth_qtl->execute($compute_id, $lineFields[0], $trait,
-								$lineFields[3], $lineFields[1], $lineFields[2],
-								$quant[0], join(",",@covars_array), $phenocol);
+							$sth_qtl->execute($compute_id,
+										$lineFields[0], # Locus/Marker
+										$trait,
+										$lineFields[3], # LOD score
+										$lineFields[4], # p-Value
+										$lineFields[1], # Chromosome
+										$lineFields[2], # cMorgan
+										$quant[0],
+										join(",",@covars_array), $phenocol);
 							$sth_qtl->finish;
 
 							if( ! exists($committed_loci{$lineFields[0]}) ){
-								print STDERR "Also preparing entry for locus.\n"
-									if $verbose;
+								print STDERR "\tAlso preparing entry for locus - scanoneline:$scanoneline\n" if $verbose;
 								my $loc_name = "";
 								my $loc_pos;
 								if ($dryrun) {
-									print "Testing if locus exists.\n" if $verbose;
+									print "\tTesting if locus exists - scanoneline:$scanoneline\n" if $verbose;
 								}
 								else {
 									if ( ! $sth_loc_select->execute("$lineFields[0]")) {

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+TEMPLATEWARNINGHASH
+
 =head1 NAME
 
 uploadExpectedFiles - prepare table 'computation' of workunits
@@ -38,9 +40,13 @@ Perform both, scanone and scantwo
 
 =item covariates
 
-list of covariates, if it should be modelled as additive or interacting shall be specified by the suffix "_add" or "_int", respectively.
+list of covariates, for indicating their modelling as additive or
+interacting, add the suffix "_add" or "_int", respectively. The empty
+list of covariates is indicated by the string 'none'.
 
 =back
+
+The traits to be calculated are retrieved from the table 'traits'.
 
 =head1 AUTHORS
 
@@ -87,7 +93,7 @@ my $insert_query = "INSERT INTO computation(status, application, trait_id, jobna
 my $sth_insert = $dbh->prepare($insert_query) || die $DBI::errstr;
 
 
-print "\tRETRIEVING TRAIT NAMES\t\t\t\t\t\t\t\t\t\t";
+print "\tRETRIEVING TRAIT NAMES\t\t\t";
 my $sth_traits = $dbh->prepare("select trait_id from trait;");
 $sth_traits -> execute() || die $DBI::errstr;
 my @traits;
@@ -97,10 +103,10 @@ while (@r=$sth_traits->fetchrow_array()) {
 }
 print "[DONE]\n";
 
-print "\tCREATING EXPECTED FILE INDEX\t\t\t\t\t\t\t\t\t";
+print "\tCREATING EXPECTED FILE INDEX\t\t\t";
 foreach my $cov (@covar) {
 
-	unless ($cov =~ /_(add|int)$/) {
+	unless ($cov =~ /_(add|int)$/ || $cov eq "none" ) {
 		print STDERR "Skipping covariate '$cov', which does not end on _add or _int.\n";
 		next;
 	}
@@ -121,7 +127,7 @@ foreach my $cov (@covar) {
 			}
 		}
 		if( $mode eq 'both' || $mode eq 'scantwo' ){
-			my $jobname = "scantwo_".$line."_3.5_1000_($cov).csv.gz";
+			my $jobname = "scantwo_".${line}."_3.5_1000_($cov).csv.gz";
 
 			# checking for existance of that job
 			$sth_test->execute($jobname) || die $DBI::errstr;	
@@ -137,7 +143,3 @@ foreach my $cov (@covar) {
 	}
 }
 print "[DONE]\n";
-#print "\tCREATING EXISTING FILE INDEX\t\t\t\t\t\t\t\t\t";
-#if( $mode eq 'both'){ $mode = ''; }
-#system( "ls -R $dir/".$mode." | grep .csv.gz > /nfshome/kolbaum/gitEqtl/data/misc/isThere" );
-#print "[DONE]\n";
