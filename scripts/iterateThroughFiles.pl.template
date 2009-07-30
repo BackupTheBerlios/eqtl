@@ -89,13 +89,13 @@ pod2usage(-verbose => 2) if $man;
 die "Don't filter and unlink at the same time.\n" if $filter and $unlink;
 
 if( !(@ARGV) || $#ARGV < 0 ){
-	die "Usage: ./SCRIPTNAME <list of folders or files to upload>";
+	die "Usage: ./SCRIPTNAME <list of folders or files to upload>\n";
 }
 
 my $dbh = DBI->connect( DATABASECON ) or die "Could not open connection to database.\n";
 
 if ( -z "$ENV{'HOME'}" ) {
-	die "Could not find indication of HOME directory.";
+	die "Could not find indication of HOME directory.\n";
 }
 
 my $strangefiles=$ENV{'HOME'}."/manuallyinspect/strangefiles";
@@ -184,7 +184,7 @@ foreach my $file (@storage) {
 	my $indicator = perform($dbh, $file, $force, $verbose, $dryrun);
 	print STDERR "\tReturn Value Upload: $indicator\n" if $verbose;
 	if( $indicator == -2 ) {
-		print STDERR "\tMoving file '$file' to broken files.\n";
+		print STDERR "\tMoving file '$file' to broken files in '$brokenfiles/'.\n";
 		move("$file","$brokenfiles/")
 			or die "Could not move file '$file' to dir '$brokenfiles': $!\n";
 		$count_broken++;
