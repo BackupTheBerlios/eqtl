@@ -484,20 +484,18 @@ EOWRITETODISK
 		my.success <- length(my.$mode.S.P.summary[[1]])
 EOWRITETODISK
 
-		if( $mode eq 'scantwo' ) {
-		$tryPermutations .= <<EOWRITETODISK;
-		my.quants <- quantile(perm.collection\$full, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
-EOWRITETODISK
-		}
-		else {
+#		if( $mode eq 'scantwo' ) {
+#		$tryPermutations .= <<EOWRITETODISK;
+#		my.quants <- quantile(perm.collection\$full, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
+#EOWRITETODISK
+#		}
+#		else {
 		$tryPermutations .= <<EOWRITETODISK;
 		my.quants <- quantile(perm.collection, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
 EOWRITETODISK
-		}
+#		}
 
 		$tryPermutations .= <<EOWRITETODISK;
-		# now that the threshold is known, the eQTL of interest are determined
-		my.$mode.S.summary <- summary( my.$mode.S, threshold=thresh )
 	} # if acceptable after having done the permutation tests
 } # if acceptable to enter permutation tests
 
@@ -541,9 +539,6 @@ if (acceptable) {
 	writeToDisk( "<DATA::$mode.S>" )
 	writeToDisk( my.$mode.S )
 	writeToDisk( "</DATA::$mode.S>" )
-	writeToDisk( "<SUMMARY::$mode.S>" )
-	writeToDisk( my.$mode.S.summary )
-	writeToDisk( "</SUMMARY::$mode.S>" )
 }
 EOWRITETODISK
 
