@@ -372,7 +372,7 @@ sub perform {
 				print "\tWARNING: corrupted File, contains the header twice!!!\n";
 				resetStatusOfComputationForRecalculation($dbh,$filename,$dryrun);
 				harmless("\tERROR: corrupted file, contains too much data!!!\n"
-					."\t\tThis file will not be  comitted, but deleted, set to recalculate list as warninglevel is strict!",-2);
+					."\t\tThis file will not be  comitted, but deleted, set to recalculate list as warninglevel is strict!\n",-2);
 				return($exitcode);
 			}
 
