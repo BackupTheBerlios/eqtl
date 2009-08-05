@@ -91,6 +91,11 @@ unless (GetOptions(
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 
+unless ( -r "$filename" ) {
+	print STDERR "Cannot read file '$filename', it may not even exist.\n";
+	exit(-3);
+}
+
 # creating databse contact
 
 my $dbh = DBI->connect( DATABASECON );
@@ -98,6 +103,7 @@ if ($!) {
 	print STDERR "Database connection not made: $DBI::errstr";
 	exit(-3);
 }
+
 
 # call module's function
 
