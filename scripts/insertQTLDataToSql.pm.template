@@ -232,6 +232,11 @@ sub perform {
 		exit(-1);
 	}
 
+	unless ( -r "$filename" ) {
+		print STDERR "insertQTLDataToSql.pm: perform: file not found: '$filename'.\n";
+		exit(-1);
+	}
+
 	if ($filename =~ /.gz$/) {
 		open (FH,"gzip -dc '$filename' |") or die "Could not uncompress and open file '$filename': $@\n";
 	}
