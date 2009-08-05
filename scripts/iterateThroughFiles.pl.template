@@ -33,6 +33,11 @@ removes tar file after it has been successfully untared
 
 Looking only at files that match the regex
 
+=item --force
+
+When status of computation was not in REPROCESSING or PROCESSING mode, vverwrite setting currently in the system.
+Without that option set, the script would skip the file and turn to the next.
+
 =item --help
 
 shows quick overview
@@ -69,11 +74,10 @@ use Pod::Usage;
 use insertQTLDataToSql;
 
 
-my ($force, $help, $man, $unlink, $filter, $verbose, $dryrun) = (undef, undef, undef, undef, 0, undef, 0, $0);
+my ($force, $help, $man, $unlink, $filter, $verbose, $dryrun) = (undef, undef, undef, 0, 0, undef, 0, 0);
 
 GetOptions(
 	"force" => \$force,
-	"f" => \$force,
 	"help" => \$help,
 	"man" => \$man,
 	"verbose" => \$verbose,

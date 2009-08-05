@@ -335,7 +335,7 @@ sub perform {
 	if(($status =~ /QUEUED/ && !$force) or ($status =~ /DONE/ && !$force)){
 		print "$exitcode\n";
 		harmless("$filename was not marked to be processed. "
-			."To upload the data anyway use the option -f\n",$exitcode);
+			."To upload the data anyway use the option --force\n",$exitcode);
 		return($exitcode);
 	}
 
@@ -577,11 +577,11 @@ sub perform {
 					# "pos1f" "pos2f" "lod.full" "pval" "lod.fv1" "pval" "lod.int" "pval" "    pos1a" "pos2a" "lod.add" "pval" "lod.av1" "pval"
 					# header without p-Values (previously)
 					# .. to be added ..
-					my $scantwoheader = $file[$scantwolineno++];
+					my $scantwoheader = $file[$scantwolineno];
 					$scantwoheader =~ s/"[ \t]+([a-z])/"$1/g; # correcting for blanks within quotes
 					my $hasPvalues = $scantwoheader =~ /"pval"/;
 
-					while( $file[$scantwolineno] !~ /<\/SUMMARY(::scantwo.S.P)?>/ ){
+					while( $file[++$scantwolineno] !~ /<\/SUMMARY(::scantwo.S.P)?>/ ){
 						$scantwoline = $file[$scantwolineno];
 
 						# remove all quotes
@@ -612,8 +612,9 @@ sub perform {
 						unless ($dryrun) {
 							# Writing scantwo data into table locusInteraction
 							if ($hasPvalues) {
-								$sth_qtl->execute($compute_id, $trait, $loc1, $loc2, $NULL,
-									join(",",@covars_array),
+								$sth_qtl->execute($compute_id, $trait, $loc1, $loc2,
+									$NULL, # type - was add/int, now obsolete
+									join(",",@covars_array), # covariates
 									# LOD scores
 									$scantwoField[3], $scantwoField[5], $scantwoField[7],
 									$scantwoField[11], $scantwoField[13],
@@ -622,7 +623,7 @@ sub perform {
 									# p-Values
 									$scantwoField[4], $scantwoField[6], $scantwoField[8],
 									$scantwoField[12], $scantwoField[14],
-								) or die "Could not write to locus interaction to database\n";
+								) or die "Could not write to locus interaction to database: ".$sth_qtl."\n";
 							}
 							else {
 								# FIXME
