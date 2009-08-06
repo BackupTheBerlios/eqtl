@@ -116,6 +116,8 @@ ENDOFDOCUMENTATION
 
 	$database="DATABASEEQTLNAME";
 	include_once("func_connect.php");
+
+	# fields that should appear
 	$dataSelectionFieldsQTL = array(
 		"groups",
 		"Chromosome","ensemblversion",
@@ -128,6 +130,26 @@ ENDOFDOCUMENTATION
 		"locus","chrlist", "condition"
 	);
 
+	# fields offered to be optionally deselected from being presented as columns
+	$a=array("Trait"=>1, "Groups"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
+		"LOD"=>1,"LODdiff"=>1,"Quantile"=>1,
+		"Covariates"=>1,
+		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>1, "cMorgan_Max"=>1,
+		"Gid"=>0, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1,
+		"Definition"=>1, "ProbeSequence"=>0
+		"name"=>1, "mean"=>1, "sd"=>1, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1, "Description"=>1, "ProbeSequence"=>0
+	);
+			
+
+	# Conversion of array keys to values to be checked as being parameter names
+	function prependShow($value) {
+		$m = "show_".$value;
+		return($m);
+	};
+	$aKeys = array_keys($a);
+	$aPrepend = array_map(prependShow,$aKeys);
+	#echo "Mapping: " . join(",",$aPrepend)."\n";
+
 	$accessible_fields_in_POST_or_GET = array_merge(
 		$dataSelectionFieldsQTL,
 
@@ -138,34 +160,16 @@ ENDOFDOCUMENTATION
 			"onlyNumbersGrouped"
 		),
 
-		array(  "show_Groups",
-			"show_Trait",
-			"show_LocusOfGene",
-			"show_ExpressionOfGene",
-			"show_Locus",
-			"show_LOD",
-			"show_LODdiff",
-			"show_Quantile",
-			"show_Covariates",
-			"show_Chromosome",
-			
-			"show_name",
-			"show_mean",
-			"show_sd",
-			"show_unigene",
-			"show_swissprot_ID",
-			"show_gene_assignment",
-			"show_first_symbol",
-			"show_Description",
-			"show_ProbeSequence",
+		$aPreprend,
 
+		array(
 			"traits",
 			"traitlist",
 			"limit","order"
 		),
 		
-			convert_string_to_covariates_array(strtolower("qtl"))
-		);
+		convert_string_to_covariates_array(strtolower("qtl"))
+	);
 
 	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
 		echo "<br>Retrieving info for: "; print_r($accessible_fields_in_POST_or_GET); echo "<br>\n";
@@ -204,17 +208,6 @@ ENDOFDOCUMENTATION
 			}
 		}
 	}
-
-	$a=array("Trait"=>1, "Groups"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
-		"LOD"=>1,"LODdiff"=>1,"Quantile"=>1,
-		//"Sex"=>1,"AUC"=>1,
-			//"AUCbinary"=>1,
-		//"Severity"=>1,
-		"Covariates"=>1,
-		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>1, "cMorgan_Max"=>1,
-		"Gid"=>0, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1,
-		"Definition"=>1, "ProbeSequence"=>0);
-
 	if (!empty($direct)) {
 		foreach($a as $i=>$v) {
 			$n="show_".$i;

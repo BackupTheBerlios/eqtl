@@ -36,10 +36,13 @@ ENDOFDOCUMENTATION
 
 	require_once("header.php");
 	require_once("func_covariates.php");
-	$database="DATABASEEQTLNAME";
-	include_once("func_connect.php");
+	require_once("func_selection.php"); // prints part of the HTML for forms
+
 	show_small_header("Selection of eInteractions",TRUE);
 	$err=array();
+
+	$database="DATABASEEQTLNAME";
+	include_once("func_connect.php");
 
 	$conditionList=array(
 		"Equal Chromosomes" => "(cis=1)",
@@ -57,19 +60,33 @@ ENDOFDOCUMENTATION
 
 	$bea_array = array( "unigene", "swissport_ID", "gene_assignment", "first_symbol", "Definition", "ProbeSequence", "Analysis", "Covariates" );
 	$locus_array = array( "Chr_", "cMorgan_" );
-	
 
-	foreach(array_merge(array(
-		"direct","submitted","debug",
-		"show_unigene","show_ProbeSequence","show_Description",
-		"show_swissprot_ID","show_first_symbol","show_gene_assignment",
-		"show_LocusOfGene","chrlist","traitlist","type","locComb",
-		"chrlist","cMmin","cMmax","LODmin","LODmax",
-		"quantilemin","quantilemax","condition","LODdiffmin",
-		"limit","order"),
+	# Conversion of array keys to values to be checked as being parameter names
+	function prependShow($value) {
+		$m = "show_".$value;
+		return($m);
+	};
+	$aKeys = array_keys($a);
+	$aPrepend = array_map(prependShow,$aKeys);
+	#echo "Mapping: " . join(",",$aPrepend)."\n";
+
+	
+	$accessible_fields_in_POST_or_GET = array_merge(
+		$dataSelectionFieldsInteraction,
+		array( "direct","submitted","debug" ),
+		$aPrepend, # the show_ ... flags to determine the subset of columns to be shown
+		array(
+			"chrlist","cMmin","cMmax","LODmin","LODmax",
+			"quantilemin","quantilemax","condition","LODdiffmin",
+			"traitlist","locComb",
+		),
+		array(
+			"limit","order"
+		),
 		convert_string_to_covariates_array(strtolower("locusInteraction"))
-		)
-	as $vname) {
+	);
+
+	foreach ($accessible_fields_in_POST_or_GET as $vname) {
 		if (isset($_POST[$vname])) {
 			$$vname=$_POST[$vname];
 		}
@@ -95,6 +112,20 @@ ENDOFDOCUMENTATION
 			}
 		}
 	}
+
+	# fields that should appear
+	$dataSelectionFieldsInteraction = array(
+		"groups",
+		"Chromosome","ensemblversion",
+		"cM_within","LODmax","LODmin",
+		"quantilemin","quantilemax",
+		"covariates",
+		"LODdiffmin","LODdiffmax",
+		"cM_Peak_Min","cM_Peak_Max",
+		"MeanMin","MeanMax","SdMin","SdMax",
+		"locus","chrlist", "condition"
+	);
+
 
 	if (empty($direct) and empty($submitted)) {
 ?>
