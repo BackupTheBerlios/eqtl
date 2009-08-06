@@ -149,14 +149,6 @@ set in the configuration.
 					<?php select_covariates($linkLocal,"locusInteraction"); ?>
 				</td>
 			</tr>
-			<?php echo "<!-- type='$type' -->\n"; ?>
-<!--  type is now obsolete since covariates were introduced
-			<tr><th align=right>Type:</th><td><select name=type>
-						<option value="" <?php echo empty($type)?" selected":""; ?>>Don't care, show either</option>
-						<option value="int" <?php echo "X" == $type?" selected":""; ?>>LOD int</option>
-						<option value="joint" <?php echo "Y" == $type?" selected":""; ?>>LOD joint</option>
-						</td></tr>
--->
 			<tr><th align=right>LOD-score span:</th>
 						<td>
 							<input type=text name=LODmin size=4 value= <?php echo isset($LODmin)?$LODmin:"12.0"; ?>>
@@ -210,11 +202,6 @@ set in the configuration.
 						<option value=B>2nd locus</option>
 						<option value="lod_full DESC" selected>LOD score</option>
 <!--						<option value="LODdiff DESC">LOD-Quantile diff</option>
-						<option value=li.Type>int/jnt</option>
-						<option value=Sex>Sex-dependency</option>
-						<option value=AUC>AUC score</option>
-						<option value=AUC>AUCbinary</option>
-						<option value=Severity>Severity</option>-->
 						<option value="cis ASC">cis (ascending)</option>
 						<option value="cis DESC">cis (descending)</option>
 						</select>
@@ -278,8 +265,8 @@ set in the configuration.
 		require_once("func_conversion_".$ensemblversionLocal.".php");
 		require_once("func_connect.php");
 
-		$where=FALSE;
-		$from = " FROM locusInteraction  AS li ";
+		$where = "WHERE ";
+		$from  = " FROM locusInteraction  AS li ";
 		$query = "SELECT DISTINCT li.Trait,li.A AS Name_A, li.B AS Name_B, li.locComb AS li_type, li.lod_full, li.lod_fv1, li.lod_int, li.lod_add, li.lod_av1";
 		$needinglocusA=FALSE;
 		$needinglocusB=FALSE;
@@ -383,226 +370,117 @@ set in the configuration.
 			$query .= ")";
 		}
 		if (!empty($locComb)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " li.locComb = ". $locComb ." ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " li.locComb = ". $locComb ." ";
 		}
 		if (!empty($chrlist)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " (A.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
-			$query .= "  OR B.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."')) ";
-			#$query .= " (AlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
-			#$query .= "  or BlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."')) ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " (A.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+			$where .= "  OR B.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."')) ";
 		}
 
 		if (!empty($traitlist)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " Trait in ('".join("','",preg_split("/[, ;]/",$traitlist))."') ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " Trait in ('".join("','",preg_split("/[, ;]/",$traitlist))."') ";
 		}
 
-		// FIXME
-		$firstCovariateInWhere=true;
-		foreach(convert_string_to_covariates_array(strtolower("COVARIATESINTERACTINGQTL")) as $c) {
-			//echo "testing covariate $c for relevance to query: \n";
-			if (!empty($$c)) {
-				//echo "relevant<br>\n";
-				if (!is_array($$c)) {
-					echo "<p>Attention: ".$c. " must be an array of the values 'none', 'add' (additive) and 'int' (interacting).</p>";
-					print_r($$c);
-				}
-				else if (count($$c)>0) {
-					if ($firstCovariateInWhere) {
-						if ($where) $query .= " AND ";
-						else {
-							$query .= " WHERE ";
-							$where = TRUE;
-						}
-						$firstCovariateInWhere=false;
-					}
-					else {
-						$query .= " OR ";
-					}
-					if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
-						if (1==count($$c)) {
-							$a=$$c;
-							$query .= " Covariates='".$c."_".$a[0]."'";
-						}
-						else {
-							$query .= " Covariates in ('${c}_". join("','${c}_",$$c)."') ";
-						}
-					}
-					else {
-						if (1==count($$c)) {
-							$a=$$c;
-							$query .= " $c = '".$a[0]."' ";
-						}
-						else {
-							$query .= " $c in ('".join("','",$$c)."') ";
-						}
-					}
-				}
+		#
+		#	Covariates - they are always queried
+		# 
+
+		if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
+			if ("WHERE " != $where) $where .= " AND ";
+			if (0==count($covariates)) {
+				$where .= " covariates='' ";
 			}
 			else {
-				//echo "failed.<br>\n";
+				$where .= " covariates='".join(",",$covariates)."' ";
 			}
 		}
 
-/*		foreach(array("eae","auc","aucbin","severity") as $c) {
-			if (!empty($$c)) {
-				if (!is_array($$c)) {
-					echo "<p>Attention: ".$c. " must be an array of the values 'none','additive' and 'interacting'.</p>";
-					print_r($$c);
-				}
-				else if (count($$c)>0) {
-					if ($where) $query .= " AND ";
-					else {
-					$query .= " WHERE ";
-							$where = TRUE;
-					}
-					if (1==count($$c)) {
-						$a=$$c;
-						$query .= " $c = '".$a[0]."' ";
-					}
-					else {
-						$query .= " $c in ('".join("','",$$c)."') ";
-					}
-				}
-			}
-		} */
-
-		/* type is now obsolete that covariates were introduced as enum
-		if (!empty($type)) {
-			if ("joint"!=$sex && "int" != $sex) array_push($err,"The type of epistatic effect must be either 'int' or 'joint' ($type).");
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " li.Type ='$type' ";
-		}
-		*/
 
 		if (!empty($cMmin) && !empty($cMmax)) {
 			if (!is_numeric($cMmin)) array_push($err,"The lower boundary in cMorgan positions for loci under investigation must be numeric ($cMmin).\n");
 			if (!is_numeric($cMmax)) array_push($err,"The upper boundary in cMorgan positions for loci under investigation must be numeric ($cMmax).\n");
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " (("
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " (("
 			        .       "(A.cMorgan BETWEEN ".$cMmin." AND ".$cMmax.") ";
 			if (!empty($chrlist)) {
-			  		$query .= " AND A.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
-			  		#$query .= " AND AlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+			  		$where .= " AND A.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+			  		#$where .= " AND AlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
 			}
-			$query .= ") OR (";
-			$query .= " (B.cMorgan BETWEEN ".$cMmin." AND ".$cMmax.")";
+			$where .= ") OR (";
+			$where .= " (B.cMorgan BETWEEN ".$cMmin." AND ".$cMmax.")";
 			if (!empty($chrlist)) {
-				$query .= " AND B.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
-				#$query .= " AND BlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+				$where .= " AND B.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+				#$where .= " AND BlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
 			}
-			$query .= ")) ";
+			$where .= ")) ";
 		}
 		else {
 			if (!empty($cMmin)) {
 				if (!is_numeric($cMmin)) array_push($err,"The lower boundary in cMorgan positions for loci under investigation must be numeric ($cMmin).\n");
-				if ($where) $query .= " AND ";
-				else {
-					$query .= " WHERE ";
-					$where = TRUE;
-				}
-				$query .= " ((A.cMorgan >= ".$cMmin." ";
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " ((A.cMorgan >= ".$cMmin." ";
 				if (!empty($chrlist)) {
-					$query .= " AND A.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
-					#$query .= " AND AlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+					$where .= " AND A.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+					#$where .= " AND AlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
 				}
-				$query .= ") OR (";
-				$query .= " B.cMorgan >= ".$cMmin." ";
+				$where .= ") OR (";
+				$where .= " B.cMorgan >= ".$cMmin." ";
 				if (!empty($chrlist)) {
-					$query .= " AND B.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
-					#$query .= " AND BlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+					$where .= " AND B.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+					#$where .= " AND BlChr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
 				}
-				$query .= "))";
+				$where .= "))";
 			}
 			if (!empty($cMmax)) {
 				if (!is_numeric($cMmax)) array_push($err,"The upper boundary in cMorgan positions for loci under investigation must be numeric ($cMmax).\n");
-				if ($where) $query .= " AND ";
-				else {
-					$query .= " WHERE ";
-					$where = TRUE;
-				}
-				$query .= " ((A.cMorgan <= ".$cMmax." ";
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " ((A.cMorgan <= ".$cMmax." ";
 				if (!empty($chrlist)) {
-					$query .= " AND A.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+					$where .= " AND A.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
 				}
-				$query .= ") OR (";
-				$query .= " B.cMorgan <= ".$cMmax." ";
+				$where .= ") OR (";
+				$where .= " B.cMorgan <= ".$cMmax." ";
 				if (!empty($chrlist)) {
-					$query .= " AND B.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+					$where .= " AND B.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
 				}
 				echo ") ";
 			}
 		}
 		if (!empty($LODmin)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " lod_full >= ".$LODmin." ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " lod_full >= ".$LODmin." ";
 		}
 		if (!empty($LODmax)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " lod_full <= ".$LODmax." ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " lod_full <= ".$LODmax." ";
 		}
 		if (!empty($quantilemin)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " qlod_full >= ".$quantilemin." ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " qlod_full >= ".$quantilemin." ";
 		}
 		if (!empty($quantilemax)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " qlod_full <= ".$quantilemax." ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " qlod_full <= ".$quantilemax." ";
 		}
 		if (!empty($LODdiffmin)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " qlod_full >= ".$LODdiffmin." ";					#!!!!!!!!!!!!!!!!!!!
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " qlod_full >= ".$LODdiffmin." ";					#!!!!!!!!!!!!!!!!!!!
 		}
 		if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " ".$conditionList[$c]." ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " ".$conditionList[$c]." ";
 		}
+
+
+		# adding long where clause
+		if ("WHERE" != "$where") {
+			$query .= " $where";
+		}
+
+		# continuing
 		if (!empty($order)) {
 			$query .= " ORDER BY ".$order." ";
 		}
@@ -792,6 +670,19 @@ set in the configuration.
 							echo "<td class=small><a href=\"http://www.ensembl.org/$ensemblorganism/textview?species=$ensemblorganism&idx=Gene&q="
 								.$b[0]
 								."\">$l</a></td>";
+							break;
+						case "covariates":
+							if (empty($l)) $l="none";
+							echo "<td class=small>$l</td>";
+							break;
+						case "Groups":
+							# only one group per eQTL in current implementation
+							# needs adjustment to look up names of group
+							echo "<td>";
+							if (!empty($l)) {
+							     echo "<a href=\"http:interaction.php?groups=$l\">$l</a>";
+							}
+							echo "</td>";
 							break;
 						default:
 							echo "<td>$l</td>";
