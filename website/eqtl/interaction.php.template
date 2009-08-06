@@ -100,7 +100,22 @@ ENDOFDOCUMENTATION
 		<tr><td valign=top>
 		<table>
 			<tr>
-				<th valign=top align=right>Covariates:</th>
+				<th valign=top align=right>Covariates:<br>
+					<font size=-3><i>
+					<?php
+						$cvs=get_covars_on_your_own_from_qtl($linkLocal);
+						foreach ($cvs as $n=>$c) {
+							if ($n>0) {
+							echo "; ";
+								#if ( 0== $n%2) {
+								#	echo "<br>\n";
+								#}
+							}
+							echo displayCovariates("$c");
+						}
+					?>
+					</i></font>
+				</th>
 				<td valign=top>
 					<?php select_covariates($linkLocal,"locusInteraction"); ?>
 				</td>
