@@ -48,7 +48,11 @@ ENDOFDOCUMENTATION
 
 	$a=array(
 		"LocusOfGene"=>1, "Trait"=>1, "li_type" => 1, "Name_A"=>1, "Chr_A"=>1, "cMorgan_A"=>1, "Name_B"=>1, "Chr_B"=>1, "cMorgan_B"=>1, "lod_full"=>1, "qlod_full"=>1,"unigene"=>0, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1, "Definition"=>1, "ProbeSequence"=>0,
-		"Analysis"=>0,"Covariates"=>0,"lod_fv1"=>0,"lod_int"=>0,"lod_add"=>0,"lod_av1"=>0,"qlod_fv1"=>0,"qlod_int"=>0,"qlod_add"=>0,"qlod_av1"=>0, "cis"=>1
+		"Analysis"=>0,"Covariates"=>0,
+		"lod_full"=>0,"lod_fv1"=>0,"lod_fv1"=>0,"lod_int"=>0,"lod_add"=>0,"lod_av1"=>0,
+		"pvalue_full"=>0,"pvalue_fv1"=>0,"pvalue_int"=>0,"pvalue_add"=>0,"pvalue_av1"=>0,
+		"qlod_full"=>0,"qlod_fv1"=>0,"qlod_int"=>0,"qlod_add"=>0,"qlod_av1"=>0,
+		"cis"=>1
 	);
 
 	$bea_array = array( "unigene", "swissport_ID", "gene_assignment", "first_symbol", "Definition", "ProbeSequence", "Analysis", "Covariates" );
