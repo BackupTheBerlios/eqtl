@@ -136,7 +136,7 @@ ENDOFDOCUMENTATION
 		"Covariates"=>1,
 		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>1, "cMorgan_Max"=>1,
 		"Gid"=>0, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1,
-		"Definition"=>1, "ProbeSequence"=>0
+		"Definition"=>1, "ProbeSequence"=>0,
 		"name"=>1, "mean"=>1, "sd"=>1, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1, "Description"=>1, "ProbeSequence"=>0
 	);
 			
@@ -151,6 +151,7 @@ ENDOFDOCUMENTATION
 	#echo "Mapping: " . join(",",$aPrepend)."\n";
 
 	$accessible_fields_in_POST_or_GET = array_merge(
+
 		$dataSelectionFieldsQTL,
 
 		array(  "direct",
@@ -160,7 +161,7 @@ ENDOFDOCUMENTATION
 			"onlyNumbersGrouped"
 		),
 
-		$aPreprend,
+		$aPrepend,
 
 		array(
 			"traits",
