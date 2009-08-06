@@ -2,7 +2,6 @@
 	TEMPLATEWARNINGHASH
 
 /**
-STARTOFDOCUMENTATION
 
 =head1 NAME
 
@@ -21,18 +20,11 @@ that these are calculated.
 The parameters, i.e. texts to introduce to the project, are
 set in the configuration.
 
-=head1 AUTHOR
-
-Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
-
-=head1 COPYRIGHT
-
-Universities of Rostock and LE<uuml>beck, 2003-2009
-
 =cut
 
-ENDOFDOCUMENTATION
 */
+
+
 
 	require_once("header.php");
 	require_once("func_covariates.php");
@@ -43,6 +35,10 @@ ENDOFDOCUMENTATION
 
 	$database="DATABASEEQTLNAME";
 	include_once("func_connect.php");
+
+	include_once("func_public_qtl.php"); // get_public_qtls, withinthefollowingqtls
+	$qtls = get_public_qtls($linkLocal);
+
 
 	$conditionList=array(
 		"Equal Chromosomes" => "(cis=1)",
@@ -70,15 +66,27 @@ ENDOFDOCUMENTATION
 	$aPrepend = array_map(prependShow,$aKeys);
 	#echo "Mapping: " . join(",",$aPrepend)."\n";
 
+	# fields that should appear
+	$dataSelectionFieldsInteraction = array(
+		"groups",
+		"Chromosome","ensemblversion",
+		"cM_within"
+		,"LODmax","LODmin",
+		"quantilemin","quantilemax",
+		"covariates",
+		"LODdiffmin","LODdiffmax",
+		"cM_Peak_Min","cM_Peak_Max",
+		"MeanMin","MeanMax","SdMin","SdMax",
+		"locus","chrlist", "condition"
+	);
 	
 	$accessible_fields_in_POST_or_GET = array_merge(
 		$dataSelectionFieldsInteraction,
 		array( "direct","submitted","debug" ),
 		$aPrepend, # the show_ ... flags to determine the subset of columns to be shown
 		array(
-			"chrlist","cMmin","cMmax","LODmin","LODmax",
-			"quantilemin","quantilemax","condition","LODdiffmin",
-			"traitlist","locComb",
+			"cMmin","cMmax",
+			"traitlist","locComb"
 		),
 		array(
 			"limit","order"
@@ -112,20 +120,6 @@ ENDOFDOCUMENTATION
 			}
 		}
 	}
-
-	# fields that should appear
-	$dataSelectionFieldsInteraction = array(
-		"groups",
-		"Chromosome","ensemblversion",
-		"cM_within","LODmax","LODmin",
-		"quantilemin","quantilemax",
-		"covariates",
-		"LODdiffmin","LODdiffmax",
-		"cM_Peak_Min","cM_Peak_Max",
-		"MeanMin","MeanMax","SdMin","SdMax",
-		"locus","chrlist", "condition"
-	);
-
 
 	if (empty($direct) and empty($submitted)) {
 ?>
@@ -261,8 +255,6 @@ ENDOFDOCUMENTATION
 			<tr bgcolor="black"><th class=c colspan=4><font color=red>QTLs - Select Locus</font></th></tr>
 			<tr><th class=sub><small>Name</small></th><th class=sub><small>Chr</small></th><th class=sub><small>bp From</small></th><th class=sub><small>bp To</small></th></tr>
 <?php
-		include_once("func_public_qtl.php"); // sets variable qtls
-		$qtls = get_public_qtls($linkLocal);
 
 		foreach ($qtls as $q) {
 			echo "<tr><td><small>".$q["name"]."</small></td>";
@@ -284,7 +276,6 @@ ENDOFDOCUMENTATION
 
 		require_once("func_dbconfig.php");
 		require_once("func_conversion_".$ensemblversionLocal.".php");
-		require_once("func_public_qtl.php");
 		require_once("func_connect.php");
 
 		$where=FALSE;
@@ -623,10 +614,10 @@ ENDOFDOCUMENTATION
 			echo "query: $query<br>";
 		}
 
-		$result = mysql_query($query,$link);
+		$result = mysql_query($query,$linkLocal);
 		if (empty($result)) {
 			echo "<p>".mysql_error()."</p>";
-			mysql_close($link);
+			mysql_close($linkLocal);
 			exit;
 		}
 
@@ -679,7 +670,7 @@ ENDOFDOCUMENTATION
 // 				echo "4; "; print_r($line);
 // 				echo "'<br>\n";
 // 				exit;
-// 			}10705225
+// 			}
 			else if (!empty($_POST["debug"])) {
 				echo "ca=$ca<br>\n";
 			}
@@ -817,7 +808,7 @@ ENDOFDOCUMENTATION
 				#echo "c=$c";
 				$bp=cM2bp($line[$a1],$line[$a2]);
 				echo "<td>";
-				$qs=withinthefollowingqtls($line[$a1],$bp);
+				$qs=withinthefollowingqtls($line[$a1],$bp,$qtls);
 				if (0==count($qs)) {
 					echo "&nbsp;";
 				}
@@ -849,10 +840,24 @@ ENDOFDOCUMENTATION
 		}
 		echo "</small>";
 		mysql_free_result($result);
-		mysql_close($link);
+		mysql_close($linkLocal);
 	}
 
 	include("footer.php");
+
+/*
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+Universities of Rostock and LE<uuml>beck, 2003-2009
+
+=cut
+
+*/
 
 ?>
 </body>
