@@ -64,7 +64,7 @@ Universities of Rostock and LE<uuml>beck, 2003-2009
 
 require_once("header.php");
 require_once("func_species.php");
-require_once("func_dbconfig.php");
+require_once("func_dbconfig.php"); //überflüssig da weiter unten nochmal? -- Benedikt 7.8.09
 
 @show_small_header("Marker Selection",TRUE);
 
@@ -105,7 +105,9 @@ foreach($tmp as $vname)
 }
 
 require_once("func_dbconfig.php"); // cM2bp
-require_once("func_conversion_".$ensemblversionLocal.".php"); // cM2bp
+if(file_exists("func_conversion_".$ensemblversionLocal.".php")) {
+	require_once("func_conversion_".$ensemblversionLocal.".php"); // cM2bp
+}
 	
 function physicalMarkerPosition($marker) {
 	global $linkEnsembl,$ensemblversion,$ensembldatabase;
@@ -351,7 +353,7 @@ if (empty($submitted)) {
 			$markerHash[$line["marker"]]=$line;
 		}
 
-		if (count($markerHash>0)) {
+		if (count($markerHash)>0) {
 
 			//print_r($markerHash);
 			$firstRow=true;
