@@ -326,6 +326,18 @@ database.
 
 =cut
 	my $writeToDisk = <<EOWRITETODISK;
+
+# constants 
+probeID<-"$probeID"
+method <-"$execParams{'method'}"
+
+
+# function to determine quantiles for the scantwo objects
+quantile.scantwoperm<-function(perms,quantiles) {
+  sapply(perms,function(X) quantile(X,quantiles))
+}
+
+# function to store results
 writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 	my.file <- gzfile(description=paste("$execParams{'d'}/$keyData.csv.gz",sep=""),
 				open = "a", encoding = getOption("encoding"),compression = 6)
@@ -430,7 +442,7 @@ EOWRITETODISK
 
 		$tryPermutations .= <<EOWRITETODISK;
 
-# if still acceotable, perform permutation tests
+# if still acceptable, perform permutation tests
 if (acceptable) {
 	# list of pairs identifying the number of permutations and the quantils that is to be reached
 	perm.checks<-list(c(  25,                1-$execParams{'alpha'}-0.2),
@@ -482,10 +494,7 @@ EOWRITETODISK
 	if (acceptable) {
 		my.$mode.S.P.summary <- summary( my.$mode.S, perms=perm.collection, alpha=$execParams{'alpha'}, pvalues=TRUE)
 		my.success <- length(my.$mode.S.P.summary[[1]])
-		my.quants <- quantile(my.$mode.P, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
-
-		# now that the threshold is known, the eQTL of interest are determined
-		my.$mode.S.summary <- summary( my.$mode.S, threshold=thresh )
+		my.quants <- quantile(perm.collection, c(0,0.1,0.25,0.5,0.75,0.9,0.95,0.99,1))
 	} # if acceptable after having done the permutation tests
 } # if acceptable to enter permutation tests
 
@@ -529,9 +538,6 @@ if (acceptable) {
 	writeToDisk( "<DATA::$mode.S>" )
 	writeToDisk( my.$mode.S )
 	writeToDisk( "</DATA::$mode.S>" )
-	writeToDisk( "<SUMMARY::$mode.S>" )
-	writeToDisk( my.$mode.S.summary )
-	writeToDisk( "</SUMMARY::$mode.S>" )
 }
 EOWRITETODISK
 
@@ -549,7 +555,7 @@ EOWRITETODISK
 
 	my $c = join(",", @covars);
 	my $toDisk = <<EOWRITETODISK;
-writeToDisk( paste("<=$mode($probeID) success(",my.success,") method($execParams{'method'}) permutations($execParams{'perms'}) threshold($execParams{'threshold'}) covariates($c) cov_meth($execParams{'cov_meth'}) alpha($execParams{'alpha'}) steps($steps) errorP($execParams{'errorP'}) draws($execParams{'draws'}) phenocol($pc) permsDone(",perms.done,") qtlversion(",qtlversion(),") R.Version(",R.Version()[["major"]],".",R.Version()[["minor"]],") platform(",R.Version()[["platform"]],")=>", sep="") )
+writeToDisk( paste("<=$mode(",probeID,") success(",my.success,") method(",method,") permutations($execParams{'perms'}) threshold($execParams{'threshold'}) covariates($c) cov_meth($execParams{'cov_meth'}) alpha($execParams{'alpha'}) steps($steps) errorP($execParams{'errorP'}) draws($execParams{'draws'}) phenocol($pc) permsDone(",perms.done,") qtlversion(",qtlversion(),") R.Version(",R.Version()[["major"]],".",R.Version()[["minor"]],") platform(",R.Version()[["platform"]],")=>", sep="") )
 
 EOWRITETODISK
 

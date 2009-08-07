@@ -17,10 +17,6 @@ The classical QTL are used for the filtering of expression QTL. This file
 provides the functionality to present a list of classical QTL on the web
 pages.
 
-=head1 AUTHOR
-
-Steffen Moeller <moeller@inb.uni-luebeck.de>
-
 =cut
 
 */
@@ -29,30 +25,29 @@ Steffen Moeller <moeller@inb.uni-luebeck.de>
 	global $databaseqtl;
 	require_once("func_species.php");
 
-/*
-	//echo "Connecting as $usernameqtl to $hostnameqtl<br>\n";
-	$linkqtl=mysql_connect($hostnameqtl,$usernameqtl,"");
-
-	if (empty($linkqtl)) {
-		echo "<p>Could not create link to database.</p>";
-		echo "Send an email to <a href=\"$maintainerEmail\">$maintainerEmail</a><br>";
-		echo "</body></html>";
-		exit;
-	}
-
-	if (!mysql_select_db($databaseqtl,$linkqtl)) {
-		echo "<p>Could not open database to access qtl.</p>\n";
-		echo "</body></html>";
-		exit;
-	}
-*/
-
+	# variable to store results and thus possibly reduce database IS
 	$qtlsCache="";
 
-	/**
-	 * Function to return an internal representation of QTLs that are publicly
-	 * discussed.
-	 */
+/**
+
+=head2 get_public_qtls
+
+Function to return an internal representation of QTLs that are publicly
+discussed.
+
+Attributes:
+
+=over 4
+
+=item dbh
+
+database handle from which to read the QTLs
+
+=back
+
+=cut
+
+ */
 	function get_public_qtls($dbh) {
 
 		global $databaseqtl;
@@ -119,10 +114,34 @@ Steffen Moeller <moeller@inb.uni-luebeck.de>
 	}
 	
 
-	/**
-	 * Returns subset of QTLs that are overlapping with a particular
-	 * chromosomal location.
-	 */
+/**
+
+=head2 withinthefollowingqtls
+
+Returns subset of QTLs that are overlapping with a particular chromosomal location.
+
+Attributes:
+
+=over 4
+
+=item chr
+
+chromosome at which the QTLs should reside
+
+=item peakbp
+
+peak basepair position that should be covered by the QTL
+
+=item qtlsSelection
+
+the list of QTLs from which the fitting ones shall be selected
+
+=back
+
+=cut
+
+ */
+
 	function withinthefollowingqtls($chr,$peakbp,$qtlsSelection) {
 
 		if (!is_array($qtlsSelection)) {
@@ -147,4 +166,19 @@ Steffen Moeller <moeller@inb.uni-luebeck.de>
 		}
 		return($qs);
 	}
+
+/*
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2008-2009
+
+=cut
+
+*/
+
 ?>

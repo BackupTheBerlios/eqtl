@@ -150,7 +150,7 @@ sub perform {
 =cut
 
 	unless (defined($sth_loc) and defined($sth_qtl_scanone)) {
-		my $sql_loc = qq{INSERT INTO locus (Name, Chr, cMorgan, Organism, Marker) VALUES (?,?,?,"Rattus norvegicus",?)};
+		my $sql_loc = qq{INSERT INTO locus (Name, Chr, cMorgan, Organism, Marker) VALUES (?,?,?,"NCBITAXONOMYSPECIESNAME",?)};
 		my $sql_loc_update = qq{UPDATE locus set cMorgan =? where Name=?};
 		my $sql_loc_select = qq{select Name, cMorgan from locus where Name=?};
 		my $query_jobexists = "select computation_id, status, version from computation where jobname = ?;";
@@ -161,7 +161,7 @@ sub perform {
 		my $sql_delete_qtl = "DELETE from qtl where computation_id = ?";
 		my $sql_compute = "UPDATE computation SET status=\"DONE\", version= ?, "
 			  ."timestamp = ? where computation_id = ?";
-		my $sql_qtl_scantwo = qq{INSERT INTO  locusInteraction (computation_id, Trait,A, B, LogP, covariates, lod_full, lod_fv1, lod_int, lod_add, lod_av1, qlod_full, qlod_fv1, qlod_int, qlod_add, qlod_av1, pvalue ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)};
+		my $sql_qtl_scantwo = qq{INSERT INTO  locusInteraction (computation_id, Trait,A, B, LogP, covariates, lod_full, lod_fv1, lod_int, lod_add, lod_av1, qlod_full, qlod_fv1, qlod_int, qlod_add, qlod_av1, pvalue_full, pvalue_fv1, pvalue_int, pvalue_add, pvalue_av1) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)};
 		my $sql_qtl_scanone = qq{INSERT INTO  qtl (computation_id, Locus, Trait, LOD, pvalue, Chromosome, cMorgan_Peak, Quantile, covariates, phenocol) VALUES (?,?,?,?,?,?,?,?,?,?)};
 
 		$sth_loc = $dbh->prepare( $sql_loc );
@@ -229,6 +229,11 @@ sub perform {
 
 	unless(defined($filename)) {
 		print STDERR "insertQTLDataToSql.pm: perform: filename not defined.\n";
+		exit(-1);
+	}
+
+	unless ( -r "$filename" ) {
+		print STDERR "insertQTLDataToSql.pm: perform: file not found: '$filename'.\n";
 		exit(-1);
 	}
 
@@ -330,7 +335,7 @@ sub perform {
 	if(($status =~ /QUEUED/ && !$force) or ($status =~ /DONE/ && !$force)){
 		print "$exitcode\n";
 		harmless("$filename was not marked to be processed. "
-			."To upload the data anyway use the option -f\n",$exitcode);
+			."To upload the data anyway use the option --force\n",$exitcode);
 		return($exitcode);
 	}
 
@@ -372,7 +377,7 @@ sub perform {
 				print "\tWARNING: corrupted File, contains the header twice!!!\n";
 				resetStatusOfComputationForRecalculation($dbh,$filename,$dryrun);
 				harmless("\tERROR: corrupted file, contains too much data!!!\n"
-					."\t\tThis file will not be  comitted, but deleted, set to recalculate list as warninglevel is strict!",-2);
+					."\t\tThis file will not be  comitted, but deleted, set to recalculate list as warninglevel is strict!\n",-2);
 				return($exitcode);
 			}
 
@@ -567,36 +572,70 @@ sub perform {
 				my $scantwoline = $file[$scantwolineno];
 				
 				if( $scantwoline =~ /<SUMMARY::scantwo.S.P>/ ){	#getting qtl informations
-					$scantwolineno++; # skip header line
+					$scantwolineno++; # now directly on header line, of table which is always present
+					# header with p-Values (now standard)
+					# "pos1f" "pos2f" "lod.full" "pval" "lod.fv1" "pval" "lod.int" "pval" "    pos1a" "pos2a" "lod.add" "pval" "lod.av1" "pval"
+					# header without p-Values (previously)
+					# .. to be added ..
+					my $scantwoheader = $file[$scantwolineno];
+					$scantwoheader =~ s/"[ \t]+([a-z])/"$1/g; # correcting for blanks within quotes
+					my $hasPvalues = $scantwoheader =~ /"pval"/;
+
 					while( $file[++$scantwolineno] !~ /<\/SUMMARY(::scantwo.S.P)?>/ ){
 						$scantwoline = $file[$scantwolineno];
-						my @tmpQuote = split( /\"/, $scantwoline );		#"
-						my @chr = split( /:/, $tmpQuote[1] );
+
+						# remove all quotes
+						$scantwoline =~ s/"//g;
+
+						# split by blank, comma or tabs (should be blanks)
+						my @scantwoField = split( /[ ,\t]/, $scantwoline);
+
+						# split chromosomes
+						my @chr = split( /:/, $scantwoField[0] );
 						$chr[0] =~ s/c//; $chr[0] =~ s/ //;
 						$chr[1] =~ s/c//; $chr[1] =~ s/ //;
-						my @scantwoField = split( /,/, $tmpQuote[2] );
-						if( $#scantwoField < 1 ){ @scantwoField = split(/ /, $scantwoField[0]); }
-						for( my $scantwoFieldNo=0; $scantwoFieldNo<=$#scantwoField; $scantwoFieldNo++ ){
-							$scantwoField[$scantwoFieldNo] =~ s/\"//g;		#"
-						}
+
 						my ($loc1, $loc2);
 						$loc1 = getLocus( $chr[0], $scantwoField[1] );
 						$loc2 = getLocus( $chr[1], $scantwoField[2] );
+						print "\tInteraction (get): $loc1 <-> $loc2\n" if $verbose;
+
 						if( !defined( $loc1 ) or $loc1 eq '' ){
 							$loc1 = setLocus( $chr[0], $scantwoField[1] );
 						}
 						if( !defined( $loc2 ) or $loc2 eq '' ){
 							$loc2 = setLocus( $chr[1], $scantwoField[2] );
 						}
+						print "\tInteraction (set): $loc1 <-> $loc2\n" if $verbose;
+
 						print STDERR "Now writing scantwo data." if $verbose;
 						unless ($dryrun) {
 							# Writing scantwo data into table locusInteraction
-							$sth_qtl->execute($compute_id, $trait, $loc1, $loc2, $NULL,
-								join(",",@covars_array),
-								$scantwoField[3], $scantwoField[5], $scantwoField[7],
-								$scantwoField[11], $scantwoField[13],
-								$quant[1], $quant[2], $quant[3], $quant[4], $quant[5])
-									or print "could not write to locus interaction\n";
+							if ($hasPvalues) {
+								$sth_qtl->execute($compute_id, $trait, $loc1, $loc2,
+									$NULL, # type - was add/int, now obsolete
+									join(",",@covars_array), # covariates
+									# LOD scores
+									$scantwoField[3], $scantwoField[5], $scantwoField[7],
+									$scantwoField[11], $scantwoField[13],
+									# Quantiles
+									$quant[1], $quant[2], $quant[3], $quant[4], $quant[5],
+									# p-Values
+									$scantwoField[4], $scantwoField[6], $scantwoField[8],
+									$scantwoField[12], $scantwoField[14],
+								) or die "Could not write to locus interaction to database: ".$sth_qtl."\n";
+							}
+							else {
+								# FIXME
+								die "FIXME: the upload for dumps with no P-Values needs to be adjusted, still.\n";
+								$sth_qtl->execute($compute_id, $trait, $loc1, $loc2, $NULL,
+									join(",",@covars_array),
+									$scantwoField[3], $scantwoField[5], $scantwoField[7],
+									$scantwoField[11], $scantwoField[13],
+									$quant[1], $quant[2], $quant[3], $quant[4], $quant[5],
+									$NULL,$NULL,$NULL,$NULL,$NULL # no p-Values determined
+								) or die "Could not write to locus interaction to database\n";
+							}
 							$sth_qtl->finish;
 						}
 					}

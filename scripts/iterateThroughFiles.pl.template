@@ -33,6 +33,11 @@ removes tar file after it has been successfully untared
 
 Looking only at files that match the regex
 
+=item --force
+
+When status of computation was not in REPROCESSING or PROCESSING mode, vverwrite setting currently in the system.
+Without that option set, the script would skip the file and turn to the next.
+
 =item --help
 
 shows quick overview
@@ -69,11 +74,10 @@ use Pod::Usage;
 use insertQTLDataToSql;
 
 
-my ($force, $help, $man, $unlink, $filter, $verbose, $dryrun) = (undef, undef, undef, undef, 0, undef, 0, $0);
+my ($force, $help, $man, $unlink, $filter, $verbose, $dryrun) = (undef, undef, undef, 0, 0, undef, 0, 0);
 
 GetOptions(
 	"force" => \$force,
-	"f" => \$force,
 	"help" => \$help,
 	"man" => \$man,
 	"verbose" => \$verbose,
@@ -89,13 +93,13 @@ pod2usage(-verbose => 2) if $man;
 die "Don't filter and unlink at the same time.\n" if $filter and $unlink;
 
 if( !(@ARGV) || $#ARGV < 0 ){
-	die "Usage: ./SCRIPTNAME <list of folders or files to upload>";
+	die "Usage: ./SCRIPTNAME <list of folders or files to upload>\n";
 }
 
 my $dbh = DBI->connect( DATABASECON ) or die "Could not open connection to database.\n";
 
 if ( -z "$ENV{'HOME'}" ) {
-	die "Could not find indication of HOME directory.";
+	die "Could not find indication of HOME directory.\n";
 }
 
 my $strangefiles=$ENV{'HOME'}."/manuallyinspect/strangefiles";
@@ -184,7 +188,7 @@ foreach my $file (@storage) {
 	my $indicator = perform($dbh, $file, $force, $verbose, $dryrun);
 	print STDERR "\tReturn Value Upload: $indicator\n" if $verbose;
 	if( $indicator == -2 ) {
-		print STDERR "\tMoving file '$file' to broken files.\n";
+		print STDERR "\tMoving file '$file' to broken files in '$brokenfiles/'.\n";
 		move("$file","$brokenfiles/")
 			or die "Could not move file '$file' to dir '$brokenfiles': $!\n";
 		$count_broken++;

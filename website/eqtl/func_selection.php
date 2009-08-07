@@ -98,11 +98,21 @@ function print_row_one_text_single($rname,$name1,$val1,$size=7) {
    echo "</tr>\n";
 }
 
+/*
+
+=back
+
+=cut
+
+*/
+
 
 
 /*
 
 =head2 Public function
+
+=over 4
 
 =item print_selection_form
 
@@ -295,6 +305,14 @@ function print_selection_form($properties) {
 		} // switch
 	} // for
 } // function
+
+/*
+
+=back
+
+=cut
+
+*/
 
 /*
 
