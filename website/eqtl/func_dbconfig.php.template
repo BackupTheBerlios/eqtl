@@ -30,7 +30,12 @@ global $ensemblversion;
 global $ensemblversionLocal;
 global $ensemblversionEnsembl;
 
-$ensemblversion=ENSEMBLVERSION;
+if (emtpy($ensemblversion)) {
+	$ensemblversion=ENSEMBLVERSION;
+}
+else {
+	# echo "<!-- using predefined ensemblvesrion ( == $ensemblversion )\n";
+}
 $ensemblversionLocal=ENSEMBLVERSION;
 $ensemblversionEnsembl=ENSEMBLVERSION;
 

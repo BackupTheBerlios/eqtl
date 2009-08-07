@@ -142,10 +142,12 @@ function physicalMarkerPosition($marker) {
 
 	$resultEnsembl = mysql_query($queryEnsembl,$linkEnsembl);
 	if (empty($resultEnsembl)) {
-		echo "<td colspan=2>Error in retrieval of chromosomal location for marker"
+		echo "<td colspan=2>";
+		errorMessage("Error in retrieval of chromosomal location for marker"
 			.$line["marker"].": "
-			.mysql_error($linkEnsembl)
-		."<br>Please report to $maintainerEmail.</td></tr></table></body></html>";
+			.mysql_error($linkEnsembl). "<br>".
+			."ensemblversion: $ensemblversion, ensemblhost: $ensemblhost, ensembldatabase: $ensembldatabase");
+		."</tr></table></body></html>";
 		@mysql_close($linkEnsembl);
 		@mysql_close($linkLocal);
 		exit;
