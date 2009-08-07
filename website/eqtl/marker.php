@@ -105,7 +105,11 @@ foreach($tmp as $vname)
 }
 
 require_once("func_dbconfig.php"); // cM2bp
-if(file_exists("func_conversion_".$ensemblversionLocal.".php")) {
+
+$funcConversionExists = file_exists("func_conversion_".$ensemblversionLocal.".php");
+
+
+if($funcConversionExists) {
 	require_once("func_conversion_".$ensemblversionLocal.".php"); // cM2bp
 }
 	
@@ -145,9 +149,9 @@ function physicalMarkerPosition($marker) {
 		echo "<td colspan=2>";
 		errorMessage("Error in retrieval of chromosomal location for marker"
 			.$line["marker"].": "
-			.mysql_error($linkEnsembl). "<br>".
+			.mysql_error($linkEnsembl)."<br>"
 			."ensemblversion: $ensemblversion, ensemblhost: $ensemblhost, ensembldatabase: $ensembldatabase");
-		."</tr></table></body></html>";
+		echo "</tr></table></body></html>";
 		@mysql_close($linkEnsembl);
 		@mysql_close($linkLocal);
 		exit;
@@ -401,7 +405,11 @@ if (empty($submitted)) {
 							else {
 								echo "<td>$l</td>";
 							}
-							echo "<td>".round(cM2bp($line["chr"],$line["cmorgan_rqtl"]))."</td>";
+							echo "<td>";
+							if ($funcConversionExists) {
+								round(cM2bp($line["chr"],$line["cmorgan_rqtl"]));
+							}
+							echo "</td>";
 							break;
 						default:
 							if (!isset($l)||""==$l) echo "<td>&nbsp;</td>";

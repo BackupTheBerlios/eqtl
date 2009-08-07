@@ -30,14 +30,18 @@ global $ensemblversion;
 global $ensemblversionLocal;
 global $ensemblversionEnsembl;
 
-if (emtpy($ensemblversion)) {
+if (empty($ensemblversion)) {
 	$ensemblversion=ENSEMBLVERSION;
 }
 else {
-	# echo "<!-- using predefined ensemblvesrion ( == $ensemblversion )\n";
+	# echo "<!-- using predefined ensemblversion ( == $ensemblversion )\n";
 }
+
 $ensemblversionLocal=ENSEMBLVERSION;
-$ensemblversionEnsembl=ENSEMBLVERSION;
+
+# presumption is that upstream is changing all the time, while local database
+# is the one preconfigured in the ENSEMBLVERSION
+$ensemblversionEnsembl=$ensemblversion;
 
 /*
 
@@ -153,7 +157,7 @@ if (empty($ensemblversionEnsembl)) {
 
 if (empty($ensemblorganismEnsembl)) {
 	if (empty($ensemblorganism)) {
-		$ensemblorganismEnsembl="ENSEMBLSPECIESMART";
+		$ensemblorganismEnsembl="ENSEMBLSPECIESMARTLONG";
 	}
 	else {
 		$ensemblorganismEnsembl=$ensemblorganism;
