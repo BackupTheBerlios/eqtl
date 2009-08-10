@@ -51,10 +51,10 @@ For markers that are not known to Ensembl, the user should manually
 search for the marker sequences and thus specify the genomic location
 in base pairs manually.
 
-
 =head1 AUTHOR
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+Benedikt Bauer <bauer@cls.uni-luebeck.de>
 
 =head1 COPYRIGHT
 
