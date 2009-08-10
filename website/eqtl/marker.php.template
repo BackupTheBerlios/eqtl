@@ -80,7 +80,7 @@ global $markerhost,$markeruser,$markerdatabase;
 $tmp=$requiredFields;
 array_push($tmp,
 	"submitted",
-	"chrlist","cMminRqtl","cMmaxRqtl","cMmin","cMmax",
+	"markerid","chrlist","cMminRqtl","cMmaxRqtl","cMmin","cMmax",
 	"order","limit",
 	"show_conversion_code"
 );
@@ -178,7 +178,7 @@ if (empty($submitted)) {
 	<table><tr><td valign=top>
 		<table>
 		<tr><th align=right>Marker ID</th>
-		    <td><input type=text name=traits lenth=70>
+		    <td><input type=text name=markerid length=70>
 		    </td>
 		</tr>
 	<tr><th class=r>Chromosomes of interest:</th>
@@ -262,6 +262,15 @@ if (empty($submitted)) {
 		
 		$query  = "select marker, chr, bp, cmorgan_rqtl, cmorgan_ensembl ";
 		$query	.= " from map ";
+
+		if (!empty($markerid)) {
+			if ($where) $query .= " AND ";
+			else {
+				$query .= " WHERE ";
+				$where = TRUE;
+			}
+			$query .= " marker in ('".join("','",preg_split("/[, ;]/",$markerid))."') ";
+		}
 
 		if (!empty($chrlist)) {
 			if ($where) $query .= " AND ";
