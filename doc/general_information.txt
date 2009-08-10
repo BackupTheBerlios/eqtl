@@ -204,7 +204,7 @@
 
 
    Upload of traits table
-   ----------------------
+   - - - - - - - - - - - -
 
    The traits can easily be uploaded with the sole inspection of the file that
    the presents the expression data:
@@ -304,8 +304,79 @@
 
 
    Subsequently, one should prepare the local data in a way that the
-   script
+   script can perform the upload.
 
+
+   Initialisation and updates of computation table
+   - - - - - - - - - - - - - - - - - -
+
+   The computations table defines the jobs that shall be distributed. Even though
+   we have prepared scripts to adjust those tables in an automated fashion, the
+   manual interaction via the mysql shell is still a straight-forward manner that
+   we encourage. E.g. to reset those files that have pending results, still, even
+   though all the uploads of returned files have already been performed, reschedule
+   them by
+
+	update computation set status="RECALCULATE" where application="SCANONE"
+				and status="REPROCESSING" or status = "UNKNOWN";
+
+   The status "UNKNOWN" may be used to temporarily remove jobs from computations, e.g.
+   possibly because of a programming error affecting only a known subset of computations.
+   The state 'QUEUED' is equivalent to 'RECALCULATE' except for the higher priority that
+   is given to jobs in QUEUED.
+
+   The initial filling of the computation table is best performed with the script
+   in the folder scripts/db_management. Check with the script's man pages for details.
+   To upload new calculations just mention the kind of application to run as the first
+   argument, then list the covariates:
+
+	$ scripts/db_management/uploadExpectedFiles.pl scanone severity_add,sex_int
+        RETRIEVING TRAIT NAMES                  [DONE]
+        CREATING EXPECTED FILE INDEX            [DONE]
+
+   To get an overview on the files that have been created, try
+	$ scripts/db_management/uploadExpectedFiles.pl -ls
+	...
+	SCANONE:severity_add,sex_int (1031)
+	...
+   The parenthese list the number of covariates that are available for that application
+   and list of covariates.
+
+   Some traits may have problems, possibly be cause these were artificial and only served
+   the inter-chip normalisation. One then needs to distinguish between systematic problems
+   to retrieve a result and such that are caused by a temporal failure of some comput node.
+   The following query compares the number of compute jobs that are in 'REPROCESSING'
+   pre trait. The traits with systematic problems will have a many computations in 'REPROCESSING'
+   as there were covariates run:
+
+	   select trait_id,count(*) as c from computation
+                                         where status = 'REPROCESSING' group by trait_id;                               
+	+----------+---+                                                                                                                     
+	| trait_id | c |                                                                                                                     
+	+----------+---+                                                                                                                     
+	|       10 | 1 |                                                                                                                     
+	|       66 | 9 |                                                                                                                     
+	|      101 | 1 |                                                                                                                     
+	|      102 | 1 |                                                                                                                     
+	|      103 | 1 |                                                                                                                     
+	|      233 | 9 |                                                                                                                     
+	|      273 | 9 |                  
+
+   To select those traits which can still be helped, add 'having c < 9' to the above query.
+
+   
+
+
+   Initialisation of map table
+   - - - - - - - - - - - - - -
+
+   The map is best filled after the first computations have been performed. It may then be derived from
+   the locus table as follows:
+
+      insert into map (marker,chr,cmorgan_rqtl)
+                       select Name,Chr,cMorgan from locus where Name like "D%" order by chr,cMorgan;
+
+   Inspect the data and the correspondance with entries in the Ensembl data via the marker.php page.
    
 
 1.4 Config files and template files
