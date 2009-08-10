@@ -45,7 +45,7 @@ Universities of Rostock and LE<uuml>beck, 2001-2009
   echo '<a href="index.php">Home</a>&nbsp;&nbsp;';
   echo '<font color=green size=-1>';
   echo '<a href="help.php">Help</a>&nbsp;&nbsp;';
-  echo '<a href="mailto:'.$maintainerEmail.'"><i>Contact</i></a>';
+  echo '<a href="mailto:'."MAINTAINEREMAIL".'"><i>Contact</i></a>';
   echo '</font>';
   echo '</td><td align=center>';
   echo FOOTERLOGORIGHT;
