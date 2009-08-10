@@ -64,15 +64,22 @@ University of LE<uuml>beck, 2009
 use strict;
 use Cwd;
 use DBI;
+use Pod::Usage;
+
 
 my $mode;
 my $dir;
 if( $#ARGV < 0 ){
-	die "Usage: uploadExpectedFiles (scanone|scantwo|both) covariates\n";
+	die "Usage: uploadExpectedFiles (scanone|scantwo|both) covariates\n"
+	  . "       uploadExpectedFiles --help | -h | help | --man  | man\n";
 }
 
 my @A=@ARGV;
 $mode = shift @A;
+
+pod2usage(-verbose => 1) if "--help" eq "$mode" or "-h" eq "$mode" or "help" eq "$mode";
+pod2usage(-verbose => 2) if "--man"  eq "$mode"                    or "man"  eq "$mode";
+
 if( $mode ne 'scanone' && $mode ne 'scantwo' && $mode ne 'both' ){
 	die "Usage: uploadExpectedFiles (scanone|scantwo|both)\nInvalid mode of analysis: '".$mode."'\n"; 
 }
