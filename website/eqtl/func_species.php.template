@@ -3,10 +3,13 @@
 	global $species_name_trivial;
 	global $species_name_latin;
 	global $species_name_ensembl_core;
-	global $species_name_ensembl_mart;
+	global $species_name_ensembl_mart; // deprecated
+	global $species_name_ensembl_mart_long;
+	global $species_name_ensembl_mart_short;
 	$species_name_trivial="ENSEMBLSPECIESTRIVIAL";
 	$species_name_latin="ENSEMBLSPECIESSEARCHURL";
 	$species_name_ensembl_core="ENSEMBLSPECIESDB";
-	$species_name_ensembl_mart="ENSEMBLSPECIESMARTLONG";
+	$species_name_ensembl_mart_long = $species_name_ensembl_mart = "ENSEMBLSPECIESMARTLONG";
+	$species_name_ensembl_mart_short = "ENSEMBLSPECIESMARTSHORT";
 // 	echo "to $species_name_trivial/$species_name_ensembl_mart";
 ?>

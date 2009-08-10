@@ -117,23 +117,42 @@ if($funcConversionExists) {
 function physicalMarkerPosition($marker) {
 	global $linkEnsembl,$ensemblversion,$ensembldatabase;
 	global $species_name_ensembl_mart;
+	global $species_name_ensembl_mart_short;
 
-	$queryEnsembl = "select "
-		.($ensemblversion>19?
-			"glook_marker_start as marker,olook_chr_name as chr,filt_chrom_start as chr_start,filt_chrom_end as chr_end"
-			:
-			"id as marker, chr,chr_start"
-		 ) . " from "
-		.($ensemblversion>19?
-			("$ensembldatabase.".$species_name_ensembl_mart."_marker_start__marker_start__main")
-			:
-			("$ensembldatabase.".$species_name_ensembl_mart."_marker_lookup")
-		) . " as a where a."
-		.($ensemblversion>19?
-			"glook_marker_start"
-			:
-			"id"
-		);
+	$queryEnsembl = "select ";
+	if ($ensemblversion>=48) {
+		$queryEnsembl .= "name_1033 as marker, 'unknown' as chr, seq_region_start_1031 as chr_start, seq_region_end_1031 as chr_end";
+	}
+	else if ($ensemblversion>19) {
+		$queryEnsembl .= "glook_marker_start as marker,olook_chr_name as chr,filt_chrom_start as chr_start,filt_chrom_end as chr_end";
+	}
+	else {
+		$queryEnsembl .= "id as marker, chr,chr_start";
+	}
+
+	$queryEnsembl .= " from ";
+
+	if ($ensemblversion>=48) {
+		$queryEnsembl .= "genomic_features_mart_".$ensemblversion.".".$species_name_ensembl_mart_short."_marker_start__marker_feature__main";
+	}
+	else if ($ensemblversion>19) {
+		$queryEnsembl .= "$ensembldatabase.".$species_name_ensembl_mart."_marker_start__marker_start__main";
+	}
+	else {
+		$queryEnsembl .= "$ensembldatabase.".$species_name_ensembl_mart."_marker_lookup";
+	}
+
+	$queryEnsembl .=  " as a where a.";
+
+	if ($ensemblversion>=48) {
+		$queryEnsembl .= "name_1033";
+	}
+	else if ($ensemblversion>19) {
+		$queryEnsembl .= "glook_marker_start";
+	}
+	else {
+		$queryEnsembl .= "id";
+	}
 // 	echo $queryEnsembl;
 	if (is_array($marker)) {
 		#print_r($marker);
@@ -462,7 +481,7 @@ if (empty($submitted)) {
 		if (!empty($show_conversion_code)) {
 			echo "<h2>Code performing conversion from centiMorgan to physical position in Ensembl</h2>\n";
 
-			$queryMarker  = "select marker,cmorgan_rqtl from map";
+			$queryMarker  = "select marker,chr,cmorgan_rqtl from map order by chr,cmorgan_rqtl";
 			$resultMarker = mysql_query($queryMarker,$linkLocal);
 			if (empty($resultMarker)) {
 				echo "<p>".mysql_error($link)." in query $queryMarker.<br>Please report to moeller@inb.uni-luebeck.de</p>";
@@ -472,8 +491,10 @@ if (empty($submitted)) {
 			}
 
 			$markerHash=array();
+			$markerSequenceOrdered = array();
 			while ($line = mysql_fetch_array($resultMarker, MYSQL_ASSOC)) {
 				$markerHash[$line["marker"]]=$line;
+				array_push($markerSequenceOrdered,$line["marker"]);
 			}
 			#print_r($markerHash);
 
@@ -486,8 +507,14 @@ if (empty($submitted)) {
 
 			//echo "Submitting ".count(array_keys($markerHash))." markers<br>";
 			$resultEnsembl = physicalMarkerPosition(array_keys($markerHash));
-			if (empty($resultEnsembl) || mysql_errno($linkEnsembl)) {
-				echo "<p>".mysql_error($linkEnsembl)." in query for marker positions.<br>Please report to moeller@inb.uni-luebeck.de</p>";
+			if (mysql_errno($linkEnsembl)) {
+				errorMessage("MySQL error: ".mysql_error($linkEnsembl)." in query for marker positions.<br>Please report to moeller@inb.uni-luebeck.de</p>");
+				mysql_close($linkLocal);
+				mysql_close($linkEnsembl);
+				exit;
+			}
+			if (empty($resultEnsembl)) {
+				errorMessage("Empty(resultEnsembl) in query for marker positions.<br>Please report to moeller@inb.uni-luebeck.de</p>");
 				mysql_close($linkLocal);
 				mysql_close($linkEnsembl);
 				exit;
@@ -495,36 +522,66 @@ if (empty($submitted)) {
 
 			echo "<br>";
 			echo "<table border=1><tr><th bgcolor=lightyellow>Current</th><th bgcolor=lightyellow>New</th></tr>\n";
-			echo "<tr><td valign=top><small><small><pre>";
-			$s=file_get_contents("func_conversion_47.php");
-			$ss=implode("&lt;",preg_split("/</",$s));
-			echo $ss;
-			echo "</pre></small></td><td valign=top>\n";
+			echo "<tr>";
+
+			# left column with existing code
+			echo "<td valign=top><small><small><pre>";
+			if (file_exists("func_conversion_ENSEMBLVERSION.php")) {
+				$s=file_get_contents("func_conversion_ENSEMBLVERSION.php");
+				$ss=implode("&lt;",preg_split("/</",$s));
+				echo $ss;
+				echo "</pre></small></td>";
+			}
+			else {
+				echo "Please provide file 'func_conversion_ENSEMBLVERSION.php'.";
+			}
+
+			# right column with generated code
+			echo "<td valign=top>\n";
 			echo "<small><small><pre>\n";
 			echo "&lt;?php\n";
 			echo "\$conv=array();\n";
 			$prevChr="0";
 			$firstRow=true;
 
-			#print_r($resultEnsembl);
+			print_r($resultEnsembl);
 
+			$markerEnsemblHash=array();
 			foreach($resultEnsembl as $marker=>$line) {
-				#print_r($line);
-				$currChr=$line["chr"];
+				$markerEnsemblHash[$marker]=$line;
+			}
 
-				if ($currChr != $prevChr) {
+			foreach($markerSequenceOrdered as $marker) {
+				#print_r($line);
+				$line= $markerEnsemblHash[$marker];
+				$currChrEnsembl=$line["chr"];
+				$markerRqtl=$markerHash[$marker];
+				$currChrRqtl=$markerRqtl["chr"];
+				if ("unknown" == "$currChrEnsembl" or "" == "$currChrEnsembl") {
+					//print_r($markerHash[$marker]);
+					#echo "	// Assigning '$currChrRqtl' to currChrEnsembl\n";
+					$currChrEnsembl = $currChrRqtl;
+				}
+				else if ("$currChrEnsembl" != "$currChrRqtl") {
+					errorMessage("Marker '$marker' has different chromosomes assigned by local data ($currChrRqtl) and Ensembl ($currChrEnsembl).");
+					mysql_close($linkLocal);
+					mysql_close($linkEnsembl);
+					exit;
+				}
+
+				if ($currChrEnsembl != $prevChr) {
 					if (!empty($line["chr_start"])) {
 						if ("0" != $prevChr) {
 							echo "\n);\n";
 						}
 						echo '$conv[';
-						if (!is_numeric($currChr)) echo '"';
-						echo $line["chr"];
-						if (!is_numeric($currChr)) echo '"';
+						if (!is_numeric($currChrEnsembl)) echo '"';
+						echo $currChrEnsembl;
+						if (!is_numeric($currChrEnsembl)) echo '"';
 						echo "] = array(\n";
 						print "/* $marker */\t";
 						echo '  "'.$markerHash[$marker]["cmorgan_rqtl"].'" => "'.$line["chr_start"].'"';
-						$prevChr=$currChr;
+						$prevChr=$currChrEnsembl;
 					}
 				}
 				else {
