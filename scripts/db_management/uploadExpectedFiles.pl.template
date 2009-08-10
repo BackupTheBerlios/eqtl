@@ -120,7 +120,9 @@ foreach my $cov (@covar) {
 
 	foreach my $line (@traits) {
 		if( $mode eq 'both' || $mode eq 'scanone' ){	
-			my $jobname = "scanone_".${line}."_3.5_1000_($cov).csv.gz";
+							   # T H R E S H O L D - minimal LOD score to achieve
+			                                            # P E R M S - number of permutations
+			my $jobname = "scanone_".${line}."_THRESHOLD_PERMS_($cov).csv.gz";
 
 			# checking for existance of that job
 			$sth_test->execute($jobname) || die $DBI::errstr;	
@@ -134,7 +136,9 @@ foreach my $cov (@covar) {
 			}
 		}
 		if( $mode eq 'both' || $mode eq 'scantwo' ){
-			my $jobname = "scantwo_".${line}."_3.5_1000_($cov).csv.gz";
+							   # T H R E S H O L D - minimal LOD score to achieve
+			                                          # P E R M S - number of permutations
+			my $jobname = "scantwo_".${line}."_THRESHOLD_PERMS_($cov).csv.gz";
 
 			# checking for existance of that job
 			$sth_test->execute($jobname) || die $DBI::errstr;	

@@ -143,7 +143,7 @@ ENDOFDOCUMENATION
 			mysql_free_result($result);
 			mysql_close($link);
 		} else {
-			@readfile($BASEPATH."genes_within.php?submitted=submitted&chr=".$chromosome."&bpFrom=".$begin."&bpTo=".$end."&ensemblhost=".martdbhost(ENSEMBLVERSION)."&ensembluser=anonymous&ensemblorganism=ENSEMBLSPECIESMART&ensemblversion=ENSEMBLVERSION&markerhost=DATABASEHOSTLOCAL&markeruser=qtl&markerdatabase=DATABASEEQTLNAME&plain=on");
+			@readfile($BASEPATH."genes_within.php?submitted=submitted&chr=".$chromosome."&bpFrom=".$begin."&bpTo=".$end."&ensemblhost=".martdbhost(ENSEMBLVERSION)."&ensembluser=anonymous&ensemblorganism=ENSEMBLSPECIESMARTLONG&ensemblversion=ENSEMBLVERSION&markerhost=DATABASEHOSTLOCAL&markeruser=qtl&markerdatabase=DATABASEEQTLNAME&plain=on");
 		}
 	}
 	if( !empty($trait_genes) ) {

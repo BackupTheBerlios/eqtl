@@ -7,6 +7,6 @@
 	$species_name_trivial="ENSEMBLSPECIESTRIVIAL";
 	$species_name_latin="ENSEMBLSPECIESSEARCHURL";
 	$species_name_ensembl_core="ENSEMBLSPECIESDB";
-	$species_name_ensembl_mart="ENSEMBLSPECIESMART";
+	$species_name_ensembl_mart="ENSEMBLSPECIESMARTLONG";
 // 	echo "to $species_name_trivial/$species_name_ensembl_mart";
 ?>
