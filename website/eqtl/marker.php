@@ -2,6 +2,8 @@
 
 /*
 
+#    A T T E N T I O N:   Edit the template, not this file !!!!
+
 =pod
 
 =head1 NAME
@@ -64,7 +66,6 @@ Universities of Rostock and LE<uuml>beck, 2003-2009
 
 require_once("header.php");
 require_once("func_species.php");
-require_once("func_dbconfig.php"); //überflüssig da weiter unten nochmal? -- Benedikt 7.8.09
 
 @show_small_header("Marker Selection",TRUE);
 
@@ -395,7 +396,7 @@ if (empty($submitted)) {
 								echo "<td>&nbsp;</td>";
 							}
 							else {
-								echo "<td><a href=\"http://www.ensembl.org/Rattus_norvegicus/markerview?marker=$l\">$l</a></td>";
+								echo "<td><a href=\"http://www.ensembl.org/ENSEMBLSPECIESSEARCHURL/markerview?marker=$l\">$l</a></td>";
 							}
 							break;
 						case "bp":
