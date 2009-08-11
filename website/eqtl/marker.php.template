@@ -281,54 +281,38 @@ if (empty($submitted)) {
 		
 		$query  = "select marker, chr, bp, cmorgan_rqtl, cmorgan_ensembl ";
 		$query	.= " from map ";
+		$where = "WHERE";
 
 		if (!empty($markerid)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " marker in ('".join("','",preg_split("/[, ;]/",$markerid))."') ";
+			if ("WHERE" != $where) $where .= " AND ";
+			$where .= " marker in ('".join("','",preg_split("/[, ;]/",$markerid))."') ";
 		}
 
 		if (!empty($chrlist)) {
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+			if ("WHERE" != $where) $where .= " AND ";
+			$where .= " chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
 		}
 		if (!empty($cMminRqtl) && !empty($cMmaxRqtl)) {
 			if (!is_numeric($cMminRqtl)) array_push($err,"The lower boundary in cMorgan positions for loci under investigation must be numeric ($cMminRqtl).\n");
 			if (!is_numeric($cMmaxRqtl)) array_push($err,"The upper boundary in cMorgan positions for loci under investigation must be numeric ($cMmaxRqtl).\n");
-			if ($where) $query .= " AND ";
-			else {
-				$query .= " WHERE ";
-				$where = TRUE;
-			}
-			$query .= " (cmorgan_rqtl BETWEEN ".$cMminRqtl." AND ".$cMmaxRqtl.") ";
+			if ("WHERE" != $where) $where .= " AND ";
+			$where .= " (cmorgan_rqtl BETWEEN ".$cMminRqtl." AND ".$cMmaxRqtl.") ";
 		}
 		else {
 			if (!empty($cMmin)) {
 				if (!is_numeric($cMmin)) array_push($err,"The lower boundary in cMorgan positions for loci under investigation must be numeric ($cMmin).\n");
-				if ($where) $query .= " AND ";
-				else {
-					$query .= " WHERE ";
-					$where = TRUE;
-				}
-				$query .= " cmorgan_rqtl >= ".($cMmin/100)." ";
+				if ("WHERE" != $where) $where .= " AND ";
+				$where .= " cmorgan_rqtl >= ".($cMmin/100)." ";
 			}
 			if (!empty($cMmax)) {
 				if (!is_numeric($cMmax)) array_push($err,"The upper boundary in cMorgan positions for loci under investigation must be numeric ($cMmax).\n");
-				if ($where) $query .= " AND ";
-				else {
-					$query .= " WHERE ";
-					$where = TRUE;
-				}
-				$query .= " cmorgan_rqtl >= ".($cMmax/100)." ";
+				if ("WHERE" != $where) $where .= " AND ";
+				$where .= " cmorgan_rqtl >= ".($cMmax/100)." ";
 			}
 		}
+
+		if ("WHERE" != $where) $query .= " $where ";
+
 		if (!empty($order)) {
 			$query .= " order by ".$order." ";
 		}
@@ -369,7 +353,8 @@ if (empty($submitted)) {
 
 		//$ensembldatabase="ensembl_mart_$ensemblversion".($ensemblversion<=28?"_1":"");
 		if (!mysql_select_db(martdbname($ensemblversion),$linkEnsembl)) {
-			echo "Could not select database '".martdbname($ensemblversion)."' on host '$ensemblhost'. Please report to <a href=\"moeller@inb.uni-luebeck.de\">moeller@inb.uni-luebeck.de</a><br>";
+			echo "Could not select database '".martdbname($ensemblversion)."' on host '".martdbhost($ensemblversion)."'."
+			   ." Please report to <a href=\"moeller@inb.uni-luebeck.de\">moeller@inb.uni-luebeck.de</a><br>";
 			mysql_close($linkLocal);
 			mysql_close($linkEnsembl);
 			exit;
@@ -544,7 +529,7 @@ if (empty($submitted)) {
 			$prevChr="0";
 			$firstRow=true;
 
-			print_r($resultEnsembl);
+			#print_r($resultEnsembl);
 
 			$markerEnsemblHash=array();
 			foreach($resultEnsembl as $marker=>$line) {
@@ -617,7 +602,7 @@ function cM2bp($chr,$cm=0) {
 		echo "&lt;p>marker.php: No information for chromosome \'$chr\'.&lt;/p>\n";
 		return (-2);
 	} elseif (!is_array($chrconv)) {
-		echo "&lt;p>func_conversion_47.php: Internal error. (chr \'$chr\').&lt;/p>\n";
+		echo "&lt;p>func_conversion_ENSEMBLVERSION.php: Internal error. (chr \'$chr\').&lt;/p>\n";
 		return (-3);
 	} else {
 		foreach($chrconv as $cMorgan=>$bp) {
