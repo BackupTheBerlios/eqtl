@@ -36,7 +36,7 @@ NAME="AUC" NODES="some node" submitToTorqueLocally.sh <duration> <number>
 
 =head1 DESCRIPTION
 
-The default is to submit 1 jobs, otherwise the second argument
+The default is to submit 1 job, otherwise the second argument
 to the script should specify the number of jobs. The number of
 jobs is not identical to the nubmer of workunits that are going
 to be calculated. There are multiple workunits per job.

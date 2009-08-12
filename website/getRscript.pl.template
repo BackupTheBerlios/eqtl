@@ -349,8 +349,8 @@ if (file.exists(my.file.name)) {
 # function to store results
 writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 
-	my.file <- gzfile(description=my.file.name,sep=""), open = "a",
-	                  encoding = getOption("encoding"),compression = 6)
+	my.file <- gzfile(description=my.file.name, open = "a",
+	                  encoding = getOption("encoding"), compression = 6)
 
 	if ( is.list(toWrite) ) {
 		#cat("*** DEBUG START*** Now I am printing a list.\\n")
