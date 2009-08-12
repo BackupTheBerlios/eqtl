@@ -13,6 +13,8 @@ SHELLSCRIPTS=$(shell find .. -name "*.sh" | sort | egrep -v 'website/.*update.sh
 
 POD2MAN = pod2man --center="expression QTL infrastructure" 
 
+TMPDIR=tmp
+
 .SUFFIXES: .pl .ps
 
 %.ps: %.pl
@@ -48,30 +50,30 @@ POD2MAN = pod2man --center="expression QTL infrastructure"
 	test -x /usr/bin/ps2pdf
 	ps2pdf $<
 
-documentation: data_preparation_scripts.pdf webinterface_scripts.pdf general_information.pdf
+documentation: data_preparation_scripts.pdf webpages_phpscripts.pdf general_information.pdf
 
-data_preparation_scripts.ps: perl shell $(wildcard tmp/shell/*.ps tmp/perl/*.ps)
-	psmerge -odata_preparation_scripts.ps $(wildcard tmp/shell/*.ps) $(wildcard tmp/perl*.ps)
+data_preparation_scripts.ps: perl shell $(wildcard $(TMPDIR)/shell/*.ps $(TMPDIR)/perl/*.ps)
+	psmerge -odata_preparation_scripts.ps $(wildcard $(TMPDIR)/shell/*.ps) $(wildcard $(TMPDIR)/perl*.ps)
 
-webinterface_scripts.ps: php $(wildcard tmp/php/*.ps)
-	psmerge -owebinterface_scripts.ps tmp/php/*.ps
+webpages_phpscripts.ps: php $(wildcard $(TMPDIR)/php/*.ps)
+	psmerge -owebpages_phpscripts.ps $(TMPDIR)/php/*.ps
 
 general_information.ps: general_information.txt
 	a2ps -o general_information.ps GeneralInformation.txt
 
 perl:	$(PERLSCRIPTS:.pl=.ps)
-	if [ ! -d tmp/perl ]; then mkdir -p tmp/perl; fi
-	mv $(PERLSCRIPTS:.pl=.ps) tmp/perl
+	if [ ! -d $(TMPDIR)/perl ]; then mkdir -p $(TMPDIR)/perl; fi
+	mv $(PERLSCRIPTS:.pl=.ps) $(TMPDIR)/perl
 
 shell: $(SHELLSCRIPTS:.sh=.ps)
-	if [ ! -d tmp/shell ]; then mkdir -p tmp/shell; fi
-	mv $(SHELLSCRIPTS:.sh=.ps) tmp/shell
+	if [ ! -d $(TMPDIR)/shell ]; then mkdir -p $(TMPDIR)/shell; fi
+	mv $(SHELLSCRIPTS:.sh=.ps) $(TMPDIR)/shell
 
 php: $(PHPSCRIPTS:.php=.ps)
-	if [ ! -d tmp/php ]; then mkdir -p tmp/php; fi
-	mv $(PHPSCRIPTS:.php=.ps) tmp/php
+	if [ ! -d $(TMPDIR)/php ]; then mkdir -p $(TMPDIR)/php; fi
+	mv $(PHPSCRIPTS:.php=.ps) $(TMPDIR)/php
 
 clean:
-	rm -rf tmp supporting_scripts.ps webinterface_scripts.ps general_informatin.ps
+	rm -rf $(TMPDIR) supporting_scripts.ps webpages_phpscripts.ps general_information.ps
 
 .PHONY: clean documentation perl shell php
