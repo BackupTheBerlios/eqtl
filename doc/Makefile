@@ -52,14 +52,18 @@ TMPDIR=tmp
 
 documentation: general_information.pdf data_handling.pdf data_preparation_scripts.pdf webpages_phpscripts.pdf 
 
+logo-knowarc.png: 
+	wget http://www.knowarc.eu/styles/logo-knowarc.png
+
 data_preparation_scripts.ps: perl shell $(wildcard $(TMPDIR)/shell/*.ps $(TMPDIR)/perl/*.ps)
 	psmerge -odata_preparation_scripts.ps $(wildcard $(TMPDIR)/shell/*.ps) $(wildcard $(TMPDIR)/perl*.ps)
 
 webpages_phpscripts.ps: php $(wildcard $(TMPDIR)/php/*.ps)
 	psmerge -owebpages_phpscripts.ps $(TMPDIR)/php/*.ps
 
-data_handling.pdf: data_handling.pod
-	a2ps -o $*.ps $<
+data_handling.pdf: data_handling.pod logo-knowarc.png
+	test -x /usr/bin/pod2pdf 
+	pod2pdf --icon logo-knowarc.png --title "Job Submission and Data Handling" --output-file $@ $<
 
 general_information.ps: general_information.txt
 	a2ps -o $*.ps $<
