@@ -71,8 +71,11 @@ my $mode;
 my $dir;
 if( $#ARGV < 0 ){
 	die "Usage: uploadExpectedFiles (scanone|scantwo|both) covariates\n"
-	  . "       uploadExpectedFiles --help | -h | help | --man  | man\n";
+	  . "       uploadExpectedFiles --list | -ls | list \n"
+	  . "       uploadExpectedFiles --help | -h  | help | --man  | man\n";
 }
+
+TEMPLATEWARNINGHASH
 
 my @A=@ARGV;
 $mode = shift @A;
@@ -80,31 +83,54 @@ $mode = shift @A;
 pod2usage(-verbose => 1) if "--help" eq "$mode" or "-h" eq "$mode" or "help" eq "$mode";
 pod2usage(-verbose => 2) if "--man"  eq "$mode"                    or "man"  eq "$mode";
 
-if( $mode ne 'scanone' && $mode ne 'scantwo' && $mode ne 'both' ){
+my $dbh = DBI->connect( DATABASECON ) or die "Database connection not made: $DBI::errstr";
+
+# variable containing a row
+my @r;
+
+
+if ("list" eq "$mode" or "--list" eq "$mode" or "-ls" eq "$mode") {
+	my $list_query = "select distinct application, filename from computation;";
+	my $sth_list = $dbh->prepare($list_query) or die $DBI::errstr;
+	$sth_list -> execute() or die $DBI::errstr;
+	my $prev="";
+	my %past;
+	while(@r = $sth_list->fetchrow_array()) {
+		my $a=$r[0];
+		my $f=$r[1];
+		if ($f =~ /\(([^)]+)/) {
+			unless(exists($past{"$a:$1"})) {
+				$past{"$a:$1"}=0;  # to rest completely assured
+			}
+			$past{"$a:$1"} += 1;
+		}
+	}
+	foreach my $k (sort keys %past) {
+		print "$k (".$past{$k}.")\n";
+	}
+	exit 0;
+}
+if( $mode ne 'scanone' and $mode ne 'scantwo' and $mode ne 'both' ){
 	die "Usage: uploadExpectedFiles (scanone|scantwo|both)\nInvalid mode of analysis: '".$mode."'\n"; 
 }
-
-my $dbh = DBI->connect( DATABASECON ) || die "Database connection not made: $DBI::errstr";
-
 
 # presume the remaining attributes to be all covariates - unchecked
 my @covar = @A;
 
 my $test_query = "select computation_id from computation where jobname=?;";
-my $sth_test = $dbh->prepare($test_query) || die $DBI::errstr;
+my $sth_test = $dbh->prepare($test_query) or die $DBI::errstr;
 
 my $update_query ="UPDATE computation SET status='RECALCULATE' where jobname=?;";
-my $sth_update = $dbh->prepare($update_query) || die $DBI::errstr;
+my $sth_update = $dbh->prepare($update_query) or die $DBI::errstr;
 
 my $insert_query = "INSERT INTO computation(status, application, trait_id, jobname, filename) VALUES('QUEUED',?,?,?,?);";
-my $sth_insert = $dbh->prepare($insert_query) || die $DBI::errstr;
+my $sth_insert = $dbh->prepare($insert_query) or die $DBI::errstr;
 
 
 print "\tRETRIEVING TRAIT NAMES\t\t\t";
 my $sth_traits = $dbh->prepare("select trait_id from trait;");
-$sth_traits -> execute() || die $DBI::errstr;
+$sth_traits -> execute() or die $DBI::errstr;
 my @traits;
-my @r;
 while (@r=$sth_traits->fetchrow_array()) {
 	push(@traits,$r[0]);
 }
@@ -113,39 +139,39 @@ print "[DONE]\n";
 print "\tCREATING EXPECTED FILE INDEX\t\t\t";
 foreach my $cov (@covar) {
 
-	unless ($cov =~ /_(add|int)$/ || $cov eq "none" ) {
+	unless ($cov =~ /_(add|int)$/ or $cov eq "none" ) {
 		print STDERR "Skipping covariate '$cov', which does not end on _add or _int.\n";
 		next;
 	}
 
 	foreach my $line (@traits) {
-		if( $mode eq 'both' || $mode eq 'scanone' ){	
+		if( $mode eq 'both' or $mode eq 'scanone' ){	
 							   # T H R E S H O L D - minimal LOD score to achieve
 			                                            # P E R M S - number of permutations
 			my $jobname = "scanone_".${line}."_THRESHOLD_PERMS_($cov).csv.gz";
 
 			# checking for existance of that job
-			$sth_test->execute($jobname) || die $DBI::errstr;	
+			$sth_test->execute($jobname) or die $DBI::errstr;	
 			my $query;
  			my @a = $sth_test->fetchrow_array();
 			if(@a){
-				$sth_update->execute($jobname) || die $DBI::errstr;
+				$sth_update->execute($jobname) or die $DBI::errstr;
 			}
 			else{
 				$sth_insert->execute('SCANONE',$line,$jobname,$jobname);
 			}
 		}
-		if( $mode eq 'both' || $mode eq 'scantwo' ){
+		if( $mode eq 'both' or $mode eq 'scantwo' ){
 							   # T H R E S H O L D - minimal LOD score to achieve
 			                                          # P E R M S - number of permutations
 			my $jobname = "scantwo_".${line}."_THRESHOLD_PERMS_($cov).csv.gz";
 
 			# checking for existance of that job
-			$sth_test->execute($jobname) || die $DBI::errstr;	
+			$sth_test->execute($jobname) or die $DBI::errstr;	
 			my $query;
  			my @a = $sth_test->fetchrow_array();
 			if(@a){
-				$sth_update->execute($jobname) || die $DBI::errstr;
+				$sth_update->execute($jobname) or die $DBI::errstr;
 			}
 			else{
 				$sth_insert->execute('SCANTWO',$line,$jobname,$jobname);
