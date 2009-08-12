@@ -407,11 +407,18 @@
 2. Website
 ==========
 
-   Once that update.sh was executed, your website shall be ready. There
-   are two websites to take care of. The scripts in
+   Once that update.sh was executed, your website should be ready. There
+   are two websites to take care of:
 
+     * website/*      - for the preparation of the data
+     * website/eqtl/* - for the presentation of the results
+
+   Those pages should not require to be changed between projects. If 
+   they are, this this change should either be a config parameter 
+   or be of interest for all projects.
+
+   The scripts in
         website/*
-
    perform the distribution of data and present an overview on the
    current state of data generation to the project participants. The
    jobs that are executed remotely will query the website and request
