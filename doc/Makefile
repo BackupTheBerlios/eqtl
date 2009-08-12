@@ -65,8 +65,9 @@ data_handling.pdf: data_handling.pod logo-knowarc.png
 	test -x /usr/bin/pod2pdf 
 	pod2pdf --icon logo-knowarc.png --title "Job Submission and Data Handling" --output-file $@ $<
 
-general_information.ps: general_information.txt
-	a2ps -o $*.ps $<
+general_information.pdf: general_information.pod
+	test -x /usr/bin/pod2pdf 
+	pod2pdf --icon logo-knowarc.png --title "Expression QTL Infrastructure" -footer-text "Introduction to concepts and source code" --output-file $@ $<
 
 perl:	$(PERLSCRIPTS:.pl=.ps)
 	if [ ! -d $(TMPDIR)/perl ]; then mkdir -p $(TMPDIR)/perl; fi
