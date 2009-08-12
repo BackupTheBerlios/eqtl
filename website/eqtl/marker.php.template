@@ -109,9 +109,11 @@ require_once("func_dbconfig.php"); // cM2bp
 
 $funcConversionExists = file_exists("func_conversion_".$ensemblversionLocal.".php");
 
-
 if($funcConversionExists) {
 	require_once("func_conversion_".$ensemblversionLocal.".php"); // cM2bp
+}
+else {
+	echo "<p>Could not find file 'func_conversion_".$ensemblversionLocal.".php' that is required to translate betweeen physical and genetic positions.</p>\n";
 }
 	
 function physicalMarkerPosition($marker) {
@@ -409,7 +411,12 @@ if (empty($submitted)) {
 								echo "<td>&nbsp;</td>";
 							}
 							else {
-								echo "<td><a href=\"http://www.ensembl.org/ENSEMBLSPECIESSEARCHURL/markerview?marker=$l\">$l</a></td>";
+								if ($ensemblversion>47) {
+									echo "<td><a href=\"http://www.ensembl.org/ENSEMBLSPECIESSEARCHURL/Location/Marker?m=$l\">$l</a></td>";
+								}
+								else {
+									echo "<td><a href=\"http://www.ensembl.org/ENSEMBLSPECIESSEARCHURL/markerview?marker=$l\">$l</a></td>";
+								}
 							}
 							break;
 						case "bp":
@@ -421,7 +428,10 @@ if (empty($submitted)) {
 							}
 							echo "<td>";
 							if ($funcConversionExists) {
-								round(cM2bp($line["chr"],$line["cmorgan_rqtl"]));
+								echo round(cM2bp($line["chr"],$line["cmorgan_rqtl"]));
+							}
+							else {
+								echo "N/A";
 							}
 							echo "</td>";
 							break;
@@ -660,7 +670,7 @@ function cM2bp($chr,$cm=0) {
 	}
 }
 ';
-		echo "// This conversion is based on ensembl database ".martdbname($ensemblversion)." on host ".martdbhost($ensemblveresion)."\n";
+		echo "// This conversion is based on ensembl database ".martdbname($ensemblversion)." on host ".martdbhost($ensemblversion)."\n";
 	echo "?>\n";
 			echo "</pre></small>\n";
 			echo "</td></tr></table>\n";
