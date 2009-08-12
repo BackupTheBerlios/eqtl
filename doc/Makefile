@@ -9,7 +9,7 @@
 
 PERLSCRIPTS=$(shell find .. -name "*.pl" )
 PHPSCRIPTS=$(shell find .. -name "*.php" | grep -v 'website/index.php' | grep -v 'func_species.php' | grep -v 'help.php' | grep -v 'ensemblconf' )
-SHELLSCRIPTS=$(shell find .. -name "*.sh" | sort | egrep -v 'website/.*update.sh' | egrep -v 'scripts/.*update.sh' | egrep -v 'doc/.*update.sh' )
+SHELLSCRIPTS=$(shell find .. -name "*.sh" | sort | egrep -v 'website/.*update.sh' | egrep -v 'scripts/.*update.sh' | egrep -v 'doc/.*update.sh' | grep -v 'ltmain.sh' )
 
 POD2MAN = pod2man --center="expression QTL infrastructure" 
 
@@ -50,7 +50,7 @@ TMPDIR=tmp
 	test -x /usr/bin/ps2pdf
 	ps2pdf $<
 
-documentation: data_preparation_scripts.pdf webpages_phpscripts.pdf general_information.pdf
+documentation: general_information.pdf data_handling.pdf data_preparation_scripts.pdf webpages_phpscripts.pdf 
 
 data_preparation_scripts.ps: perl shell $(wildcard $(TMPDIR)/shell/*.ps $(TMPDIR)/perl/*.ps)
 	psmerge -odata_preparation_scripts.ps $(wildcard $(TMPDIR)/shell/*.ps) $(wildcard $(TMPDIR)/perl*.ps)
@@ -58,8 +58,11 @@ data_preparation_scripts.ps: perl shell $(wildcard $(TMPDIR)/shell/*.ps $(TMPDIR
 webpages_phpscripts.ps: php $(wildcard $(TMPDIR)/php/*.ps)
 	psmerge -owebpages_phpscripts.ps $(TMPDIR)/php/*.ps
 
+data_handling.pdf: data_handling.pod
+	a2ps -o $*.ps $<
+
 general_information.ps: general_information.txt
-	a2ps -o general_information.ps GeneralInformation.txt
+	a2ps -o $*.ps $<
 
 perl:	$(PERLSCRIPTS:.pl=.ps)
 	if [ ! -d $(TMPDIR)/perl ]; then mkdir -p $(TMPDIR)/perl; fi

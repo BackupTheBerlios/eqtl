@@ -271,7 +271,8 @@
 	while(<>){
 		chomp;
 		my @fields=split(/\t/,$_);
-		print "INSERT INTO trait SET trait_id='$fields[0]',name='$fields[1]';\n";
+		print "INSERT INTO trait "
+		    . "SET trait_id='$fields[0]',name='$fields[1]';\n";
 	}
 	EOPERL
 	$ perl trait_upload.pl expressiondata.tsv | \
@@ -310,25 +311,26 @@
    Initialisation and updates of computation table
    - - - - - - - - - - - - - - - - - -
 
-   The computations table defines the jobs that shall be distributed. Even though
-   we have prepared scripts to adjust those tables in an automated fashion, the
-   manual interaction via the mysql shell is still a straight-forward manner that
-   we encourage. E.g. to reset those files that have pending results, still, even
-   though all the uploads of returned files have already been performed, reschedule
-   them by
+   The computations table defines the jobs that shall be distributed. Even
+   though we have prepared scripts to adjust those tables in an
+   automated fashion, the manual interaction via the mysql shell is
+   still a straight-forward manner that we encourage. E.g. to reset those
+   files that have pending results, still, even though all the uploads
+   of returned files have already been performed, reschedule them by
 
 	update computation set status="RECALCULATE" where application="SCANONE"
 				and status="REPROCESSING" or status = "UNKNOWN";
 
-   The status "UNKNOWN" may be used to temporarily remove jobs from computations, e.g.
-   possibly because of a programming error affecting only a known subset of computations.
-   The state 'QUEUED' is equivalent to 'RECALCULATE' except for the higher priority that
-   is given to jobs in QUEUED.
+   The status "UNKNOWN" may be used to temporarily remove jobs from
+   computations, e.g.  possibly because of a programming error affecting
+   only a known subset of computations.  The state 'QUEUED' is equivalent
+   to 'RECALCULATE' except for the higher priority that is given to jobs
+   in QUEUED.
 
-   The initial filling of the computation table is best performed with the script
-   in the folder scripts/db_management. Check with the script's man pages for details.
-   To upload new calculations just mention the kind of application to run as the first
-   argument, then list the covariates:
+   The initial filling of the computation table is best performed with the
+   script in the folder scripts/db_management. Check with the script's man
+   pages for details.  To upload new calculations just mention the kind
+   of application to run as the first argument, then list the covariates:
 
 	$ scripts/db_management/uploadExpectedFiles.pl scanone severity_add,sex_int
         RETRIEVING TRAIT NAMES                  [DONE]
@@ -339,45 +341,50 @@
 	...
 	SCANONE:severity_add,sex_int (1031)
 	...
-   The parenthese list the number of covariates that are available for that application
-   and list of covariates.
+   The parenthese list the number of covariates that are available for
+   that application and list of covariates.
 
-   Some traits may have problems, possibly be cause these were artificial and only served
-   the inter-chip normalisation. One then needs to distinguish between systematic problems
-   to retrieve a result and such that are caused by a temporal failure of some comput node.
-   The following query compares the number of compute jobs that are in 'REPROCESSING'
-   pre trait. The traits with systematic problems will have a many computations in 'REPROCESSING'
-   as there were covariates run:
+   Some traits may have problems, possibly be cause these were artificial
+   and only served the inter-chip normalisation. One then needs to
+   distinguish between systematic problems to retrieve a result and
+   such that are caused by a temporal failure of some comput node.
+   The following query compares the number of compute jobs that are in
+   'REPROCESSING' pre trait. The traits with systematic problems will have
+   a many computations in 'REPROCESSING' as there were covariates run:
 
 	   select trait_id,count(*) as c from computation
-                                         where status = 'REPROCESSING' group by trait_id;                               
-	+----------+---+                                                                                                                     
-	| trait_id | c |                                                                                                                     
-	+----------+---+                                                                                                                     
-	|       10 | 1 |                                                                                                                     
-	|       66 | 9 |                                                                                                                     
-	|      101 | 1 |                                                                                                                     
-	|      102 | 1 |                                                                                                                     
-	|      103 | 1 |                                                                                                                     
-	|      233 | 9 |                                                                                                                     
-	|      273 | 9 |                  
+                                         where status = 'REPROCESSING'
+                                         group by trait_id;                               
+	+----------+---+
+	| trait_id | c |
+	+----------+---+
+	|       10 | 1 |
+	|       66 | 9 |
+	|      101 | 1 |
+	|      102 | 1 |
+	|      103 | 1 |
+	|      233 | 9 |
+	|      273 | 9 |
 
-   To select those traits which can still be helped, add 'having c < 9' to the above query.
+   To select those traits which can still be helped, add 'having c < 9'
+   to the above query.
 
-   
+
 
 
    Initialisation of map table
    - - - - - - - - - - - - - -
 
-   The map is best filled after the first computations have been performed. It may then be derived from
-   the locus table as follows:
+   The map is best filled after the first computations have been
+   performed. It may then be derived from the locus table as follows:
 
-      insert into map (marker,chr,cmorgan_rqtl)
-                       select Name,Chr,cMorgan from locus where Name like "D%" order by chr,cMorgan;
+      INSERT INTO map (marker,chr,cmorgan_rqtl)
+                       SELECT Name,Chr,cMorgan FROM locus
+                       WHERE Name like "D%" ORDER BY chr,cMorgan;
 
-   Inspect the data and the correspondance with entries in the Ensembl data via the marker.php page.
-   
+   Inspect the data and the correspondance with entries in the Ensembl
+   data via the marker.php page.
+
 
 1.4 Config files and template files
 -----------------------------------
@@ -472,15 +479,19 @@
 		shall be modelled by which gene's expression levels with
 		which set of covariates and those additive or interacting.
 
-	        This script queries the database for the next job to compute.
-		The jobname is a concatenation, joined by interspersing "_"
-	     	characters, of the following pameters in the exact same order:
+		This script queries the database for the next job
+		to compute.  The jobname is a concatenation, joined by
+		interspersing "_" characters, of the following pameters
+		in the exact same order:
+
 		   [scanone|scantwo]	single or combined effects
 		   probesetid		trait to be modelled
 		   lodThreshold		always set to 3.6
 		   numberOfPermutations	always set to 1000
 		   (covariate1{_add|_int},covariate2{_add|_int})
-					list of covariates to be taken into account
+					list of covariates to be taken
+					into account
+
 		The extension _add or _int tells wether the covariate
 		should be considered interactive or additive in the
 		model.	If this information is missing, the covariate
@@ -574,16 +585,15 @@
 
    Analyses are technically performed on multiple levels. Generally,
    the results from an R/qtl run (performed with the script generated
-   by getRscript.pl) should be uploaded to the database and then
-   be analysed from there, with no fallback on the raw result data.
-   
+   by getRscript.pl) should be uploaded to the database and then be
+   analysed from there, with no fallback on the raw result data.
+
    A series of scripts in the folder "scripts/analyses" is then executed
    to extend the data with additional information, i.e. the mean
    expression levels of genes across all individuals and their standard
    deviations, and multiple ways to represent eQTL density information.
    Also, the extra fields on cis/trans eQTL are updated in this manner.
-   The file 'scripts/analyses/README' also provides a respective 
-   overview:
+   The file 'scripts/analyses/README' also provides a respective overview:
 
       determineCorrelations.R
 
@@ -603,5 +613,5 @@
          cis - trans QTL
 
 
-   The remaining challenge is now to allow the human intuition to 
-   prepare queries that integrate all the collected facts.
+   The remaining challenge is now to allow the human intuition to prepare
+   queries that integrate all the collected facts.
