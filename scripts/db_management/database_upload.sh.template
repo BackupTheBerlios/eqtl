@@ -29,7 +29,7 @@ This script is the reverse of the database_dump script.
 
 =head1 ENVIRONMENT
 
-  For expression QTL determine the following variables:
+For expression QTL determine the following variables:
 
 =over 4
 
