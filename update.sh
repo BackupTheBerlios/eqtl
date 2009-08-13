@@ -44,14 +44,14 @@ parameter becomes optional when there is a folder with configuration files
 
 =head1 AUTHORS
 
-Steffen Moeller <moeller@inb.uni-luebeck.de>,
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
 Jan Kolbaum,
 Ann-Kristin Grimm,
 Benedikt Bauer
 
 =head1 COPYRIGHT
 
-University of Luebeck, 2008-2009
+University of LE<uuml>beck, 2008-2009
 
 =cut
 
