@@ -9,7 +9,7 @@
 
 PERLSCRIPTS=$(shell find .. -name "*.pl" )
 PHPSCRIPTS=$(shell find .. -name "*.php" | grep -v 'website/index.php' | grep -v 'func_species.php' | grep -v 'help.php' | grep -v 'ensemblconf' )
-SHELLSCRIPTS=$(shell find .. -name "*.sh" | sort | egrep -v 'website/.*update.sh' | egrep -v 'scripts/.*update.sh' | egrep -v 'doc/.*update.sh' | grep -v 'ltmain.sh' )
+SHELLSCRIPTS=$(shell find .. -name "*.sh" -a ! -type l | sort | egrep -v 'website/.*update.sh' | egrep -v 'scripts/.*update.sh' | egrep -v 'doc/.*update.sh' | grep -v 'ltmain.sh' )
 
 POD2MAN = pod2man --center="expression QTL infrastructure" 
 
@@ -56,7 +56,7 @@ logo-knowarc.png:
 	wget http://www.knowarc.eu/styles/logo-knowarc.png
 
 data_preparation_scripts.ps: perl shell $(wildcard $(TMPDIR)/shell/*.ps $(TMPDIR)/perl/*.ps)
-	psmerge -odata_preparation_scripts.ps $(wildcard $(TMPDIR)/shell/*.ps) $(wildcard $(TMPDIR)/perl*.ps)
+	psmerge -odata_preparation_scripts.ps $(TMPDIR)/shell/*.ps $(TMPDIR)/perl*.ps
 
 webpages_phpscripts.ps: php $(wildcard $(TMPDIR)/php/*.ps)
 	psmerge -owebpages_phpscripts.ps $(TMPDIR)/php/*.ps
