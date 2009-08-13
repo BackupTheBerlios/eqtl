@@ -14,30 +14,30 @@ if [ "-h" = "$1" -o "--help" = "$1" ]; then
 
 =head1 NAME
 
-	`basename $0` - resets a job to reprocessing state
+`basename $0` - resets a job to reprocessing state
 
 =head1 SYNOPSIS
 
-	`basename $0` <jobnames, expected to be file- or directory names>
+`basename $0` <jobnames, expected to be file- or directory names>
 
 =head1 DESCRIPTION
 
-	Whenever an upload to the database of a particular file was considered
-	to be problematic, it is not unlikely that the computation of that file should
-	be reperformed or some sort. This script presents the SQL to perform
-	an update of the status to '$operation'.
+Whenever an upload to the database of a particular file was considered
+to be problematic, it is not unlikely that the computation of that file should
+be reperformed or some sort. This script presents the SQL to perform
+an update of the status to '$operation'.
 
 =head1 EXAMPLE
 
-	`basename $0` . | mysql -h eqtl.org
+`basename $0` . | mysql -h eqtl.org
 
 =head1 AUTHOR
 
-	Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
 
 =head1 COPYRIGHT
 
-	University of LE<uuml>beck, 2009
+University of LE<uuml>beck, 2009
 
 =cut
 	pod2man $0 | nroff -man | less
