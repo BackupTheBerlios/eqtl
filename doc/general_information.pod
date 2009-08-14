@@ -1,8 +1,8 @@
 =pod
 
-=head1 General informaion and instructions on setting up an Expression QTL project
+=head1 General information and instructions on setting up an Expression QTL project
 
-This text brings the the reader to the level that the overall concept
+This text brings the reader to the level that the overall concept
 of the presented tools are understood sufficiently well to set up an
 expression QTL project by his/her own.
 
@@ -146,7 +146,7 @@ much more information are given.
 =item trait
 
 This table contains information about every single probeset
-like expression high, variance, standarddeviaten.
+like expression height, variance, standard deviation.
 
 =back
 
@@ -191,21 +191,21 @@ challenge is to prepare the data in a way that any particular job
 receives (as a single file) the right covariates, the complete genotyping
 data, and the right gene's expression values to perform the computation.
 Also important it is to have every data file in the right order, i.e. the
-mice in the genotyping should be ordered in the same way that the mice
-in the expression data is. The joining of the data sources should
+mice in the genotyping should be ordered in the same way as the mice
+in the expression data. The joining of the data sources should
 be performed prior to the submission of the job, to help avoiding
 potential problems.
 
 The data shall be formatted in a way that the function qtl::read.cross
 understands it directly. The expression data then commonly is in the 2nd
-or third column, which is identified by the variable phenocol (parameter
+or 3rd column, which is identified by the variable phenocol (parameter
 PHENOCOL in conf*/data.conf). 
 
 
 =head4 Upload of traits table
 
 The traits can easily be uploaded with the sole inspection of the file that
-the presents the expression data:
+presents the expression data:
 
 	+-------------------------+-------------+------+-----+---------+-------+
 	| Field                   | Type        | Null | Key | Default | Extra |
@@ -291,7 +291,7 @@ ID of trait (expression data) inspected
 name of classifical phen
 	| phen     | varchar(20) | YES  |     | NULL    |       |
 
-correlaction coefficient
+correlation coefficient
 	| rho      | float       | YES  |     | NULL    |       |
 
 p-value to observe the correlation with uncorrelated variables
@@ -305,7 +305,7 @@ script can perform the upload.
 
 =head4 Initialisation and updates of computation table
 
-The computations table defines the jobs that shall be distributed. Even
+The computation table defines the jobs that shall be distributed. Even
 though we have prepared scripts to adjust those tables in an
 automated fashion, the manual interaction via the mysql shell is
 still a straight-forward manner that we encourage. E.g. to reset those
@@ -332,20 +332,21 @@ of application to run as the first argument, then list the covariates:
         CREATING EXPECTED FILE INDEX            [DONE]
 
 To get an overview on the files that have been created, try
+
 	$ scripts/db_management/uploadExpectedFiles.pl -ls
 	...
 	SCANONE:severity_add,sex_int (1031)
 	...
-The parenthese list the number of covariates that are available for
+The parentheses list the number of covariates that are available for
 that application and list of covariates.
 
-Some traits may have problems, possibly be cause these were artificial
+Some traits may have problems, possibly because these were artificial
 and only served the inter-chip normalisation. One then needs to
 distinguish between systematic problems to retrieve a result and
-such that are caused by a temporal failure of some comput node.
+such that are caused by a temporal failure of some compute node.
 The following query compares the number of compute jobs that are in
 'REPROCESSING' pre trait. The traits with systematic problems will have
-a many computations in 'REPROCESSING' as there were covariates run:
+as many computations in 'REPROCESSING' as there were covariates run:
 
 	   select trait_id,count(*) as c from computation
                                          where status = 'REPROCESSING'
@@ -419,7 +420,7 @@ for the presentation of the results
 =back
 
 Those pages should not require to be changed between projects. If 
-they are, this this change should either be a config parameter 
+they are, this change should either be a config parameter 
 or be of interest for all projects.
 
 The scripts in website/*
