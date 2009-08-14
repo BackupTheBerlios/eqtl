@@ -91,7 +91,7 @@ if [ ! -r "$Rscript" ]; then
 fi
 
 
-if ! TIMEOUT=70 R CMD BATCH $Rscript; then
+if ! TIMEOUT=70 R CMD BATCH --vanilla --no-save $Rscript; then
 	echo "Problem with executing R script at '$Rscript' in `pwd`."
 	echo "Collecting results to the degree that these are available";
 fi
