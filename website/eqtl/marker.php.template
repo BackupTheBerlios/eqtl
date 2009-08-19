@@ -476,7 +476,7 @@ if (empty($submitted)) {
 		if (!empty($show_conversion_code)) {
 			echo "<h2>Code performing conversion from centiMorgan to physical position in Ensembl</h2>\n";
 
-			$queryMarker  = "select marker,chr,cmorgan_rqtl from map order by chr,cmorgan_rqtl";
+			$queryMarker  = "select marker,chr,cmorgan_rqtl,bp from map order by chr,cmorgan_rqtl";
 			$resultMarker = mysql_query($queryMarker,$linkLocal);
 			if (empty($resultMarker)) {
 				echo "<p>".mysql_error($link)." in query $queryMarker.<br>Please report to moeller@inb.uni-luebeck.de</p>";
@@ -547,11 +547,15 @@ if (empty($submitted)) {
 			}
 
 			foreach($markerSequenceOrdered as $marker) {
+
 				#print_r($line);
 				$line= $markerEnsemblHash[$marker];
 				$currChrEnsembl=$line["chr"];
 				$markerRqtl=$markerHash[$marker];
 				$currChrRqtl=$markerRqtl["chr"];
+				$currBpManual=$markerRqtl["bp"];
+				#echo "\n# currBpManual='$currBpManual'\n";
+
 				if ("unknown" == "$currChrEnsembl" or "" == "$currChrEnsembl") {
 					//print_r($markerHash[$marker]);
 					#echo "	// Assigning '$currChrRqtl' to currChrEnsembl\n";
@@ -565,27 +569,33 @@ if (empty($submitted)) {
 				}
 
 				if ($currChrEnsembl != $prevChr) {
-					if (!empty($line["chr_start"])) {
-						if ("0" != $prevChr) {
-							echo "\n);\n";
-						}
-						echo '$conv[';
-						if (!is_numeric($currChrEnsembl)) echo '"';
-						echo $currChrEnsembl;
-						if (!is_numeric($currChrEnsembl)) echo '"';
-						echo "] = array(\n";
-						print "/* $marker */\t";
-						echo '  "'.$markerHash[$marker]["cmorgan_rqtl"].'" => "'.$line["chr_start"].'"';
-						$prevChr=$currChrEnsembl;
+					if ("0" != $prevChr) {
+						echo "\n);\n";
 					}
+					echo '$conv[';
+					if (!is_numeric($currChrEnsembl)) echo '"';
+					echo $currChrEnsembl;
+					if (!is_numeric($currChrEnsembl)) echo '"';
+					echo "] = array(\n";
+					$prevChr=$currChrEnsembl;
+				} else {
+					echo ",\n";
 				}
-				else {
-					if (!empty($line["chr_start"])) {
-						echo ",\n";
-						print "/* $marker */\t";
-						echo '"'.$markerHash[$marker]["cmorgan_rqtl"].'" => '.$line["chr_start"];
-					}
+
+				if (empty($line["chr_start"]) and empty($currBpManual)) {
+					echo " # no information on marker '$marker' - skipped";
+					continue;
 				}
+
+				print "/* $marker */\t";
+				if (!empty($line["chr_start"])) {
+					echo '"'.$markerHash[$marker]["cmorgan_rqtl"].'" => '.$line["chr_start"];
+				}
+				else if (!empty($currBpManual)) {
+					echo '"'.$markerHash[$marker]["cmorgan_rqtl"].'" => '.$currBpManual;
+					echo " /* substituting non-existing Ensembl data with manual setting */";
+				}
+
 				$first=TRUE;
 			}
 
@@ -593,8 +603,8 @@ if (empty($submitted)) {
 				echo "\n);\n";
 			}
 	echo '
-if (!empty($conv["X"])) $conv[21]=$conv["X"];
-if (!empty($conv["Y"])) $conv[22]=$conv["Y"];
+if (!empty($conv["X"])) $conv[POSITIONOFXCHROMOSOME]=$conv["X"];
+if (!empty($conv["Y"])) $conv[POSITIONOFXCHROMOSOME + 1]=$conv["Y"];
 
 ';
 	echo '
