@@ -51,6 +51,17 @@ For markers that are not known to Ensembl, the user should manually
 search for the marker sequences and thus specify the genomic location
 in base pairs manually.
 
+=head2 Manually defining physical mapping
+
+A series of of genetic markers is not known to Ensembl. For these it is
+suggested to manually specify their genomic location in the "bp" attribute
+of the "map" SQL table. Values for the transformation will be taken from there,
+not from Ensembl if these enstries are existing.
+
+The UniSTS database has performed its own mapping of markers to Ensembl
+that features many chromosomal locations that Ensembl itself did not manage
+to identify. Please investigate.
+
 =head1 AUTHORS
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
