@@ -292,7 +292,8 @@ if (empty($submitted)) {
 
 		$where=FALSE;
 		
-		$query  = "select marker, chr, bp, Mbp, cmorgan_rqtl, cmorgan_ensembl ";
+		#$query  = "select marker, chr, bp, Mbp, cmorgan_rqtl, cmorgan_ensembl ";
+		$query  = "select * ";
 		$query	.= " from map ";
 		$where = "WHERE";
 
