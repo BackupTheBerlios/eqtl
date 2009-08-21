@@ -24,7 +24,29 @@ the conversion between Morgan and bp units.
 
 =over 4
 
-=item 
+=item markerid
+
+Marker(s) to be retrieved
+
+=item chrlist
+
+Chromosomes of interest
+
+=item cMminRqtl
+
+minimal value for centi Morgan returned by R/qtl
+
+=item cMmaxRqtl
+
+maximal value for centi Morgan returned by R/qtl
+
+=item cMmin
+
+minimal value for centi Morgan returned by Ensembl
+
+=item cMmax
+
+maximal value for centi Morgan returned by Ensembl
 
 =back
 
