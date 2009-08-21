@@ -1,0 +1,190 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+trait_chip_upload.pl - transform chip details into SQL statements
+
+=head1 SYNOPSIS
+
+trait_upload.pl filename | mysql -h ... -u ... database
+
+=head1 DESCRIPTION
+
+This script prepares a completely new table, based on the headers
+of a tab separated file. The name of the table is set to
+"TRAITSDETAILSCHIPDATA".
+
+The script dumps SQL statements that can be change manually to adjust
+the defaults settings or be directly forwarded into a MySQL shell.
+This script is thought to be executed only once. Upon its invocation,
+additional tools are likely to be invoked to transfer the uploaded data
+to the traits table.
+
+If the trait table is redundant with TRAITSDETAILSCHIPDATA, then please
+(for the overall simplicity of the system) allow for some degree of
+redundancy and copy over the values as follows:
+
+  UPDATE trait
+  SET gene_name = (
+    SELECT a.Symbol
+    FROM TRAITSDETAILSCHIPDATA as a
+    WHERE trait.trait_id = a.ProbeID
+    LIMIT 1
+  );
+
+with LIMIT 1 not being required, in theory, since trait_id should be a primary
+key both in TRAITSDETAILSCHIPDATA and in trait.
+
+=head1 OPTIONS
+
+=over 4
+
+=item primarykey <string>
+
+For updates, rather than the complete creation of the initial table, you need to specify the key with the unique attribute.
+
+=item dbname <string>
+
+The name of the database to be created.
+
+=item update
+
+Set if the values should be updated, not freshly prepared.
+
+=item intpos
+
+Comma separated list of positions (first==1) of numerical values that should not be quoted in the insert statement.
+
+=item remove-quotes
+
+=item help
+
+=item man
+
+=back
+
+
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
+
+=cut
+
+use strict;
+
+use Getopt::Long;
+use Pod::Usage;
+
+my $update=0;
+my $primarykey=undef;
+my $dbname = "TRAITSDETAILSCHIPDATA";
+my $help=0;
+my $man=0;
+my $removeQuotes=0;
+my $intposStr="";
+
+my %options=(
+	"primarykey:s"  => \$primarykey,
+	"dbname:s"      => \$dbname,
+	update          => \$update,
+	"remove-quotes" => \$removeQuotes,
+	"intpos:i"      => \$intposStr,
+	help            => \$help,
+	man             => \$man
+);
+
+GetOptions(%options) or die "Could not parse options: $@\n";
+
+pod2usage(-verbose => 1) if $help;
+pod2usage(-verbose => 2) if $man;
+
+die "Need to define primary key when running update.\n" if !defined($primarykey) and $update;
+
+my @header;
+my $indexOfPrimaryKey=-1;
+
+$primarykey =~ s/\s//g if defined($primarykey);
+
+my @intpos;
+foreach my $i (split(/\s*,\s*/,$intposStr)) {
+	my $v=$i+0;
+	die "The position specified as '$i' and transformed to numerical value '$v' is not a valid position.\n" if $v<=0;
+	push @intpos,$v;
+}
+
+while(<>) {
+	chomp;
+	s/["']//g if $removeQuotes;
+	my @cols=split(/\t/,$_);
+
+	if (-1 == $#header) {
+		foreach my $c (@cols) {
+			$c =~ s/\s//g;
+			push @header,$c;
+		}
+		print "CREATE TABLE TRAITSDETAILSCHIPDATA (\n" unless $update;
+		my $index=0;
+		foreach my $h (@header) {
+			my $t="varchar(200)";
+			unless (0 == $index) {
+				print ",\n" unless $update;
+			}
+			foreach my $v (@intpos) {
+				if ($index == $v-1) {
+					$t="int";
+					last;
+				}
+			}
+			print "  $h $t" unless $update;
+
+			if (defined($primarykey)) {
+				if ("$primarykey" eq "$h") {
+					$indexOfPrimaryKey=$index;
+					print STDERR "Found primarykey among header attibutes.\n";
+				}
+			}
+			$index++;
+		}
+		if (defined($primarykey)) {
+			die "Primary key specified as option ('$primarykey') but not found as one of the headers:\n   '".join("'\n   '",@header)."'\n" unless $indexOfPrimaryKey > -1;
+			unless (0 == $index) {
+				print ",\n" unless $update;
+			}
+			print "  PRIMARY KEY ($primarykey)" unless $update;
+		}
+		print "\n);\n";
+		print "\n";
+
+	}
+	else {
+		my @valsToPlot;
+		my $pos=0;
+		foreach my $c (@cols) {
+			$pos++;
+			my $quoteme=1;
+			foreach my $v (@intpos) {
+				if ($pos == $v) {
+					$quoteme=0;
+					last;
+				}
+			}
+			if ($quoteme) {
+				push @valsToPlot,"'$c'";
+			}
+			else {
+				push @valsToPlot,"$c";
+			}
+		}
+		if ($update) {
+			print "UPDATE $dbname VALUES (".join(",",@valsToPlot).") WHERE $primarykey='".$cols[$indexOfPrimaryKey]."';\n";
+		}
+		else {
+			print "INSERT INTO $dbname VALUES (".join(",",@valsToPlot).");\n";
+		}
+	}
+}
