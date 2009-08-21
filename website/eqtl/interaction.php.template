@@ -294,7 +294,7 @@ set in the configuration.
 			$query .= ", B.Chr AS Chr_B, B.cMorgan AS cMorgan_B";
 		}
 		if( $needingBEA ) {
-			$from  .= " JOIN BEARatChip AS BEA ON Trait=BEA.probeset_id ";
+			$from  .= " JOIN TRAITSDETAILSCHIPDATA AS BEA ON Trait=BEA.probeset_id ";
 			$query .= ", BEA.seqname AS Trait_Chr, BEA.strand AS Trait_band, BEA.start AS Trait_start, BEA.entrez_gene_ID, BEA.mrna_assignments, BEA.gene_assignment, BEA.first_symbol, BEA.crosshyb_type AS cType, BEA.first_name AS Definition, BEA.ProbeSequence";
 		}
 		$query .= ",li.qlod_full, li.qlod_fv1, li.qlod_int, li.qlod_add, li.qlod_av1, cis" .  $from;
@@ -320,11 +320,11 @@ set in the configuration.
 // 		$query .= " FROM locusInteraction  AS li "
 // 			. " JOIN locus AS A ON (A=A.Name) "
 // 			. " JOIN locus AS B ON (B=B.Name) "
-// 			. " JOIN BEARatChip AS c ON Trait=c.probeset_id "
+// 			. " JOIN TRAITSDETAILSCHIPDATA AS c ON Trait=c.probeset_id "
 // 			;
 // 
 // // 		if (!(empty($show_GID)&&empty($show_ProbeSequence)&&empty($show_Description)&&empty($show_Transcript)&&empty($show_Symbol)&&empty($show_gene_assignment))) {
-// // 			$query .= " JOIN BEARatChip AS c ON Trait=c.probeset_id ";
+// // 			$query .= " JOIN TRAITSDETAILSCHIPDATA AS c ON Trait=c.probeset_id ";
 // // 		}
 
 		$needingMart=!empty($show_LocusOfGene);

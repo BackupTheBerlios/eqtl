@@ -424,7 +424,7 @@ ENDOFDOCUMENTATION
 
 		if (!(empty($show_LocusOfGene) and empty($show_Chromosome) and empty($show_unigene) and empty($show_swissprot_ID)
 		  and empty($show_gene_assignment) and empty($show_first_symbol) and empty($show_Definition) and empty($show_ProbeSequence)  )) {
-			$query .= " left join BEARatChip as c on Trait=c.probeset_id ";
+			$query .= " left join TRAITSDETAILSCHIPDATA as c on Trait=c.probeset_id ";
 		}
 
 		$needingMart=!empty($show_LocusOfGene);
