@@ -453,6 +453,7 @@ if (empty($submitted)) {
 								}
 							}
 							break;
+
 						case "bp":
 							if (!isset($l)||""==$l) {
 								echo "<td>&nbsp;</td>";
@@ -469,6 +470,24 @@ if (empty($submitted)) {
 							}
 							echo "</td>";
 							break;
+
+						case "Mbp":
+							echo "<td>";
+							if (!empty($l)) {
+								echo "$l";
+							}
+							else if (!empty($line["bp"])) {
+								echo round($line["bp"]/1000/1000,1);
+							}
+							elseif ($funcConversionExists) {
+								echo round(cM2bp($line["chr"],$line["cmorgan_rqtl"])/1000/1000,1);
+							}
+							else {
+								echo "&nbsp;";
+							}
+							echo "</td>";
+							break;
+
 						default:
 							if (!isset($l)||""==$l) echo "<td>&nbsp;</td>";
 							else echo "<td>$l</td>";
