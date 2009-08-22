@@ -92,11 +92,11 @@ ENDOFDOCUMENTATION
 	$err=array();
 	$conditionList=array(
 		"Equal Chromosomes" => array(
-			"constraint"=>"seqname = Chromosome",
+			"constraint"=>"trait.chromosome = qtl.Chromosome",
 			"description"=>"The QTL and the gene it controls are on the same chromosome"
 		),
 		"Unequal Chromosomes" => array(
-			"constraint"=>"seqname != Chromosome",
+			"constraint"=>"trait.seqname != qtl.Chromosome",
 			"description"=>"The QTL and the gene it controls are on different chromosomes"
 		),
 		"Within classical QTL" => array(
@@ -135,9 +135,8 @@ ENDOFDOCUMENTATION
 		"LOD"=>1,"LODdiff"=>1,"Quantile"=>1,
 		"Covariates"=>1,
 		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>1, "cMorgan_Max"=>1,
-		"Gid"=>0, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1,
-		"Definition"=>1, "ProbeSequence"=>0,
-		"name"=>1, "mean"=>1, "sd"=>1, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1, "Description"=>1, "ProbeSequence"=>0
+		"Gid"=>0, "gene_name"=>1,
+		"name"=>1, "mean"=>1, "sd"=>1 
 	);
 			
 
@@ -356,19 +355,12 @@ ENDOFDOCUMENTATION
 			}
 			#, l.Name as lName, 
 			#. ", l.Chr, l.cMorgan "
-			$query .= ", Chromosome"
-				. ", cMorgan_Peak, cMorgan_Min, cMorgan_Max"
+			$query .= ", qtl.Chromosome"
+				. ", qtl.cMorgan_Peak, qtl.cMorgan_Min, qtl.cMorgan_Max"
 			;
-			$query .= ", Quantile"
-				. ", (LOD-Quantile) as LODdiff ";
+			$query .= ", qtl.Quantile"
+				. ", (qtl.LOD-qtl.Quantile) as LODdiff ";
 
-			if (!empty($show_unigene)) {
-				$query .= ", unigene";
-			}
-			
-			if (!empty($show_swissprot_ID)) {
-				$query .= ", swissprot_ID";
-			}
 			
 			if (!empty($show_gene_assignment)) {
 				$query .= ", gene_assignment";
@@ -383,7 +375,8 @@ ENDOFDOCUMENTATION
 			}
 
 			if (!empty($show_LocusOfGene)) {
-				$query .= ", seqname as chr_name, strand"
+				$query .= ", trait.chromosome as chr_name"
+				    # . ", strand"
 					. ", start as gene_chrom_start,stop as gene_chrom_end";
 			}
 
@@ -422,9 +415,12 @@ ENDOFDOCUMENTATION
 		# These extra joins are not needed for every kind of query, some optimisation
 		# would help to speed things up!
 
-		if (!(empty($show_LocusOfGene) and empty($show_Chromosome) and empty($show_unigene) and empty($show_swissprot_ID)
-		  and empty($show_gene_assignment) and empty($show_first_symbol) and empty($show_Definition) and empty($show_ProbeSequence)  )) {
-			$query .= " left join TRAITSDETAILSCHIPDATA as c on Trait=c.probeset_id ";
+		if (!(empty($show_LocusOfGene) and empty($show_Chromosome)
+			and empty($MeanMin) and empty($MeanMax)
+			and empty($SdMin) and empty($SdMax) and empty($show_ExpressionOfGene)
+			and empty($show_gene_assignment) ))
+		{
+			$query .= " join trait on Trait=trait.trait_id ";
 		}
 
 		$needingMart=!empty($show_LocusOfGene);
@@ -432,10 +428,6 @@ ENDOFDOCUMENTATION
 			$needingMart=TRUE;
 		}
 		$needingMart=FALSE;
-
-		if (!(empty($MeanMin) and empty($MeanMax) and empty($SdMin) and empty($SdMax) and empty($show_ExpressionOfGene))) {
-			$query .= " join trait on qtl.Trait=trait.trait_id ";
-		}
 
 		if ($needingMart) {
 		        $query .= "left join ensembl_mart_${ensemblversion}";
@@ -891,10 +883,14 @@ ENDOFDOCUMENTATION
 						echo "<th class=c><small>$n</small></th>";
 						if ("Trait"==$n) {
 							if(!empty($show_LocusOfGene) and !empty($show_ExpressionOfGene)) {
-								echo "<th class=c colspan=5><small>Trait<br>chr,strand,start,mean,sd</small></th>";
+								echo "<th class=c colspan=4><small>Trait<br>chr"
+									#.",strand"
+									.",start,mean,sd</small></th>";
 							}
 							else if(!empty($show_LocusOfGene)) {
-								echo "<th class=c colspan=3><small>Trait<br>chr,strand,start</small></th>";
+								echo "<th class=c colspan=2><small>Trait<br>chr"
+								#.",strand"
+								.",start</small></th>";
 							}
 							else if(!empty($show_ExpressionOfGene)) {
 								echo "<th class=c colspan=2><small>Trait<br>mean,sd</small></th>";
@@ -924,7 +920,7 @@ ENDOFDOCUMENTATION
 							."]</td>";
 							if (!empty($show_LocusOfGene)) {
 								echo "<td class=small>".$line["chr_name"]."</td>";
-								echo "<td class=small>".$line["strand"]."</td>";
+								#echo "<td class=small>".$line["strand"]."</td>";
 								echo "<td class=small>"
 									.$line["gene_chrom_start"]."</td>";
 							}
