@@ -46,16 +46,13 @@ set in the configuration.
 	);
 
 	$a=array(
-		"LocusOfGene"=>1, "Trait"=>1, "li_type" => 1, "Name_A"=>1, "Chr_A"=>1, "cMorgan_A"=>1, "Name_B"=>1, "Chr_B"=>1, "cMorgan_B"=>1, "lod_full"=>1, "qlod_full"=>1,"unigene"=>0, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1, "Definition"=>1, "ProbeSequence"=>0,
-		"Analysis"=>0,"Covariates"=>0,
-		"lod_full"=>0,"lod_fv1"=>0,"lod_fv1"=>0,"lod_int"=>0,"lod_add"=>0,"lod_av1"=>0,
+		"LocusOfGene"=>1, "Trait"=>1, "li_type" => 1, "Name_A"=>1, "Chr_A"=>1, "cMorgan_A"=>1, "Name_B"=>1, "Chr_B"=>1, "cMorgan_B"=>1,
+		"gene_name"=>1, "Covariates"=>1,
+		"lod_full"=>1,"lod_fv1"=>0,"lod_fv1"=>0,"lod_int"=>0,"lod_add"=>0,"lod_av1"=>0,
 		"pvalue_full"=>0,"pvalue_fv1"=>0,"pvalue_int"=>0,"pvalue_add"=>0,"pvalue_av1"=>0,
-		"qlod_full"=>0,"qlod_fv1"=>0,"qlod_int"=>0,"qlod_add"=>0,"qlod_av1"=>0,
+		"qlod_full"=>1,"qlod_fv1"=>0,"qlod_int"=>0,"qlod_add"=>0,"qlod_av1"=>0,
 		"cis"=>1
 	);
-
-	$bea_array = array( "unigene", "swissport_ID", "gene_assignment", "first_symbol", "Definition", "ProbeSequence", "Analysis", "Covariates" );
-	$locus_array = array( "Chr_", "cMorgan_" );
 
 	# Conversion of array keys to values to be checked as being parameter names
 	function prependShow($value) {
@@ -270,20 +267,14 @@ set in the configuration.
 		$query = "SELECT DISTINCT li.Trait,li.A AS Name_A, li.B AS Name_B, li.locComb AS li_type, li.lod_full, li.lod_fv1, li.lod_int, li.lod_add, li.lod_av1";
 		$needinglocusA=FALSE;
 		$needinglocusB=FALSE;
+
+		/*
 		foreach($locus_array as $x) {
 			$tmpA = "show_".$x."A";
 			$tmpB = "show_".$x."B";
 			if( !empty($$tmpA) ) $needinglocusA=TRUE;
 			if( !empty($$tmpB) ) $needinglocusB=TRUE;
 			if( $needingA && $needingB ) break;
-		}
-		$needingBEA=FALSE;
-		foreach($bea_array as $x) {
-			$tmp = "show_".$x;
-			if( !empty($$tmp) ){
-				$needingBEA=TRUE;
-				break;
-			}
 		}
 		if( $needinglocusA ) {
 			$from  .= " JOIN locus AS A ON (A=A.Name) ";
@@ -293,39 +284,15 @@ set in the configuration.
 			$from  .= " JOIN locus AS B ON (B=B.Name) ";
 			$query .= ", B.Chr AS Chr_B, B.cMorgan AS cMorgan_B";
 		}
-		if( $needingBEA ) {
-			$from  .= " JOIN TRAITSDETAILSCHIPDATA AS BEA ON Trait=BEA.probeset_id ";
-			$query .= ", BEA.seqname AS Trait_Chr, BEA.strand AS Trait_band, BEA.start AS Trait_start, BEA.entrez_gene_ID, BEA.mrna_assignments, BEA.gene_assignment, BEA.first_symbol, BEA.crosshyb_type AS cType, BEA.first_name AS Definition, BEA.ProbeSequence";
-		}
+		*/
+
+		$from  .= " JOIN trait ON Trait=trait.trait_id ";
+		$query .= ", trait.chromosome AS Trait_Chr"
+			#.", trait.strand AS Trait_band"
+			.", trait.start AS Trait_start"
+			.", trait.gene_name ";
+
 		$query .= ",li.qlod_full, li.qlod_fv1, li.qlod_int, li.qlod_add, li.qlod_av1, cis" .  $from;
-
-
-// 		$where=FALSE;
-// 		$query = "SELECT DISTINCT li.Trait, c.seqname AS Trait_Chr, c.strand AS Trait_band, c.start AS Trait_start, A.Name AS Name_A, B.Name AS Name_B, Analysis, covariates AS Covariates, A.Chr AS Chr_A, B.Chr AS Chr_B, A.cMorgan AS cMorgan_A, B.cMorgan AS cMorgan_B, c.unigene, li.lod_full, li.lod_fv1, li.lod_int, li.lod_add, li.lod_av1";
-// 		if (FALSE) {
-// 			$query .= ",A.No AS AlNo,A.Name AS AlName,A.Chr AS AlChr,A.cMorgan AS AlcMorgan"
-// 			.         ",B.No AS BlNo,B.Name AS BlName,B.Chr AS BlChr,B.cMorgan AS BlcMorgan";
-// 		}
-// 		$query .= ",li.qlod_full, li.qlod_fv1, li.qlod_int, li.qlod_add, li.qlod_av1, cis"
-// 		;
-// 		
-// // 		if (!(empty($show_GID)&&empty($show_ProbeSequence)&&empty($show_Description)&&empty($show_Transcript)&&empty($show_Symbol)&&empty($show_Accession))) {
-// 		if(true){
-// // 			$query .= ",c.mrna_assignments,c.gene_assignment,c.first_symbol,c.Definition,c.ProbeSequence";
-// 			$query .= ",c.entrez_gene_ID,c.mrna_assignments,c.gene_assignment,c.first_symbol,c.crosshyb_type AS cType,c.first_name AS Definition, c.ProbeSequence";
-// 		}
-// // 		if (!empty($show_LocusOfGene)) {
-// // 		        $query .= ", b.chr_name,b.band,b.gene_chrom_start,b.gene_chrom_end ";
-// // 		}
-// 		$query .= " FROM locusInteraction  AS li "
-// 			. " JOIN locus AS A ON (A=A.Name) "
-// 			. " JOIN locus AS B ON (B=B.Name) "
-// 			. " JOIN TRAITSDETAILSCHIPDATA AS c ON Trait=c.probeset_id "
-// 			;
-// 
-// // 		if (!(empty($show_GID)&&empty($show_ProbeSequence)&&empty($show_Description)&&empty($show_Transcript)&&empty($show_Symbol)&&empty($show_gene_assignment))) {
-// // 			$query .= " JOIN TRAITSDETAILSCHIPDATA AS c ON Trait=c.probeset_id ";
-// // 		}
 
 		$needingMart=!empty($show_LocusOfGene);
 		if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
@@ -524,7 +491,7 @@ set in the configuration.
 					}
 				}
 				echo "<th colspan=2 class=c>Public QTLs</th>";
-				echo "<th rowspan=2 class=c>Plots</th>\n";
+				if ($show_Plots) echo "<th rowspan=2 class=c>Plots</th>\n";
 				#echo "<th rowspan=2 class=c>Images</th>\n";
 				echo "<tr><th bgcolor=orange>A</th><th bgcolor=orange>B</th></tr>";
 				echo "</tr></thead>\n<tbody>\n";
@@ -665,11 +632,20 @@ set in the configuration.
 						case "LODdiff":
 							echo "<td>".round($l,4)."</td>";
 							break;
-						case "gene_assignment":
+						case "ensembl_stable_gene_id":
+							echo "<td><a href=\"http://www.ensembl.org/$ensemblorganism/Gene/Summary?g=$l\">$l</a></td>";
+							break;
+						case "gene_name":
+							echo "<td class=small>";
 							$b=explode(".",$l);
-							echo "<td class=small><a href=\"http://www.ensembl.org/$ensemblorganism/textview?species=$ensemblorganism&idx=Gene&q="
-								.$b[0]
-								."\">$l</a></td>";
+							if ($ensemblversion>47) {
+								echo "<a href=\"http://www.ensembl.org/$ensemblorganism/Search/Summary?species=Mus_musculus;idx=;q="
+							}
+							else {
+								echo "<a href=\"http://www.ensembl.org/$ensemblorganism/textview?species=$ensemblorganism&idx=Gene&q="
+							}
+							echo $b[0];
+							echo "\">$l</a></td>";
 							break;
 						case "covariates":
 							if (empty($l)) $l="none";
