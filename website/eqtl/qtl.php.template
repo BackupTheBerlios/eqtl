@@ -699,7 +699,6 @@ ENDOFDOCUMENTATION
 
 		$traits=array();
 		if (!empty($onlyNumbers) and isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition)) {
-		#if (!empty($onlyNumbers) and isset($condition) and is_array($condition)) {
 		    $rowno=0;
 		    $chr_count=array();
 		    $qtls = get_public_qtls($linkLocal);
@@ -1057,11 +1056,9 @@ ENDOFDOCUMENTATION
 		    else {
 			$traits_unique = array_unique($traits);
 			echo "<p>$rowno record".($rowno>1?"s":"")." found matching criteria for ".count($traits_unique)." traits.</p>\n";
-			 $linkgprofiler="http://biit.cs.ut.ee/gprofiler/index.cgi?query=";
-                        foreach($traits_unique as $bla){
-                                $linkgprofiler.="$bla+";
-                        }
-                        $linkgprofiler.="&organism=rnorvegicus&significant=1&output=png";
+			$linkgprofiler  = "http://biit.cs.ut.ee/gprofiler/index.cgi?query=";
+			$linkgprofiler .= join("+",$traits_unique);
+                        $linkgprofiler .= "&organism=ENSEMBLSPECIESMARTLONG&significant=1&output=png";
                         echo "<a href= $linkgprofiler><center><H5>Show gProfile for genes of this group</H5></center></a>";
 
 			if (file_exists("func_expressionview.php")) {
