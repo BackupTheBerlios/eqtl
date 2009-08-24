@@ -132,10 +132,10 @@ ENDOFDOCUMENTATION
 
 	# fields offered to be optionally deselected from being presented as columns
 	$a=array("Trait"=>1, "Groups"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
-		"LOD"=>1,"LODdiff"=>1,"Quantile"=>1,
-		"Covariates"=>1,
+		"LOD"=>1,"LODdiff"=>1,"pvalue" => 1, "Quantile"=>1,
+		"covariates"=>1,
 		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>1, "cMorgan_Max"=>1,
-		"Gid"=>0, "gene_name"=>1,
+		"Gid"=>0, "gene_name"=>1, 
 		"name"=>1, "mean"=>1, "sd"=>1 
 	);
 			
@@ -249,7 +249,8 @@ ENDOFDOCUMENTATION
 			<tr><th class=r>Order by:</th><td colspan=3>
 						<select name=order>
 						<option value=Chromosome>Chromosome</option>
-						<option value="LOD DESC" selected>LOD score</option>
+						<option value="pvalue" selected>LOD score</option>
+						<option value="LOD DESC">LOD score</option>
 						<option value="LODdiff DESC">LOD-Quantile diff</option>
 						<option value=cMorgan_Peak>cMorgan</option>
 						<option value=Sex>Sex-dependency</option>
@@ -346,9 +347,9 @@ ENDOFDOCUMENTATION
 		else {
 			#$query .= "DISTINCT ";
 			$query .= "Trait, Locus, LOD";
-			if (!empty($show_Covariates)) {
-				$query .= ", covariates";
-			}
+			
+			$query .= ", covariates"; # we always need to know the covariates
+
 			if (!empty($show_Groups)) {
 				$query .= ", qtl_id";
 			}
@@ -361,16 +362,12 @@ ENDOFDOCUMENTATION
 				. ", (qtl.LOD-qtl.Quantile) as LODdiff ";
 
 			
-			if (!empty($show_gene_assignment)) {
-				$query .= ", gene_assignment";
+			if (!empty($show_gene_name)) {
+				$query .= ", gene_name";
 			}
 
-			if (!empty($show_first_symbol)) {
-				$query .= ", first_symbol, first_name";
-			}
-			
-			if (!empty($show_ProbeSequence)) {
-				$query .= ", ProbeSequence";
+			if (!empty($show_gene_name)) {
+				$query .= ", pvalue";
 			}
 
 			if (!empty($show_LocusOfGene)) {
@@ -698,6 +695,7 @@ ENDOFDOCUMENTATION
 		}
 
 		$traits=array();
+		$genes = array();
 		if (!empty($onlyNumbers) and isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition)) {
 		    $rowno=0;
 		    $chr_count=array();
@@ -946,16 +944,13 @@ ENDOFDOCUMENTATION
 						case "cMorgan_Max":
 							echo "<td class=small>".round($cMmax,4)."</td>";
 							break;
-						case "ProbeSequence":
-							echo "<small><small>$l</small></small>";
-							break;
 						case "LOD":
 							echo "<td class=small>".round($l,4)."</td>";
 							break;
 						case "LODdiff":
 							echo "<td class=small>".round($l,4)."</td>";
 							break;
-						case "gene_assignment":
+						case "gene_name":
 							$b=explode(".",$l);
 							echo "<td class=small><a href=\""
 								.gene2ensemblUrl($b[0],$ensemblorganism)
@@ -1056,10 +1051,11 @@ ENDOFDOCUMENTATION
 		    else {
 			$traits_unique = array_unique($traits);
 			echo "<p>$rowno record".($rowno>1?"s":"")." found matching criteria for ".count($traits_unique)." traits.</p>\n";
-			$linkgprofiler  = "http://biit.cs.ut.ee/gprofiler/index.cgi?query=";
-			$linkgprofiler .= join("+",$traits_unique);
-                        $linkgprofiler .= "&organism=ENSEMBLSPECIESMARTLONG&significant=1&output=png";
-                        echo "<a href= $linkgprofiler><center><H5>Show gProfile for genes of this group</H5></center></a>";
+
+		    	if (file_exists("func_gprofiler.php")) {
+				require_once("func_gprofiler.php");
+				gprofilerlink($traits_unique);
+			}
 
 			if (file_exists("func_expressionview.php")) {
 				expressionviewlink("$ensemblorganism");
