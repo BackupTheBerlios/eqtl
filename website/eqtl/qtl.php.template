@@ -332,7 +332,6 @@ ENDOFDOCUMENTATION
 		$where="WHERE ";
 		$query = "SELECT ";
 		if ($onlyNumbers and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
-		#if ($onlyNumbers and !(isset($condition) and is_array($condition))) {
 			if (!empty($onlyNumbersGrouped) and !("totals"==$onlyNumbersGrouped)) {
 				if ("Chromosome"=="$onlyNumbersGrouped" or "seqname" == "$onlyNumbersGrouped") {
 					$query .= "$onlyNumbersGrouped,";
