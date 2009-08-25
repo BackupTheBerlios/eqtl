@@ -6,7 +6,7 @@ trait_upload.pl - transform traits into SQL statements
 
 =head1 SYNOPSIS
 
-trait_upload.pl filename | mysql -h ... -u ... database
+trait_upload.pl filename | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
 
 =head1 DESCRIPTION
 

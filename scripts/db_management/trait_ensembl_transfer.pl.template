@@ -10,7 +10,7 @@ trait_ensembl_transfer.pl - retrieve info from Ensembl and update local trait ta
 
 trait_ensembl_transfer.pl (--help|--man)
 
-trait_ensembl_transfer.pl | mysql -h ... -u ... database
+trait_ensembl_transfer.pl | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
 
 =head1 DESCRIPTION
 
