@@ -156,7 +156,7 @@ function physicalMarkerPosition($marker) {
 
 	$queryEnsembl = "select ";
 	if ($ensemblversion>=48) {
-		$queryEnsembl .= "name_1033 as marker, 'unknown' as chr, seq_region_start_1031 as chr_start, seq_region_end_1031 as chr_end";
+		$queryEnsembl .= "name_1033 as marker, name_1059 as chr, seq_region_start_1031 as chr_start, seq_region_end_1031 as chr_end";
 	}
 	else if ($ensemblversion>19) {
 		$queryEnsembl .= "glook_marker_start as marker,olook_chr_name as chr,filt_chrom_start as chr_start,filt_chrom_end as chr_end";
