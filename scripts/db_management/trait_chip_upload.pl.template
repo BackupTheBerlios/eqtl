@@ -63,8 +63,6 @@ Comma separated list of positions (first==1) of numerical values that should not
 
 =back
 
-
-
 =head1 AUTHORS
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
