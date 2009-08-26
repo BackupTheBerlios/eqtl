@@ -49,7 +49,7 @@ set in the configuration.
 		"LocusOfGene"=>1, "Trait"=>1, "li_type" => 1, "Name_A"=>1, "Chr_A"=>1, "cMorgan_A"=>1, "Name_B"=>1, "Chr_B"=>1, "cMorgan_B"=>1,
 		"gene_name"=>1, "Covariates"=>1,
 		"lod_full"=>1,"lod_fv1"=>0,"lod_fv1"=>0,"lod_int"=>0,"lod_add"=>0,"lod_av1"=>0,
-		"pvalue_full"=>0,"pvalue_fv1"=>0,"pvalue_int"=>0,"pvalue_add"=>0,"pvalue_av1"=>0,
+		"pvalue_full"=>1,"pvalue_fv1"=>0,"pvalue_int"=>0,"pvalue_add"=>0,"pvalue_av1"=>0,
 		"qlod_full"=>1,"qlod_fv1"=>0,"qlod_int"=>0,"qlod_add"=>0,"qlod_av1"=>0,
 		"cis"=>1
 	);
@@ -639,10 +639,10 @@ set in the configuration.
 							echo "<td class=small>";
 							$b=explode(".",$l);
 							if ($ensemblversion>47) {
-								echo "<a href=\"http://www.ensembl.org/$ensemblorganism/Search/Summary?species=Mus_musculus;idx=;q="
+								echo "<a href=\"http://www.ensembl.org/$ensemblorganism/Search/Summary?species=Mus_musculus;idx=;q=";
 							}
 							else {
-								echo "<a href=\"http://www.ensembl.org/$ensemblorganism/textview?species=$ensemblorganism&idx=Gene&q="
+								echo "<a href=\"http://www.ensembl.org/$ensemblorganism/textview?species=$ensemblorganism&idx=Gene&q=";
 							}
 							echo $b[0];
 							echo "\">$l</a></td>";
