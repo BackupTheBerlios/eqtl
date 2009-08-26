@@ -68,7 +68,9 @@ my $dbhEnsembl = DBI->connect( "DBI:mysql:database=ensembl_mart_ENSEMBLVERSION;h
 my @r;                     
 
 my $queryTraitsGeneName_string    = "SELECT DISTINCT gene_name FROM trait";
-if ($unassignedOnly) $queryTraitsGeneName_string .= " WHERE chromosome IS NULL or "" = chromosome";
+if ($unassignedOnly) {
+	$queryTraitsGeneName_string .= " WHERE chromosome IS NULL or '' = chromosome";
+}
 my $queryTraitsGeneName_statement = $dbhEqtl->prepare($queryTraitsGeneName_string) or die $DBI::errstr;
 
 my $queryEnsemblMartForGeneName_string    = "SELECT"
@@ -96,6 +98,7 @@ while(@r = $queryTraitsGeneName_statement->fetchrow_array()) {
 		$s .= ", stop=".$$m{"stop"}."";
 		$s .= ", strand=".$$m{"strand"}."";
 		$s .= ", band='".$$m{"band"}."'";
+		$s .= ", ensembl_stable_gene_id='".$$m{"ensembl_stable_gene_id"}."'";
 		$s .=  " WHERE gene_name='$gene_name';\n";
 		print $s;
 	}
