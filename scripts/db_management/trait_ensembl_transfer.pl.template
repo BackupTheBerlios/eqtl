@@ -10,7 +10,7 @@ trait_ensembl_transfer.pl - retrieve info from Ensembl and update local trait ta
 
 trait_ensembl_transfer.pl (--help|--man)
 
-trait_ensembl_transfer.pl | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+trait_ensembl_transfer.pl [--unassigned-only] | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
 
 =head1 DESCRIPTION
 
@@ -24,6 +24,9 @@ This script iterates over all entries in the trait table and performs a
 single query for every gene.  In cases that there are multiple entries
 for a single gene, the first entry will be taken and all be printed to
 stdout for manual inspection.
+
+With the --unassigned-only entry set, the selection of trait will be constrained on this with
+an empty entry for the chromosome.
 
 =head1 AUTHORS
 
@@ -43,11 +46,12 @@ use DBI;
 use Getopt::Long;
 use Pod::Usage;
 
-my ($help,$man) = (0,0);
+my ($help,$man,$unassignedOnly) = (0,0,0);
 
 my %options=(
-	help            => \$help,
-	man             => \$man
+	help              => \$help,
+	man               => \$man,
+	"unassigned-only" => \$unassignedOnly
 );
 
 GetOptions(%options) or die "Could not parse options: $@\n";
@@ -64,6 +68,7 @@ my $dbhEnsembl = DBI->connect( "DBI:mysql:database=ensembl_mart_ENSEMBLVERSION;h
 my @r;                     
 
 my $queryTraitsGeneName_string    = "SELECT DISTINCT gene_name FROM trait";
+if ($unassignedOnly) $queryTraitsGeneName_string .= " WHERE chromosome IS NULL or "" = chromosome";
 my $queryTraitsGeneName_statement = $dbhEqtl->prepare($queryTraitsGeneName_string) or die $DBI::errstr;
 
 my $queryEnsemblMartForGeneName_string    = "SELECT"
