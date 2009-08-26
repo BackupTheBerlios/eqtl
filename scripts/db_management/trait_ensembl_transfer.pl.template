@@ -69,7 +69,7 @@ my $queryTraitsGeneName_statement = $dbhEqtl->prepare($queryTraitsGeneName_strin
 my $queryEnsemblMartForGeneName_string    = "SELECT"
 	. " name_1059 AS chromosome,"
 	. " seq_region_start_1020 AS start,"
-	. " seq_region_end_1020 AS end,"
+	. " seq_region_end_1020 AS stop,"
 	. " seq_region_strand_1020 AS strand, "
 	. " band_1027 AS band, "
 	. " stable_id_1023 AS ensembl_stable_gene_id, "
@@ -87,9 +87,9 @@ while(@r = $queryTraitsGeneName_statement->fetchrow_array()) {
 	while(my $m = $queryEnsemblMartForGeneName_statement->fetchrow_hashref()) {
 		my $s = "UPDATE trait SET";
 		$s .=  " chromosome='".$$m{"chromosome"}."'";
-		$s .= ", start='".$$m{"start"}."'";
-		$s .= ", end='".$$m{"end"}."'";
-		$s .= ", strand='".$$m{"strand"}."'";
+		$s .= ", start=".$$m{"start"}."";
+		$s .= ", stop=".$$m{"stop"}."";
+		$s .= ", strand=".$$m{"strand"}."";
 		$s .= ", band='".$$m{"band"}."'";
 		$s .=  " WHERE gene_name='$gene_name';\n";
 		print $s;
