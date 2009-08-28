@@ -282,7 +282,8 @@ sub perform {
 	my $version;
 
 	if ($dryrun) {
-		print "Testing if job exists.\n" if $verbose;
+		print "Testing if job '$filename' exists - set to always work.\n" if $verbose;
+		$cnt=1; 
 	}
 	else {
 		if ( ! $sth_jobexists->execute("$filename")) {
