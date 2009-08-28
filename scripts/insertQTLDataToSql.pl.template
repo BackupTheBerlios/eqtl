@@ -8,7 +8,7 @@ insertQTLDataToSql.pl	- low level upload of single result file
 
 =head1 SYNOPSIS
 
-insertQTLDataToSql.pl [ --verbose ] [ --force ] --filename <name of file with results>
+insertQTLDataToSql.pl [ --verbose | --dryrun | --force ] --filename <name of file with results>
 
 insertQTLDataToSql.pl --help
 
