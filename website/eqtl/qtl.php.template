@@ -512,7 +512,7 @@ ENDOFDOCUMENTATION
 		}
 		if (!empty($chrlist)) {
 			if ("WHERE " != $where) $where .= " AND ";
-			$where .= " Chromosome";
+			$where .= " qtl.Chromosome";
 			$where .= " in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
 		}
 
