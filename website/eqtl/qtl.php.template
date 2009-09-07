@@ -951,6 +951,7 @@ ENDOFDOCUMENTATION
 							echo "<td class=small>".round($l,4)."</td>";
 							break;
 						case "gene_name":
+							array_push($genes,$l);
 							$b=explode(".",$l);
 							echo "<td class=small><a href=\""
 								.gene2ensemblUrl($b[0],$ensemblorganism)
@@ -1050,11 +1051,12 @@ ENDOFDOCUMENTATION
 		    }
 		    else {
 			$traits_unique = array_unique($traits);
+			$genes_unique = array_unique($genes);
 			echo "<p>$rowno record".($rowno>1?"s":"")." found matching criteria for ".count($traits_unique)." traits.</p>\n";
 
 		    	if (file_exists("func_gprofiler.php")) {
 				require_once("func_gprofiler.php");
-				gprofilerlink($traits_unique);
+				gprofilerlink($traits_unique,$genes_unique);
 			}
 
 			if (file_exists("func_expressionview.php")) {
