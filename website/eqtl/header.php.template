@@ -86,7 +86,7 @@ The documentation does not end here but is dispersed throughout the file.
 */
 
     function show_large_header($title,$show_html_header_flag=TRUE,$preamble="") {
-    	global $urlLogoLeft,$urlLogoRight,$urlLogoLeftLarge,$urlLogoRightLarge;
+    	global $urlLogoLeft,$urlLogoRight,$urlLogoLeftLarge,$urlLogoRightLarge,$urlLogoLeft2;
 	if ($show_html_header_flag) {
 		@show_html_header($title);
 	}
