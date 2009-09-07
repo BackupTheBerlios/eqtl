@@ -13,16 +13,17 @@ the help.
 The doc subdirectory collects the information from the
 source code and prepares the following manuals:
 
- * GeneralInformation.ps - an overview of the many components
-                           of the eQTL database.
+ * general_information.pdf - an overview of the many components
+                             of the eQTL database.
                            
- * eqtl-php-interface.ps - a description of the purpose
-                           of several dynamically prepared web pages
-                           that present the content of the databases
+ * webpages_phpscripts.pdf - man pages of several dynamically prepared web pages
+                             that present the content of the databases
 
- * eqtl-scripts.ps       - a description of several scripts that
-                           contribute by performing the computation
-                           or to fill the database
+ * data_preparation_scripts.pdf - man pages of scripts that
+                             contribute to performing the computation
+                             or that fill the database
 
-                      
+ * data_handling.pdf       - details on how to prepare and run jobs,
+                             collection of results,
+                             upload to database
 
