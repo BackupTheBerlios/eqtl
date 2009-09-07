@@ -236,13 +236,7 @@ ENDOFDOCUMENTATION
 			$query .= ", trait.$s";
 			$query .= " AS trait_$s";
 		}
-		$query .= ', TRAITSDETAILSCHIPDATA.* ';
-		$from   = 'FROM trait LEFT JOIN TRAITSDETAILSCHIPDATA ON trait_id=TRAITSDETAILSCHIPPRIMARYID ';
-		$where  = 'WHERE ';
 		
-
-		$joinedTrait = false;
-
 		foreach ($a as $n=>$v) {
 			$showname="show_$n";
 			#echo "$showname<br>\n";
@@ -290,6 +284,10 @@ ENDOFDOCUMENTATION
 				}
 			}
 		}
+
+		$query .= ', details.* ';
+		$from   = 'FROM trait LEFT JOIN TRAITSDETAILSCHIPDATA AS details ON trait_id=TRAITSDETAILSCHIPPRIMARYID ';
+		$where  = 'WHERE ';
 
 		if (!empty($phen_neg_cor_min) or !empty($phen_neg_cor_max)
 		 or !empty($phen_pos_cor_min) or !empty($phen_pos_cor_max))
@@ -398,8 +396,7 @@ ENDOFDOCUMENTATION
 			$where .= " traits_neg_cor_most_rho <= ".$expr_neg_cor_max;
 		}
 
-		$query  = "SELECT $distinct " . $query;
-		$query .= " $from";
+		$query  = "SELECT $distinct $query $from ";
 		if( "WHERE " != $where ) {
 			$query .= " " . $where;
 		}
@@ -430,13 +427,15 @@ ENDOFDOCUMENTATION
 					$f="show_".$n;
 					if (!empty($$f)) {
 						switch($n) {
-						case "seqname": // shown together with 'start'
-						case "stop": // shown together with 'start'
+						case "trait_chromosome": // shown together with 'start'
+						#case "trait_band": // shown together with 'start'
+						case "trait_strand": // shown together with 'start'
+						case "trait_stop": // shown together with 'start'
 							continue; 
 							break;
 
-						case "start":
-							echo "<th><small>chr :<br>start - stop</small></th>";
+						case "trait_start":
+							echo "<th nowrap><small>chr (strand):<br>start - stop</small></th>";
 							break;
 
 						default:
@@ -448,6 +447,9 @@ ENDOFDOCUMENTATION
 					}
 					else if("traits_neg_cor"=="$n") {
 						echo "<th>negative correlation</th>\n";
+					}
+					else {
+						echo "<th>$n</th>";
 					}
 				}
 				if (!empty($show_phen_correlation)){
@@ -498,16 +500,25 @@ ENDOFDOCUMENTATION
 							."\">$l</a></td>";
 						break;
 
-					case "start":
+					case "trait_start":
 						echo "<td align=center>";
-						if (!empty($line["seqname"])) echo $line["seqname"] . " : ";
-						echo $line["start"];
-						if (!empty($line["stop"])) echo " - ".$line["stop"];
+						if (!empty($line["trait_chromosome"])) {
+							echo $line["trait_chromosome"];
+						}
+						if (!empty($line["trait_strand"])) {
+							echo " (".((1==$line["trait_strand"])?"+":"-").")";
+						}
+						echo " : ";
+						echo $line["trait_start"];
+						if (!empty($line["trait_stop"])) {
+							echo " - ".$line["trait_stop"];
+						}
 						echo "</td>";
 						break;
 
-					case "seqname":
-					case "stop":
+					case "trait_chromosome":
+					case "trait_strand":
+					case "trait_stop":
 						// dealt with in 'start'
 						break;
 
@@ -555,6 +566,9 @@ ENDOFDOCUMENTATION
 						if (9 < $tp) break;
 					}
 					echo "</td>\n";
+				}
+				else {
+					echo "<td>$l</td>\n";
 				}
 			}
 			if (!empty($show_phen_correlation)){
