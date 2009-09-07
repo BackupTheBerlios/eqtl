@@ -83,7 +83,7 @@ $mode = shift @A;
 pod2usage(-verbose => 1) if "--help" eq "$mode" or "-h" eq "$mode" or "help" eq "$mode";
 pod2usage(-verbose => 2) if "--man"  eq "$mode"                    or "man"  eq "$mode";
 
-my $dbh = DBI->connect( DATABASECON ) or die "Database connection not made: $DBI::errstr";
+my $dbh = DBI->connect( DATABASECON ) or die "Database connection to expression QTLs could not be established: $DBI::errstr";
 
 # variable containing a row
 my @r;

@@ -6,7 +6,7 @@ trait_upload.pl - transform traits into SQL statements
 
 =head1 SYNOPSIS
 
-trait_upload.pl filename
+trait_upload.pl filename | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
 
 =head1 DESCRIPTION
 
@@ -17,10 +17,16 @@ kinds of information about these traits available. This script is one
 example on how to upload that data.
 
 When using more common sources, e.g. a regular Affymetrix chip,
-one may think very differently about the traits table inn general. 
+one may think very differently about the traits table in general. 
 But still, one has the option to either trust data from Affymetrix themselves
 or use such that was derived from the Ensembl team. The result of that
 decision may be forwarded to this traits table.
+
+Once the primary keys of the expected records are all available,
+additional extra information is expected to be added at later stages.
+With names of genes/transcripts or the assignment of probesets to
+such being continously updated, one should consider the trait table
+to be of a transient nature.
 
 =head1 AUTHORS
 

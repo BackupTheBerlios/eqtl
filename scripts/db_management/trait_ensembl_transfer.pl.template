@@ -1,0 +1,106 @@
+#!/usr/bin/perl -w
+
+TEMPLATEWARNINGHASH
+
+=head1 NAME
+
+trait_ensembl_transfer.pl - retrieve info from Ensembl and update local trait table
+
+=head1 SYNOPSIS
+
+trait_ensembl_transfer.pl (--help|--man)
+
+trait_ensembl_transfer.pl [--unassigned-only] | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+
+=head1 DESCRIPTION
+
+This script uses information from the field gene_assignment to access
+Ensembl and retrieve information on the genes' chromosomal position
+and its stable ID. The database accessed is the Ensembl Mart.  It is
+possible to use a local mirror for this purpose, but the accession of
+the public version should be preferred.
+
+This script iterates over all entries in the trait table and performs a
+single query for every gene.  In cases that there are multiple entries
+for a single gene, the first entry will be taken and all be printed to
+stdout for manual inspection.
+
+With the --unassigned-only entry set, the selection of trait will be constrained on this with
+an empty entry for the chromosome.
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
+
+=cut
+
+TEMPLATEWARNINGHASH
+
+use strict;
+use Cwd;   
+use DBI;   
+use Getopt::Long;
+use Pod::Usage;
+
+my ($help,$man,$unassignedOnly) = (0,0,0);
+
+my %options=(
+	help              => \$help,
+	man               => \$man,
+	"unassigned-only" => \$unassignedOnly
+);
+
+GetOptions(%options) or die "Could not parse options: $@\n";
+
+pod2usage(-verbose => 1) if $help;
+pod2usage(-verbose => 2) if $man;
+
+my $dbhEqtl = DBI->connect( DATABASECON ) or die "Database connection to expression QTL data could not established: $DBI::errstr";
+
+my $dbhEnsembl = DBI->connect( "DBI:mysql:database=ensembl_mart_ENSEMBLVERSION;host=DATABASEHOSTMART:DATABASEPORTMART", "DATABASEENSEMBLUSER")
+	or die "Database connection to expression QTL data could not established: $DBI::errstr";
+
+# variable containing a row
+my @r;                     
+
+my $queryTraitsGeneName_string    = "SELECT DISTINCT gene_name FROM trait";
+if ($unassignedOnly) $queryTraitsGeneName_string .= " WHERE chromosome IS NULL or "" = chromosome";
+my $queryTraitsGeneName_statement = $dbhEqtl->prepare($queryTraitsGeneName_string) or die $DBI::errstr;
+
+my $queryEnsemblMartForGeneName_string    = "SELECT"
+	. " name_1059 AS chromosome,"
+	. " seq_region_start_1020 AS start,"
+	. " seq_region_end_1020 AS stop,"
+	. " seq_region_strand_1020 AS strand, "
+	. " band_1027 AS band, "
+	. " stable_id_1023 AS ensembl_stable_gene_id, "
+	. " description_408 AS description "
+#	. " stable_id_1066_clash AS stable_id " # transcript
+	. " FROM mmusculus_gene_ensembl__gene__main"
+	. " WHERE display_label_1074 = ? LIMIT 10;";
+my $queryEnsemblMartForGeneName_statement = $dbhEnsembl->prepare($queryEnsemblMartForGeneName_string) or die $DBI::errstr; 
+
+$queryTraitsGeneName_statement -> execute() or die $DBI::errstr;
+while(@r = $queryTraitsGeneName_statement->fetchrow_array()) {
+	my ($gene_name) = @r;
+	print STDERR $gene_name,"\n";
+	$queryEnsemblMartForGeneName_statement->execute($gene_name) or die $DBI::errstr;
+	while(my $m = $queryEnsemblMartForGeneName_statement->fetchrow_hashref()) {
+		my $s = "UPDATE trait SET";
+		$s .=  " chromosome='".$$m{"chromosome"}."'";
+		$s .= ", start=".$$m{"start"}."";
+		$s .= ", stop=".$$m{"stop"}."";
+		$s .= ", strand=".$$m{"strand"}."";
+		$s .= ", band='".$$m{"band"}."'";
+		$s .=  " WHERE gene_name='$gene_name';\n";
+		print $s;
+	}
+}
+
+1;
+
+

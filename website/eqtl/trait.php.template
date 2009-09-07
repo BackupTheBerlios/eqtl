@@ -221,7 +221,7 @@ ENDOFDOCUMENTATION
 		
 		$distinct = "";
 		$where  = 'WHERE ';
-		$from   = 'FROM BEARatChip ';
+		$from   = 'FROM TRAITSDETAILSCHIPDATA ';
 		$query  = "";
 		
 
@@ -272,7 +272,7 @@ ENDOFDOCUMENTATION
 				      or "start"=="$n" or "stop"=="$n")
 				{
 					if( !$joinedTrait ) {
-						$from .= " LEFT JOIN trait ON (trait.trait_id=BEARatChip.probeset_id) ";
+						$from .= " LEFT JOIN trait ON (trait.trait_id=TRAITSDETAILSCHIPDATA.probeset_id) ";
 						$joinedTrait = true;
 					}
 				}
@@ -316,7 +316,7 @@ ENDOFDOCUMENTATION
 		if (!empty($traits)) {
 			$traitsArray=preg_split("/[, \t\n]+/",$traits);
 			if ("WHERE " != $where) $where .= " AND ";
-			$where .= " BEARatChip.probeset_id IN ('".join("','",$traitsArray)."') ";
+			$where .= " TRAITSDETAILSCHIPDATA.probeset_id IN ('".join("','",$traitsArray)."') ";
 		}
 
 		if( !empty($MedianMin) ) {
