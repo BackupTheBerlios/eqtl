@@ -68,19 +68,19 @@ The following commands need to be executed as the superuser "root"
 or be prepended with the command "sudo", which itself might need
 to be installed, first.
 
-=item Install web server
+=item Install web server:
 
   apt-get install apache2
 
-=item add web server's PHP scripting capability
+=item Add web server's PHP scripting capability:
 
   apt-get install libapache-mod-php5
 
-=item allow PHP to access MySQL database
+=item Allow PHP to access MySQL database:
 
   apt-get install php5-mysql
 
-=item allow direct database access from command line
+=item Allow direct database access from command line:
 
   apt-get install mysql-client
 
@@ -94,7 +94,7 @@ achieve such is to link to that directory from the ~/public_html folder:
 
   [ -d ~/public_html ] || mkdir ~/public_html
   cd ~/public_html
-  ln -s ~/gitpath projectname
+  ln -s ~/gitpath/website projectname
 
 That URL will become available as http://localhost/~user/projectname . To
 prevent illegitimate access, deny it for everyone except for those with access
@@ -109,11 +109,13 @@ The web server needs to be instructed first to serve these:
   cd /etc/apache2/mods-enabled
   sudo ln -s ln -s ../mods-available/userdir.* .
   #sudo vim userdir.conf # change if user directories are not in /home
-  sudo /etc/init.d/apache reload
+  sudo /etc/init.d/apache restart # not reload, to find PHP
 
 Check if you have permissions for http://localhost/~user/projectname/ .
 After continuing the instructions below, in particular a run to
 update -np -q, the websites are then ready.
+
+  
 
 =head4 1.2.2 For having the data locally, too
 
