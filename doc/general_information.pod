@@ -146,6 +146,21 @@ Do all the steps described in 1.2.1 and 1.2.2.
 
   apt-get install r-base-core r-cran-qtl 
 
+=item initialise files to list resources and current status
+
+The following three files are used to inform the user about the
+project while the expression QTL are being calculated. To create
+those files perform
+
+  cd ~/gitpath/website && \
+  for f in resources.txt status.txt progress.txt; do
+    echo "N/A" > $f
+  done
+
+The individuals maintaining the infrastructure and/or runnning
+the computations shall update those files manually. The file
+status.txt will be auto-created by a query to the database.
+
 =back
 
 
