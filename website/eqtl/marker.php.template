@@ -24,7 +24,29 @@ the conversion between Morgan and bp units.
 
 =over 4
 
-=item 
+=item markerid
+
+Marker(s) to be retrieved
+
+=item chrlist
+
+Chromosomes of interest
+
+=item cMminRqtl
+
+minimal value for centi Morgan returned by R/qtl
+
+=item cMmaxRqtl
+
+maximal value for centi Morgan returned by R/qtl
+
+=item cMmin
+
+minimal value for centi Morgan returned by Ensembl
+
+=item cMmax
+
+maximal value for centi Morgan returned by Ensembl
 
 =back
 
@@ -134,7 +156,7 @@ function physicalMarkerPosition($marker) {
 
 	$queryEnsembl = "select ";
 	if ($ensemblversion>=48) {
-		$queryEnsembl .= "name_1033 as marker, 'unknown' as chr, seq_region_start_1031 as chr_start, seq_region_end_1031 as chr_end";
+		$queryEnsembl .= "name_1033 as marker, name_1059 as chr, seq_region_start_1031 as chr_start, seq_region_end_1031 as chr_end";
 	}
 	else if ($ensemblversion>19) {
 		$queryEnsembl .= "glook_marker_start as marker,olook_chr_name as chr,filt_chrom_start as chr_start,filt_chrom_end as chr_end";
@@ -431,6 +453,7 @@ if (empty($submitted)) {
 								}
 							}
 							break;
+
 						case "bp":
 							if (!isset($l)||""==$l) {
 								echo "<td>&nbsp;</td>";
@@ -447,6 +470,24 @@ if (empty($submitted)) {
 							}
 							echo "</td>";
 							break;
+
+						case "Mbp":
+							echo "<td>";
+							if (!empty($l)) {
+								echo "$l";
+							}
+							else if (!empty($line["bp"])) {
+								echo round($line["bp"]/1000/1000,1);
+							}
+							elseif ($funcConversionExists) {
+								echo round(cM2bp($line["chr"],$line["cmorgan_rqtl"])/1000/1000,1);
+							}
+							else {
+								echo "&nbsp;";
+							}
+							echo "</td>";
+							break;
+
 						default:
 							if (!isset($l)||""==$l) echo "<td>&nbsp;</td>";
 							else echo "<td>$l</td>";

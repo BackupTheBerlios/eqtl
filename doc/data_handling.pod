@@ -41,7 +41,7 @@ For an overview on the status of the jobs, do
 	 GROUP BY application,status;
 
 To show the time next to the data with NOW() is rather helpful to monitor
-the progress and be pointed to sudden increases or delays in throuput.
+the progress and be pointed to sudden increases or delays in thruput.
 Either may be indicative of some problem.
 
 

@@ -92,11 +92,11 @@ ENDOFDOCUMENTATION
 	$err=array();
 	$conditionList=array(
 		"Equal Chromosomes" => array(
-			"constraint"=>"seqname = Chromosome",
+			"constraint"=>"trait.chromosome = qtl.Chromosome",
 			"description"=>"The QTL and the gene it controls are on the same chromosome"
 		),
 		"Unequal Chromosomes" => array(
-			"constraint"=>"seqname != Chromosome",
+			"constraint"=>"trait.seqname != qtl.Chromosome",
 			"description"=>"The QTL and the gene it controls are on different chromosomes"
 		),
 		"Within classical QTL" => array(
@@ -132,12 +132,11 @@ ENDOFDOCUMENTATION
 
 	# fields offered to be optionally deselected from being presented as columns
 	$a=array("Trait"=>1, "Groups"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
-		"LOD"=>1,"LODdiff"=>1,"Quantile"=>1,
-		"Covariates"=>1,
+		"LOD"=>1,"LODdiff"=>1,"pvalue" => 1, "Quantile"=>1,
+		"covariates"=>1,
 		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>1, "cMorgan_Max"=>1,
-		"Gid"=>0, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1,
-		"Definition"=>1, "ProbeSequence"=>0,
-		"name"=>1, "mean"=>1, "sd"=>1, "swissprot_ID"=>1, "gene_assignment"=>1, "first_symbol"=>1, "Description"=>1, "ProbeSequence"=>0
+		"Gid"=>0, "gene_name"=>1, 
+		"name"=>1, "mean"=>1, "sd"=>1 
 	);
 			
 
@@ -250,7 +249,8 @@ ENDOFDOCUMENTATION
 			<tr><th class=r>Order by:</th><td colspan=3>
 						<select name=order>
 						<option value=Chromosome>Chromosome</option>
-						<option value="LOD DESC" selected>LOD score</option>
+						<option value="pvalue" selected>LOD score</option>
+						<option value="LOD DESC">LOD score</option>
 						<option value="LODdiff DESC">LOD-Quantile diff</option>
 						<option value=cMorgan_Peak>cMorgan</option>
 						<option value=Sex>Sex-dependency</option>
@@ -333,7 +333,6 @@ ENDOFDOCUMENTATION
 		$where="WHERE ";
 		$query = "SELECT ";
 		if ($onlyNumbers and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
-		#if ($onlyNumbers and !(isset($condition) and is_array($condition))) {
 			if (!empty($onlyNumbersGrouped) and !("totals"==$onlyNumbersGrouped)) {
 				if ("Chromosome"=="$onlyNumbersGrouped" or "seqname" == "$onlyNumbersGrouped") {
 					$query .= "$onlyNumbersGrouped,";
@@ -348,42 +347,32 @@ ENDOFDOCUMENTATION
 		else {
 			#$query .= "DISTINCT ";
 			$query .= "Trait, Locus, LOD";
-			if (!empty($show_Covariates)) {
-				$query .= ", covariates";
-			}
+			
+			$query .= ", covariates"; # we always need to know the covariates
+
 			if (!empty($show_Groups)) {
 				$query .= ", qtl_id";
 			}
 			#, l.Name as lName, 
 			#. ", l.Chr, l.cMorgan "
-			$query .= ", Chromosome"
-				. ", cMorgan_Peak, cMorgan_Min, cMorgan_Max"
+			$query .= ", qtl.Chromosome"
+				. ", qtl.cMorgan_Peak, qtl.cMorgan_Min, qtl.cMorgan_Max"
 			;
-			$query .= ", Quantile"
-				. ", (LOD-Quantile) as LODdiff ";
+			$query .= ", qtl.Quantile"
+				. ", (qtl.LOD-qtl.Quantile) as LODdiff ";
 
-			if (!empty($show_unigene)) {
-				$query .= ", unigene";
-			}
 			
-			if (!empty($show_swissprot_ID)) {
-				$query .= ", swissprot_ID";
-			}
-			
-			if (!empty($show_gene_assignment)) {
-				$query .= ", gene_assignment";
+			if (!empty($show_gene_name)) {
+				$query .= ", gene_name";
 			}
 
-			if (!empty($show_first_symbol)) {
-				$query .= ", first_symbol, first_name";
-			}
-			
-			if (!empty($show_ProbeSequence)) {
-				$query .= ", ProbeSequence";
+			if (!empty($show_gene_name)) {
+				$query .= ", pvalue";
 			}
 
 			if (!empty($show_LocusOfGene)) {
-				$query .= ", seqname as chr_name, strand"
+				$query .= ", trait.chromosome as chr_name"
+				    # . ", strand"
 					. ", start as gene_chrom_start,stop as gene_chrom_end";
 			}
 
@@ -422,9 +411,12 @@ ENDOFDOCUMENTATION
 		# These extra joins are not needed for every kind of query, some optimisation
 		# would help to speed things up!
 
-		if (!(empty($show_LocusOfGene) and empty($show_Chromosome) and empty($show_unigene) and empty($show_swissprot_ID)
-		  and empty($show_gene_assignment) and empty($show_first_symbol) and empty($show_Definition) and empty($show_ProbeSequence)  )) {
-			$query .= " left join BEARatChip as c on Trait=c.probeset_id ";
+		if (!(empty($show_LocusOfGene) and empty($show_Chromosome)
+			and empty($MeanMin) and empty($MeanMax)
+			and empty($SdMin) and empty($SdMax) and empty($show_ExpressionOfGene)
+			and empty($show_gene_assignment) ))
+		{
+			$query .= " join trait on Trait=trait.trait_id ";
 		}
 
 		$needingMart=!empty($show_LocusOfGene);
@@ -432,10 +424,6 @@ ENDOFDOCUMENTATION
 			$needingMart=TRUE;
 		}
 		$needingMart=FALSE;
-
-		if (!(empty($MeanMin) and empty($MeanMax) and empty($SdMin) and empty($SdMax) and empty($show_ExpressionOfGene))) {
-			$query .= " join trait on qtl.Trait=trait.trait_id ";
-		}
 
 		if ($needingMart) {
 		        $query .= "left join ensembl_mart_${ensemblversion}";
@@ -524,7 +512,7 @@ ENDOFDOCUMENTATION
 		}
 		if (!empty($chrlist)) {
 			if ("WHERE " != $where) $where .= " AND ";
-			$where .= " Chromosome";
+			$where .= " qtl.Chromosome";
 			$where .= " in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
 		}
 
@@ -707,8 +695,8 @@ ENDOFDOCUMENTATION
 		}
 
 		$traits=array();
+		$genes = array();
 		if (!empty($onlyNumbers) and isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition)) {
-		#if (!empty($onlyNumbers) and isset($condition) and is_array($condition)) {
 		    $rowno=0;
 		    $chr_count=array();
 		    $qtls = get_public_qtls($linkLocal);
@@ -891,10 +879,14 @@ ENDOFDOCUMENTATION
 						echo "<th class=c><small>$n</small></th>";
 						if ("Trait"==$n) {
 							if(!empty($show_LocusOfGene) and !empty($show_ExpressionOfGene)) {
-								echo "<th class=c colspan=5><small>Trait<br>chr,strand,start,mean,sd</small></th>";
+								echo "<th class=c colspan=4><small>Trait<br>chr"
+									#.",strand"
+									.",start,mean,sd</small></th>";
 							}
 							else if(!empty($show_LocusOfGene)) {
-								echo "<th class=c colspan=3><small>Trait<br>chr,strand,start</small></th>";
+								echo "<th class=c colspan=2><small>Trait<br>chr"
+								#.",strand"
+								.",start</small></th>";
 							}
 							else if(!empty($show_ExpressionOfGene)) {
 								echo "<th class=c colspan=2><small>Trait<br>mean,sd</small></th>";
@@ -924,7 +916,7 @@ ENDOFDOCUMENTATION
 							."]</td>";
 							if (!empty($show_LocusOfGene)) {
 								echo "<td class=small>".$line["chr_name"]."</td>";
-								echo "<td class=small>".$line["strand"]."</td>";
+								#echo "<td class=small>".$line["strand"]."</td>";
 								echo "<td class=small>"
 									.$line["gene_chrom_start"]."</td>";
 							}
@@ -952,16 +944,14 @@ ENDOFDOCUMENTATION
 						case "cMorgan_Max":
 							echo "<td class=small>".round($cMmax,4)."</td>";
 							break;
-						case "ProbeSequence":
-							echo "<small><small>$l</small></small>";
-							break;
 						case "LOD":
 							echo "<td class=small>".round($l,4)."</td>";
 							break;
 						case "LODdiff":
 							echo "<td class=small>".round($l,4)."</td>";
 							break;
-						case "gene_assignment":
+						case "gene_name":
+							array_push($genes,$l);
 							$b=explode(".",$l);
 							echo "<td class=small><a href=\""
 								.gene2ensemblUrl($b[0],$ensemblorganism)
@@ -1061,13 +1051,13 @@ ENDOFDOCUMENTATION
 		    }
 		    else {
 			$traits_unique = array_unique($traits);
+			$genes_unique = array_unique($genes);
 			echo "<p>$rowno record".($rowno>1?"s":"")." found matching criteria for ".count($traits_unique)." traits.</p>\n";
-			 $linkgprofiler="http://biit.cs.ut.ee/gprofiler/index.cgi?query=";
-                        foreach($traits_unique as $bla){
-                                $linkgprofiler.="$bla+";
-                        }
-                        $linkgprofiler.="&organism=rnorvegicus&significant=1&output=png";
-                        echo "<a href= $linkgprofiler><center><H5>Show gProfile for genes of this group</H5></center></a>";
+
+		    	if (file_exists("func_gprofiler.php")) {
+				require_once("func_gprofiler.php");
+				gprofilerlink($traits_unique,$genes_unique);
+			}
 
 			if (file_exists("func_expressionview.php")) {
 				expressionviewlink("$ensemblorganism");

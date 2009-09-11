@@ -20,6 +20,11 @@ The page is supposed to gather all information that is required to
 learn about the identity of a gene. Projects are likely to differ
 in their presentation of such details.
 
+The data of the traits table is presumed to already contain all
+information that is normally required to inform that user about the
+gene. That transfer from the chip-specification or the Ensembl database
+needs to be performed once by the maintainer of this installation.
+
 =head2 Common attributes
 
 =over 4
@@ -27,6 +32,10 @@ in their presentation of such details.
 =item 
 
 =back
+
+=head1 SEE ALSO
+
+scripts/db_management/trait_ensembl_transfer.pl
 
 =head1 AUTHOR
 
@@ -73,7 +82,9 @@ ENDOFDOCUMENTATION
 
 	// specification of attributes to be shown in table
 	$a=array("Trait"=>1,
-		"Rat_gene_associated"=>1, "Human_ontholog_gene"=>1, "transcript"=>1,
+		"trait_name"=>1, "trait_chromosome"=>1, "trait_start"=>1, "trait_stop"=>1, "trait_strand"=>1, "trait_band"=>1,
+		"ensembl_stable_gene_id"=>1,"gene_name"=>1,
+		//"Rat_gene_associated"=>1, "Human_ontholog_gene"=>1, "transcript"=>1,
 		"mean_sd_variance"=>1,
 		#"mean"=>1, "median"=>1, "sd"=>1, "variance"=>1,
 		"positive_correlation"=>1,
@@ -83,8 +94,7 @@ ENDOFDOCUMENTATION
 #		 "traits_pos_cor_most"=>1, "traits_pos_cor_most_rho"=>1,
 #		 "traits_neg_cor"=>1, "traits_neg_cor_rho"=>1,
 #		 "traits_neg_cor_most"=>1, "traits_neg_cor_most_rho"=>1,
-		 # "Chromosome"=>1, 
-		 "seqname"=>1, "start"=>1, "stop"=>1);
+	);
 
 	foreach ($a as $vname =>$v) {
 		$vname = "show_".$vname;
@@ -181,7 +191,7 @@ ENDOFDOCUMENTATION
 ?>
 			<tr><th align=right>order by:</th><td>
 						<select name=order>
-						<option value=probeset_id>Trait Number</option>
+						<option value=trait_id>Trait Number</option>
 						<option value="mean DESC">Mean</option>
 						<option value="median DESC">Median</option>
 						<option value="sd DESC">Standard deviation</option>
@@ -220,17 +230,13 @@ ENDOFDOCUMENTATION
 		}
 		
 		$distinct = "";
-		$where  = 'WHERE ';
-		$from   = 'FROM BEARatChip ';
-		$query  = "";
-		
-
-		$joinedTrait = false;
-
-		if( !empty($show_swissprot_ID) ) {
-			$query .= ", swissprot_ID ";
+		$query  = " trait.trait_id as Trait";
+		$attribs = array("name","chromosome","start","stop","band","strand");
+		foreach ( $attribs as $s) {
+			$query .= ", trait.$s";
+			$query .= " AS trait_$s";
 		}
-
+		
 		foreach ($a as $n=>$v) {
 			$showname="show_$n";
 			#echo "$showname<br>\n";
@@ -252,12 +258,16 @@ ENDOFDOCUMENTATION
 					$query .= ",mean,sd,median,variance";
 				}
 				else if ("positive_correlation"=="$n") {
+				/*
 					$query .= ",traits_pos_cor, traits_pos_cor_rho";
 					$query .= ",traits_pos_cor_most, traits_pos_cor_most_rho";
+				*/
 				}
 				else if ("negative_correlation"=="$n") {
+				/*
 					$query .= ",traits_neg_cor, traits_neg_cor_rho";
 					$query .= ",traits_neg_cor_most, traits_neg_cor_most_rho";
+				*/
 				}
 				else if ("phen_correlation"=="$n") {
 				# the one-to-many relationship cannot be reasonably well
@@ -265,20 +275,19 @@ ENDOFDOCUMENTATION
 				# query will be performed while presening the results from
 				# this 'outer' query..
 				}
+				else if ("trait_chromosome"=="$n" or "trait_name"=="$n" or "trait_start"=="$n"
+				                                  or "trait_stop"=="$n" or "trait_strand"=="$n" or "trait_band"=="$n") {
+				# these are already included in the query - by default
+				}
 				else {
 					$query .= ", $n";
 				}
-				if ("transcript"=="$n" or "Chromosome"=="$n" or "seqname"=="$n"
-				      or "start"=="$n" or "stop"=="$n")
-				{
-					if( !$joinedTrait ) {
-						$from .= " LEFT JOIN trait ON (trait.trait_id=BEARatChip.probeset_id) ";
-						$joinedTrait = true;
-					}
-				}
-
 			}
 		}
+
+		$query .= ', details.* ';
+		$from   = 'FROM trait LEFT JOIN TRAITSDETAILSCHIPDATA AS details ON trait_id=TRAITSDETAILSCHIPPRIMARYID ';
+		$where  = 'WHERE ';
 
 		if (!empty($phen_neg_cor_min) or !empty($phen_neg_cor_max)
 		 or !empty($phen_pos_cor_min) or !empty($phen_pos_cor_max))
@@ -316,7 +325,7 @@ ENDOFDOCUMENTATION
 		if (!empty($traits)) {
 			$traitsArray=preg_split("/[, \t\n]+/",$traits);
 			if ("WHERE " != $where) $where .= " AND ";
-			$where .= " BEARatChip.probeset_id IN ('".join("','",$traitsArray)."') ";
+			$where .= " traits_id IN ('".join("','",$traitsArray)."') ";
 		}
 
 		if( !empty($MedianMin) ) {
@@ -387,8 +396,7 @@ ENDOFDOCUMENTATION
 			$where .= " traits_neg_cor_most_rho <= ".$expr_neg_cor_max;
 		}
 
-		$query  = "SELECT $distinct probeset_id AS Trait " . $query;
-		$query .= " $from";
+		$query  = "SELECT $distinct $query $from ";
 		if( "WHERE " != $where ) {
 			$query .= " " . $where;
 		}
@@ -419,13 +427,15 @@ ENDOFDOCUMENTATION
 					$f="show_".$n;
 					if (!empty($$f)) {
 						switch($n) {
-						case "seqname": // shown together with 'start'
-						case "stop": // shown together with 'start'
+						case "trait_chromosome": // shown together with 'start'
+						#case "trait_band": // shown together with 'start'
+						case "trait_strand": // shown together with 'start'
+						case "trait_stop": // shown together with 'start'
 							continue; 
 							break;
 
-						case "start":
-							echo "<th><small>chr :<br>start - stop</small></th>";
+						case "trait_start":
+							echo "<th nowrap><small>chr (strand):<br>start - stop</small></th>";
 							break;
 
 						default:
@@ -437,6 +447,9 @@ ENDOFDOCUMENTATION
 					}
 					else if("traits_neg_cor"=="$n") {
 						echo "<th>negative correlation</th>\n";
+					}
+					else {
+						echo "<th>$n</th>";
 					}
 				}
 				if (!empty($show_phen_correlation)){
@@ -487,18 +500,35 @@ ENDOFDOCUMENTATION
 							."\">$l</a></td>";
 						break;
 
-					case "start":
+					case "trait_start":
 						echo "<td align=center>";
-						if (!empty($line["seqname"])) echo $line["seqname"] . " : ";
-						echo $line["start"];
-						if (!empty($line["stop"])) echo " - ".$line["stop"];
+						if (!empty($line["trait_chromosome"])) {
+							echo $line["trait_chromosome"];
+						}
+						if (!empty($line["trait_strand"])) {
+							echo " (".((1==$line["trait_strand"])?"+":"-").")";
+						}
+						echo " : ";
+						echo $line["trait_start"];
+						if (!empty($line["trait_stop"])) {
+							echo " - ".$line["trait_stop"];
+						}
 						echo "</td>";
 						break;
 
-					case "seqname":
-					case "stop":
+					case "trait_chromosome":
+					case "trait_strand":
+					case "trait_stop":
 						// dealt with in 'start'
 						break;
+
+					case "gene_name":
+						$b=explode(".",$l);
+						echo "<td class=small><a href=\""
+							.gene2ensemblUrl($b[0],$ensemblorganism)
+							."\">$l</a></td>";
+						break;
+
 
 // 					case "MMSV_data":
 // 						echo "<td>".$line["mean"]."</td><td>".$line["median"]."</td><td>".$line["sd"]."</td><td>".$line["variance"]."</td>";
@@ -536,6 +566,9 @@ ENDOFDOCUMENTATION
 						if (9 < $tp) break;
 					}
 					echo "</td>\n";
+				}
+				else {
+					echo "<td>$l</td>\n";
 				}
 			}
 			if (!empty($show_phen_correlation)){

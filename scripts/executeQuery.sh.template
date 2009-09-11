@@ -31,11 +31,11 @@ machines that does not require the entering of passwords. See 'ssh-copy-id (1)'
 for details. Then copy this script over and execute it:
 
    # remove previous calculations
-   for i in `seq 131 150`; do ssh -f griduser@141.83.147.$i rm -rf RECALCDIR nohup.out evaluatedQueries.tar; done
+   for i in `seq 131 150`; do ssh -f griduser1@141.83.147.$i rm -rf RECALCDIR executeQuery.sh nohup.out evaluateQuery.Rout evaluatedQueries.tar; done
    # copy over this script
-   for i in `seq 131 150`; do scp executeQuery.sh griduser@141.83.147.$i: ; done
+   for i in `seq 131 150`; do scp executeQuery.sh griduser1@141.83.147.$i: ; done
    # execute it in the background
-   for i in `seq 131 150`; do ssh -f griduser@141.83.147.$i executeQuery.sh; done
+   for i in `seq 131 150`; do ssh -f griduser1@141.83.147.$i nohup ./executeQuery.sh; done
    
 The retrieval of the final data is performed by another scp
 

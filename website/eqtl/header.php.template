@@ -86,7 +86,7 @@ The documentation does not end here but is dispersed throughout the file.
 */
 
     function show_large_header($title,$show_html_header_flag=TRUE,$preamble="") {
-    	global $urlLogoLeft,$urlLogoRight,$urlLogoLeftLarge,$urlLogoRightLarge;
+    	global $urlLogoLeft,$urlLogoRight,$urlLogoLeftLarge,$urlLogoRightLarge,$urlLogoLeft2;
 	if ($show_html_header_flag) {
 		@show_html_header($title);
 	}
@@ -94,7 +94,7 @@ The documentation does not end here but is dispersed throughout the file.
 	echo "<table border=0 width=\"100%\">\n<tr><td valign=top align=center cellpadding=5 nowrap>"
 	    ."<img width=WIDTHLOGOLEFT src=\"$urlLogoLeft\" ALT=\"1st Logo\">";
 	if (!empty($urlLogoLeft2)) {
-	    echo " " ."<img height=HEIGHTLOGOLEFT src=\"$urlLogoLeft2\" ALT=\"2nd Logo\">";
+	    echo " " ."<img width=WIDTHLOGOLEFT2 src=\"$urlLogoLeft2\" ALT=\"2nd Logo\">";
 	}
 	echo "</td>\n";
 	echo "<td valign=top align=center>";

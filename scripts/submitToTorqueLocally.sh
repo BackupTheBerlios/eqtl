@@ -66,6 +66,8 @@ identifier to appear as eQTL_\${NAME}_\$jobnumber
 number of Scanone or Scantwo calculations to perform per submitted
 queue job
 
+=back
+
 =head1 AUTHOR
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
