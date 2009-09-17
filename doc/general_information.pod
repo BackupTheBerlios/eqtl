@@ -154,8 +154,8 @@ Do all the steps described in 1.2.1 and 1.2.2.
 The database is the core unit of the whole dataflow.  It is storing the
 results and is used by the website to present the results. Moreover
 it is controlling the computation of the data.  For the description
-of the tables of the database, see the database description file
-which is not there yet but will be soon...
+of the tables of the database, see the database schema file in
+'doc/DatabaseSchema.sql' which is distributed with the source code.
 
 The name of the database should be that of your project and be
 specified in the configuration files.  The database itself needs to
@@ -178,12 +178,12 @@ that is put next to this document:
 
         yourMysqlSettings="-h yourHostname -u yourUsername"
 	echo "create database yourDatabasename;"|mysql $yourMysqlSettings
-        mysql $yourMysqlSettings yourDatabaseName < DatabaseSchema.txt
+        mysql $yourMysqlSettings yourDatabaseName < DatabaseSchema.sql
 
 In MySQL call "help alter table" for instructions how to change the
 properties of columns. This should only be required for the table
 representing the chip details and the implementation of enhancements
-to the system.
+to the system - which we all kindly ask to be communicated back to us.
 
 =over 4
 
@@ -262,6 +262,37 @@ like expression height, variance, standard deviation.
 
 =back
 
+=head4 Derving a project from an earlier experiment
+
+We are always checking out the source code of the whole
+project again for every little subproject. You may
+want to use the the functionality of git to allow branches
+of the code. But be aware that such a branch needs to be
+available to the web server at any time. 
+
+After creation of a new mysql database for the new project,
+the schema needs to be loaded in. This can be done from the
+project's source code or, if the schema was recently changed
+by you, by dumping it from the existing installation:
+
+  ./database_dump.sh --no-data > your_schema.sql
+
+Be careful not to upload that code to an existing expression QTL
+database. We have database users for every single project for
+this extra security:
+
+  mysql -h dbhost -u newuser dbnew < your_schema.sql
+
+If the same chip system was used, then copy the data from one
+system to another:
+
+  insert into BEARatChip select * from old.BEARatChip;
+
+Your new user needs to have profited from an earlier
+
+  GRANT select ON BEARatChip TO newuser
+
+since otherwise he would not have read access.
 
 =head3 Emendations of the schema
 
@@ -278,12 +309,11 @@ names, but there is no technical requirement for that. For
 details on how to perform the change, call "HELP ALTER TABLE"
 in the MySQL shell. Then perform something analogous to
 
-	alter table qtl change
-          covariates
-          covariates set('sex_add','sex_int',
-                         'onset_add','onset_int',
-                         'severity_add','severity_int',
-                         'aux_add','aux_int');
+  alter table qtl change covariates
+    covariates set('sex_add','sex_int',
+                   'onset_add','onset_int',
+                   'severity_add','severity_int',
+                   'aux_add','aux_int');
 
 The idea behind the above attribute 'covariates' is that
 every covariate can possibly be part of the modelling of
@@ -424,9 +454,9 @@ still a straight-forward manner that we encourage. E.g. to reset those
 files that have pending results, still, even though all the uploads
 of returned files have already been performed, reschedule them by
 
-	update computation set status="RECALCULATE"
-                         where application="SCANONE"
-			   and status="REPROCESSING" or status = "UNKNOWN";
+  update computation set status="RECALCULATE"
+         where application="SCANONE"
+	   and status="REPROCESSING" or status = "UNKNOWN";
 
 The status "UNKNOWN" may be used to temporarily remove jobs from
 computations, e.g.  possibly because of a programming error affecting
@@ -439,16 +469,16 @@ script in the folder scripts/db_management. Check with the script's man
 pages for details.  To upload new calculations just mention the kind
 of application to run as the first argument, then list the covariates:
 
-	$ scripts/db_management/uploadExpectedFiles.pl scanone severity_add,sex_int
-        RETRIEVING TRAIT NAMES                  [DONE]
-        CREATING EXPECTED FILE INDEX            [DONE]
+  $ scripts/db_management/uploadExpectedFiles.pl scanone severity_add,sex_int
+  RETRIEVING TRAIT NAMES                  [DONE]
+  CREATING EXPECTED FILE INDEX            [DONE]
 
 To get an overview on the files that have been created, try
 
-	$ scripts/db_management/uploadExpectedFiles.pl -ls
-	...
-	SCANONE:severity_add,sex_int (1031)
-	...
+  $ scripts/db_management/uploadExpectedFiles.pl -ls
+  ...
+  SCANONE:severity_add,sex_int (1031)
+  ...
 The parentheses list the number of covariates that are available for
 that application and list of covariates.
 
@@ -460,9 +490,9 @@ The following query compares the number of compute jobs that are in
 'REPROCESSING' pre trait. The traits with systematic problems will have
 as many computations in 'REPROCESSING' as there were covariates run:
 
-	   select trait_id,count(*) as c from computation
-                                         where status = 'REPROCESSING'
-                                         group by trait_id;                               
+   select trait_id,count(*) as c from computation
+                                 where status = 'REPROCESSING'
+                                 group by trait_id;                               
 	+----------+---+
 	| trait_id | c |
 	+----------+---+
@@ -483,9 +513,9 @@ to the above query.
 The map is best filled after the first computations have been
 performed. It may then be derived from the locus table as follows:
 
-      INSERT INTO map (marker,chr,cmorgan_rqtl)
-                       SELECT Name,Chr,cMorgan FROM locus
-                       WHERE Name like "D%" ORDER BY chr,cMorgan;
+  INSERT INTO map (marker,chr,cmorgan_rqtl)
+         SELECT Name,Chr,cMorgan FROM locus
+         WHERE Name like "D%" ORDER BY chr,cMorgan;
 
 Inspect the data and the correspondance with entries in the Ensembl
 data via the marker.php page.
