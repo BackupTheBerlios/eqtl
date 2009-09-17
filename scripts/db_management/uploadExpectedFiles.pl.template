@@ -89,6 +89,7 @@ my $verbose;
 GetOptions("verbose" =>\$verbose,
 	"help" => \$help,
 	"man" => \$man,
+	"list" => \$list,
 	"analysis:s" => \$analysis
 ) or die "Could not parse options.\n";
 
