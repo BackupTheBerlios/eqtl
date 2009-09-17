@@ -31,54 +31,46 @@ Universities of Rostock and LE<uuml>beck, 2003-2009
 
 function gprofilerlink($traits,$genes,$id="") {
 	$traits_unique = array_unique($traits);
-	$externalgprofiler  = "http://biit.cs.ut.ee/gprofiler/index.cgi?query=";
-	$externalgprofiler .= join("+",$traits_unique);
-	$externalgprofiler .= "&organism=ENSEMBLSPECIESMARTLONG&significant=1&output=png";
+	$externalgprofiler  = "http://biit.cs.ut.ee/gprofiler/index.cgi?organism=ENSEMBLSPECIESMARTLONG&significant=1&query=";
+	$externalgprofiler_pretraits = $externalgprofiler.join("+",$traits_unique);
+	$externalgprofiler_traits = $externalgprofiler_pretraits."&output=png";
 	$cachedgprofiler  = "http:?query=";
 	$cachedgprofiler .= join(",",$traits_unique);
 	$cachedgprofiler .= "&organism=ENSEMBLSPECIESMARTLONG&significant=1&output=png";
 
 	$genes_unique = array_unique($genes);
-	$externalgprofiler_genes  = "http://biit.cs.ut.ee/gprofiler/index.cgi?query=";
-	$externalgprofiler_genes .= join("+",$genes_unique);
-	$externalgprofiler_genes .= "&organism=ENSEMBLSPECIESMARTLONG&significant=1&output=png";
+	$externalgprofiler_pregenes = $externalgprofiler.join("+",$genes_unique);
+	$externalgprofiler_genes = $externalgprofiler_pregenes."&output=png";
 	$cachedgprofiler_genes  = "http:?query=";
 	$cachedgprofiler_genes .= join(",",$genes_unique);
 	$cachedgprofiler_genes .= "&organism=ENSEMBLSPECIESMARTLONG&significant=1&output=png";
+	$gprofilerToDatabase_genes=$externalgprofiler_pregenes."&output=mini";
 
 	echo "<h2>Characterisation</h2>\n";
 	echo "<table border=\"0\"><th rowspan=2><a href=\"http://biit.cs.ut.ee/gprofiler/index.cgi\" border=\"0\"><img src=\"http://biit.cs.ut.ee/gprofiler/img/header.png\" width=\"160px\" height=\"40px\" border=\"0\"></a></th>\n";
 #	echo "<td><a href= $linkgprofiler>Manual inspection</a></td></tr>\n";
-	echo "<td><a href= $externalgprofiler>Manual inspection</a></td>\n";
+	echo "<td><a href= $externalgprofiler_traits>Manual inspection</a></td>\n";
 	echo "<td><a href= $externalgprofiler_genes>Manual inspection gene_name</a></td></tr>\n";
 	echo "<td>";
 	echo "<form action=\"http:characterisation.php\" method=\"POST\">";
 	echo "<input type=checkbox name=gprofilesignificant value=1 />significant only<br>\n";
 	echo "<input type=hidden value=\"".join("+",$traits)."\" />\n";
 	echo "ID of analysis: <input name=id value=\"$id\" size=15/><br/>\n";
-	echo "Traits: ".join(" ",$traits);
+	echo "Traits: <textarea>".join(" ",$traits)."</textarea>\n";
+#	echo "Traits: ".join(" ",$traits);
 	echo "</form>";
 	echo "</td>\n";
 	echo "<td>";
-	echo "<form action=\"http:characterisation.php\" method=\"POST\">";   #Is the action set correctly? -- Benedikt 09-07-09
+	echo "<form action=\"http:characterisation.php?url=".urlencode("$gprofilerToDatabase_genes")."\" method=\"POST\">";
+	echo "<input type=\"submit\">\n";
 	echo "<input type=checkbox name=gprofilesignificant value=1 />significant only<br>\n";
 	echo "<input type=hidden value=\"".join("+",$genes)."\" />\n";
 	echo "ID of analysis: <input name=id value=\"$id\" size=15/><br/>\n";
-	echo "Genes: ".join(" ",$genes);
-	
+	echo "Genes: <textarea>".join(" ",$genes)."</textarea>\n";
+#	echo "Genes: ".join(" ",$genes);
 	echo "</form>";
 	echo "</td></tr>";
 	echo "</table>\n";
-
-#	echo "<td>";
-#	echo "<form action=\"http:characterisation.php\" method=\"POST\">";
-#	echo "<input type=checkbox name=gprofilesignificant value=checked />significant only<br>\n";
-#	echo "<input type=hidden value=\"".join("+",$traits)."\" />\n";
-#	echo "ID of analysis: <input name=id value=\"$id\" size=15/><br/>\n";
-#	echo "Traits: ".join(" ",$traits);
-#	echo "</form>";
-#	echo "</td></tr>";
-#	echo "</table>\n";
 }
 
 ?>
