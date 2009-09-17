@@ -278,29 +278,30 @@ sub perform {
 
 	my $cnt = 0;
 	my $compute_id;
-	my $status;
+	my $status = undef;
 	my $version;
 
-	if ($dryrun) {
-		print "Testing if job '$filename' exists - set to always work.\n" if $verbose;
-		$cnt=1; 
+	if ( ! $sth_jobexists->execute("$filename")) {
+		harmless($DBI::errstr,-1);
+		return($exitcode);
 	}
-	else {
-		if ( ! $sth_jobexists->execute("$filename")) {
-			harmless($DBI::errstr,-1);
-			return($exitcode);
-		}
-		while( my @data = $sth_jobexists->fetchrow_array() ){
-			$compute_id = $data[0];
-			$status = $data[1];
-			$version = $data[2];
-			$cnt++;
-		}
-		$sth_jobexists->finish;
+	while( my @data = $sth_jobexists->fetchrow_array() ){
+		$compute_id = $data[0];
+		$status = $data[1];
+		$version = $data[2];
+		$cnt++;
+	}
+	$sth_jobexists->finish;
+
+	if ($dryrun and !defined($status)) {
+		print "Failed to find computation with that jobname - continuing with faked values to allow testing of parsing.\n" if $verbose;
+		$cnt=1; 
+		$status="PROCESSING";
+		$version="dryrun";
 	}
 
 	if($cnt>1){
-		harmless("More than one entry for job found... please check database\n",-3); ## this is not expected, database likely to be corrupt
+		harmless("More than one entry for job found (cnt=$cnt). please check database\n",-3); ## this is not expected, database likely to be corrupt
 		return($exitcode);
 	}
 	if($cnt ==0){
@@ -312,7 +313,11 @@ sub perform {
 
 =cut 
 
-	if($status =~ /QUEUED/){
+	if (!defined($status) or "" eq "$status") {
+		harmless("Undefined or empty status of job '$filename'.\n",-1);
+		return($exitcode);
+	}
+	elsif($status =~ /QUEUED/){
 		$exitcode = 1;
 	}
 	elsif($status =~ /RECALCULATE/){
@@ -320,7 +325,7 @@ sub perform {
 	}
 	elsif($status =~ /DONE/){
 		$exitcode = 2;
-		harmless("Job was already uploaded, please check if you want to upload it anyway\n",$exitcode);
+		harmless("Job '$filename' was already uploaded, please check if you want to upload it anyway\n",$exitcode);
 	#	return($exitcode);
 	}
 	elsif($status =~ /PROCESSING/){
@@ -328,7 +333,7 @@ sub perform {
 		$exitcode = 0;
 	}
 	else {
-		harmless("Unknown status: '$status'.\n",-1);
+		harmless("Unknown status: '$status' of file '$filename'.\n",-1);
 		return($exitcode);
 	}
 
