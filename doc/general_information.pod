@@ -292,7 +292,12 @@ Your new user needs to have profited from an earlier
 
   GRANT select ON BEARatChip TO newuser
 
-since otherwise he would not have read access.
+since otherwise he would not have read access. Analogously,
+
+  insert into map select * from old.map;
+  insert into trait select * from old.trait;
+  insert into trait_phen_cor select * from old.trait_phen_cor;
+
 
 =head3 Emendations of the schema
 
