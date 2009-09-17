@@ -351,7 +351,7 @@ ENDOFDOCUMENTATION
 			$query .= ", covariates"; # we always need to know the covariates
 
 			if (!empty($show_Groups)) {
-				$query .= ", qtl_id";
+				$query .= ", group_id";
 			}
 			#, l.Name as lName, 
 			#. ", l.Chr, l.cMorgan "
@@ -485,10 +485,10 @@ ENDOFDOCUMENTATION
 			if (count($g)>0) {
 				if ("WHERE " != $where) $where .= " AND ";
 				if (1==count($g)) {
-					$where .= " qtl_groups.qtl_id=".$g[0];
+					$where .= " qtl_groups.group_id=".$g[0];
 				}
 				else {
-					$where .= " qtl_groups.qtl_id in ('".join("','",$g)."')";
+					$where .= " qtl_groups.group_id in ('".join("','",$g)."')";
 				}
 			}
 		}
@@ -873,7 +873,7 @@ ENDOFDOCUMENTATION
 				echo "<tr bgcolor=yellow>";
 				echo "<th class=c>#</th>";
 				foreach($line as $n=>$l) {
-					if ("qtl_id"=="$n") $n = "Groups"; #FIXME: attribute name needs to be adjusted
+					if ("group_id"=="$n") $n = "Groups"; #FIXME: attribute name needs to be adjusted
 					$f="show_".$n;
 					if (!empty($$f)) {
 						echo "<th class=c><small>$n</small></th>";
@@ -901,7 +901,7 @@ ENDOFDOCUMENTATION
 			}
 			echo "<tr><td>$rowno</td>";
 			foreach($line as $n=>$l) {
-				if ("qtl_id"=="$n") $n = "Groups"; #FIXME: attribute name needs to be adjusted
+				if ("group_id"=="$n") $n = "Groups"; #FIXME: attribute name needs to be adjusted
 				$f="show_".$n;
 				if (!empty($$f)) {
 					#echo "not empty: \$$f\n";
