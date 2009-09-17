@@ -37,6 +37,7 @@ function gprofilerlink($traits,$genes,$id="") {
 	$cachedgprofiler  = "http:?query=";
 	$cachedgprofiler .= join(",",$traits_unique);
 	$cachedgprofiler .= "&organism=ENSEMBLSPECIESMARTLONG&significant=1&output=png";
+	$gprofilerToDatabase_traits=$externalgprofiler_pretraits."&output=mini";
 
 	$genes_unique = array_unique($genes);
 	$externalgprofiler_pregenes = $externalgprofiler.join("+",$genes_unique);
@@ -52,7 +53,8 @@ function gprofilerlink($traits,$genes,$id="") {
 	echo "<td><a href= $externalgprofiler_traits>Manual inspection</a></td>\n";
 	echo "<td><a href= $externalgprofiler_genes>Manual inspection gene_name</a></td></tr>\n";
 	echo "<td>";
-	echo "<form action=\"http:characterisation.php\" method=\"POST\">";
+	echo "<form action=\"http:characterisation.php?url=".urlencode("$gprofilerToDatabase_traits")."\" method=\"POST\">";
+	echo "<input type=\"submit\" name=\"test\">\n";
 	echo "<input type=checkbox name=gprofilesignificant value=1 />significant only<br>\n";
 	echo "<input type=hidden value=\"".join("+",$traits)."\" />\n";
 	echo "ID of analysis: <input name=id value=\"$id\" size=15/><br/>\n";
