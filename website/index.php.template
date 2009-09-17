@@ -13,7 +13,7 @@ TEMPLATEWARNINGXML
 <td align="center"><img src="PATHLOGOLEFTNORMAL" width=WIDTHLOGOLEFT ALT="Logo left"></td>
 <td align="center"><h1>PROJECTNAME - Technical Summary Page</h1></td>
 <!-- <td align="center"><img src="PATHLOGORIGHTNORMAL" width=WIDTHLOGORIGHT ALT="Logo right"></td> -->
-<td align="center"><img src="URLPORTALROOT/PATHLOGORIGHTLARGE" width=WIDTHLOGORIGHT ALT="Logo right"></td>
+<td align="center"><img src="PATHLOGORIGHTLARGE" width=WIDTHLOGORIGHT ALT="Logo right"></td>
 </table>
 <hr>
 <?php
