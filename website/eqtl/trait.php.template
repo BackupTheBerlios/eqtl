@@ -325,7 +325,7 @@ ENDOFDOCUMENTATION
 		if (!empty($traits)) {
 			$traitsArray=preg_split("/[, \t\n]+/",$traits);
 			if ("WHERE " != $where) $where .= " AND ";
-			$where .= " traits_id IN ('".join("','",$traitsArray)."') ";
+			$where .= " trait_id IN ('".join("','",$traitsArray)."') ";
 		}
 
 		if( !empty($MedianMin) ) {
