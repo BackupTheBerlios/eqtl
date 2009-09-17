@@ -95,6 +95,7 @@ University of LE<uuml>beck, 2009
 
 fi
 
+intern_namesuffix=""
 
 for opt in $*
 do
@@ -102,13 +103,13 @@ do
       "--no-data")
 	      echo "Dumping only the schema, no row data."
               dbdumpoptions="$dbdumpoptions --no-data"
+	      intern_namesuffix="_schema"
 	      ;;
       *)
               echo "Unkonwn option '$opt'."
               exit 1
       esac
 done
-
 
 
 mysqldump=$(which mysqldump)
@@ -119,14 +120,14 @@ fi
 
 echo -n "Backing up database '$nameeqtl'"
 
-if $mysqldump --create-options -h $dbhost_eqtl -u $usereqtl $nameeqtl $dbdumpoptions | gzip -c9 > backup_db_${nameeqtl}_${d}.sql.gz ; then
+if $mysqldump --create-options -h $dbhost_eqtl -u $usereqtl $nameeqtl $dbdumpoptions | gzip -c9 > backup_db_${nameeqtl}_${d}${intern_namesuffix}.sql.gz ; then
 	echo " [ok]"
 else
 	echo " [failed]."
 fi
 
 echo -n "Backing up database '$nameqtl'"
-if $mysqldump --create-options -h $dbhost_qtl -u $userqtl $nameqtl $dbdumpoptions | gzip -c9 > backup_db_${nameqtl}_${d}.sql.gz ; then
+if $mysqldump --create-options -h $dbhost_qtl -u $userqtl $nameqtl $dbdumpoptions | gzip -c9 > backup_db_${nameqtl}_${d}${intern_namesuffix}.sql.gz ; then
 	echo " [ok]"
 else
 	echo " [failed]"
