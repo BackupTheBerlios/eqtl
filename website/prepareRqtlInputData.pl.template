@@ -20,9 +20,16 @@ right combinations upon request.
 The script does not perform any selection of workunits, or reports on the submission,
 it only prepares the data.
 
+Caveat, there is no mapping of the individual's IDs between the phenotype and the genotype data.
+The correct orders / subsets need to be prepared manually in advance.
+
 =head1 AUTHORS
 
-Jan Kolbaum with some contribution by Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de> and Benedikt Bauer.
+Jan Kolbaum,
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+
+Benedikt Bauer.
 
 =head1 COPYRIGHT
 
@@ -83,7 +90,7 @@ close(INSERT);
 
 while (FCGI::accept >= 0) {
 
-	print	"Content-type: text/plain\n\n";					#sign page-type as plain
+	print "Content-type: text/plain\n\n";			#sign page-type as plain
 
 	#check if argument has been given
 	my @params;
