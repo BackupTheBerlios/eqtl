@@ -121,13 +121,13 @@ if ($verbose) {
 }
 		
 printf STDERR "opening genotype file\n" if $verbose;
-my @insertionFile;
+my @genotypeLines;
 open(INSERT, '<', $base.$database.$data{'genofile'}) || open(INSERT,'<', $database.$data{'genofile'}) || open(INSERT,'<', $data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
 
 printf STDERR "reading genotype file into hash table\n" if $verbose;
 while(<INSERT>){
 	chomp;
-	push (@insertionFile,$_);
+	push (@genotypeLines,$_);
 }
 close(INSERT);
 
@@ -167,38 +167,39 @@ while (FCGI::accept >= 0) {
 
 	my $sep=",";
 	if( $probeID eq 'none' ){
-		my $lastElement = $#insertionFile;			
+		my $lastElement = $#genotypeLines;			
 		for( my $i=0; $i<=$lastElement; $i++ ){		#here the later returned file is splitted up to insert probeinformations, using insert subroutine
 			unless (2 == $i) {
-				print $insertionFile[$i]."\n";
+				print $genotypeLines[$i]."\n";
 			}
 		}
 	}else{
-		my @line = split(/PHENOFIELDSEP/,$probe2line{$probeID});
+		my @phenofields = split(/PHENOFIELDSEP/,$probe2line{$probeID});
 		
-		if( !@line ){
+		if( !@phenofields ){
 			print "No such probesetID: $probeID";
-			print "Examples for probesetIDs in system: ";
+			print "Some examples for probesetIDs in system: ";
 			my @ks=keys(%probe2line);
 			print "\t$ks[0]\n\t$ks[1]\n\t$ks[2]\n";
 			exit(-1);
 		}
 		
-		my $lastIndex = $#insertionFile;			
+		my $lastIndex = $#genotypeLines;			
 		for( my $i=0; $i<=$lastIndex; $i++ ){
-			my @iline = split(/GENOFIELDSEP/, $insertionFile[$i]);
+			my @iline = split(/GENOFIELDSEP/, $genotypeLines[$i]);
 								# always take the first two fields
-			my $ret  =      $iline[0];
-			$ret    .= $sep.$iline[1];
+			my $id  = $iline[0];			# ID of sample, pairs with ID of individual of phenotype data
+			my $ret = $id.$sep.$iline[1];		# ID of individual
+
 			
 								#here the later returned file is splitted up to insert probeinformations, using insert subroutine
 			if( $i==0) 	# column names
 			{ 					# as some lines have to be omitted, some indexshifting is required
-				$ret .= $sep . $line[$i];
+				$ret .= $sep . $phenofields[$i];
 			}
 			elsif( $i > 2 ){
 				# Marker data
-				 $ret .= $sep . $line[$i-2];
+				 $ret .= $sep . $phenofields[$i-2];
 			}
 			elsif( 1==$i # Chromosomes
 				or
