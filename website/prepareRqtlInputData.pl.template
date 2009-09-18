@@ -57,21 +57,23 @@ pod2usage(-verbose => 2) if $man or $help;
 my $base="BASEDIR";
 my $database="URLCSVDEPOT";
 
-#open files, read them to memory, close them
-open(getFrom, $base.$database.$data{'phenofile'}) || open(getFrom,$database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
+printf STDERR "opening phenotype file\n" if $verbose;
+open(getFrom, '<', $base.$database.$data{'phenofile'}) || open(getFrom,'<', $database.$data{'phenofile'}) || open(getFrom,'<', $data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
 
+printf STDERR "reading phenotype file into hash table\n" if $verbose;
 my %probe2line;
 while( <getFrom> ){
         my $l = $_;
 	my ($p,$_) = split( /,/,$l);
 	$probe2line{$p}=$l;
 }
+close(getFrom);
 		
-#open(getFrom, $database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at ".$database.$data{'phenofile'}.cwd().$@;		#insert-file will  be expaneded by probe-column
-#	open(INSERT, "$base$database$data{'genofile'}") || open(getFrom,$data{'genofile'}) || die "No such gene-file at $database$data{'genofile'}: $@";		#open the file wich contains probe-data
+printf STDERR "opening genotype file\n" if $verbose;
 my @insertionFile;
-open(INSERT, $base.$database.$data{'genofile'}) || open(INSERT,$database.$data{'genofile'}) || open(INSERT,$data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
+open(INSERT, '<', $base.$database.$data{'genofile'}) || open(INSERT,'<', $database.$data{'genofile'}) || open(INSERT,'<', $data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
 
+printf STDERR "reading genotype file into hash table\n" if $verbose;
 while(<INSERT>){
 	chomp;
 	push (@insertionFile,$_);
@@ -84,7 +86,10 @@ while (FCGI::accept >= 0) {
 	print	"Content-type: text/plain\n\n";					#sign page-type as plain
 
 	#check if argument has been given
-	my @params = split(/&/, $ENV{'QUERY_STRING'});
+	my @params;
+	if (exists($ENV{'QUERY_STRING'})) {
+		@params = split(/&/, $ENV{'QUERY_STRING'});
+	}
 	my $probeID;
 
 	foreach my $key (@params){
@@ -120,7 +125,13 @@ while (FCGI::accept >= 0) {
 	}else{
 		my @line = split(/PHENOFIELDSEP/,$probe2line{$probeID});
 		
-		if( !@line ){ die "No such probesetID: $probeID"; }
+		if( !@line ){
+			print "No such probesetID: $probeID";
+			print "Examples for probesetIDs in system: ";
+			my @ks=keys(%probe2line);
+			print "\t$ks[0]\n\t$ks[1]\n\t$ks[2]\n";
+			exit(-1);
+		}
 		
 		my $lastIndex = $#insertionFile;			
 		for( my $i=0; $i<=$lastIndex; $i++ ){
