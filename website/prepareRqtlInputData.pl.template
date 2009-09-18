@@ -34,14 +34,25 @@ use CGI::Carp qw(fatalsToBrowser);
 use strict;
 use FCGI;
 use Cwd;
+use Pod::Usage;
+use Getopt::Long;
+
+my $help=0;
+my $man=0;
+my $verbose=0;
+
+GetOptions("verbose" =>\$verbose, "help" => \$help, "man" => \$man) or die "Could not parse options.\n";
+
 
 my $request = FCGI::Request();
 
 my %data = 	(
 		'genofile' => 'GENOFILE',
-		'phenofile' => 'PHENOFILE',
-		'scorefile' => 'SCOREFILE'
+		'phenofile' => 'PHENOFILE'
 		);
+
+#pod2usage(-verbose => 1) if $help;
+pod2usage(-verbose => 2) if $man or $help;
 
 my $base="BASEDIR";
 my $database="URLCSVDEPOT";
