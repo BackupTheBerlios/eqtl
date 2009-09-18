@@ -23,6 +23,16 @@ it only prepares the data.
 Caveat, there is no mapping of the individual's IDs between the phenotype and the genotype data.
 The correct orders / subsets need to be prepared manually in advance.
 
+=head1 OPTIONS
+
+=over 4
+
+=item --verbos
+
+useful only while developing
+
+=back
+
 =head1 AUTHORS
 
 Jan Kolbaum,
@@ -53,10 +63,10 @@ GetOptions("verbose" =>\$verbose, "help" => \$help, "man" => \$man) or die "Coul
 
 my $request = FCGI::Request();
 
-my %data = 	(
+my %data =  (
 		'genofile' => 'GENOFILE',
 		'phenofile' => 'PHENOFILE'
-		);
+	    );
 
 #pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man or $help;
@@ -69,12 +79,46 @@ open(getFrom, '<', $base.$database.$data{'phenofile'}) || open(getFrom,'<', $dat
 
 printf STDERR "reading phenotype file into hash table\n" if $verbose;
 my %probe2line;
+my $individualsString = undef;
+my @individualsArray = undef;
 while( <getFrom> ){
         my $l = $_;
-	my ($p,$_) = split( /,/,$l);
+	my ($p,$_) = split( /PHENOFIELDSEP/,$l);
+	if (!defined($individualsString) and $p =~ /^(id|rat|mouse|name|ind|probeset_id)/i) {
+		$individualsString = $l;
+		@individualsArray=split(/PHENOFIELDSEP/,$individualsString);
+		next;
+	}
 	$probe2line{$p}=$l;
 }
 close(getFrom);
+
+# some insights on the number of individuals
+print STDERR "$individualsString\n" if $verbose;
+
+my %individualIDtoPosition;
+for(my $i=0; $i<=$#individualsArray; $i++) {
+	my $id=$individualsArray[$i];
+	if ($id =~ /^MT(\d+)/) {
+		my $realId=$1;
+		#print STDERR "\$1=$1\n";
+		$individualIDtoPosition{"$realId"}=$i; 
+		if ($realId =~ /^0+([1-9]\d*)$/) {
+			print STDERR "Minimsed numerical ID to '$1'.\n" if $verbose;
+			$individualIDtoPosition{"$1"}=$i; 
+		}
+	}
+	else {
+		print STDERR "Not matching '$id'.\n" if $verbose;
+	}
+}
+
+
+if ($verbose) {
+	foreach my $k (keys %individualIDtoPosition) {
+		print STDERR "$k -> ".$individualIDtoPosition{$k}."\n";
+	}
+}
 		
 printf STDERR "opening genotype file\n" if $verbose;
 my @insertionFile;
@@ -149,7 +193,7 @@ while (FCGI::accept >= 0) {
 			
 								#here the later returned file is splitted up to insert probeinformations, using insert subroutine
 			if( $i==0) 	# column names
-			{ 				# as some lines have to be omitted, some indexshifting is required
+			{ 					# as some lines have to be omitted, some indexshifting is required
 				$ret .= $sep . $line[$i];
 			}
 			elsif( $i > 2 ){
@@ -162,7 +206,7 @@ while (FCGI::accept >= 0) {
 			){
 				$ret .= $sep;
 			}
-			for( my $j=2; $j<=$#iline; $j++ ){				#reassamble the (now exanded) line
+			for( my $j=2; $j<=$#iline; $j++ ){				#reassemble the (now exanded) line
 				$ret .=  $sep.$iline[$j];
 			}
 			#if ( -z "$ret" ) {
