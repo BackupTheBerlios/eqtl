@@ -20,8 +20,9 @@ right combinations upon request.
 The script does not perform any selection of workunits, or reports on the submission,
 it only prepares the data.
 
-Caveat, there is no mapping of the individual's IDs between the phenotype and the genotype data.
-The correct orders / subsets need to be prepared manually in advance.
+It should be mentioned that (although preferred) the data of genotypes and phenotypes
+are not required to be in the same order. There should however be a way to match the
+names from the genotype file to the names of the phenotype file.
 
 =head1 OPTIONS
 
