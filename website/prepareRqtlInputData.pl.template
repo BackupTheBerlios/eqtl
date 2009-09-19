@@ -27,9 +27,9 @@ The correct orders / subsets need to be prepared manually in advance.
 
 =over 4
 
-=item --verbos
+=item --verbose
 
-useful only while developing
+useful only while developing and invoking the script from the command line
 
 =back
 
@@ -185,7 +185,7 @@ while (FCGI::accept >= 0) {
 		}
 		
 		my $lastIndex = $#genotypeLines;			
-		for( my $i=0; $i<=$lastIndex; $i++ ){
+		for (my $i=0; $i<=$lastIndex; $i++) {	# iteration over column positions, 0 is first, 
 			my @iline = split(/GENOFIELDSEP/, $genotypeLines[$i]);
 								# always take the first two fields
 			my $id  = $iline[0];			# ID of sample, pairs with ID of individual of phenotype data
@@ -195,7 +195,7 @@ while (FCGI::accept >= 0) {
 								#here the later returned file is splitted up to insert probeinformations, using insert subroutine
 			if( $i==0) 	# column names
 			{ 					# as some lines have to be omitted, some indexshifting is required
-				$ret .= $sep . $phenofields[$i];
+				$ret .= $sep . $phenofields[$i];	# addition of the first (at positio 0) element of the phenotypes, i.e. the probeset ID
 			}
 			elsif( $i > 2 ){
 				# Marker data
