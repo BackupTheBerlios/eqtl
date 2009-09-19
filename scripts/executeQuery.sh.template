@@ -16,19 +16,20 @@ executeQuery.sh
 
 =head1 DESCRIPTION
 
-This script, a wrapper of the evaluateExpression.R script, initiates the
-computation of expression QTL. No particular preparation needs to be performed,
-except for the project-invariant installation of a recent R/qtl package.
-Only this regular shell script shall be copied to the destination host and executed.
-Several workunits are performed.
+This script, a wrapper of the evaluateExpression.R script, initiates
+the computation of expression QTL. No particular preparation needs to
+be performed, except for the project-invariant installation of a recent
+R/qtl package.  Only this regular shell script shall be copied to the
+destination host and executed.  Several workunits are performed.
 
-The script ends when no further jobs are available or after a maximal
-number of hours has been invested. This script is meant to be used in syntheny
-with a queueing system. Just qsub this script, see 'scripts/submitToTorqueLocally.sh'
-for a script to do that in a nicer fashion. If you don't have a queueing
-system at your disposal (you should), then ensure to have ssh-access to these
-machines that does not require the entering of passwords. See 'ssh-copy-id (1)'
-for details. Then copy this script over and execute it:
+The script ends when no further jobs are available or after a
+maximal number of hours has been invested. This script is meant to
+be used in syntheny with a queueing system. Just qsub this script,
+see 'scripts/submitToTorqueLocally.sh' for a script to do that in a
+nicer fashion. If you don't have a queueing system at your disposal
+(you should), then ensure to have ssh-access to these machines that
+does not require the entering of passwords. See 'ssh-copy-id (1)' for
+details. Then copy this script over and execute it:
 
    # remove previous calculations
    for i in `seq 131 150`; do ssh -f griduser1@141.83.147.$i rm -rf RECALCDIR executeQuery.sh nohup.out evaluateQuery.Rout evaluatedQueries.tar; done
