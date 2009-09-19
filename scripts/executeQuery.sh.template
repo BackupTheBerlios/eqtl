@@ -79,6 +79,15 @@ University of LE<uuml>beck, 2009
 
 fi
 
+# bail out in case of error
+set -e
+
+if [ -r ../evaluatedQueries.tar ]; then
+	echo "!!!!ATTENTION!!!! There is another RECALCDIR/../evaluatedQueries.tar file. Cannot continue."
+	exit 1
+fi
+
+
 Rscript=evaluateQuery.R
 
 if [ ! -r "$Rscript" -a -x /usr/bin/wget ]; then
@@ -88,8 +97,10 @@ fi
 
 if [ ! -r "$Rscript" ]; then
 	echo "Could not find R script to execute, expected at '$Rscript'."
-	exit -1
+	exit 1
 fi
+
+if [ -n "$VERBOSE" ]; then echo "Invoking R script."; fi
 
 
 if ! TIMEOUT=70 R CMD BATCH --vanilla --no-save $Rscript; then
@@ -97,20 +108,19 @@ if ! TIMEOUT=70 R CMD BATCH --vanilla --no-save $Rscript; then
 	echo "Collecting results to the degree that these are available";
 fi
 
+if [ -n "$VERBOSE" ]; then echo "R script completed"; fi
+
 if ! cd RECALCDIR; then
 	echo "Could not change into 'RECALCDIR', exiting."
 	exit -1
 fi
 
 
-if [ -r ../evaluatedQueries.tar ]; then
-	echo "!!!!ATTENTION!!!! There is another evaluatedQueries.tar file. Not continueing. Please check!"
-elif tar cf ../evaluatedQueries.tar *.gz; then
+if tar cf ../evaluatedQueries.tar *.gz; then
 	echo "Taring RECALCDIR/*.gz was successful."
 	rm -f *.gz
 else
 	echo "Could not tar *.gz files, leaving everything as it was."
+	echo "Please use results directly from RECALCDIR folder.!"
 fi
-
-
 
