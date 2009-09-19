@@ -44,6 +44,11 @@ list of covariates, for indicating their modelling as additive or
 interacting, add the suffix "_add" or "_int", respectively. The empty
 list of covariates is indicated by the string 'none'.
 
+The case of covariates needs to be reflected properly - not for the
+internal representation in the database, so please ensure that all
+traits can be distinguished after being transformed to lower case,
+but for R/qtl.
+
 =back
 
 The traits to be calculated are retrieved from the table 'traits'.
@@ -70,7 +75,7 @@ use Pod::Usage;
 my $mode;
 my $dir;
 if( $#ARGV < 0 ){
-	die "Usage: uploadExpectedFiles (scanone|scantwo|both) covariates\n"
+	die "Usage: uploadExpectedFiles (scanone|scantwo|both) COV_(int|add)\n"
 	  . "       uploadExpectedFiles --list | -ls | list \n"
 	  . "       uploadExpectedFiles --help | -h  | help | --man  | man\n";
 }
