@@ -1,0 +1,43 @@
+<?php
+
+echo "<html><head><title>DB</title></head>\n";
+echo "<body>";
+$fh = fopen($_GET['url'],"r");
+$line=fgets($fh);
+$arr = array();
+
+$link=mysql_connect("DATABASEHOSTLOCAL","DATABASEQTLUSER","");
+mysql_select_db("DATABASEEQTLNAME");
+
+$erg = mysql_query("select * from characteristics;");
+
+while($row = mysql_fetch_array($erg))
+{
+        $termid=$row["term_id"];
+        $arr[$termid]["description"] = $row["description"];
+        $arr[$termid]["url"] = $row["url"];
+}
+
+$fields = preg_split("/\t/",$line);
+while(!feof($fh) && strpos($fields[0],'#')!==0) {
+        $term_id=$fields[8];
+        echo "$term_id";
+        $description=$fields[11];
+        echo "$description<br>";
+#        $url=$fields[2];
+        if(!empty($arr[$term_id])){
+                echo "$term_id gibt's schon. Aktualisiere \"Description\".<br>";
+        }
+        else{
+                echo "$term_id noch nicht vorhanden. Füge hinzu.<br>";
+                mysql_query("insert into characteristics set term_id=\"$term_id\";");
+        }
+        mysql_query("update characteristics set description=\"$description\" where term_id=\"$term_id\";");
+#       mysql_query("update characteristics set url=\"$url\" where term_id=\"$term_id\";");
+        $line=fgets($fh);
+        $fields = preg_split("/\t/",$line);
+}
+echo "</body>";
+echo "</html>";
+
+?>

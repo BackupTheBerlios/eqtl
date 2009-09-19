@@ -10,6 +10,7 @@ usereqtl=${DBUSEREQTL:-DATABASEEQTLUSER}
 userqtl=${DBUSERQTL:-DATABASEQTLUSER}
 nameeqtl=${DBNAMEEQTL:-DATABASEEQTLNAME}
 nameqtl=${DBNAMEQTL:-DATABASEQTLNAME}
+dbdumpoptions=${DBDUMPOPTIONS:-}
 
 d=$(date +"%Y%m%d")
 
@@ -23,13 +24,23 @@ database_dump.sh  - download of an expression QTL database into two text files
 
 =head1 SYNOPSIS
 
-The script does not take any arguments, use defaults or set environment variables.
+database_dump.sh [ --no-data ]
 
 =head1 DESCRIPTION
 
 The script allows for a regular dump of the expression QTL data. It creates two
 files, i.e. one for the expression QTL and one or the classical QTL. These can be used
 for backups or the transfer of data between installations. 
+
+=head1 OPTIONS
+
+=over 4
+
+=item --no-data
+
+Adds '--no-data' to call to mysqldump, i.e. only the schema is downloaded.
+
+=back
 
 =head1 ENVIRONMENT
 
@@ -48,6 +59,10 @@ sets the mysql user with which to log in, defaults to 'DATABASEEQTLUSER'
 =item DBNAMEEQTL  
 
 sets the name of the database that needs to be dumped, defaults to 'DATABASEEQTLNAME'
+
+=item DBDUMPOPTIONS
+
+set if extra parameters should be passed mysqldump .
 
 =back
 
@@ -80,6 +95,22 @@ University of LE<uuml>beck, 2009
 
 fi
 
+intern_namesuffix=""
+
+for opt in $*
+do
+      case $opt in
+      "--no-data")
+	      echo "Dumping only the schema, no row data."
+              dbdumpoptions="$dbdumpoptions --no-data"
+	      intern_namesuffix="_schema"
+	      ;;
+      *)
+              echo "Unkonwn option '$opt'."
+              exit 1
+      esac
+done
+
 
 mysqldump=$(which mysqldump)
 if [ -z "$mysqldump" ]; then
@@ -89,14 +120,14 @@ fi
 
 echo -n "Backing up database '$nameeqtl'"
 
-if $mysqldump --create-options -h $dbhost_eqtl -u $usereqtl $nameeqtl | gzip -c9 > backup_db_${nameeqtl}_${d}.sql.gz ; then
+if $mysqldump --create-options -h $dbhost_eqtl -u $usereqtl $nameeqtl $dbdumpoptions | gzip -c9 > backup_db_${nameeqtl}_${d}${intern_namesuffix}.sql.gz ; then
 	echo " [ok]"
 else
 	echo " [failed]."
 fi
 
 echo -n "Backing up database '$nameqtl'"
-if $mysqldump --create-options -h $dbhost_qtl -u $userqtl $nameqtl | gzip -c9 > backup_db_${nameqtl}_${d}.sql.gz ; then
+if $mysqldump --create-options -h $dbhost_qtl -u $userqtl $nameqtl $dbdumpoptions | gzip -c9 > backup_db_${nameqtl}_${d}${intern_namesuffix}.sql.gz ; then
 	echo " [ok]"
 else
 	echo " [failed]"
