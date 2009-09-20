@@ -88,13 +88,13 @@ unless (GetOptions(
 	exit -3;
 }
 	
-pod2usage(-verbose => 1) if $help;
-pod2usage(-verbose => 2) if $man;
-
-unless ( -r "$filename" ) {
+unless (defined($filename) and -r "$filename") {
 	print STDERR "Cannot read file '$filename', it may not even exist.\n";
-	exit(-3);
+	$man=1;
 }
+
+pod2usage(-verbose => 2) if $man;
+pod2usage(-verbose => 1) if $help;
 
 # creating databse contact
 

@@ -8,7 +8,9 @@ uploadExpectedFiles - prepare table 'computation' of workunits
 
 =head1 SYNOPSIS
 
-uploadExpectedFiles analysis covariates
+Usage: uploadExpectedFiles --analysis=(scanone|scantwo|both) <covariates>\n"
+       uploadExpectedFiles --list | -ls | list \n"
+       uploadExpectedFiles --help | -h  | help | --man  | man\n";
 
 =head1 DESCRIPTION
 
@@ -20,7 +22,7 @@ from grid jobs and is updated when the results are uploaded to the database.
 
 =over 4
 
-=item analysis 
+=item --analysis 
 
 =over 8
 
@@ -38,11 +40,24 @@ Perform both, scanone and scantwo
 
 =back
 
+=item --list
+
+Presents the calculations already in the system.
+
+=item --help, --man
+
+Short and long summary of instructions.
+
 =item covariates
 
 list of covariates, for indicating their modelling as additive or
 interacting, add the suffix "_add" or "_int", respectively. The empty
 list of covariates is indicated by the string 'none'.
+
+The case of covariates needs to be reflected properly - not for the
+internal representation in the database, so please ensure that all
+traits can be distinguished after being transformed to lower case,
+but for R/qtl.
 
 =back
 
@@ -65,23 +80,32 @@ use strict;
 use Cwd;
 use DBI;
 use Pod::Usage;
+use Getopt::Long;
 
 
-my $mode;
+
+my $analysis;
 my $dir;
-if( $#ARGV < 0 ){
-	die "Usage: uploadExpectedFiles (scanone|scantwo|both) covariates\n"
-	  . "       uploadExpectedFiles --list | -ls | list \n"
-	  . "       uploadExpectedFiles --help | -h  | help | --man  | man\n";
-}
+my $help;
+my $man;
+my $list;
+my $verbose;
+
+GetOptions("verbose" =>\$verbose,
+	"help" => \$help,
+	"man" => \$man,
+	"list" => \$list,
+	"analysis:s" => \$analysis
+) or die "Could not parse options.\n";
 
 TEMPLATEWARNINGHASH
 
 my @A=@ARGV;
-$mode = shift @A;
 
-pod2usage(-verbose => 1) if "--help" eq "$mode" or "-h" eq "$mode" or "help" eq "$mode";
-pod2usage(-verbose => 2) if "--man"  eq "$mode"                    or "man"  eq "$mode";
+pod2usage(-verbose => 1) if $help;
+pod2usage(-verbose => 2) if $man;
+
+print "key params: analysis:$analysis \@A:".join(",",@A)."\n" if $verbose;
 
 my $dbh = DBI->connect( DATABASECON ) or die "Database connection to expression QTLs could not be established: $DBI::errstr";
 
@@ -89,7 +113,7 @@ my $dbh = DBI->connect( DATABASECON ) or die "Database connection to expression 
 my @r;
 
 
-if ("list" eq "$mode" or "--list" eq "$mode" or "-ls" eq "$mode") {
+if ($list) {
 	my $list_query = "select distinct application, filename from computation;";
 	my $sth_list = $dbh->prepare($list_query) or die $DBI::errstr;
 	$sth_list -> execute() or die $DBI::errstr;
@@ -110,17 +134,19 @@ if ("list" eq "$mode" or "--list" eq "$mode" or "-ls" eq "$mode") {
 	}
 	exit 0;
 }
-if( $mode ne 'scanone' and $mode ne 'scantwo' and $mode ne 'both' ){
-	die "Usage: uploadExpectedFiles (scanone|scantwo|both)\nInvalid mode of analysis: '".$mode."'\n"; 
+
+
+if( !defined($analysis) or $analysis ne 'scanone' and $analysis ne 'scantwo' and $analysis ne 'both' ){
+	die "Usage: uploadExpectedFiles --analysis (scanone|scantwo|both) covariates\nInvalid analysis: '".(defined($analysis)?$analysis:"undef")."'\n"; 
 }
 
 # presume the remaining attributes to be all covariates - unchecked
 my @covar = @A;
 
-my $test_query = "select computation_id from computation where jobname=?;";
+my $test_query = "SELECT computation_id FROM computation WHERE jobname=?;";
 my $sth_test = $dbh->prepare($test_query) or die $DBI::errstr;
 
-my $update_query ="UPDATE computation SET status='RECALCULATE' where jobname=?;";
+my $update_query ="UPDATE computation SET status='RECALCULATE' WHERE jobname=?;";
 my $sth_update = $dbh->prepare($update_query) or die $DBI::errstr;
 
 my $insert_query = "INSERT INTO computation(status, application, trait_id, jobname, filename) VALUES('QUEUED',?,?,?,?);";
@@ -128,7 +154,7 @@ my $sth_insert = $dbh->prepare($insert_query) or die $DBI::errstr;
 
 
 print "\tRETRIEVING TRAIT NAMES\t\t\t";
-my $sth_traits = $dbh->prepare("select trait_id from trait;");
+my $sth_traits = $dbh->prepare("SELECT trait_id FROM trait;");
 $sth_traits -> execute() or die $DBI::errstr;
 my @traits;
 while (@r=$sth_traits->fetchrow_array()) {
@@ -136,16 +162,17 @@ while (@r=$sth_traits->fetchrow_array()) {
 }
 print "[DONE]\n";
 
-print "\tCREATING EXPECTED FILE INDEX\t\t\t";
+print "\tCREATING EXPECTED FILE INDEX\n";
 foreach my $cov (@covar) {
 
-	unless ($cov =~ /_(add|int)$/ or $cov eq "none" ) {
+	unless ($cov =~ /_(add|int)$/ or $cov eq "none") {
 		print STDERR "Skipping covariate '$cov', which does not end on _add or _int.\n";
 		next;
 	}
 
-	foreach my $line (@traits) {
-		if( $mode eq 'both' or $mode eq 'scanone' ){	
+	if ( $analysis eq 'both' or $analysis eq 'scanone') {	
+		print "\t\t$cov scanone\n";
+		foreach my $line (@traits) {
 							   # T H R E S H O L D - minimal LOD score to achieve
 			                                            # P E R M S - number of permutations
 			my $jobname = "scanone_".${line}."_THRESHOLD_PERMS_($cov).csv.gz";
@@ -154,14 +181,19 @@ foreach my $cov (@covar) {
 			$sth_test->execute($jobname) or die $DBI::errstr;	
 			my $query;
  			my @a = $sth_test->fetchrow_array();
+			#print "\@a = (" . join(",",@a).")\n" if $verbose;
 			if(@a){
 				$sth_update->execute($jobname) or die $DBI::errstr;
 			}
 			else{
-				$sth_insert->execute('SCANONE',$line,$jobname,$jobname);
+				$sth_insert->execute('SCANONE',$line,$jobname,$jobname) or die $DBI::errstr;
 			}
 		}
-		if( $mode eq 'both' or $mode eq 'scantwo' ){
+	}
+
+	if ($analysis eq 'both' or $analysis eq 'scantwo') {
+		print "\t\t$cov scantwo\n";
+		foreach my $line (@traits) {
 							   # T H R E S H O L D - minimal LOD score to achieve
 			                                          # P E R M S - number of permutations
 			my $jobname = "scantwo_".${line}."_THRESHOLD_PERMS_($cov).csv.gz";
@@ -179,4 +211,4 @@ foreach my $cov (@covar) {
 		}
 	}
 }
-print "[DONE]\n";
+print "\t[DONE]\n";
