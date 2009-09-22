@@ -2,7 +2,19 @@
 
 echo "<html><head><title>DB</title></head>\n";
 echo "<body>";
-$fh = fopen($_GET['url'],"r");
+
+# For table "characteristics"
+
+$url = $_GET['url'];
+$url .= str_replace(" ","+",$_GET['textarea'])."&output=mini";
+if(isset($_GET['significant'])) {
+	$url .= "&significant=1";
+}
+else {
+	$url .= "&significant=0";
+}
+#echo "$url";
+$fh = fopen($url,"r");
 $line=fgets($fh);
 $arr = array();
 
@@ -23,13 +35,14 @@ while(!feof($fh) && strpos($fields[0],'#')!==0) {
         $term_id=$fields[8];
         echo "$term_id";
         $description=$fields[11];
+	trim($description);
         echo "$description<br>";
 #        $url=$fields[2];
         if(!empty($arr[$term_id])){
                 echo "$term_id gibt's schon. Aktualisiere \"Description\".<br>";
         }
         else{
-                echo "$term_id noch nicht vorhanden. Füge hinzu.<br>";
+                echo "$term_id noch nicht vorhanden. F&uuml;ge hinzu.<br>";
                 mysql_query("insert into characteristics set term_id=\"$term_id\";");
         }
         mysql_query("update characteristics set description=\"$description\" where term_id=\"$term_id\";");
@@ -37,6 +50,34 @@ while(!feof($fh) && strpos($fields[0],'#')!==0) {
         $line=fgets($fh);
         $fields = preg_split("/\t/",$line);
 }
+
+# For table "group_characteristics"
+
+$groups = mysql_query("select * from group_characteristics;");
+
+$name=$_GET['id'];
+$trait_list=str_replace(" ",",",$_GET['textarea']);
+echo "$trait_list";
+echo "$name";
+$group_arr = array();
+
+while($row = mysql_fetch_array($groups))
+{
+        $id=$row["name"];
+	array_push($group_arr, $id);
+}
+
+$tmp=array_search($name,$group_arr);
+echo "$group_arr[$tmp]";
+if(0===FALSE){
+	echo "<br>leider ist 0 gleich false...";
+}
+if(array_search($name,$group_arr)===FALSE){
+	mysql_query("insert into group_characteristics set name=\"$name\";");
+}
+
+mysql_query("update group_characteristics set trait_list=\"$trait_list\" where name=\"$name\";");
+
 echo "</body>";
 echo "</html>";
 
