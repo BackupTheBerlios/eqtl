@@ -92,7 +92,17 @@ Returns the page with results from a search for a
 */
 function probe2ensemblUrl($id,$species="Rattus_norvegicus"){
 	global $ensemblversionEnsembl;
-	return "http://www.ensembl.org/$species/Location/Genome?ftype=OligoFeature;id=".$id;
+	#return "http://www.ensembl.org/$species/Location/Genome?ftype=OligoFeature;id=".$id; # version 45?
+	return "http://www.ensembl.org/$species/Location/Genome?ftype=ProbeFeature;fdb=funcgen;ptype=pset;id=".$id;
+	#return "http://www.ensembl.org/$species/Search/Summary?species=Rattus_norvegicus;idx=;q=".$id;
+}
+
+/**
+ * Returns URL of page summarising entries with a similar external ID
+ */
+function probe2ensemblSearchUrl($id,$species="Rattus_norvegicus"){
+	global $ensemblversionEnsembl;
+	return "http://www.ensembl.org/$species/Search/Summary?species=Rattus_norvegicus;idx=;q=".$id;
 }
 
 /**
