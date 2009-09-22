@@ -26,7 +26,6 @@ of the entry form between the various interfaces.
 
 require_once("func_dbconfig.php"); // errorMessage
 
-
 /*
 
 =head2 Internal functions
@@ -125,8 +124,12 @@ function print_selection_form($properties) {
 	global $LODmin,$LODmax,$quantilemin,$quantilemax,
 	       $LODdiffmin, $LODdiffmax, $cM_Peak_Min, $cM_Peak_Max,
 	       $cM_within, $groups, $locus, $chrlist,
-	       $MeanMin, $MeanMax, $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax
+	       $MeanMin, $MeanMax, 
+	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,
+               $PvalueMax,$PvalueMin,
+	       $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax
 	;
+
 
 
 	if (empty($properties)) {
@@ -151,7 +154,7 @@ function print_selection_form($properties) {
 			break;
 		 
 		 case "all_qtl_trait":
-			$properties = array("mean", "sd", "median", "variance" #, "LOD"
+			$properties = array("mean", "sd", "median", "variance" , "LOD", "pvalue", "number_of_chromosomes_per_trait"
 			);
 			break;
 		 
@@ -292,6 +295,15 @@ function print_selection_form($properties) {
 
 			case "sd":
 				print_row_two_text_single("Expression SD","SdMin","SdMax",$SdMin,$SdMax);
+				break;
+			case "pvalue":
+				print_row_two_text_single("QTL P-value","PvalueMin","PvalueMax",$PvalueMin,$PvalueMax);
+				break;
+
+			case "number_of_chromosomes_per_trait":
+				print_row_two_text_single("#Chromosomes/Trait",
+					"NumberChromosomesPerTraitMin","NumberChromosomesPerTraitMax",
+					$NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax);
 				break;
 
 			case "limit":

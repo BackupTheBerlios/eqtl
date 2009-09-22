@@ -58,17 +58,20 @@ ENDOFDOCUMENTATION
 
 	show_small_header("Selection of eTraits",TRUE);
 
-	foreach(array("direct",
-			"submitted",
-			"MeanMin","MeanMax","SdMin","SdMax",
-			"MedianMin", "MedianMax",
+	foreach(array("direct", "submitted",
 			"VarianceMin", "VarianceMax",
-			"phen",
 			"expr_neg_cor_max",  "expr_neg_cor_min",
 			"expr_pos_cor_max",  "expr_pos_cor_min",
+			"LODmin","LODmax",
+			"MeanMin","MeanMax",
+			"MedianMin", "MedianMax",
+			"NumberChromosomesPerTraitMin","NumberChromosomesPerTraitMax",
+			"phen",
 			"phen_pos_cor_min","phen_neg_cor_min",
 			"phen_pos_cor_max","phen_neg_cor_max",
 			"qtl_covariates",
+			"PvalueMin","PvalueMax",
+			"SdMin","SdMax",
 			"traitlist", "traits",
 			"limit","order") as $vname)
 	{
@@ -94,6 +97,7 @@ ENDOFDOCUMENTATION
 		"negative_correlation"=>0,
 		"phen_correlation"=>0,
 		"trait_loci"=>1,
+		"number_of_chromosomes_per_trait",
 #		 "traits_pos_cor"=>1, "traits_pos_cor_rho"=>1,
 #		 "traits_pos_cor_most"=>1, "traits_pos_cor_most_rho"=>1,
 #		 "traits_neg_cor"=>1, "traits_neg_cor_rho"=>1,
@@ -460,7 +464,7 @@ ENDOFDOCUMENTATION
 		}
 
 		$query  = "SELECT $distinct $attribsSelect";
-		$query .= ", COUNT(DISTINCT locus.Chr) AS loci_number ";
+		$query .= ", COUNT(DISTINCT locus.Chr) AS number_of_chromosomes_per_trait ";
 		$query .= " $from ";
 		if( "WHERE " != $where ) {
 			$query .= " " . $where;
