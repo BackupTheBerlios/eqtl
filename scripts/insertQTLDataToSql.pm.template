@@ -594,23 +594,26 @@ sub perform {
 						$scantwoline =~ s/"//g;
 
 						# split by blank, comma or tabs (should be blanks)
-						my @scantwoField = split( /[ ,\t]/, $scantwoline);
+						# and by ":" to split chromosome information which may or may not
+						# be prepended by a blank
+						my ($chr1,$chr2,$cM1,$cM2,@remainder) = split( /[ ,\t:]+/, $scantwoline);
+						die print STDERR "\tE: Line \n\t   $scantwoline\n\thas chromosome information 1 '$chr1' with no starting c.\n"
+							unless $chr1 =~ /^c/;
+						$chr1 =~ s/^c//; # take that "c" away
+						die print STDERR "\tE: Line \n\t   $scantwoline\n\thas chromosome information 2 '$chr2' with no starting c.\n"
+							unless $chr2 =~ /^c/;
+						$chr2 =~ s/^c//; # take that "c" away
 
-						# split chromosomes
-						my @chr = split( /:/, $scantwoField[0] );
-						$chr[0] =~ s/c//; $chr[0] =~ s/ //;
-						$chr[1] =~ s/c//; $chr[1] =~ s/ //;
+						my $loc1 = getLocus( $chr1, $cM1 );
+						my $loc2 = getLocus( $chr2, $cM2 );
 
-						my ($loc1, $loc2);
-						$loc1 = getLocus( $chr[0], $scantwoField[1] );
-						$loc2 = getLocus( $chr[1], $scantwoField[2] );
 						print "\tInteraction (get): $loc1 <-> $loc2\n" if $verbose;
 
 						if( !defined( $loc1 ) or $loc1 eq '' ){
-							$loc1 = setLocus( $chr[0], $scantwoField[1] );
+							$loc1 = setLocus( $chr1, $cM1 );
 						}
 						if( !defined( $loc2 ) or $loc2 eq '' ){
-							$loc2 = setLocus( $chr[1], $scantwoField[2] );
+							$loc2 = setLocus( $chr2, $cM2 );
 						}
 						print "\tInteraction (set): $loc1 <-> $loc2\n" if $verbose;
 
@@ -622,22 +625,23 @@ sub perform {
 									$NULL, # type - was add/int, now obsolete
 									join(",",@covars_array), # covariates
 									# LOD scores
-									$scantwoField[3], $scantwoField[5], $scantwoField[7],
-									$scantwoField[11], $scantwoField[13],
+									$remainder[1], $remainder[3], $remainder[5],
+									$remainder[9], $remainder[11],
 									# Quantiles
 									$quant[1], $quant[2], $quant[3], $quant[4], $quant[5],
 									# p-Values
-									$scantwoField[4], $scantwoField[6], $scantwoField[8],
-									$scantwoField[12], $scantwoField[14],
+									$remainder[2], $remainder[4], $remainder[6],
+									$remainder[10], $remainder[12],
 								) or die "Could not write to locus interaction to database: ".$sth_qtl."\n";
 							}
 							else {
+								die "FIXME: Need to prepare for ancient data without p-values.\n";
 								# FIXME
 								die "FIXME: the upload for dumps with no P-Values needs to be adjusted, still.\n";
 								$sth_qtl->execute($compute_id, $trait, $loc1, $loc2, $NULL,
 									join(",",@covars_array),
-									$scantwoField[3], $scantwoField[5], $scantwoField[7],
-									$scantwoField[11], $scantwoField[13],
+									$remainder[1], $remainder[3], $remainder[5],
+									$remainder[9], $remainder[11],
 									$quant[1], $quant[2], $quant[3], $quant[4], $quant[5],
 									$NULL,$NULL,$NULL,$NULL,$NULL # no p-Values determined
 								) or die "Could not write to locus interaction to database\n";

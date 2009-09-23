@@ -12,7 +12,7 @@ trait.php - presentation of details to gene identifier (probesets)
 
 =head1 SYNOPSIS
 
-a dynamic weg page - may be invoked without parameters
+a dynamic web page - may be invoked without parameters
 
 =head1 DESCRIPTION
 
@@ -53,22 +53,27 @@ ENDOFDOCUMENTATION
 	require_once("header.php");
 	$database="DATABASEEQTLNAME";
 	require_once("func_connect.php");
+	require_once("func_covariates.php");
 	require_once("func_selection.php"); // prints parts of the HTML for forms
 
 	show_small_header("Selection of eTraits",TRUE);
 
-	foreach(array("direct",
-			"submitted",
-			"MeanMin","MeanMax","SdMin","SdMax",
-			"MedianMin", "MedianMax",
+	foreach(array("direct", "submitted",
 			"VarianceMin", "VarianceMax",
-			"phen",
 			"expr_neg_cor_max",  "expr_neg_cor_min",
 			"expr_pos_cor_max",  "expr_pos_cor_min",
+			"LODmin","LODmax",
+			"MeanMin","MeanMax",
+			"MedianMin", "MedianMax",
+			"NumberChromosomesPerTraitMin","NumberChromosomesPerTraitMax",
+			"phen",
 			"phen_pos_cor_min","phen_neg_cor_min",
 			"phen_pos_cor_max","phen_neg_cor_max",
+			"qtl_covariates",
+			"PvalueMin","PvalueMax",
+			"SdMin","SdMax",
 			"traitlist", "traits",
-			"limit","order") as $vname)
+			"limit","order","innerOrder") as $vname)
 	{
 		if (isset($_POST[$vname])) {
 			$$vname = $_POST[$vname];
@@ -82,14 +87,17 @@ ENDOFDOCUMENTATION
 
 	// specification of attributes to be shown in table
 	$a=array("Trait"=>1,
-		"trait_name"=>1, "trait_chromosome"=>1, "trait_start"=>1, "trait_stop"=>1, "trait_strand"=>1, "trait_band"=>1,
+		"trait_name"=>1, "trait_chromosome"=>1, "trait_start"=>1,
+		"trait_stop"=>1, "trait_strand"=>1, "trait_band"=>0,
 		"ensembl_stable_gene_id"=>1,"gene_name"=>1,
 		//"Rat_gene_associated"=>1, "Human_ontholog_gene"=>1, "transcript"=>1,
 		"mean_sd_variance"=>1,
 		#"mean"=>1, "median"=>1, "sd"=>1, "variance"=>1,
-		"positive_correlation"=>1,
-		"negative_correlation"=>1,
-		"phen_correlation"=>1,
+		"positive_correlation"=>0,
+		"negative_correlation"=>0,
+		"phen_correlation"=>0,
+		"trait_loci"=>1,
+		"number_of_chromosomes_per_trait",
 #		 "traits_pos_cor"=>1, "traits_pos_cor_rho"=>1,
 #		 "traits_pos_cor_most"=>1, "traits_pos_cor_most_rho"=>1,
 #		 "traits_neg_cor"=>1, "traits_neg_cor_rho"=>1,
@@ -140,7 +148,7 @@ ENDOFDOCUMENTATION
 			    <td><input type=text name=description lenth=70>
 			    </td>
 			</tr>-->
-			<tr><th rowspan=3 align=left>Correlation</th>
+			<tr><th rowspan=3 align=left>Correlation and Loci</th>
 
 				<td valign=top><b>Expression correlation</b><br>
 					<code>&nbsp;0</code> &lt; <input type=text name=expr_pos_cor_min size=7> &lt; <code>+ cor</code> &lt; <input type=text name=expr_pos_cor_max size=7> &lt; <code>1</code>
@@ -189,9 +197,19 @@ ENDOFDOCUMENTATION
 <?php
 			print_selection_form("all_qtl_trait");
 ?>
+			<tr><th align=right>inner order by:</th><td>
+						<select name=innerOrder>
+						<option value="LOD DESC">LOD</option>
+						<option value="Chr,cMorgan">Chr,cMorgan</option>
+						<option value="pvalue">pvalue</option>
+						</select>
+			</td></tr>
 			<tr><th align=right>order by:</th><td>
 						<select name=order>
-						<option value=trait_id>Trait Number</option>
+						<option value=trait_id>Trait ID</option>
+						<option value="number_of_chromosomes_per_trait DESC">Number of chromosomes per trait</option>
+						<option value="LOD DESC">LOD score</option>
+						<option value="pvalue DESC">pvalue</option>
 						<option value="mean DESC">Mean</option>
 						<option value="median DESC">Median</option>
 						<option value="sd DESC">Standard deviation</option>
@@ -204,7 +222,8 @@ ENDOFDOCUMENTATION
 			<tr><td>&nbsp;</td><td></td></tr>
 			<tr><td class=r><input type=submit></td><td align=left><input type=reset></td></tr>
 			</table>
-		</td><td align=center>
+		</td>
+		<td align=center valign=top>
 			<small><small>
 			<table border=0>
 			<tr><th bgcolor=black align=left><font color=orange><small>Show Field</small></font></th></tr>
@@ -215,12 +234,40 @@ ENDOFDOCUMENTATION
 			}
 ?>
 			</table>
+
+			<H3>Selection of traits' controling QTL</h3>
+<?php
+			echo "<b>Covariates:</b><br>";
+			$covars = get_covars_on_your_own_from_qtl($linkLocal);
+			//print_r($covars);
+			echo "<table border=1><tr>";
+			foreach($covars as $n=>$covar) {
+				if (0 == $n % 5) echo "</tr><tr>";
+				echo "<td>";
+				echo "<input type=\"checkbox\" name=\"qtl_covariates[]\" value=\"$covar\">";
+				echo displayCovariates($covar);
+				echo "</input></td>";
+			}
+			echo "</tr>";
+			echo "</table>";
+
+
+?>
+
+			
+
+		</td>
 		</tr>
 		</table>
 		</form>
 <?php
 	}
 	else {
+
+		#
+		# Perform query and present results
+		#
+
 		require_once("func_connect.php");
 		require_once("func_species.php");
 
@@ -228,66 +275,106 @@ ENDOFDOCUMENTATION
 			echo "<p>Could not create link to database.</p>";
 			exit;
 		}
+
+		print_r($qtl_covariates);
 		
 		$distinct = "";
-		$query  = " trait.trait_id as Trait";
-		$attribs = array("name","chromosome","start","stop","band","strand");
-		foreach ( $attribs as $s) {
-			$query .= ", trait.$s";
-			$query .= " AS trait_$s";
+		$query="";
+		$having="";
+		$attribsSelect  = " trait.trait_id as Trait";
+		$attribsGroup   = " Trait";
+		$traitattribs = array("name","chromosome","start","stop","band","strand");
+		foreach ( $traitattribs as $s) {
+			$attribsSelect .= ", trait.$s";
+			$attribsSelect .= " AS trait_$s";
+			$attribsGroup  .= ", trait_$s";
 		}
 		
 		foreach ($a as $n=>$v) {
 			$showname="show_$n";
 			#echo "$showname<br>\n";
 			if (!empty($$showname)) {
-				if ("Chromosome" == "$n") {
-				}
-				else if ("Trait" == "$n") {
-				}
-				else if("Rat_gene_associated" == "$n") {
-					$query .= ", gene_stable_id_rat as Rat_gene_associated";
-				}
-				else if ("Human_ontholog_gene" == "$n") {
-					$query .= ", hum_onth_ens as Human_ontholog_gene";
-				}
-				else if("transcript" == "$n") {
-					$query .= ", gene_assignment AS transcript ";
-				}
-				else if ("mean_sd_variance"=="$n") {
-					$query .= ",mean,sd,median,variance";
-				}
-				else if ("positive_correlation"=="$n") {
+				switch($n) {
+				case "Chromosome":
+					break;
+				case "Trait":
+					break;
+				case "Rat_gene_associated":
+					$attribs .= ", gene_stable_id_rat as Rat_gene_associated";
+					break;
+				case "Human_ontholog_gene":
+					$attribs .= ", hum_onth_ens as Human_ontholog_gene";
+					break;
+				case "gene_name":
+					$attribsSelect .= ", gene_name ";
+					$attribsGroup  .= ", gene_name ";
+					break;
+				case "transcript":
+					$attribsSelect .= ", gene_assignment AS transcript ";
+					$attribsGroup  .= ", transcript ";
+					break;
+				case "mean_sd_variance":
+					$attribsSelect .= ",mean,sd,median,variance";
+					$attribsGroup  .= ",mean,sd,median,variance";
+					break;
+				case "positive_correlation":
 				/*
-					$query .= ",traits_pos_cor, traits_pos_cor_rho";
-					$query .= ",traits_pos_cor_most, traits_pos_cor_most_rho";
+					$attribsSelect .= ",traits_pos_cor, traits_pos_cor_rho";
+					$attribsSelect .= ",traits_pos_cor_most, traits_pos_cor_most_rho";
+					$attribsGroup  .= ",traits_pos_cor, traits_pos_cor_rho";
+					$attribsGroup  .= ",traits_pos_cor_most, traits_pos_cor_most_rho";
 				*/
-				}
-				else if ("negative_correlation"=="$n") {
+					break;
+				case "negative_correlation":
 				/*
-					$query .= ",traits_neg_cor, traits_neg_cor_rho";
-					$query .= ",traits_neg_cor_most, traits_neg_cor_most_rho";
+					$attribsSelect .= ",traits_neg_cor, traits_neg_cor_rho";
+					$attribsSelect .= ",traits_neg_cor_most, traits_neg_cor_most_rho";
+					$attribsGroup  .= ",traits_neg_cor, traits_neg_cor_rho";
+					$attribsGroup  .= ",traits_neg_cor_most, traits_neg_cor_most_rho";
 				*/
-				}
-				else if ("phen_correlation"=="$n") {
+					break;
+				case "phen_correlation":
 				# the one-to-many relationship cannot be reasonably well
 				# resolved for the display of the data. Instead, a second
 				# query will be performed while presening the results from
 				# this 'outer' query..
-				}
-				else if ("trait_chromosome"=="$n" or "trait_name"=="$n" or "trait_start"=="$n"
-				                                  or "trait_stop"=="$n" or "trait_strand"=="$n" or "trait_band"=="$n") {
-				# these are already included in the query - by default
-				}
-				else {
-					$query .= ", $n";
+					break;
+				case "trait_chromosome":
+				case "trait_name":
+				case "trait_start":
+				case "trait_stop":
+				case "trait_strand":
+				case "trait_band":
+					# these are already included in the query - by default
+					break;
+				case "trait_loci":
+					# Nothing to add, will be treated manually as separate sub-query
+					break;
+				default:
+					$attribsSelect .= ", $n";
+					$attribsGroup .= ", $n";
 				}
 			}
 		}
 
-		$query .= ', details.* ';
-		$from   = 'FROM trait LEFT JOIN TRAITSDETAILSCHIPDATA AS details ON trait_id=TRAITSDETAILSCHIPPRIMARYID ';
+		if (!empty ($show_chip_details)) {
+			$attribsSelect .= ', details.* ';
+			$attribsGroup .= ', details.* ';
+		}
+		$from   = 'FROM trait ';
+		$from  .= 'LEFT JOIN qtl ON trait_id=qtl.Trait LEFT JOIN locus ON qtl.Locus=locus.Name ';
+		if (!empty($show_chip_details)) {
+			$from  .= 'LEFT JOIN TRAITSDETAILSCHIPDATA AS details ON trait_id=TRAITSDETAILSCHIPPRIMARYID ';
+		}
 		$where  = 'WHERE ';
+
+
+		if (!empty($qtl_covariates)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " qtl.covariates in ('"
+				. join("','",$qtl_covariates)
+				."')";
+		}
 
 		if (!empty($phen_neg_cor_min) or !empty($phen_neg_cor_max)
 		 or !empty($phen_pos_cor_min) or !empty($phen_pos_cor_max))
@@ -322,10 +409,45 @@ ENDOFDOCUMENTATION
 			}
 		}
 
+		if (!empty($NumberChromosomesPerTraitMin)) {
+			if ("" != $having) {
+				$having .= " AND ";
+			}
+			else {	
+				$having = " HAVING ";
+			}
+			$having .= " number_of_chromosomes_per_trait >= $NumberChromosomesPerTraitMin ";
+		}
+
+		if (!empty($NumberChromosomesPerTraitMax)) {
+			if ("" != $having) {
+				$having .= " AND ";
+			}
+			else {	
+				$having = " HAVING ";
+			}
+			$having .= " number_of_chromosomes_per_trait <= $NumberChromosomesPerTraitMax ";
+		}
+
 		if (!empty($traits)) {
 			$traitsArray=preg_split("/[, \t\n]+/",$traits);
 			if ("WHERE " != $where) $where .= " AND ";
-			$where .= " traits_id IN ('".join("','",$traitsArray)."') ";
+			$where .= " trait_id IN ('".join("','",$traitsArray)."') ";
+		}
+
+		if( !empty($MedianMin) ) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " median >= ".$MedianMin;
+		}
+
+		if( !empty($MedianMax) ) {
+			$where .= " number_of_chromosomes_per_trait <= $NumberChromosomesPerTraitMax ";
+		}
+
+		if (!empty($traits)) {
+			$traitsArray=preg_split("/[, \t\n]+/",$traits);
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " trait_id IN ('".join("','",$traitsArray)."') ";
 		}
 
 		if( !empty($MedianMin) ) {
@@ -396,11 +518,13 @@ ENDOFDOCUMENTATION
 			$where .= " traits_neg_cor_most_rho <= ".$expr_neg_cor_max;
 		}
 
-		$query  = "SELECT $distinct $query $from ";
+		$query  = "SELECT $distinct $attribsSelect";
+		$query .= ", COUNT(DISTINCT locus.Chr) AS number_of_chromosomes_per_trait ";
+		$query .= " $from ";
 		if( "WHERE " != $where ) {
 			$query .= " " . $where;
 		}
-// 		$query  .= " group by trait_id, name, mean, sd";
+ 		$query  .= " GROUP BY $attribsGroup $having";
 
 		if (!empty($order)) {
 			$query .= " ORDER BY ".$order." ";
@@ -419,7 +543,9 @@ ENDOFDOCUMENTATION
 		}
 		$firstRow=true;
 		echo "<small><table border=1>\n";
+		$lineno=0;
 		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			$lineno++;
 			if ($firstRow) {
 				$firstRow=FALSE;
 				echo "<tr bgcolor=yellow>";
@@ -428,47 +554,129 @@ ENDOFDOCUMENTATION
 					if (!empty($$f)) {
 						switch($n) {
 						case "trait_chromosome": // shown together with 'start'
-						#case "trait_band": // shown together with 'start'
+						case "trait_band": // shown together with 'start'
 						case "trait_strand": // shown together with 'start'
 						case "trait_stop": // shown together with 'start'
 							continue; 
 							break;
 
 						case "trait_start":
-							echo "<th nowrap><small>chr (strand):<br>start - stop</small></th>";
+							echo "<th nowrap rowspan=2><small>chr (strand):<br>start - stop</small></th>";
+							break;
+
+						case "trait_name": //shown together with 'trait_id/Trait'
 							break;
 
 						default:
-							echo "<th><small>$n</small></th>";
+							echo "<th rowspan=2><small>$n</small></th>";
 						}
 					}
 					else if("traits_pos_cor"=="$n") {
-						echo "<th>positive correlation</th>\n";
+						echo "<th rowspan=2>positive correlation</th>\n";
 					}
 					else if("traits_neg_cor"=="$n") {
-						echo "<th>negative correlation</th>\n";
+						echo "<th rowspan=2>negative correlation</th>\n";
 					}
 					else {
-						echo "<th>$n</th>";
+						# Don't show field if not requested to be shown
+						# echo "<th rowspan=2>$n</th>";
 					}
 				}
 				if (!empty($show_phen_correlation)){
-					echo "<th>phen correlation</th>\n";
+					echo "<th rowspan=2>phen correlation</th>\n";
 				}
 				if (!empty($show_mean_sd_variance)) {
-					echo "<th>Stats</th>\n";
+					echo "<th rowspan=2>Stats</th>\n";
 				}
-// 				echo "<td>Images</td>\n";
+				if (!empty($show_trait_loci)) {
+					echo "<th colspan=8>Loci</th>\n";
+				}
+// 				echo "<th rowspan=2>Images</th>\n";
 				echo "</tr>\n";
+				echo "<tr>";
+				if (!empty($show_trait_loci)) {
+					echo "<th>Chr</th>"
+					    ."<th>cMorgan</th>"
+					    ."<th>Mbp</th>"
+					    ."<th>LOD</th>"
+					    ."<th>pvalue</th>"
+					    ."<th>95%</th>"
+					    ."<th>cis/trans</th>"
+					    ."<th>covariates</th>"
+					;
+				}
+				echo "</tr>";
 			}
-			echo "<tr>";
+			if (0 == $lineno%2) {
+				echo "<tr bgcolor=\"lightgray\">";
+			}
+			else {
+				echo "<tr>";
+			}
 			$traitid="";
+			$numberOfLociToShow=0;
+			$htmlTextToRepresentLoci="";
+			
+			# preparing the text to output below, so the number to expect can be determined
+			if (!empty($show_trait_loci)) {
+				$loci_query="SELECT locus.Chr,locus.cMorgan,locus.Mbp,"
+						  ."qtl.LOD,qtl.pvalue,"
+				                  ."qtl.quantile,qtl.cis,qtl.covariates "
+				           ."FROM qtl join locus ON qtl.Locus=locus.Name "
+					   ."WHERE qtl.Trait='".$line["Trait"]."' ";
+
+				if (!empty($qtl_covariates)) {
+					$loci_query .= " AND ";
+					$loci_query .= " qtl.covariates in ('"
+						. join("','",$qtl_covariates)
+					        ."') ";
+				}
+
+				$loci_query .= "ORDER BY $innerOrder";
+
+				//echo $loci_query;
+
+				$loci_result = mysql_query($loci_query,$linkLocal);
+				if (empty($loci_result)) {
+					echo "<p>Problem: ".mysql_error($linkLocal)."</p>";
+					mysql_close($linkLocal);
+					exit;
+				}
+				while($loci_line = mysql_fetch_array($loci_result,MYSQL_ASSOC)) {
+					$numberOfLociToShow++;
+					if (1<$numberOfLociToShow) {
+						if (0 == $lineno%2) {
+							$htmlTextToRepresentLoci .= "<tr bgcolor=\"lightgray\">";
+						}
+						else {
+							$htmlTextToRepresentLoci .= "<tr>";
+						}
+					}
+					$htmlTextToRepresentLoci .=
+					     "<td>".$loci_line["Chr"]."</td>"
+					    ."<td>".round($loci_line["cMorgan"],0)."</td>"
+					    ."<td>".$loci_line["Mbp"]."</td>"
+					    ."<td>".round($loci_line["LOD"],2)."</td>"
+					    ."<td>".$loci_line["pvalue"]."</td>"
+					    ."<td>".round($loci_line["quantile"],2)."</td>"
+					    ."<td>".($loci_line["cis"]?"cis":"trans")."</td>"
+					    ."<td>".$loci_line["covariates"]."</td>"
+					;
+					$htmlTextToRepresentLoci .= "</tr>\n";
+				}
+				mysql_free_result($loci_result);
+				if (0==$numberOfLociToShow) {
+					$numberOfLociToShow++;
+					$htmlTextToRepresentLoci = "<td colspan=8>no locus found</td>";
+					$htmlTextToRepresentLoci .= "</tr>\n";
+				}
+			}
+
 			foreach($line as $n=>$l) {
 				$f="show_".$n;
 				if (!empty($$f)) {
 // 					echo "$n => $l\t!\t";
-					if (!isset($l)||""==$l) echo "<td>&nbsp;</td>";
-					else switch($n) {
+					switch($n) {
 					case "liNo":
 					case "liA":
 					case "liB":
@@ -479,29 +687,37 @@ ENDOFDOCUMENTATION
 						break;
 					case "Trait":
 						$traitid=$l;
-						echo "<td align=right nowrap>"
+						echo "<td align=right nowrap valign=top rowspan=$numberOfLociToShow>"
 						."<a href=\"".probe2ensemblUrl($l,$species_name_ensembl_core)
 						."\">$l</a> ["
 						."<a href=\"qtl.php?traitlist=$l\">q</a>"
 						."<a href=\"interaction.php?traitlist=$l&type=X\">i</a>"
 						."<a href=\"interaction.php?traitlist=$l&type=Y\">j</a>"
-						."]</td>";
+						."]";
+						echo "<br>";
+						echo "<a href=\""
+						    .probe2ensemblSearchUrl($l,$species_name_ensembl_core)
+						    ."\">Ensembl Search</a>";
+						$line["trait_name"];
+						echo "<br>";
+						echo $line["trait_name"];
+						echo "</td>";
 							break;
 					case "Rat_gene_associated":
 						$b=explode(".",$l);
-						echo "<td><a href=\""
+						echo "<td rowspan=$numberOfLociToShow><a href=\""
 							.gene2ensemblUrl($b[0],$species_name_latin)
 							."\">$l</a></td>";
 						break;
 					case "transcript":
 						$b=explode(".",$l);
-						echo "<td><a href=\""
+						echo "<td rowspan=$numberOfLociToShow><a href=\""
 							.transcript2ensemblUrl($b[0],$species_name_latin)
 							."\">$l</a></td>";
 						break;
 
 					case "trait_start":
-						echo "<td align=center>";
+						echo "<td align=center rowspan=$numberOfLociToShow>";
 						if (!empty($line["trait_chromosome"])) {
 							echo $line["trait_chromosome"];
 						}
@@ -519,32 +735,36 @@ ENDOFDOCUMENTATION
 					case "trait_chromosome":
 					case "trait_strand":
 					case "trait_stop":
+					case "trait_band":
 						// dealt with in 'start'
 						break;
 
 					case "gene_name":
 						$b=explode(".",$l);
-						echo "<td class=small><a href=\""
+						echo "<td class=small rowspan=$numberOfLociToShow><a href=\""
 							.gene2ensemblUrl($b[0],$ensemblorganism)
 							."\">$l</a></td>";
 						break;
 
 
 // 					case "MMSV_data":
-// 						echo "<td>".$line["mean"]."</td><td>".$line["median"]."</td><td>".$line["sd"]."</td><td>".$line["variance"]."</td>";
+// 						echo "<td rowspan=$numberOfLociToShow>".$line["mean"]."</td><td rowspan=$numberOfLociToShow>".$line["median"]."</td><td rowspan=$numberOfLociToShow>".$line["sd"]."</td><td rowspan=$numberOfLociToShow>".$line["variance"]."</td>";
 // 						break;
 // 					case "":
-// 						echo "</td>".$line["gene_stable_id_rat"]."</td><td>".$line["hum_onth_ens"]."<td>";
+// 						echo "</td>".$line["gene_stable_id_rat"]."</td><td rowspan=$numberOfLociToShow>".$line["hum_onth_ens"]."<td rowspan=$numberOfLociToShow>";
 // 						break;
+					case trait_name:
+						# dealt with in trait_id/Trait
+						break;
 					default:
-						if (!isset($l)||""==$l) $l="<td>&nbsp;</td>";
-						else echo "<td>$l</td>";
+						if (empty($l)) $l="N/A";
+						echo "<td rowspan=$numberOfLociToShow>$l</td>";
 					}
 				}
 				else if("traits_pos_cor"==$n) {
 					$traitsPos=preg_split("/,/",$l);
 					$traitsPosRho=preg_split("/,/",$line["traits_pos_cor_rho"]);
-					echo "<td valign=top>";
+					echo "<td valign=top rowspan=$numberOfLociToShow>";
 					foreach($traitsPos as $tp=>$tv) {
 						if (0 < $tp) echo ", ";
 						#echo "<a href=\"".probe2ensemblUrl($tp,$species_name_ensembl_core) . "\">$tv</a>";
@@ -557,7 +777,7 @@ ENDOFDOCUMENTATION
 				else if("traits_neg_cor"==$n) {
 					$traitsNeg=preg_split("/,/",$l);
 					$traitsNegRho=preg_split("/,/",$line["traits_neg_cor_rho"]);
-					echo "<td valign=top>";
+					echo "<td valign=top rowspan=$numberOfLociToShow>";
 					foreach($traitsNeg as $tp=>$tv) {
 						if (0 < $tp) echo ", ";
 						#echo "<a href=\"".probe2ensemblUrl($tp,$species_name_ensembl_core) . "\">$tv</a>";
@@ -568,11 +788,20 @@ ENDOFDOCUMENTATION
 					echo "</td>\n";
 				}
 				else {
-					echo "<td>$l</td>\n";
+					# don't show fields not requested to be shown
+					# echo "<td rowspan=$numberOfLociToShow>$l</td>\n";
 				}
 			}
+			if (!empty($show_mean_sd_variance)) {
+				echo "<td valign=top rowspan=$numberOfLociToShow>";
+				echo "mean: ".$line["mean"]."<br/>\nsd: ".$line["sd"]."<br>\n";
+				echo "# Loci: $numberOfLociToShow<br>\n";
+				echo "# Chr: ".$line["number_of_chromosomes_per_trait"];
+				echo "\n";
+				echo "</td>\n";
+			}
 			if (!empty($show_phen_correlation)){
-				echo "<td valign=top>";
+				echo "<td valign=top rowspan=$numberOfLociToShow>";
 				if (empty($traitid)) {
 					echo "<i>No trait specified in query.</i>";
 				}
@@ -646,15 +875,12 @@ ENDOFDOCUMENTATION
 				}
 				echo "</td>\n";
 			}
-			if (!empty($show_mean_sd_variance)) {
-				echo "<td>mean: ".$line["mean"]."<br/>\nsd: ".$line["sd"]."</td>\n";
+			if (!empty($show_trait_loci)) {
+				echo $htmlTextToRepresentLoci;
 			}
-// 			echo "<td>"
-// 			 . "<a href=\"images/".$line["Trait"]."_onescan.pdf\">one</a>"
-// 			 ." <a href=\"images/".$line["Trait"]."_nosex_twoscan.pdf\">two</a>"
-// 			 ." <a href=\"images/".$line["Trait"]."_sex_twoscan.pdf\">two-sex</a>"
-// 			 ."</td>\n";
-			echo "</tr>\n";
+			else {
+				echo "</tr>";
+			}
 		}
 		echo "</table></small>";
 		mysql_free_result($result);

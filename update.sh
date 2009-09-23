@@ -115,7 +115,7 @@ then
 	configuration_directory="conf"
 elif [ ! -d "$configuration_directory" ]
 then
-	echo -n "Configuration directoriy '$configuration_directory' does not exist. "
+	echo -n "Configuration directory '$configuration_directory' does not exist. "
 	echo    "Please check if you used the right projectname."
 	echo "Candidates in this folder are:" `find .  -maxdepth 1 \( -type d -o -type l \) -name "conf_*" | cut -f2 -d_ | tr "\n" " "`
 	exit -1
