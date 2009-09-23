@@ -91,8 +91,10 @@ fi
 Rscript=evaluateQuery.R
 
 if [ ! -r "$Rscript" -a -x /usr/bin/wget ]; then
-	echo "Cannot find R script, attempting download from web."
+	echo "Cannot find R script '$Rscript', attempting download from web."
 	wget URLWEBSITE/$Rscript
+else
+	echo "Reusing existing script '$Rscript' in `pwd`."
 fi
 
 if [ ! -r "$Rscript" ]; then
