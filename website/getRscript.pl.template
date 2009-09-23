@@ -343,7 +343,7 @@ my.file.name <- paste("$execParams{'d'}/$keyData.csv.gz",sep="")
 
 # check if file exists and rename it if so
 if (file.exists(my.file.name)) {
-	file.rename(my.file.name, paste(my.file.rename,SUFFFIXINDICATINGDOUBLETTE))
+	file.rename(my.file.name, paste(my.file.name,SUFFFIXINDICATINGDOUBLETTE))
 }
 
 # function to store results
