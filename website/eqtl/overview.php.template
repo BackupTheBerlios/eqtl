@@ -22,6 +22,16 @@ This script prepares a tabular overview on
 
 The figure is prepared in a way that would be suitable for publication.
 
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+Melanie Theussen-Hedreul
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
+
 =cut
 
 */
