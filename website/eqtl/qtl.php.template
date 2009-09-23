@@ -125,6 +125,7 @@ ENDOFDOCUMENTATION
 		"quantilemin","quantilemax",
 		"covariates",
 		"LODdiffmin","LODdiffmax",
+		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
 		"locus","chrlist", "condition"
