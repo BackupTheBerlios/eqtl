@@ -17,8 +17,8 @@ against the chromosomal location of the gene it affects.
 =head1 AUTHORS
 
 Steffen Moeller <moeller@inb.uni-luebeck.de>,
-Melanie Thessen-Hedreul,
-Maja Jagodic,
+ME<eacute>lanie ThessE<eacute>n Hedreul,
+Maja Jagodic E<#263>
 
 =head1 COPYRIGHT
 
