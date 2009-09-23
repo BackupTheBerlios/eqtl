@@ -1,15 +1,28 @@
 <?php
 
-	require_once("header.php");
-	require_once("func_covariates.php");
-	require_once("func_selection.php"); // prints part of the HTML for forms
+    require_once("header.php");
+    require_once("func_covariates.php");
+    require_once("func_selection.php"); // prints part of the HTML for forms
 
-	show_small_header("Tabular overview on Expression QTL",TRUE);
+    show_small_header("Tabular overview on Expression QTL",TRUE);
 
-	$database="DATABASEEQTLNAME";
-	include_once("func_connect.php");
+    $database="DATABASEEQTLNAME";
+    include_once("func_connect.php");
 
-	$covariates = array("","eae_add","eae_int","dud_int");
+    $covariates = array("","eae_add","eae_int","dud_int");
+
+    if (empty($submitted)) {
+
+	#
+	#   S E T T I N G  O F  P A R A M E T E R S 
+	#
+
+    }
+    else {
+
+	#
+	#   P R E P A R A T I O N  O F  T A B L E
+	#
 
 	$query = "SELECT covariates,locus.chr,count(*) as numTraits,sum(cis) as numCis "
 		#. ", (numTraits - numCis) as numTrans
@@ -49,42 +62,63 @@
 	}
 	$orderOfChromosomes[]="X";
 
-	echo "<table>";
+	echo "<table border=0 cellspacing=2>";
+	//echo "<colgroup>"; # chr
+	echo "<tr><td colspan=\"".(1+2*count($covariates))."\" bgcolor=\"black\"></td></tr>\n";
 	echo "<tr>";
-	echo "<td rowspan=2 valign=top align=right>&nbsp;&nbsp;Phenotype</td>";
+	echo "<td rowspan=2 valign=top align=right></td>";
 	foreach ($covariates as $cov) {
-		echo "<td colspan=2>".(empty($cov)?"transcript":$cov)."</td>";
+		//echo "<colgroup span=2 cellspacing=10>"; # respective cov
+		echo "<td colspan=2 align=center>".(empty($cov)?"transcript":$cov)."</td>";
 	}
-	echo "</tr><tr>";
+	echo "</tr>\n<tr>";
+	$totals=array();
 	foreach ($covariates as $cov) {
+		$totals[$cov]=array("cis"=>0,"trans"=>0);
 		echo "<td bgcolor=\"black\" colspan=2></td>";
 	}
-	echo "</tr><tr>";
+	echo "</tr>\n<tr>";
 	echo "<td align=left valign=bottom>Chromosome</td>";
 	foreach ($covariates as $cov) {
-		echo "<td>cis</td><td>trans</td>";
+		echo "<td align=right>cis</td><td align=right>trans</td>";
 	}
-	echo "</tr><tr>";
+	echo "</tr>\n";
+	/* -- a solid line is correct
+	echo <tr>";
 	echo "<td bgcolor=\"black\"></td>";
 	foreach ($covariates as $cov) {
 		echo "<td bgcolor=\"black\"></td>";
 		echo "<td bgcolor=\"black\"></td>";
 	}
-	echo "</tr>";
+	echo "</tr>\n";
+	*/
+	echo "<tr><td colspan=\"".(1+2*count($covariates))."\" bgcolor=\"black\"></td></tr>\n";
 	foreach ($orderOfChromosomes as $c) {
 		echo "<tr>";
-		echo "<td>$c</td>";
+		echo "<td align=right>$c&nbsp;&nbsp;&nbsp;&nbsp;</td>";
 		foreach ($covariates as $cov) {
 			$d=$dataFromTable[$cov][$c];
 			if (empty($d)) {
 				echo "<td></td><td></td>";
 			}
 			else {
-				echo "<td>".$d["numCis"]."</td><td>".$d["numTrans"]."</td>";
+				echo "<td align=right>".$d["numCis"]."</td><td align=right>".$d["numTrans"]."&nbsp;&nbsp;</td>";
+				$totals[$cov]["cis"]   += $d["numCis"];
+				$totals[$cov]["trans"] += $d["numTrans"];
 			}
 		}
 		echo "</tr>\n";
 	}
+	echo "<tr><td colspan=\"".(1+2*count($covariates))."\" bgcolor=\"black\"></td></tr>\n";
+	echo "<tr><td align=center>Totals</td>";
+	foreach ($covariates as $cov) {
+		echo "<td align=right>".$totals[$cov]["cis"]  ."</td>";
+		echo "<td align=right>".$totals[$cov]["trans"]."</td>";
+	}
+	echo "</tr>\n";
+	echo "<tr><td colspan=\"".(1+2*count($covariates))."\" bgcolor=\"black\"></td></tr>\n";
+	echo "<caption align=bottom>The table shows the number of cis- and trans-regulated genes for every chromosome (rows) for a selection of covariates (column pairs).</caption>";
 	echo "</table>";
+    }
 
 ?>
