@@ -36,7 +36,7 @@ University of LE<uuml>beck, 2009
 */
 
 
-    global $hostname,$username,$database,$ensemblversion;
+    global $hostname,$username,$database,$ensemblversion,$linkLocal;
 
     require_once("func_dbconfig.php");
 

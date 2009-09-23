@@ -221,10 +221,10 @@ ENDOFDOCUMENTATION
 	echo "</table>\n";
 
 	$queryAllGroupsSelect = "SELECT "
-			      . "qtl_id,qq.name,covariates,qq.source,qq.trait,start_cm,stop_cm,start_bps,stop_bps,locus.chr,"
+			      . "group_id,qq.name,covariates,qq.source,qq.trait,start_cm,stop_cm,start_bps,stop_bps,locus.chr,"
 			      . "count(*) as c ";
 
-	$queryAllGroupsFrom   = "FROM qtl_groups left join qtl.eae_qtl as qq on qtl_id=qq.entry ";
+	$queryAllGroupsFrom   = "FROM qtl_groups left join qtl.eae_qtl as qq on group_id=qq.entry ";
 	$queryAllGroupsFrom  .= "left join locus on locus_id=No join qtl on locus.Name=qtl.Locus ";
 	if (!empty($MeanMin) or !empty($MeanMin) or !empty($SdMin) or !empty($SdMin)) {
 		$queryAllGroupsFrom  .= "join trait on qtl.Trait=trait.trait_id ";
@@ -306,7 +306,7 @@ ENDOFDOCUMENTATION
 		}
 	}
 
-	$queryAllGroupsRest = " GROUP BY qtl_id,qq.name,covariates ORDER BY qtl_id,c DESC,covariates";
+	$queryAllGroupsRest = " GROUP BY group_id,qq.name,covariates ORDER BY group_id,c DESC,covariates";
 
 	$queryAllGroups = "$queryAllGroupsSelect $queryAllGroupsFrom $queryAllGroupsWhere $queryAllGroupsRest";
 
@@ -331,7 +331,7 @@ ENDOFDOCUMENTATION
 	$prevTrait="";
 	$prevSource="";
 	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-		if ("$prevGroupname" != $line["qtl_id"]) {
+		if ("$prevGroupname" != $line["group_id"]) {
 			if (!$first) {
 				#print_r($line);
 				echo "</td></tr>";
@@ -347,9 +347,9 @@ ENDOFDOCUMENTATION
 			}
 			echo "<tr>";
 			echo "<td rowspan=2>";
-			echo "<input type=checkbox name=group value=".$line["qtl_id"].">";
-			echo qtlGroupHtmlRef($line["qtl_id"],$line["name"],"");
-			echo "<br>(".$line["qtl_id"].")";
+			echo "<input type=checkbox name=group value=".$line["group_id"].">";
+			echo qtlGroupHtmlRef($line["group_id"],$line["name"],"");
+			echo "<br>(".$line["group_id"].")";
 			echo "</td>";
 			#."<td>".$line["chr"]."</td>";
 			echo "<td colspan=3>";
@@ -362,13 +362,13 @@ ENDOFDOCUMENTATION
 		if ("" == "$cc") $cc="none";
 
 		echo qtlGroupHtmlRef(
-				$line["qtl_id"],
+				$line["group_id"],
 				displayCovariates($cc),
 				$cc);
 
 		echo "(".$line["c"].")";
 		#$prevGroupname=$line["name"];
-		$prevGroupname=$line["qtl_id"];
+		$prevGroupname=$line["group_id"];
 		$prevTrait=$line["trait"];
 		$prevSource=$line["source"];
 	}

@@ -33,16 +33,17 @@ The routine is invoked from the qtl.php page and the interaction.php page.
 
 function gprofilerlink($traits,$genes,$id="") {
 	$traits_unique = array_unique($traits);
-	$externalgprofiler  = "http://biit.cs.ut.ee/gprofiler/index.cgi?organism=ENSEMBLSPECIESMARTLONG&significant=1&query=";
+	$externalgprofiler  = "http://biit.cs.ut.ee/gprofiler/index.cgi?organism=ENSEMBLSPECIESMARTLONG&query=";
 	$externalgprofiler_pretraits = $externalgprofiler.join("+",$traits_unique);
-	$externalgprofiler_traits = $externalgprofiler_pretraits."&output=png";
+	$externalgprofiler_traits = $externalgprofiler_pretraits."&output=png&significant=1";
 	$cachedgprofiler  = "http:?query=";
 	$cachedgprofiler .= join(",",$traits_unique);
 	$cachedgprofiler .= "&organism=ENSEMBLSPECIESMARTLONG&significant=1&output=png";
+	$gprofilerToDatabase_traits=$externalgprofiler_pretraits."&output=mini";
 
 	$genes_unique = array_unique($genes);
 	$externalgprofiler_pregenes = $externalgprofiler.join("+",$genes_unique);
-	$externalgprofiler_genes = $externalgprofiler_pregenes."&output=png";
+	$externalgprofiler_genes = $externalgprofiler_pregenes."&output=png&significant=1";
 	$cachedgprofiler_genes  = "http:?query=";
 	$cachedgprofiler_genes .= join(",",$genes_unique);
 	$cachedgprofiler_genes .= "&organism=ENSEMBLSPECIESMARTLONG&significant=1&output=png";
@@ -54,21 +55,26 @@ function gprofilerlink($traits,$genes,$id="") {
 	echo "<td><a href= $externalgprofiler_traits>Manual inspection</a></td>\n";
 	echo "<td><a href= $externalgprofiler_genes>Manual inspection gene_name</a></td></tr>\n";
 	echo "<td>";
-	echo "<form action=\"http:characterisation.php\" method=\"POST\">";
-	echo "<input type=checkbox name=gprofilesignificant value=1 />significant only<br>\n";
+	echo "<form action=\"http:characterisation.php\" method=\"GET\">";
+	echo "<input type=\"submit\">\n";
+	echo "<input type=hidden name=\"url\" value=\"$externalgprofiler\">\n";
+	echo "<input type=checkbox name=significant value=1 checked/>significant only<br>\n";
 	echo "<input type=hidden value=\"".join("+",$traits)."\" />\n";
 	echo "ID of analysis: <input name=id value=\"$id\" size=15/><br/>\n";
-	echo "Traits: <textarea>".join(" ",$traits)."</textarea>\n";
+	echo "Traits: <textarea name=\"textarea\">".join(" ",$traits)."</textarea>\n";
 #	echo "Traits: ".join(" ",$traits);
 	echo "</form>";
 	echo "</td>\n";
 	echo "<td>";
-	echo "<form action=\"http:characterisation.php?url=".urlencode("$gprofilerToDatabase_genes")."\" method=\"POST\">";
+
+	echo "<form action=\"http:characterisation.php\" method=\"GET\">";
 	echo "<input type=\"submit\">\n";
-	echo "<input type=checkbox name=gprofilesignificant value=1 />significant only<br>\n";
-	echo "<input type=hidden value=\"".join("+",$genes)."\" />\n";
+	echo "<input type=hidden name=\"url\" value=\"$externalgprofiler\">\n";
+	echo "<input type=checkbox name=\"significant\" checked/>significant only<br>\n";
+#	echo "<input type=hidden value=\"".join("+",$genes)."\" />\n";
 	echo "ID of analysis: <input name=id value=\"$id\" size=15/><br/>\n";
-	echo "Genes: <textarea>".join(" ",$genes)."</textarea>\n";
+	echo "Genes: <textarea name=\"textarea\">".join(" ",$genes)."</textarea>\n";
+
 #	echo "Genes: ".join(" ",$genes);
 	echo "</form>";
 	echo "</td></tr>";

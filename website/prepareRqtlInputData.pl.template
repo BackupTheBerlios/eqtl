@@ -20,9 +20,27 @@ right combinations upon request.
 The script does not perform any selection of workunits, or reports on the submission,
 it only prepares the data.
 
+It should be mentioned that (although preferred) the data of genotypes and phenotypes
+are not required to be in the same order. There should however be a way to match the
+names from the genotype file to the names of the phenotype file.
+
+=head1 OPTIONS
+
+=over 4
+
+=item --verbose
+
+useful only while developing and invoking the script from the command line
+
+=back
+
 =head1 AUTHORS
 
-Jan Kolbaum with some contribution by Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de> and Benedikt Bauer.
+Jan Kolbaum,
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+
+Benedikt Bauer.
 
 =head1 COPYRIGHT
 
@@ -34,46 +52,107 @@ use CGI::Carp qw(fatalsToBrowser);
 use strict;
 use FCGI;
 use Cwd;
+use Pod::Usage;
+use Getopt::Long;
+
+my $help=0;
+my $man=0;
+my $verbose=0;
+
+GetOptions("verbose" =>\$verbose, "help" => \$help, "man" => \$man) or die "Could not parse options.\n";
+
 
 my $request = FCGI::Request();
 
-my %data = 	(
+my %data =  (
 		'genofile' => 'GENOFILE',
-		'phenofile' => 'PHENOFILE',
-		'scorefile' => 'SCOREFILE'
-		);
+		'phenofile' => 'PHENOFILE'
+	    );
+
+#pod2usage(-verbose => 1) if $help;
+pod2usage(-verbose => 2) if $man or $help;
 
 my $base="BASEDIR";
 my $database="URLCSVDEPOT";
 
-#open files, read them to memory, close them
-open(getFrom, $base.$database.$data{'phenofile'}) || open(getFrom,$database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
+#
+# R E A D I N G   P H E N O T Y P E   D A T A
+#
 
+printf STDERR "opening phenotype file\n" if $verbose;
+open(getFrom, '<', $base.$database.$data{'phenofile'}) || open(getFrom,'<', $database.$data{'phenofile'}) || open(getFrom,'<', $data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
+
+printf STDERR "reading phenotype file into hash table\n" if $verbose;
 my %probe2line;
+my $individualsString = undef;
+my @individualsArray = undef;
 while( <getFrom> ){
         my $l = $_;
-	my ($p,$_) = split( /,/,$l);
+	my ($p,$_) = split( /PHENOFIELDSEP/,$l);
+	if (!defined($individualsString) and $p =~ /^(id|rat|mouse|name|ind|probeset_id)/i) {
+		$individualsString = $l;
+		@individualsArray=split(/PHENOFIELDSEP/,$individualsString);
+		next;
+	}
 	$probe2line{$p}=$l;
 }
-		
-#open(getFrom, $database.$data{'phenofile'}) || open(getFrom,$data{'phenofile'}) || die "No such pheno-file at ".$database.$data{'phenofile'}.cwd().$@;		#insert-file will  be expaneded by probe-column
-#	open(INSERT, "$base$database$data{'genofile'}") || open(getFrom,$data{'genofile'}) || die "No such gene-file at $database$data{'genofile'}: $@";		#open the file wich contains probe-data
-my @insertionFile;
-open(INSERT, $base.$database.$data{'genofile'}) || open(INSERT,$database.$data{'genofile'}) || open(INSERT,$data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
+close(getFrom);
 
+# some insights on the number of individuals
+print STDERR "$individualsString\n" if $verbose;
+
+my %individualIDtoProbePosition;
+for(my $i=0; $i<=$#individualsArray; $i++) {
+	my $id=$individualsArray[$i];
+	if ($id =~ /^MT(\d+)/) {
+		my $realId=$1;
+		#print STDERR "\$1=$1\n";
+		$individualIDtoProbePosition{"$realId"}=$i; 
+		if ($realId =~ /^0+([1-9]\d*)$/) {
+			print STDERR "Minimsed numerical ID to '$1'.\n" if $verbose;
+			$individualIDtoProbePosition{"$1"}=$i; 
+		}
+	}
+	else {
+		print STDERR "Not matching '$id'.\n" if $verbose;
+	}
+}
+
+
+#if ($verbose) {
+#	foreach my $k (keys %individualIDtoProbePosition) {
+#		print STDERR "$k -> ".$individualIDtoProbePosition{$k}."\n";
+#	}
+#}
+
+#
+# R E A D I N G   G E N O T Y P E   F I L E
+#
+		
+printf STDERR "opening genotype file\n" if $verbose;
+my @genotypeLines;
+open(INSERT, '<', $base.$database.$data{'genofile'}) || open(INSERT,'<', $database.$data{'genofile'}) || open(INSERT,'<', $data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
+
+printf STDERR "reading genotype file into hash table\n" if $verbose;
 while(<INSERT>){
 	chomp;
-	push (@insertionFile,$_);
+	push (@genotypeLines,$_);
 }
 close(INSERT);
 
+#
+# M A I N   L O O P
+#
 
 while (FCGI::accept >= 0) {
 
-	print	"Content-type: text/plain\n\n";					#sign page-type as plain
+	print "Content-type: text/plain\n\n";			#sign page-type as plain
 
 	#check if argument has been given
-	my @params = split(/&/, $ENV{'QUERY_STRING'});
+	my @params;
+	if (exists($ENV{'QUERY_STRING'})) {
+		@params = split(/&/, $ENV{'QUERY_STRING'});
+	}
 	my $probeID;
 
 	foreach my $key (@params){
@@ -91,41 +170,57 @@ while (FCGI::accept >= 0) {
 
 	
 	if( !defined( $probeID) ){
-		print "Usage when accessed via web address :\t<url>?probesetid=\"probesetid\"\n",
+		print "Usage when accessed via web address :\t<url>?probesetid=<probesetid>\n",
 		      "      When accessed via command line:\tinsertProbe_online.pl gene-file pheno-file probesetid\n";
 		exit(-1);
 	}
 
-#	die $database.$data{'phenofile'};#."\n".cwd()."\n";
 
 	my $sep=",";
 	if( $probeID eq 'none' ){
-		my $lastElement = $#insertionFile;			
+		my $lastElement = $#genotypeLines;			
 		for( my $i=0; $i<=$lastElement; $i++ ){		#here the later returned file is splitted up to insert probeinformations, using insert subroutine
 			unless (2 == $i) {
-				print $insertionFile[$i]."\n";
+				print $genotypeLines[$i]."\n";
 			}
 		}
 	}else{
-		my @line = split(/PHENOFIELDSEP/,$probe2line{$probeID});
+		my @phenofields = split(/PHENOFIELDSEP/,$probe2line{$probeID});
 		
-		if( !@line ){ die "No such probesetID: $probeID"; }
+		if( !@phenofields ){
+			print "No such probesetID: $probeID";
+			print "Some examples for probesetIDs in system: ";
+			my @ks=keys(%probe2line);
+			print "\t$ks[0]\n\t$ks[1]\n\t$ks[2]\n";
+			exit(-1);
+		}
 		
-		my $lastIndex = $#insertionFile;			
-		for( my $i=0; $i<=$lastIndex; $i++ ){
-			my @iline = split(/GENOFIELDSEP/, $insertionFile[$i]);
+		my $lastIndex = $#genotypeLines;			
+		for (my $i=0; $i<=$lastIndex; $i++) {	# iteration over column positions, 0 is first, 
+			my @iline = split(/GENOFIELDSEP/, $genotypeLines[$i]);
 								# always take the first two fields
-			my $ret  =      $iline[0];
-			$ret    .= $sep.$iline[1];
+			my $id  = shift @iline;			# ID of sample, pairs with ID of individual of phenotype data
+			my $name = shift @iline;		# ID of individual
+			my $ret = $id.$sep.$name;		# start of line to make up from this information and return
 			
-								#here the later returned file is splitted up to insert probeinformations, using insert subroutine
+								# here the later returned file is splitted up to insert the information on
+								# the phenotype, i.e. the expression level.
 			if( $i==0) 	# column names
-			{ 				# as some lines have to be omitted, some indexshifting is required
-				$ret .= $sep . $line[$i];
+			{ 					# as some lines have to be omitted, some indexshifting is required
+				$ret .= $sep . $phenofields[$i];	# addition of the first (at positio 0) element of the phenotypes, i.e. the probeset ID
 			}
 			elsif( $i > 2 ){
 				# Marker data
-				 $ret .= $sep . $line[$i-2];
+				if (exists($individualIDtoProbePosition{$id})) {
+					my $positionOfPhenotypeInfo=$individualIDtoProbePosition{$id};
+					print STDERR "Directed query on '$id' to field position '$positionOfPhenotypeInfo' "
+						    ."with value $phenofields[$positionOfPhenotypeInfo] for probe '$probeID'.\n" if $verbose;
+					$ret .= $sep;
+					$ret .= $phenofields[$positionOfPhenotypeInfo];
+				}
+				else {
+					die "Cannot find phenotype data for probe '$probeID' and individual '$id'.\n";
+				}
 			}
 			elsif( 1==$i # Chromosomes
 				or
@@ -133,13 +228,12 @@ while (FCGI::accept >= 0) {
 			){
 				$ret .= $sep;
 			}
-			for( my $j=2; $j<=$#iline; $j++ ){				#reassamble the (now exanded) line
-				$ret .=  $sep.$iline[$j];
-			}
-			#if ( -z "$ret" ) {
-			#	print STDERR "ret is empty.\n";
-			#}
-			print $ret."\n";
+
+			$ret .= $sep;
+			$ret .= join($sep,@iline);		# add remaining genotype data
+			$ret .= "\n";
+
+			print $ret;
 		}
 	}
 }
