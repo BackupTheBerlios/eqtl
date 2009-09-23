@@ -1057,7 +1057,7 @@ ENDOFDOCUMENTATION
 
 		    	if (file_exists("func_gprofiler.php")) {
 				require_once("func_gprofiler.php");
-				gprofilerlink($traits_unique,$genes_unique);
+				gprofilerlink($traits_unique,$genes_unique,$query);
 			}
 
 			if (file_exists("func_expressionview.php")) {
