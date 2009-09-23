@@ -27,6 +27,7 @@ pages.
 
 	# variable to store results and thus possibly reduce database IS
 	$qtlsCache="";
+	$qtlsCacheByChromosome="";
 
 /**
 
@@ -43,21 +44,30 @@ Attributes:
 
 database handle from which to read the QTLs
 
+Specify "chromosome" as a second argument to retrieve 
+an index by chromosome, "name" otherise (default).
+
 =back
 
 =cut
 
  */
-	function get_public_qtls($dbh) {
+	function get_public_qtls($dbh,$order="name") {
 
 		global $databaseqtl;
 		global $species_name_ensembl_core;
 
 		if ("" != $qtlsCache) {
-			return($qtlsCache);
+			echo "<p>get_public_qtls: Returning cached value.</p>";
+			if ("chromosome"=="$order") {
+				return($qtlsCacheByChromosome);
+			}
+			else {
+				return($qtlsCache);
+			}
 		}
 
-		$query="select name,chr,start_bps,stop_bps from $databaseqtl.eae_qtl where species='$species_name_ensembl_core'";
+		$query="SELECT name,chr,start_bps,stop_bps FROM $databaseqtl.eae_qtl WHERE species='$species_name_ensembl_core' ORDER BY chr,start_bps";
 		#print_r($query);
 /*
 	+-------+-----+-----------+-----------+
@@ -103,14 +113,28 @@ database handle from which to read the QTLs
 		}
 
 		$qtls=array();
+		$qtls_by_chromosome=array();
 		while($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
 			#print_r($line);
 			$qtls[$line["name"]]=$line;
+			if (empty($qtls_by_chromosome[$line["chr"]])) {
+				$qtls_by_chromosome[$line["chr"]]=array();
+			}
+			$qtls_by_chromosome[$line["chr"]][]=$line;
 		}
 
-		//mysql_close($linkqtl);
 		$qtlsCache = $qtls;
-		return($qtls);
+		#echo "<br>qtlsCache: "; print_r($qtlsCache);
+
+		$qtlsCacheChromosome = $qtls_by_chromosome;
+		#echo "<br>qtlsCacheChromosome: "; print_r($qtlsCacheChromosome);
+
+		if ("chromosome"=="$order") {
+			return($qtlsCacheChromosome);
+		}
+		else {
+			return($qtlsCache);
+		}
 	}
 	
 
@@ -166,6 +190,59 @@ the list of QTLs from which the fitting ones shall be selected
 		}
 		return($qs);
 	}
+
+
+/*
+
+=head2 select_from_public_qtls
+
+Prepares the table to collect QTLs from in the various input forms to specify filter attributes.
+
+=cut
+
+*/
+
+	function select_from_public_qtls($dbh,$checkboxes=FALSE) {
+		$qtlsByC = get_public_qtls($dbh,"chromosome");
+		#echo "---------<p>qtlsByC:"; print_r($qtlsByC); echo "</p> ---------";
+		echo "<table>";
+		$orderOfChromosomes = list_chromosomes();
+		foreach ($orderOfChromosomes as $c) {
+			$qtls = $qtlsByC[$c];
+			if (empty($qtls)) continue;
+			# echo "<p>qtls:"; print_r($qtls); echo "</p>";
+			foreach ($qtls as $q) {
+				echo "<tr><td>";
+				if ($checkboxes) echo "<input name=\"cqtl[]\" type=\"checkbox\" value=\"".$q["name"]."\" />";
+				echo "<small>".$q["name"]."</small></td>";
+				echo "<td align=right><small><a href=qtl.php?chrlist=".$q["chr"].">".$q["chr"]."</a></small></td>";
+				echo "<td align=right><small><small>".$q["start_bps"]."</small></small></td>";
+				echo "<td align=right><small><small>".$q["stop_bps"]."</small></small></td>";
+				echo "</tr>\n";
+			}
+		}
+		echo "</table>";
+	}
+
+
+/*
+
+=head2 list_chromosomes
+
+retrieve ordered array of chromosomes
+
+=cut
+
+*/
+
+function list_chromosomes() {
+	$orderOfChromosomes = array();
+	for($i=1; $i<=20; $i++) {
+		$orderOfChromosomes[]="$i";
+	}
+	$orderOfChromosomes[]="X";
+	return($orderOfChromosomes);
+}
 
 /*
 

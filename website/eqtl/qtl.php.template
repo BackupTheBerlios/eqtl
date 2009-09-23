@@ -302,15 +302,8 @@ ENDOFDOCUMENTATION
 			<tr bgcolor="orange"><th>Name</th><th>Chromosome</th><th><small>bp From</small></th><th><small>bp To</small></th></tr>
 <?php
 		include_once("func_public_qtl.php");
-		$qtls = get_public_qtls($linkLocal);
+		select_from_public_qtls($linkLocal);
 
-		foreach ($qtls as $q) {
-			echo "<tr><td><small>".$q["name"]."</small></td>";
-			echo "<td align=right><small><a href=qtl.php?chrlist=".$q["chr"].">".$q["chr"]."</a></small></td>";
-			echo "<td align=right><small><small>".$q["start_bps"]."</small></small></td>";
-			echo "<td align=right><small><small>".$q["stop_bps"]."</small></small></td>";
-			echo "</tr>\n";
-		}
 ?>
 			</table>
 		</td></tr>

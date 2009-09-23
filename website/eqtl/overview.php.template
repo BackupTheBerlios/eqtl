@@ -8,6 +8,7 @@
 
 	$database="DATABASEEQTLNAME";
 	include_once("func_connect.php");
+	require_once("func_public_qtl.php");
 
 	# fields that should appear
 	$dataSelectionFieldsQTL = array(
@@ -16,6 +17,7 @@
 		"cM_within","LODmax","LODmin",
 		"quantilemin","quantilemax",
 		"qtl_covariates",
+		"cqtl",
 		"LODdiffmin","LODdiffmax",
 		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
@@ -54,10 +56,13 @@
 		#   S E T T I N G  O F  P A R A M E T E R S 
 		#
 
-
-	
 		echo "<form action=overview.php method=post>\n";
 		echo "<input type=hidden name=submitted value=1>\n";
+
+		echo "<table><tr>"; # the table has only a single row
+
+		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
+
 		echo "<table>\n";
 		print_selection_form("table_overview_scanone");
 		echo "<tr><th>Covariates of stored QTL</th><td>";
@@ -65,6 +70,13 @@
 		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
 		echo "<tr><td align=right><input type=submit></td><td align=left><input type=reset></td></tr>\n";
 		echo "</table>\n";
+
+		echo "</td>\n<td valign=top>";
+		select_from_public_qtls($linkLocal,TRUE);
+		echo "</td>";
+		echo "</tr>";
+		echo "</table>";
+
 		echo "</form>\n";
 
 	}
@@ -105,14 +117,11 @@
 		}
 
 		$query = "SELECT covariates,locus.chr,count(*) as numTraits,sum(cis) as numCis "
-			#. ", (numTraits - numCis) as numTrans
 			." FROM qtl join locus on qtl.Locus = locus.Name ";
 		if ("WHERE" != "$where") $query .= " $where ";
-		$query .= " GROUP BY covariates,locus.chr
-			   LIMIT 100 ";
+		$query .= " GROUP BY covariates,locus.chr ";
 
-		print_r($query);
-		echo "<br>";
+		// echo "<p>Query All:"; print_r($query); echo "</p>\n";
 
 		$result = mysql_query($query,$linkLocal);
 		if (empty($result)) {
@@ -127,18 +136,83 @@
 			if (empty($dataFromTable[$line["covariates"]])) {
 				$dataFromTable[$line["covariates"]] = array();
 			}
-			$dataFromTable[$line["covariates"]][$line["chr"]]=array("numTraits"=>$line["numTraits"],
+			$dataFromTable[$line["covariates"]][$line["chr"]]=array(
+							"numTraits"=>$line["numTraits"],
 							"numCis"=>$line["numCis"],
 							"numTrans"=>($line["numTraits"]-$line["numCis"]));
 		}
 
-		//print_r($dataFromTable);
+		// print_r($dataFromTable);
 
-		$orderOfChromosomes = array();
-		for($i=1; $i<=20; $i++) {
-			$orderOfChromosomes[]="$i";
+	                                                        
+		$queryDiseaseLoci = "SELECT covariates,locus.chr,count(distinct qtl.Trait) as numTraits"
+                                // will return number of traits + 1 (for the 0)
+			. ",count(distinct IF(1=cis,qtl.Trait,0)) as numCis "
+			. ",count(distinct IF(0=cis,qtl.Trait,0)) as numTrans "
+			." FROM qtl join locus on qtl.Locus = locus.Name join qtl.eae_qtl as classicalQTL";
+		if ("WHERE" != "$where") $where .= " AND ";
+		$where .=     " locus.Mbp IS NOT NULL ";
+		$where .= " AND classicalQTL.species='ENSEMBLSPECIESSEARCHURL' ";
+		$where .= " AND locus.chr = classicalQTL.chr ";
+		$where .= " AND locus.Mbp*1000*1000 >= classicalQTL.start_bps
+			    AND locus.Mbp*1000*1000 <= classicalQTL.stop_bps ";
+		if (!empty($cqtl)) {
+			$where .= " AND classicalQTL.name in ('".join("','",$cqtl)."') ";
 		}
-		$orderOfChromosomes[]="X";
+
+		if ("WHERE" != "$where") $queryDiseaseLoci .= " $where ";
+		$queryDiseaseLoci .= " GROUP BY covariates,locus.chr ";
+
+		echo "<p>cqtl: "; print_r($cqtl); echo "</p>\n";
+		echo "<p>Query DiseaseLoci:"; print_r($queryDiseaseLoci); echo "</p>\n";
+
+		$result = mysql_query($queryDiseaseLoci,$linkLocal);
+		if (empty($result)) {
+			errorMessage(mysql_error($linkLocal)."</p><p>".$queryDiseaseLoci."</p>");
+			//echo "LinkLocal: "; print_r($linkLocal);
+			mysql_close($linkLocal);
+			exit;
+		}
+
+		$dataFromTableDiseaseLoci = array();
+		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			if (empty($dataFromTableDiseaseLoci[$line["covariates"]])) {
+				$dataFromTableDiseaseLoci[$line["covariates"]] = array();
+			}
+			$dataFromTableDiseaseLoci[$line["covariates"]][$line["chr"]]=array(
+							"numTraitsDiseaseLoci"=>$line["numTraits"],
+							"numCisDiseaseLoci"=>$line["numCis"],
+							"numTransDiseaseLoci"=>$line["numTrans"]);
+			if ($dataFromTableDiseaseLoci[$line["covariates"]]["numTraitsDiseaseLoci"]
+				== $dataFromTableDiseaseLoci[$line["covariates"]]["numTransDiseaseLoci"]) {
+
+				if (1 == $dataFromTableDiseaseLoci[$line["covariates"]]["numCisDiseaseLoci"]) {
+					# Exception, the number shown for 'trans' is correct, don't change it later
+					$dataFromTableDiseaseLoci[$line["covariates"]]["numTransDiseaseLoci"]++ ;
+				}
+
+			}
+			else if ($dataFromTableDiseaseLoci[$line["covariates"]]["numTraitsDiseaseLoci"]
+				== $dataFromTableDiseaseLoci[$line["covariates"]]["numCisDiseaseLoci"]) {
+
+				if (1 == $dataFromTableDiseaseLoci[$line["covariates"]]["numTransDiseaseLoci"]) {
+					# Exception, the number shown for 'trans' is correct, don't change it later
+					$dataFromTableDiseaseLoci[$line["covariates"]]["numCisDiseaseLoci"]++ ;
+				}
+			}
+
+			# correct for "0" that is shown because of imperfectionism
+			$dataFromTableDiseaseLoci[$line["covariates"]]["numTransDiseaseLoci"]-- ;
+			$dataFromTableDiseaseLoci[$line["covariates"]]["numCisDiseaseLoci"]-- ;
+		}
+
+		// print_r($dataFromTableDiseaseLoci);
+
+		#
+		# P R I N T   T A B L E
+		#
+
+		$orderOfChromosomes = list_chromosomes();
 
 		echo "<table border=0 cellspacing=2>";
 		//echo "<colgroup>"; # chr
@@ -179,14 +253,24 @@
 			echo "<td align=right>$c&nbsp;&nbsp;&nbsp;&nbsp;</td>";
 			foreach ($qtl_covariates as $cov) {
 				$d=$dataFromTable[$cov][$c];
+				$dDiseaseLoci=$dataFromTableDiseaseLoci[$cov][$c];
 				if (empty($d)) {
-					echo "<td></td><td></td><td></td>";
+					echo "<td colspan=3>";
+					if (!empty($dDiseaseLoci)) {
+						echo "<small>Problem!</small>";
+					}
+					echo "</td>";
 				}
 				else {
 					echo "<td></td>";
-					echo "<td align=right>".$d["numCis"]."</td><td align=right>".$d["numTrans"]."&nbsp;&nbsp;</td>";
+					echo "<td align=right>".$d["numCis"]
+						.($dDiseaseLoci["numCisDiseaseLoci"]?(" (".$dDiseaseLoci["numCisDiseaseLoci"].")"):"")."</td>";
+					echo "<td align=right>".$d["numTrans"]
+						.($dDiseaseLoci["numTransDiseaseLoci"]?(" (".$dDiseaseLoci["numTransDiseaseLoci"].")"):"")."</td>";
 					$totals[$cov]["cis"]   += $d["numCis"];
 					$totals[$cov]["trans"] += $d["numTrans"];
+					$totals[$cov]["cisDiseaseLoci"]   += $dDiseaseLoci["numCisDiseaseLoci"];
+					$totals[$cov]["transDiseaseLoci"] += $dDiseaseLoci["numTransDiseaseLoci"];
 				}
 			}
 			echo "</tr>\n";
@@ -195,8 +279,8 @@
 		echo "<tr><td align=center>Totals</td>";
 		foreach ($qtl_covariates as $cov) {
 			echo "<td></td>";
-			echo "<td align=right>".$totals[$cov]["cis"]  ."</td>";
-			echo "<td align=right>".$totals[$cov]["trans"]."</td>";
+			echo "<td align=right>".$totals[$cov]["cis"]  ." (".$totals[$cov]["cisDiseaseLoci"]  .")"."</td>";
+			echo "<td align=right>".$totals[$cov]["trans"]." (".$totals[$cov]["transDiseaseLoci"].")"."</td>";
 		}
 		echo "</tr>\n";
 		echo "<tr><td colspan=\"".(1+(1+2)*count($qtl_covariates))."\" bgcolor=\"black\"></td></tr>\n";
@@ -223,6 +307,10 @@
 			if (0<$numStatements) echo ", ";
 			echo "a LOD score below $LODmax";
 			$numStatements++;
+		}
+		echo ". Numbers in parentheses refer to the subset of traits controlled by loci in classical QTL";
+		if (!empty($cqtl)) {
+			echo " (".join(", ",$cqtl).")";
 		}
 		echo ".";
 		echo "</caption>";
