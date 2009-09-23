@@ -157,6 +157,14 @@ function print_selection_form($properties) {
 			$properties = array("mean", "sd", "median", "variance" , "LOD", "pvalue", "number_of_chromosomes_per_trait"
 			);
 			break;
+
+		 case "table_overview_scanone":
+			$properties = array(
+						"LOD", "pvalue"
+						#, "mean", "sd", "median", "variance" ,
+						#, "number_of_chromosomes_per_trait"
+			);
+			break;
 		 
 		 default: 
 			$properties = preg_split("/,/",$properties);

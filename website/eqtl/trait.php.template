@@ -236,26 +236,7 @@ ENDOFDOCUMENTATION
 			</table>
 
 			<H3>Selection of traits' controling QTL</h3>
-<?php
-			echo "<b>Covariates:</b><br>";
-			$covars = get_covars_on_your_own_from_qtl($linkLocal);
-			//print_r($covars);
-			echo "<table border=1><tr>";
-			foreach($covars as $n=>$covar) {
-				if (0 == $n % 5) echo "</tr><tr>";
-				echo "<td>";
-				echo "<input type=\"checkbox\" name=\"qtl_covariates[]\" value=\"$covar\">";
-				echo displayCovariates($covar);
-				echo "</input></td>";
-			}
-			echo "</tr>";
-			echo "</table>";
-
-
-?>
-
-			
-
+			<?php select_covariates_combinations(); ?>
 		</td>
 		</tr>
 		</table>

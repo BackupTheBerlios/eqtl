@@ -9,15 +9,13 @@
 	$database="DATABASEEQTLNAME";
 	include_once("func_connect.php");
 
-	$covariates = array("","eae_add","eae_int","dud_int");
-
 	# fields that should appear
 	$dataSelectionFieldsQTL = array(
 		"groups",
 		"Chromosome","ensemblversion",
 		"cM_within","LODmax","LODmin",
 		"quantilemin","quantilemax",
-		"covariates",
+		"qtl_covariates",
 		"LODdiffmin","LODdiffmax",
 		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
@@ -48,6 +46,8 @@
 		}
 	}
 
+
+
 	if (empty($submitted)) {
 
 		#
@@ -60,6 +60,8 @@
 		echo "<input type=hidden name=submitted value=1>\n";
 		echo "<table>\n";
 		print_selection_form("table_overview_scanone");
+		echo "<tr><th>Covariates of stored QTL</th><td>";
+		select_covariates_combinations();
 		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
 		echo "<tr><td align=right><input type=submit></td><td align=left><input type=reset></td></tr>\n";
 		echo "</table>\n";
@@ -72,12 +74,40 @@
 		#   P R E P A R A T I O N  O F  T A B L E
 		#
 
+		if (empty($qtl_covariates) or 0 == count($qtl_covariates)) {
+			echo "<p>No list of covariate combinations offered, falling back to default list.</p>\n";
+			$qtl_covariates = array("","eae_add","eae_int","dud_int");
+		}
+
+		$where = "WHERE";
+
+		if (!empty($qtl_covariates)) {
+			if ("WHERE" != "$where") $where .= " AND ";
+			$where .= " covariates in ('".join("','",$qtl_covariates)."') ";
+		}
+
+		if (!empty($PvalueMin)) {
+			if ("WHERE" != "$where") $where .= " AND ";
+			$where .= " qtl.pvalue >= $PvalueMin ";
+		}
+		if (!empty($PvalueMax)) {
+			if ("WHERE" != "$where") $where .= " AND ";
+			$where .= " qtl.pvalue <= $PvalueMax ";
+		}
+
+		if (!empty($LODmin)) {
+			if ("WHERE" != "$where") $where .= " AND ";
+			$where .= " qtl.LOD >= $LODmin ";
+		}
+		if (!empty($LODmax)) {
+			if ("WHERE" != "$where") $where .= " AND ";
+			$where .= " qtl.LOD <= $LODmax ";
+		}
+
 		$query = "SELECT covariates,locus.chr,count(*) as numTraits,sum(cis) as numCis "
 			#. ", (numTraits - numCis) as numTrans
 			." FROM qtl join locus on qtl.Locus = locus.Name ";
-		if (!empty($covariates)) {
-			$query .= " WHERE covariates in ('".join("','",$covariates)."') ";
-		}
+		if ("WHERE" != "$where") $query .= " $where ";
 		$query .= " GROUP BY covariates,locus.chr
 			   LIMIT 100 ";
 
@@ -112,40 +142,42 @@
 
 		echo "<table border=0 cellspacing=2>";
 		//echo "<colgroup>"; # chr
-		echo "<tr><td colspan=\"".(1+(1+2)*count($covariates))."\" bgcolor=\"black\"></td></tr>\n";
+		echo "<tr><td colspan=\"".(1+(1+2)*count($qtl_covariates))."\" bgcolor=\"black\"></td></tr>\n";
 		echo "<tr>";
 		echo "<td rowspan=2 valign=top align=right></td>";
-		foreach ($covariates as $cov) {
+		foreach ($qtl_covariates as $cov) {
 			//echo "<colgroup span=2 cellspacing=10>"; # respective cov
-			echo "<td>&nbsp;</td><td colspan=2 align=center>".(empty($cov)?"transcript":$cov)."</td>";
+			echo "<td>&nbsp;</td><td colspan=2 align=center>"
+				.(empty($cov)?"transcript":preg_replace("/,/"," ",displayCovariates($cov)))
+			    ."</td>";
 		}
 		echo "</tr>\n<tr>";
 		$totals=array();
-		foreach ($covariates as $cov) {
+		foreach ($qtl_covariates as $cov) {
 			$totals[$cov]=array("cis"=>0,"trans"=>0);
 			echo "<td></td><td bgcolor=\"black\" colspan=2></td>";
 		}
 		echo "</tr>\n<tr>";
 		echo "<td align=left valign=bottom>Chromosome</td>";
-		foreach ($covariates as $cov) {
+		foreach ($qtl_covariates as $cov) {
 			echo "<td></td><td align=right>cis</td><td align=right>trans</td>";
 		}
 		echo "</tr>\n";
 		/* -- a solid line is correct
 		echo <tr>";
 		echo "<td bgcolor=\"black\"></td>";
-		foreach ($covariates as $cov) {
+		foreach ($qtl_covariates as $cov) {
 			echo "<td></td>";
 			echo "<td bgcolor=\"black\"></td>";
 			echo "<td bgcolor=\"black\"></td>";
 		}
 		echo "</tr>\n";
 		*/
-		echo "<tr><td colspan=\"".(1+(1+2)*count($covariates))."\" bgcolor=\"black\"></td></tr>\n";
+		echo "<tr><td colspan=\"".(1+(1+2)*count($qtl_covariates))."\" bgcolor=\"black\"></td></tr>\n";
 		foreach ($orderOfChromosomes as $c) {
 			echo "<tr>";
 			echo "<td align=right>$c&nbsp;&nbsp;&nbsp;&nbsp;</td>";
-			foreach ($covariates as $cov) {
+			foreach ($qtl_covariates as $cov) {
 				$d=$dataFromTable[$cov][$c];
 				if (empty($d)) {
 					echo "<td></td><td></td><td></td>";
@@ -159,16 +191,41 @@
 			}
 			echo "</tr>\n";
 		}
-		echo "<tr><td colspan=\"".(1+(1+2)*count($covariates))."\" bgcolor=\"black\"></td></tr>\n";
+		echo "<tr><td colspan=\"".(1+(1+2)*count($qtl_covariates))."\" bgcolor=\"black\"></td></tr>\n";
 		echo "<tr><td align=center>Totals</td>";
-		foreach ($covariates as $cov) {
+		foreach ($qtl_covariates as $cov) {
 			echo "<td></td>";
 			echo "<td align=right>".$totals[$cov]["cis"]  ."</td>";
 			echo "<td align=right>".$totals[$cov]["trans"]."</td>";
 		}
 		echo "</tr>\n";
-		echo "<tr><td colspan=\"".(1+(1+2)*count($covariates))."\" bgcolor=\"black\"></td></tr>\n";
-		echo "<caption align=bottom>The table shows the number of cis- and trans-regulated genes for every chromosome (rows) for a selection of covariates (column pairs).</caption>";
+		echo "<tr><td colspan=\"".(1+(1+2)*count($qtl_covariates))."\" bgcolor=\"black\"></td></tr>\n";
+		echo "<caption align=bottom>The table shows the number of cis- and trans-regulated genes for every chromosome (rows) for a selection of covariates (column pairs).";
+		if (!empty($PvalueMin) or !empty($LODmin))
+		echo " Expression QTL were selected to have ";
+		$numStatements=0;
+		if (!empty($PvalueMin)) {
+			if (0<$numStatements) echo ", ";
+			echo " a P-value above $PvalueMin";
+			$numStatements++;
+		}
+		if (!empty($PvalueMax)) {
+			if (0<$numStatements) echo ", ";
+			echo " a P-value below $PvalueMax";
+			$numStatements++;
+		}
+		if (!empty($LODmin)) {
+			if (0<$numStatements) echo ", ";
+			echo "a LOD score above $LODmin";
+			$numStatements++;
+		}
+		if (!empty($LODmax)) {
+			if (0<$numStatements) echo ", ";
+			echo "a LOD score below $LODmax";
+			$numStatements++;
+		}
+		echo ".";
+		echo "</caption>";
 		echo "</table>";
 	}
 
