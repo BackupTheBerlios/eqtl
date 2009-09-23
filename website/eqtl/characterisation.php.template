@@ -1,5 +1,23 @@
 <?php
 
+/*
+
+=head1 NAME
+
+Characterisation
+
+=head1 DESCRIPTION
+
+The documentation still needs to be prepared.
+
+=head1 AUTHORS
+
+Benedikt Bauer <bauer@cls.uni-luebeck.de>
+
+=cut
+
+*/
+
 echo "<html><head><title>DB</title></head>\n";
 echo "<body>";
 

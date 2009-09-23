@@ -258,13 +258,13 @@ expression QTL.
 
 */
 
-function select_covariates_combinations($htmlFieldName="qtl_covariates") {
+function select_covariates_combinations($ncol=2,$htmlFieldName="qtl_covariates") {
 	echo "<b>Covariates:</b><br>";
 	$covars = get_covars_on_your_own_from_qtl($linkLocal);
 	//print_r($covars);
 	echo "<table border=0><tr>";
 	foreach($covars as $n=>$covar) {
-		if (0 == $n % 5) echo "</tr><tr>";
+		if (0 == $n % $ncol) echo "</tr><tr>";
 		echo "<td>";
 		echo "<input type=\"checkbox\" name=\"".$htmlFieldName."[]\" value=\"$covar\" />";
 		echo "</td><td>";

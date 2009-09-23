@@ -49,6 +49,8 @@ the chromosomal region filled in.
 
 =item 95% quantile span
 
+=item P-value
+
 =item Min diff of LOD score to 95% quantile
 
 =item cM of peak
@@ -73,7 +75,8 @@ for such assigned to a cluster of genes.
 
 =head1 AUTHOR
 
-Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+ME<eacute>lanie Thessén Hedreul <melthe@ki.se>
 
 =head1 COPYRIGHT
 
@@ -302,15 +305,8 @@ ENDOFDOCUMENTATION
 			<tr bgcolor="orange"><th>Name</th><th>Chromosome</th><th><small>bp From</small></th><th><small>bp To</small></th></tr>
 <?php
 		include_once("func_public_qtl.php");
-		$qtls = get_public_qtls($linkLocal);
+		select_from_public_qtls($linkLocal);
 
-		foreach ($qtls as $q) {
-			echo "<tr><td><small>".$q["name"]."</small></td>";
-			echo "<td align=right><small><a href=qtl.php?chrlist=".$q["chr"].">".$q["chr"]."</a></small></td>";
-			echo "<td align=right><small><small>".$q["start_bps"]."</small></small></td>";
-			echo "<td align=right><small><small>".$q["stop_bps"]."</small></small></td>";
-			echo "</tr>\n";
-		}
 ?>
 			</table>
 		</td></tr>
@@ -639,7 +635,14 @@ ENDOFDOCUMENTATION
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " Quantile <= ".$quantilemax." ";
 		}
-
+		if (!empty($PvalueMin)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " pvalue >= ".$PvalueMin." ";
+		}
+		if (!empty($PvalueMax)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " pvalue <= ".$PvalueMax." ";
+		}
 		// LODdiff = LOD - Quantile
 		if (!isset($LODdiffmin) and "" != "$LODdiffmin") {
 			if (!is_numeric($LODdiffmin)) {
