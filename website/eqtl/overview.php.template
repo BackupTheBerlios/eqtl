@@ -1,0 +1,90 @@
+<?php
+
+	require_once("header.php");
+	require_once("func_covariates.php");
+	require_once("func_selection.php"); // prints part of the HTML for forms
+
+	show_small_header("Tabular overview on Expression QTL",TRUE);
+
+	$database="DATABASEEQTLNAME";
+	include_once("func_connect.php");
+
+	$covariates = array("","eae_add","eae_int","dud_int");
+
+	$query = "SELECT covariates,locus.chr,count(*) as numTraits,sum(cis) as numCis "
+		#. ", (numTraits - numCis) as numTrans
+		." FROM qtl join locus on qtl.Locus = locus.Name ";
+	if (!empty($covariates)) {
+		$query .= " WHERE covariates in ('".join("','",$covariates)."') ";
+	}
+	$query .= " GROUP BY covariates,locus.chr
+		   LIMIT 100 ";
+
+	print_r($query);
+	echo "<br>";
+
+	$result = mysql_query($query,$linkLocal);
+	if (empty($result)) {
+		errorMessage(mysql_error($linkLocal)."</p><p>".$query."</p>");
+		//echo "LinkLocal: "; print_r($linkLocal);
+		mysql_close($linkLocal);
+		exit;
+	}
+
+	$dataFromTable = array();
+	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		if (empty($dataFromTable[$line["covariates"]])) {
+			$dataFromTable[$line["covariates"]] = array();
+		}
+		$dataFromTable[$line["covariates"]][$line["chr"]]=array("numTraits"=>$line["numTraits"],
+						"numCis"=>$line["numCis"],
+						"numTrans"=>($line["numTraits"]-$line["numCis"]));
+	}
+
+	//print_r($dataFromTable);
+
+	$orderOfChromosomes = array();
+	for($i=1; $i<=20; $i++) {
+		$orderOfChromosomes[]="$i";
+	}
+	$orderOfChromosomes[]="X";
+
+	echo "<table>";
+	echo "<tr>";
+	echo "<td rowspan=2 valign=top align=right>&nbsp;&nbsp;Phenotype</td>";
+	foreach ($covariates as $cov) {
+		echo "<td colspan=2>".(empty($cov)?"transcript":$cov)."</td>";
+	}
+	echo "</tr><tr>";
+	foreach ($covariates as $cov) {
+		echo "<td bgcolor=\"black\" colspan=2></td>";
+	}
+	echo "</tr><tr>";
+	echo "<td align=left valign=bottom>Chromosome</td>";
+	foreach ($covariates as $cov) {
+		echo "<td>cis</td><td>trans</td>";
+	}
+	echo "</tr><tr>";
+	echo "<td bgcolor=\"black\"></td>";
+	foreach ($covariates as $cov) {
+		echo "<td bgcolor=\"black\"></td>";
+		echo "<td bgcolor=\"black\"></td>";
+	}
+	echo "</tr>";
+	foreach ($orderOfChromosomes as $c) {
+		echo "<tr>";
+		echo "<td>$c</td>";
+		foreach ($covariates as $cov) {
+			$d=$dataFromTable[$cov][$c];
+			if (empty($d)) {
+				echo "<td></td><td></td>";
+			}
+			else {
+				echo "<td>".$d["numCis"]."</td><td>".$d["numTrans"]."</td>";
+			}
+		}
+		echo "</tr>\n";
+	}
+	echo "</table>";
+
+?>
