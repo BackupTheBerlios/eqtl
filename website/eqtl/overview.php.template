@@ -1,5 +1,31 @@
 <?php
 
+	TEMPLATEWARNINGHASH
+
+/*
+
+=head1 overview
+
+This script prepares a tabular overview on
+
+=over 4
+
+=item covariates
+
+=item chromosomes
+
+=item cis/trans
+
+=item location in classical disease qtl
+
+=back
+
+The figure is prepared in a way that would be suitable for publication.
+
+=cut
+
+*/
+
 	require_once("header.php");
 	require_once("func_covariates.php");
 	require_once("func_selection.php"); // prints part of the HTML for forms
