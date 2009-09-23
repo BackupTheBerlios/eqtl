@@ -49,6 +49,8 @@ the chromosomal region filled in.
 
 =item 95% quantile span
 
+=item P-value
+
 =item Min diff of LOD score to 95% quantile
 
 =item cM of peak
@@ -73,7 +75,8 @@ for such assigned to a cluster of genes.
 
 =head1 AUTHOR
 
-Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+ME<eacute>lanie Thessén Hedreul <melthe@ki.se>
 
 =head1 COPYRIGHT
 
@@ -632,7 +635,14 @@ ENDOFDOCUMENTATION
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " Quantile <= ".$quantilemax." ";
 		}
-
+		if (!empty($PvalueMin)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " pvalue >= ".$PvalueMin." ";
+		}
+		if (!empty($PvalueMax)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " pvalue <= ".$PvalueMax." ";
+		}
 		// LODdiff = LOD - Quantile
 		if (!isset($LODdiffmin) and "" != "$LODdiffmin") {
 			if (!is_numeric($LODdiffmin)) {

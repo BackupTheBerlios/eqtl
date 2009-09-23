@@ -142,6 +142,7 @@ function print_selection_form($properties) {
 		 case "all_qtl":
 			$properties = array("groups", "locus", 
 					    "chromosome", "LOD", "quantile", "LODdiff",
+					     "pvalue",
 					    "peak", "flanks", "trait",
 					    "mean", "sd");
 			break;
