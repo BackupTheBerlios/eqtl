@@ -142,6 +142,7 @@ function print_selection_form($properties) {
 		 case "all_qtl":
 			$properties = array("groups", "locus", 
 					    "chromosome", "LOD", "quantile", "LODdiff",
+					     "pvalue",
 					    "peak", "flanks", "trait",
 					    "mean", "sd");
 			break;
@@ -155,6 +156,14 @@ function print_selection_form($properties) {
 		 
 		 case "all_qtl_trait":
 			$properties = array("mean", "sd", "median", "variance" , "LOD", "pvalue", "number_of_chromosomes_per_trait"
+			);
+			break;
+
+		 case "table_overview_scanone":
+			$properties = array(
+						"LOD", "pvalue"
+						#, "mean", "sd", "median", "variance" ,
+						#, "number_of_chromosomes_per_trait"
 			);
 			break;
 		 

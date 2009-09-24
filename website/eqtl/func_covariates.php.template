@@ -248,6 +248,35 @@ function select_covariates($dbh,$cov,$maxPerLine=6) {
 
 /*
 
+=head2 select_covariates_combinations
+
+The function does not take the information on covariates from the schema,
+but retrieves the combinations of covariates as they are found for existing
+expression QTL.
+
+=cut
+
+*/
+
+function select_covariates_combinations($ncol=2,$htmlFieldName="qtl_covariates") {
+	echo "<b>Covariates:</b><br>";
+	$covars = get_covars_on_your_own_from_qtl($linkLocal);
+	//print_r($covars);
+	echo "<table border=0><tr>";
+	foreach($covars as $n=>$covar) {
+		if (0 == $n % $ncol) echo "</tr><tr>";
+		echo "<td>";
+		echo "<input type=\"checkbox\" name=\"".$htmlFieldName."[]\" value=\"$covar\" />";
+		echo "</td><td>";
+		echo preg_replace("/,/"," ",displayCovariates($covar));
+		echo "</td>";
+	}
+	echo "</tr>";
+	echo "</table>";
+}
+
+/*
+
 =head1 AUTHOR
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>

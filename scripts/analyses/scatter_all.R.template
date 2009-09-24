@@ -1,0 +1,186 @@
+#!/usr/bin/r
+
+doc<-"
+
+=head1 NAME
+
+scatter_all.R - prepare scatter plots for all covariates
+
+=head1 SYNOPSIS
+
+to be started from within the R shell with no parameters
+
+=head1 DESCRIPTION
+
+This script plots the chromosomal location of the QTL 
+against the chromosomal location of the gene it affects.
+
+=head1 AUTHORS
+
+Steffen Moeller <moeller@inb.uni-luebeck.de>,
+ME<eacute>lanie ThessE<eacute>n Hedreul,
+Maja Jagodic E<#263>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck and Karolinska Institute, Stockholm
+
+=cut
+
+"
+
+library(RMySQL)
+library(getopt)
+
+opt = getopt(matrix(c(                                            
+   'verbose'    , 'v', 2, "integer",                              
+   'help'       , 'h', 0, "logical",                              
+   'MeanMin'    , 'm', 1, "double",                               
+   'LODmin'     , 'l', 1, "double",                               
+   'interactive', 'i', 0, "logical",                               
+   'output'     , 'o', 1, "character"
+   ),ncol=4,byrow=TRUE))
+#   'covariates' , 'c', 5, "character"
+
+cat("I was here 1.\n")
+
+if ( !is.null(opt$help) ) {
+   cat("Please run 'pod2man scatter_all.R | nroff -man | less' on this script to gain more insights.\n");
+   cat(paste("Output can be expected at file '",opt$output,"'.\n",sep=""))
+   q(status=1);
+}
+
+if (is.null(opt$output)) {
+   cat("Setting ouput to default value.\n")
+   opt[["output"]]<-"/tmp/default_output_scatter_all.pdf"
+}
+if (is.null(opt$MeanMin)) {
+   cat("Setting MeanMin to default value.\n")
+   opt[["MeanMin"]]<- -1
+}
+if (is.null(opt$LODmin)) {
+   cat("Setting LODmin to default value.\n")
+   opt[["LODmin"]]<- -1
+}
+
+cat("I was here 2.\n")
+
+con <- dbConnect(MySQL(),host="DATABASEHOSTLOCAL",db="DATABASEEQTLNAME",user="DATABASEEQTLUSER")
+
+# find maximal cM for every chromosome
+
+q <- "SELECT locus.chr, MAX(cMorgan_Peak) as max FROM qtl JOIN locus on qtl.Locus=locus.Name GROUP BY locus.chr;"
+chromosomal.length.cM<-dbGetQuery(con,q)
+rownames(chromosomal.length.cM)<-chromosomal.length.cM[,1]
+cM.offset<-c(0,cumsum(chromosomal.length.cM[c(1:20,"X"),"max"]))
+names(cM.offset)<-c(1:20,"X","Y")
+
+
+# find maximal bp for every chromosome
+
+q <- "SELECT chromosome, MAX((start+stop)/2) as max FROM trait GROUP BY chromosome;"
+chromosomal.length.bp<-dbGetQuery(con,q)
+rownames(chromosomal.length.bp)<-chromosomal.length.bp[,1]
+bp.offset<-c(0,cumsum(chromosomal.length.bp[c(1:(POSITIONOFXCHROMOSOME-1),"X"),"max"]))
+names(bp.offset)<-c(1:20,"X","Y")
+
+
+# Find covariates to work on
+
+q <- "select distinct covariates from qtl;"
+covariates.queried<-dbGetQuery(con,q)[,"covariates"]
+cat(paste("Found the following covariates in the database: ",
+          paste(covariates.queried,collapse=";",sep=""),"\n",sep=""))
+
+
+covariates.filter.string<-opt$covariates
+if(is.null(covariates.filter.string)) {
+	cat("W: Falling back to default values for covariates.\n")
+	covariates.filter.string<-"max_add;bd_int;dud_int;dud_add;max_add,dud_add;eae_add;eae_add,dud_add;sud_add"
+}
+covariates.filter.list<-strsplit(covariates.filter.string,";")[[1]]
+
+
+covariates<-covariates.queried[covariates.queried %in% covariates.filter.list]
+
+cat(paste("Working with the following covariates: ",paste(covariates,collapse=";",sep=""),".\n",sep=""))
+
+
+
+
+# do it for all covariates
+
+
+if (is.null(opt$interactive)) {
+	pdf(opt[["output"]])
+}
+
+for(cov in covariates) {
+
+  cat("Working on covariate '",cov,"'\n")
+
+  # Input for plot
+
+  q <- paste("SELECT ",
+	      "Trait,LOD,locus.chr,cMorgan_Peak,covariates,trait.chromosome,(trait.start+trait.stop)/2 as pos ",
+           "FROM ",
+              "qtl JOIN trait ON trait_id=Trait JOIN locus ON locus.Name=qtl.Locus ",
+           "WHERE ",
+              "covariates='",cov,"' AND LOD>=",opt$LODmin," AND mean>=",opt$MeanMin,";",sep="")
+
+#Trait, Locus, LOD, covariates, Chromosome, cMorgan_Peak, cMorgan_Min, cMorgan_Max, Quantile, (LOD-Quantile) as LODdiff , unigene, swissprot_ID, gene_assignment, first_symbol,
+#       first_name, ProbeSequence, seqname as chr_name, strand, start as gene_chrom_start,stop as gene_chrom_end,
+#       trait.mean, trait.sd 
+#
+# SELECT Trait, Locus, LOD, covariates, Chromosome, cMorgan_Peak, cMorgan_Min, cMorgan_Max, Quantile, (LOD-Quantile) as LODdiff , unigene, swissprot_ID, gene_assignment, first_symbol,
+#       first_name, ProbeSequence, seqname as chr_name, strand, start as gene_chrom_start,stop as gene_chrom_end,
+#       trait.mean, trait.sd 
+# FROM qtl left join BEARatChip as c on Trait=c.probeset_id join trait on qtl.Trait=trait.trait_id WHERE Chromosome in ('2') AND mean >= 100 AND covariates='bd_int' AND LOD >= 4 ORDER BY LOD DESC
+#
+#
+
+  selected.qtl<-dbGetQuery(con,q)
+
+
+  pos.linear.cM<-apply(selected.qtl,
+      1,
+      function(X){
+	 linearCentiMorgan<-cM.offset[X[3]]
+	 offset<-as.numeric(X[4])
+         return(linearCentiMorgan+offset)
+      }
+  )
+
+  pos.linear.bp<-apply(selected.qtl,
+      1,
+      function(X){
+	 linearBP<-bp.offset[X[6]]
+	 offset<-as.numeric(X[7])
+         return(linearBP+offset)
+      }
+  )
+
+
+  plot.new()
+  plot(pos.linear.cM,pos.linear.bp,
+     xlim=c(0,max(cM.offset)),ylim=c(0,max(bp.offset)),
+     axes=FALSE,main=cov,sub=paste("LODs>4,6,8, mean>=",opt$MeanMin))
+  abline(v=cM.offset, col="lightgray")
+  abline(h=bp.offset, col="lightgray")
+
+  in.red<-selected.qtl[,"LOD"]>=6
+  points(pos.linear.cM[in.red],  pos.linear.bp[in.red],  col="red")
+ 
+  in.green<-selected.qtl[,"LOD"]>=8
+  points(pos.linear.cM[in.green],pos.linear.bp[in.green],col="green")
+
+  axis(1, at=cM.offset[1:length(cM.offset)-1],
+        labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"))
+  axis(2, at=bp.offset[1:length(bp.offset)-1],
+        labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"))
+
+}
+
+if(is.null(opt$interactive)) {
+	dev.off()
+}
