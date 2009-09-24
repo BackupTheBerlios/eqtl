@@ -127,6 +127,7 @@ ENDOFDOCUMENTATION
 		}
 		else {
 			$traits=$traitlist;
+			$traitlist="";
 		}
 	}
 
