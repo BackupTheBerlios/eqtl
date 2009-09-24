@@ -35,16 +35,23 @@ function gprofilerlink($traits,$genes,$query,$id="") {
 	$traits_unique = array_unique($traits);
 	$chipOrganismShort="HU";
 	switch("ENSEMBLSPECIESMARTLONG") {
-		case "Rattus_norvegicus":
+		case "Rattus_norvegicus": # incorrect, left fot safety
+		case "rnorvegicus": # correct
 			$chipOrganismShort="RA";
 			break;
-		case "Mus_musculus":
-			$chipOrganismShort="MU";
+		case "Mus_musculus": # incorrect, left for safety
+		case "mmusculus": # correct
+			$chipOrganismShort="MO";
+			break;
+		case "Homo_sapiens": # incorrect, left for safety
+		case "hsapiens": # correct
+			$chipOrganismShort="HU";
 			break;
 		default:
-			echo "<p>Unknown organism: 'ENSEMBLSPECIESMARTLONG', assuming compatibility with human</p>"
+			echo "<p>Unknown organism: 'ENSEMBLSPECIESMARTLONG', assuming compatibility with human</p>";
+			break;
 	}
-	$externalgprofiler  = "http://biit.cs.ut.ee/gprofiler/index.cgi?organism=ENSEMBLSPECIESMARTLONG&prefix=AFFY_${$chipOrganismShort}GENE_1_0_ST_V1&query=";
+	$externalgprofiler  = "http://biit.cs.ut.ee/gprofiler/index.cgi?organism=ENSEMBLSPECIESMARTLONG&prefix=AFFY_${chipOrganismShort}GENE_1_0_ST_V1&query=";
 	$externalgprofiler_pretraits = $externalgprofiler.join("+",$traits_unique);
 	$externalgprofiler_traits = $externalgprofiler_pretraits."&output=png&significant=1";
 #	$cachedgprofiler  = "http:?query=";
