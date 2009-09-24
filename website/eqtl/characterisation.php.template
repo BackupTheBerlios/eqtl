@@ -53,8 +53,8 @@ while($row = mysql_fetch_array($groups))
 if(array_search($name,$group_arr)===FALSE){   # if there is NO entry with name=ID yet
 	#creating random number for group_id
 	srand(microtime()*1000000);
-	#$group_id= rand(1,10000000000)*rand(1,10000000000)*rand(1,10000000000)*rand(1,10000000000);
-	$group_id= rand(1,10)*rand(1,10);
+	$group_id= rand(1,10000000000);
+	#$group_id= rand(1,10)*rand(1,10);
 
 	mysql_query("insert into groups set name=\"$name\";");
 	mysql_query("update groups set group_id=\"$group_id\" where name=\"$name\";");
