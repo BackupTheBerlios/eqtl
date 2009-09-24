@@ -358,7 +358,8 @@ ENDOFDOCUMENTATION
 				."')";
 		}
 
-		if (!empty($phen_neg_cor_min) or !empty($phen_neg_cor_max)
+		if (!empty($phen)
+		 or !empty($phen_neg_cor_min) or !empty($phen_neg_cor_max)
 		 or !empty($phen_pos_cor_min) or !empty($phen_pos_cor_max))
 		{
 			$distinc = "DISTINCT";
@@ -384,10 +385,12 @@ ENDOFDOCUMENTATION
 		if (!empty($phen)) {
 			$p = preg_split("/,/",$phen);
 			if (1 == count($p)) {
-				$where .= " AND phen = '$phen' ";
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " phen = '$phen' ";
 			}
 			else if (0 < count($p)) {
-				$where .= " AND phen in '".join("','",$p)."' ";
+				if ("WHERE " != $where) $where .= " AND ";
+				$where .= " phen in '".join("','",$p)."' ";
 			}
 		}
 
