@@ -654,10 +654,14 @@ ENDOFDOCUMENTATION
 			}
 		}
 		
-		if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
-			if ("manual" != $conditionList[$c]["constraint"]) {
-				if ("WHERE " != $where) $where .= " AND ";
-				$where .= " ".$conditionList[$c]["constraint"]." ";
+		if (!empty($condition) && is_array($condition)) {
+			foreach($condition as $c) {
+				if ("manual" != $conditionList[$c]["constraint"]) {
+					if (!empty($conditionList[$c]["constraint"])) {
+						if ("WHERE " != $where) $where .= " AND ";
+						$where .= " ".$conditionList[$c]["constraint"]." ";
+					}
+				}
 			}
 		}
 
