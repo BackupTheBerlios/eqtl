@@ -77,7 +77,7 @@ ENDOFDOCUMENTATION
 			$r .= "none"==$covariates?"&covariates=none":"&covariates=$covariates";
 		}
 		if ($direct) {
-			$r .= "&show_Trait=1&show_Chromosome=1&show_ExpressionOfGene=1&show_Locus=1&show_LOD=1&submitted=1";
+			$r .= "&show_Trait=1&show_Chromosome=1&show_ExpressionOfGene=1&show_Locus=1&show_chromosome=1&show_cMorgan_Peak=1&show_LOD=1&show_gene_name=1&show_pvalue=1&submitted=1";
 		}
 		$vars = array("LODmin","LODmax","MeanMin","MeanMax","SdMin","SdMax");
 		foreach($vars as $v) {

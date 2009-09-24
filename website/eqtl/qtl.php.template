@@ -138,7 +138,7 @@ ENDOFDOCUMENTATION
 	$a=array("Trait"=>1, "Groups"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
 		"LOD"=>1,"LODdiff"=>1,"pvalue" => 1, "Quantile"=>1,
 		"covariates"=>1,
-		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>1, "cMorgan_Max"=>1,
+		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>0, "cMorgan_Max"=>0,
 		"Gid"=>0, "gene_name"=>1, 
 		"name"=>1, "mean"=>1, "sd"=>1 
 	);
