@@ -567,11 +567,11 @@ ENDOFDOCUMENTATION
 						# echo "<th rowspan=2>$n</th>";
 					}
 				}
-				if (!empty($show_phen_correlation)){
-					echo "<th rowspan=2>phen correlation</th>\n";
-				}
 				if (!empty($show_mean_sd_variance)) {
 					echo "<th rowspan=2>Stats</th>\n";
+				}
+				if (!empty($show_phen_correlation)){
+					echo "<th rowspan=2>phen correlation</th>\n";
 				}
 				if (!empty($show_trait_loci)) {
 					echo "<th colspan=8>Loci</th>\n";
