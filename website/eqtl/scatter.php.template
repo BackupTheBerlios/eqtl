@@ -64,7 +64,7 @@ University of LE<uuml>beck, 2009
 
 
 	$accessible_fields_in_POST_or_GET = array_merge (
-		array("submitted"),
+		array("submitted","inlineImages"),
 		$dataSelectionFieldsQTL
 	);
 
@@ -104,7 +104,7 @@ University of LE<uuml>beck, 2009
 		echo "<tr><th>Covariates of stored QTL</th><td>";
 		select_covariates_combinations(3);
 		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
-		echo "<tr><td align=right><input type=submit></td><td align=left><input type=reset></td></tr>\n";
+		echo "<tr><td align=right><input type=submit></td><td align=left><input type=reset> &nbsp;&nbsp;&nbsp;<input type=checkbox name=inlineImages value=1 />Inline Images</td></tr>\n";
 		echo "</table>\n";
 
 		if ("" == "this is not yet implemented") {
@@ -125,37 +125,59 @@ University of LE<uuml>beck, 2009
 		#
 
 		echo "cwd: " . getcwd() . "<br>\n";
+		#print_r($_SERVER);
 
-		$outputfilename = "tmp_images/scatter_output.png";
-		if (file_exists("$outputfilename")) {
-		    echo "<p>Removing filename to update: '$outputfilename'.</p>";
-		    unlink("$outputfilename");
+		foreach ($qtl_covariates as $n=>$cov) {
+
+			if ($n>0) echo "<hr>";
+
+			$outputfilename = "tmp_images/scatter_output";
+			if (!empty($cov)) {
+			    $outputfilename .= "_cov_$cov";
+			}
+			if (!empty($PvalueMin)) {
+			    $outputfilename .= "_PvalueMin_$PvalueMin";
+			}
+			if (!empty($LODmin)) {
+			    $outputfilename .= "_PvalueMin_$LODmin";
+			}
+			if (!empty($MeanMin)) {
+			    $outputfilename .= "_MeanMin_$MeanMin";
+			}
+			$outputfilename .= ".png";
+			if (file_exists("$outputfilename")) {
+			    echo "<p>Removing filename to update: '$outputfilename'.</p>";
+			    unlink("$outputfilename");
+			}
+			$rscript = getcwd() . "/../../scripts/analyses/scatter_all.R";
+			$attributes=array();
+			if (!file_exists($rscript)) {
+			  errorMessage("R script '$rscript' not found.");
+			}
+			$cmd = "$rscript";
+			$cmd .= " --format png";
+			array_push($attributes,"--format","png");
+			if (!empty($qtl_covariates)) {
+			  $cmd .= " --covariates $cov";
+			  array_push($attributes,"--covariates",$cov);
+			}
+			$cmd .= " --output $outputfilename";
+			array_push($attributes,"--output",$outputfilename);
+			$cmd = "./scatter_wrapper.sh ".join(" ",$attributes);
+			
+			#echo "executing '$cmd'<br>\n";
+			#print_r($attributes);
+			echo "<small><pre>";
+			echo shell_exec($cmd);
+			echo "</pre></small>\n";
+
+			$imagePath=dirname($_SERVER["PHP_SELF"])."/$outputfilename";
+
+			if (!empty($inlineImages)) {
+				echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n";
+			}
+			echo "<a href=\"http:$imagePath\">$outputfilename</a><br/>\n";
 		}
-		$rscript = "../../scripts/analyses/scatter_all.R";
-		$attributes=array();
-		if (!file_exists($rscript)) {
-		  errorMessage("R script '$rscript' not found.");
-		}
-		$cmd = "$rscript";
-		$cmd .= " --format png";
-		array_push($attributes,"--format");
-		array_push($attributes,"png");
-		if (!empty($qtl_covariates)) {
-		  $cmd .= " --covariates \"" . join(";",$qtl_covariates) . "\"";
-		  array_push($attributes,"--covariates");
-		  array_push($attributes,join(";",$qtl_covariates));
-		}
-		$cmd .= " --output $outputfilename";
-		array_push($attributes,"--output");
-		array_push($attributes,$outputfilename);
-		
-		echo "executing '$cmd'<br>\n";
-		print_r($attributes);
-		echo "<small><pre>";
-		#echo shell_exec($cmd);
-		echo shell_exec("scatter_wrapper.sh");
-		echo "</pre></small>\n";
-		echo "<img src=\"http://eqtl/$outputfilename\">\n";
 	}
 	include("footer.php");
 ?>
