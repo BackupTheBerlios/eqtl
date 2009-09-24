@@ -16,18 +16,20 @@ This file provides a function that shares the provisioning of an interface
 for the manual calling of the g:Profiler and its automated invocation
 with the parallel local caching.
 
-=head1 AUTHOR
+*/
 
-Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+/*
 
-=head1 COPYRIGHT
+=head2 gprofilerlink($traits,$genes,$id)
 
-Universities of Rostock and LE<uuml>beck, 2003-2009
+The function is passed trait IDs and gene IDs that are presumed to belong to one particular group.
+An optional third parameter is an identifier for that colletion of expression QTL.
+
+The routine is invoked from the qtl.php page and the interaction.php page.
 
 =cut
 
 */
-
 
 function gprofilerlink($traits,$genes,$query,$id="") {
 	$traits_unique = array_unique($traits);
@@ -79,5 +81,21 @@ function gprofilerlink($traits,$genes,$query,$id="") {
 	echo "</td></tr>";
 	echo "</table>\n";
 }
+
+
+/*
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+Universities of Rostock and LE<uuml>beck, 2003-2009
+
+=cut
+
+*/
+
 
 ?>
