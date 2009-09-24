@@ -32,14 +32,17 @@ University of LE<uuml>beck and Karolinska Institute, Stockholm
 library(RMySQL)
 library(getopt)
 
-opt = getopt(c(                                              
+opt = getopt(matrix(c(                                            
    'verbose'    , 'v', 2, "integer",                              
    'help'       , 'h', 0, "logical",                              
    'MeanMin'    , 'm', 1, "double",                               
    'LODmin'     , 'l', 1, "double",                               
-   'output'     , 'o', 1, "character",                            
-   'covariates' , 'c', 1, "character"
-));                  
+   'interactive', 'i', 0, "logical",                               
+   'output'     , 'o', 1, "character"
+   ),ncol=4,byrow=TRUE))
+#   'covariates' , 'c', 5, "character"
+
+cat("I was here 1.\n")
 
 if ( !is.null(opt$help) ) {
    cat("Please run 'pod2man scatter_all.R | nroff -man | less' on this script to gain more insights.\n");
@@ -48,14 +51,19 @@ if ( !is.null(opt$help) ) {
 }
 
 if (is.null(opt$output)) {
+   cat("Setting ouput to default value.\n")
    opt[["output"]]<-"/tmp/default_output_scatter_all.pdf"
 }
 if (is.null(opt$MeanMin)) {
+   cat("Setting MeanMin to default value.\n")
    opt[["MeanMin"]]<- -1
 }
 if (is.null(opt$LODmin)) {
+   cat("Setting LODmin to default value.\n")
    opt[["LODmin"]]<- -1
 }
+
+cat("I was here 2.\n")
 
 con <- dbConnect(MySQL(),host="DATABASEHOSTLOCAL",db="DATABASEEQTLNAME",user="DATABASEEQTLUSER")
 
@@ -80,17 +88,20 @@ names(bp.offset)<-c(1:20,"X","Y")
 # Find covariates to work on
 
 q <- "select distinct covariates from qtl;"
-covariates<-dbGetQuery(con,q)[,"covariates"]
+covariates.queried<-dbGetQuery(con,q)[,"covariates"]
+cat(paste("Found the following covariates in the database: ",
+          paste(covariates.queried,collapse=";",sep=""),"\n",sep=""))
 
-covariates.filter.string<-out$covariates
+
+covariates.filter.string<-opt$covariates
 if(is.null(covariates.filter.string)) {
 	cat("W: Falling back to default values for covariates.\n")
-	covariates.filter.string<-"max;dud;max,dud;eae;eae,dud;sud"
+	covariates.filter.string<-"max_add;bd_int;dud_int;dud_add;max_add,dud_add;eae_add;eae_add,dud_add;sud_add"
 }
-covariates.filter.list<-strsplit("/;/",covariates.filter.string)[1]
+covariates.filter.list<-strsplit(covariates.filter.string,";")[[1]]
 
 
-covariates<-covariates %in% covariates.filter.list
+covariates<-covariates.queried[covariates.queried %in% covariates.filter.list]
 
 cat(paste("Working with the following covariates: ",paste(covariates,collapse=";",sep=""),".\n",sep=""))
 
@@ -100,7 +111,9 @@ cat(paste("Working with the following covariates: ",paste(covariates,collapse=";
 # do it for all covariates
 
 
-pdf(opt[["output"]])
+if (is.null(opt$interactive)) {
+	pdf(opt[["output"]])
+}
 
 for(cov in covariates) {
 
@@ -151,7 +164,7 @@ for(cov in covariates) {
   plot.new()
   plot(pos.linear.cM,pos.linear.bp,
      xlim=c(0,max(cM.offset)),ylim=c(0,max(bp.offset)),
-     axes=FALSE,main=cov,sub=paste("LODs>4,6,8, mean>=",MeanMin))
+     axes=FALSE,main=cov,sub=paste("LODs>4,6,8, mean>=",opt$MeanMin))
   abline(v=cM.offset, col="lightgray")
   abline(h=bp.offset, col="lightgray")
 
@@ -168,4 +181,6 @@ for(cov in covariates) {
 
 }
 
-dev.off()
+if(is.null(opt$interactive)) {
+	dev.off()
+}
