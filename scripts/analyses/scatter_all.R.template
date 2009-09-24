@@ -29,8 +29,21 @@ University of LE<uuml>beck and Karolinska Institute, Stockholm
 
 "
 
+width.pixel<-3*480
+width.inch<-11
+height.pixel<-width.pixel
+height.inch<-width.inch
+bp.offset.extra<-10^8
+cM.offset.extra<-0.7
+
+# indication of percentage separation betweeen
+# chromosomes
+offset.percent<-2
+
 library(RMySQL)
 library(getopt)
+
+cat("I was here 0.\n")
 
 opt = getopt(matrix(c(                                            
    'verbose'    , 'v', 2, "integer",                              
@@ -39,9 +52,10 @@ opt = getopt(matrix(c(
    'LODmin'     , 'l', 1, "double",                               
    'interactive', 'i', 0, "logical",                               
    'format'     , 'f', 1, "character",
+   'covariates' , 'c', 1, "character",
    'output'     , 'o', 1, "character"
-   ),ncol=4,byrow=TRUE))
-#   'covariates' , 'c', 5, "character"
+   ),ncol=4,byrow=TRUE),
+   debug=TRUE)
 
 cat("I was here 1.\n")
 
@@ -68,23 +82,27 @@ cat("I was here 2.\n")
 
 con <- dbConnect(MySQL(),host="DATABASEHOSTLOCAL",db="DATABASEEQTLNAME",user="DATABASEEQTLUSER")
 
+cat("I was here 3.\n")
+
 # find maximal cM for every chromosome
 
 q <- "SELECT locus.chr, MAX(cMorgan_Peak) as max FROM qtl JOIN locus on qtl.Locus=locus.Name GROUP BY locus.chr;"
 chromosomal.length.cM<-dbGetQuery(con,q)
 rownames(chromosomal.length.cM)<-chromosomal.length.cM[,1]
-cM.offset<-c(0,cumsum(chromosomal.length.cM[c(1:20,"X"),"max"]))
+cM.offset<-c(0,cumsum(chromosomal.length.cM[c(1:20,"X"),"max"]+cM.offset.extra))
 names(cM.offset)<-c(1:20,"X","Y")
 
+cat("I was here 4.\n")
 
 # find maximal bp for every chromosome
 
 q <- "SELECT chromosome, MAX((start+stop)/2) as max FROM trait GROUP BY chromosome;"
 chromosomal.length.bp<-dbGetQuery(con,q)
 rownames(chromosomal.length.bp)<-chromosomal.length.bp[,1]
-bp.offset<-c(0,cumsum(chromosomal.length.bp[c(1:(POSITIONOFXCHROMOSOME-1),"X"),"max"]))
+bp.offset<-c(0,cumsum(chromosomal.length.bp[c(1:(POSITIONOFXCHROMOSOME-1),"X"),"max"]+bp.offset.extra))
 names(bp.offset)<-c(1:20,"X","Y")
 
+cat("I was here 5.\n")
 
 # Find covariates to work on
 
@@ -93,6 +111,7 @@ covariates.queried<-dbGetQuery(con,q)[,"covariates"]
 cat(paste("Found the following covariates in the database: ",
           paste(covariates.queried,collapse=";",sep=""),"\n",sep=""))
 
+cat("I was here 6.\n")
 
 covariates.filter.string<-opt$covariates
 if(is.null(covariates.filter.string)) {
@@ -101,29 +120,33 @@ if(is.null(covariates.filter.string)) {
 }
 covariates.filter.list<-strsplit(covariates.filter.string,";")[[1]]
 
+cat("I was here 7.\n")
+
 
 covariates<-covariates.queried[covariates.queried %in% covariates.filter.list]
 
 cat(paste("Working with the following covariates: ",paste(covariates,collapse=";",sep=""),".\n",sep=""))
 
 
-
-
 # do it for all covariates
 
 
 if (is.null(opt$interactive)) {
+	if (file.exists(opt$output)) {
+		cat(paste("Removing file '",opt$output,"'\n",sep=""))
+		file.remove(opt$output);
+	}
 	if (is.null(opt$format) || "png" == opt$format) {
-		png(opt[["output"]])
+		png(opt[["output"]],width=width.pixel,height=height.pixel)
 	}
 	else if ("pdf" == opt$format) {
-		pdf(opt[["output"]])
+		pdf(opt[["output"]],width=width.inch,height=height.inch)
 	}
 	else if ("jpg" == opt$format  || "jpeg" == opt$format) {
-		jpg(opt[["output"]])
+		jpg(opt[["output"]],width=width.pixel,height=height.pixel)
 	}
 	else if ("gif" == opt$format) {
-		jpg(opt[["output"]])
+		jpg(opt[["output"]],width=width.pixel,height=height.pixel)
 	}
 	else {
 		cat("Unknown format ",opt$format,"\n")
@@ -190,9 +213,9 @@ for(cov in covariates) {
   in.green<-selected.qtl[,"LOD"]>=8
   points(pos.linear.cM[in.green],pos.linear.bp[in.green],col="green")
 
-  axis(1, at=cM.offset[1:length(cM.offset)-1],
+  axis(1, at=(cM.offset[1:length(cM.offset)-1]+cM.offset[2:length(cM.offset)])/2,
         labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"))
-  axis(2, at=bp.offset[1:length(bp.offset)-1],
+  axis(2, at=(bp.offset[1:length(bp.offset)-1]+bp.offset[2:length(bp.offset)])/2,
         labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"))
 
 }

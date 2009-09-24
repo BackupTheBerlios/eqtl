@@ -126,17 +126,36 @@ University of LE<uuml>beck, 2009
 
 		echo "cwd: " . getcwd() . "<br>\n";
 
-		$cmd = getcwd()."/../../scripts/analyses/scatter_all.R"
-		$outputfile = "tmp_images/scatter_output.png";
-
+		$outputfilename = "tmp_images/scatter_output.png";
+		if (file_exists("$outputfilename")) {
+		    echo "<p>Removing filename to update: '$outputfilename'.</p>";
+		    unlink("$outputfilename");
+		}
+		$rscript = "../../scripts/analyses/scatter_all.R";
+		$attributes=array();
+		if (!file_exists($rscript)) {
+		  errorMessage("R script '$rscript' not found.");
+		}
+		$cmd = "$rscript";
+		$cmd .= " --format png";
+		array_push($attributes,"--format");
+		array_push($attributes,"png");
+		if (!empty($qtl_covariates)) {
+		  $cmd .= " --covariates \"" . join(";",$qtl_covariates) . "\"";
+		  array_push($attributes,"--covariates");
+		  array_push($attributes,join(";",$qtl_covariates));
+		}
 		$cmd .= " --output $outputfilename";
-
+		array_push($attributes,"--output");
+		array_push($attributes,$outputfilename);
+		
 		echo "executing '$cmd'<br>\n";
+		print_r($attributes);
 		echo "<small><pre>";
-		echo system($cmd);
+		#echo shell_exec($cmd);
+		echo shell_exec("scatter_wrapper.sh");
 		echo "</pre></small>\n";
-
-		echo "<img src=\"$outputfile\">\n";
+		echo "<img src=\"http://eqtl/$outputfilename\">\n";
 	}
 	include("footer.php");
 ?>
