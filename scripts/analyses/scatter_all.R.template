@@ -38,6 +38,7 @@ opt = getopt(matrix(c(
    'MeanMin'    , 'm', 1, "double",                               
    'LODmin'     , 'l', 1, "double",                               
    'interactive', 'i', 0, "logical",                               
+   'format'     , 'f', 1, "character",
    'output'     , 'o', 1, "character"
    ),ncol=4,byrow=TRUE))
 #   'covariates' , 'c', 5, "character"
@@ -112,7 +113,22 @@ cat(paste("Working with the following covariates: ",paste(covariates,collapse=";
 
 
 if (is.null(opt$interactive)) {
-	pdf(opt[["output"]])
+	if (is.null(opt$format) || "png" == opt$format) {
+		png(opt[["output"]])
+	}
+	else if ("pdf" == opt$format) {
+		pdf(opt[["output"]])
+	}
+	else if ("jpg" == opt$format  || "jpeg" == opt$format) {
+		jpg(opt[["output"]])
+	}
+	else if ("gif" == opt$format) {
+		jpg(opt[["output"]])
+	}
+	else {
+		cat("Unknown format ",opt$format,"\n")
+		q(status=1);
+	}
 }
 
 for(cov in covariates) {
