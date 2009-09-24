@@ -40,7 +40,7 @@ University of LE<uuml>beck, 2009
 	require_once("func_covariates.php");
 	require_once("func_selection.php"); // prints part of the HTML for forms
 
-	show_small_header("Tabular overview on Expression QTL",TRUE);
+	show_small_header("Scatter plot overview of Expression QTL",TRUE);
 
 	$database="DATABASEEQTLNAME";
 	include_once("func_connect.php");
@@ -92,7 +92,7 @@ University of LE<uuml>beck, 2009
 		#   S E T T I N G  O F  P A R A M E T E R S 
 		#
 
-		echo "<form action=overview.php method=post>\n";
+		echo "<form action=scatter.php method=post>\n";
 		echo "<input type=hidden name=submitted value=1>\n";
 
 		echo "<table><tr>"; # the table has only a single row
@@ -100,9 +100,9 @@ University of LE<uuml>beck, 2009
 		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
 
 		echo "<table>\n";
-		print_selection_form("table_overview_scanone");
+		print_selection_form("figure_scatter");
 		echo "<tr><th>Covariates of stored QTL</th><td>";
-		select_covariates_combinations();
+		select_covariates_combinations(3);
 		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
 		echo "<tr><td align=right><input type=submit></td><td align=left><input type=reset></td></tr>\n";
 		echo "</table>\n";
@@ -124,7 +124,7 @@ University of LE<uuml>beck, 2009
 		# invocation of external R script
 		#
 
-		echo exec("lisuz")
+		echo "exec('lisuz')";
 	}
-
+	include("footer.php");
 ?>

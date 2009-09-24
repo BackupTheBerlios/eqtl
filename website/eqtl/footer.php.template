@@ -37,7 +37,8 @@ Universities of Rostock and LE<uuml>beck, 2001-2009
   foreach (array("Interactions"=>"interaction.php", "Interactions(collapsed)"=>"interaction_collapsed.php",
  		 "Loci"=>"locus.php", "Markers"=>"marker.php",
   		 "QTL"=>"qtl.php", "Groups"=>"qtl_groups.php",
-		 "Genes"=>"trait.php", "Phens"=>"phen.php") as $a=>$b)
+		 "Genes"=>"trait.php", "Phens"=>"phen.php",
+		 "Overview"=>"overview.php", "Scatter"=>"scatter.php") as $a=>$b)
   {
 	echo "&nbsp;<a href=\"$b\">$a</a>&nbsp;";
   }
