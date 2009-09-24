@@ -1,0 +1,130 @@
+<?php
+
+	TEMPLATEWARNINGHASH
+
+/*
+
+=head1 scatter
+
+This script prepares a graphical "dot-plot" like presentation bringing
+the locations of the controlling region and those of the traits together.
+
+=over 4
+
+=item covariates
+
+=item chromosomes
+
+not yet implemented
+
+=item location in classical disease qtl
+
+not yet implemented
+
+=back
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+ME<acute>lanie ThessE<eacute>n-Hedreul
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
+
+=cut
+
+*/
+
+	require_once("header.php");
+	require_once("func_covariates.php");
+	require_once("func_selection.php"); // prints part of the HTML for forms
+
+	show_small_header("Tabular overview on Expression QTL",TRUE);
+
+	$database="DATABASEEQTLNAME";
+	include_once("func_connect.php");
+	require_once("func_public_qtl.php");
+
+	# fields that should appear
+	$dataSelectionFieldsQTL = array(
+		"groups",
+		"Chromosome","ensemblversion",
+		"cM_within","LODmax","LODmin",
+		"quantilemin","quantilemax",
+		"qtl_covariates",
+		"cqtl",
+		"LODdiffmin","LODdiffmax",
+		"PvalueMin","PvalueMax",
+		"cM_Peak_Min","cM_Peak_Max",
+		"MeanMin","MeanMax","SdMin","SdMax",
+		"locus","chrlist", "condition"
+	);
+
+
+
+	$accessible_fields_in_POST_or_GET = array_merge (
+		array("submitted"),
+		$dataSelectionFieldsQTL
+	);
+
+	foreach($accessible_fields_in_POST_or_GET as $vname)
+	{
+		if (isset($_POST[$vname])) {
+			$$vname = $_POST[$vname];
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+		elseif(isset($_GET[$vname])) {
+			$$vname = $_GET[$vname];
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+	}
+
+
+
+	if (empty($submitted)) {
+
+		#
+		#   S E T T I N G  O F  P A R A M E T E R S 
+		#
+
+		echo "<form action=overview.php method=post>\n";
+		echo "<input type=hidden name=submitted value=1>\n";
+
+		echo "<table><tr>"; # the table has only a single row
+
+		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
+
+		echo "<table>\n";
+		print_selection_form("table_overview_scanone");
+		echo "<tr><th>Covariates of stored QTL</th><td>";
+		select_covariates_combinations();
+		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
+		echo "<tr><td align=right><input type=submit></td><td align=left><input type=reset></td></tr>\n";
+		echo "</table>\n";
+
+		if ("" == "this is not yet implemented") {
+		  echo "</td>\n<td valign=top>";
+		  select_from_public_qtls($linkLocal,TRUE);
+		  echo "</td>";
+		}
+		echo "</tr>";
+		echo "</table>";
+
+		echo "</form>\n";
+
+	}
+	else {
+
+		#
+		# invocation of external R script
+		#
+
+		echo exec("lisuz")
+	}
+
+?>
