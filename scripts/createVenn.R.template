@@ -1,0 +1,157 @@
+isInQTL<-function(pos,chr,disease_qtl){
+	disease_qtl_chr<-disease_qtl[which(disease_qtl$RNO==chr),]
+	positions<-strsplit(as.character(disease_qtl_chr[,"Mb.positions"]),"-")
+	value<-unlist(lapply(positions,function(x){return(as.numeric(x[1])*1000000<=pos && pos<=as.numeric(x[2])*1000000)}))
+	if(sum(value)>=1){
+		return(1)
+	}
+	return(0)
+
+}
+library(RMySQL)
+# for manual interaction in shell: 
+# con <- dbConnect(MySQL(),user="qtl", password="", dbname="eQTL_Stockholm", host="pc15.inb.uni-luebeck.de")
+
+con <- dbConnect(MySQL(),user="DATABASEEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
+
+#covariates<-c('','eae_add','sud_add','dud_add','wl0_add','D12G1_add','D12G2B_add','D12G2C_add','D35G1_add','D35G2B_add','D35G2C_add','t12p_add','t35p_add')
+covariates<-c('eae_add','sud_add','dud_add','wl0_add','D12G1_add')
+rs<-dbGetQuery(con, paste(
+	"SELECT Locus, Trait, covariates, chromosome, cis, cis_dist,cMorgan_Peak from qtl where covariates in ('",
+	paste(covariates,collapse="','",sep=""),
+	"') and ((cis=1 and cis_dist>20000000) or cis=0) and LOD >= 3.9",sep=""))
+#rs<-dbGetQuery(con, "SELECT Locus, Trait, covariates, chromosome, cis, cis_dist,cMorgan_Peak from qtl where covariates in ('','eae_add','sud_add','dud_add','wl0_add','D12G1_add','D12G2B_add','D12G2C_add','D35G1_add','D35G2B_add','D35G2C_add','t12p_add','t35p_add') and cis=1 and cis_dist<=20000000 and LOD >= 3.9")
+
+cat(paste("Working with the following covariates: ",paste(";",covariates),"\n",sep=""))
+
+#exakte lokus übereinstimmung
+loc.trait<-apply(rs,1,function(x){return(paste(x[1],x[2],sep="_"))})
+none<-loc.trait[which(rs[,3]=="")]
+eae<-loc.trait[which(rs[,3]=="eae_add")]
+sud<-loc.trait[which(rs[,3]=="sud_add")]
+dud<-loc.trait[which(rs[,3]=="dud_add")]
+wl0<-loc.trait[which(rs[,3]=="wl0_add")]
+D12G1<-loc.trait[which(rs[,3]=="D12G1_add")]
+D12G2B<-loc.trait[which(rs[,3]=="D12G2B_add")]
+D12G2C<-loc.trait[which(rs[,3]=="D12G2C_add")]
+D35G1<-loc.trait[which(rs[,3]=="D35G1_add")]
+D35G2B<-loc.trait[which(rs[,3]=="D35G2B_add")]
+D35G2C<-loc.trait[which(rs[,3]=="D35G2C_add")]
+t12p<-loc.trait[which(rs[,3]=="t12p_add")]
+t35p<-loc.trait[which(rs[,3]=="t35p_add")]
+#venn diagramme malen
+library(gplots)
+#venn(list(D12G1,D12G2B,D12G2C,t12p))
+#x11()
+#venn(list(D35G1,D35G2B,D35G2C,t35p))
+
+
+#bp position ausrechnen ist aber wohl überflüssig
+library(RCurl)
+bp.position<-apply(rs,1,function(x){
+ return(getURL(paste("http://grid64inb.inb.uni-luebeck.de/~kolbaum/stockholm/eqtl/filehandler?get_bp=on&cM=", as.numeric(x[7]), "&chromosome=",x[4], sep ="")))
+})
+
+rs.map<-dbGetQuery(con, "SELECT marker, cmorgan_rqtl, chr from map")
+dbDisconnect(con)
+#read disease qtl
+disease_qtl<-read.table("/nfshome/grimm/gitEqtlRepo/data/xls/DAPVGdisease_loci_T_Olsson_090320.csv", sep=",",header=T)
+
+#marker-trait dingens erstellen
+marker.trait<-NULL
+for(i in 1:nrow(rs)){
+	locus<-rs$Locus[i]
+	cm<-rs$cMorgan_Peak[i]
+	bp<-as.numeric(bp.position[i])
+	inDiseaseQTL<-isInQTL(bp,rs$chromosome[i],disease_qtl)
+	if(sum(rs.map$marker==rs$Locus[i])==1){
+		pos<-which(rs.map$marker==rs$Locus[i])
+		if(pos<nrow(rs.map) && rs.map$chr[pos+1]==rs.map$chr[pos]){
+				marker.trait.value<-c(paste(rs$Locus[i],rs.map$marker[pos+1],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
+		}
+		else{
+			marker.trait.value<-c(paste(rs$Locus[i],"end",rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
+		}
+		if(is.null(marker.trait)){
+			marker.trait<-marker.trait.value
+		}
+		else{
+			marker.trait<-rbind(marker.trait,marker.trait.value)
+		}
+		if(pos>1 && rs.map$chr[pos-1]==rs.map$chr[pos]){
+				marker.trait.value<-c(paste(rs.map$marker[pos-1],rs$Locus[i],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
+		}
+		else{
+			marker.trait.value<-c(paste("begin",rs$Locus[i],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
+		}
+		if(is.null(marker.trait)){
+			marker.trait<-marker.trait.value
+		}
+		else{
+			marker.trait<-rbind(marker.trait,marker.trait.value)
+		}
+	}
+	else{
+		rs.map.chr<-rs.map[which(rs.map$chr==rs$chromosome[i]),]
+		pos<-sum(rs.map.chr$cmorgan_rqtl<cm)
+		if(pos==0){
+			marker.trait.value<-c(paste("begin",rs.map.chr$marker[1],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
+		}
+		else if(pos==nrow(rs.map.chr)){
+			marker.trait.value<-c(paste(rs.map.chr$marker[nrow(rs.map.chr)],"end",rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
+		}
+		else{
+			marker.trait.value<-c(paste(rs.map.chr$marker[pos],rs.map.chr$marker[pos+1],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
+		}
+		if(is.null(marker.trait)){
+                        marker.trait<-marker.trait.value
+                }
+                else{
+                        marker.trait<-rbind(marker.trait,marker.trait.value)
+                }
+
+	}
+
+}
+
+
+
+
+
+none<-marker.trait[which(marker.trait[,2]==""),]
+eae<-marker.trait[which(marker.trait[,2]=="eae_add"),]
+sud<-marker.trait[which(marker.trait[,2]=="sud_add"),]
+dud<-marker.trait[which(marker.trait[,2]=="dud_add"),]
+wl0<-marker.trait[which(marker.trait[,2]=="wl0_add"),]
+D12G1<-marker.trait[which(marker.trait[,2]=="D12G1_add"),]
+D12G2B<-marker.trait[which(marker.trait[,2]=="D12G2B_add"),]
+D12G2C<-marker.trait[which(marker.trait[,2]=="D12G2C_add"),]
+D35G1<-marker.trait[which(marker.trait[,2]=="D35G1_add"),]
+D35G2B<-marker.trait[which(marker.trait[,2]=="D35G2B_add"),]
+D35G2C<-marker.trait[which(marker.trait[,2]=="D35G2C_add"),]
+t12p<-marker.trait[which(marker.trait[,2]=="t12p_add"),]
+t35p<-marker.trait[which(marker.trait[,2]=="t35p_add"),]
+D35<-(D35G1[D35G1[,1] %in% D35G2C[D35G2C[,1] %in% D35G2B[D35G2B[,1] %in% t35p[,1],1],1],])
+D12<-(D12G1[D12G1[,1] %in% D12G2C[D12G2C[,1] %in% D12G2B[D12G2B[,1] %in% t12p[,1],1],1],])
+#jetzt labeln
+png("VennDiagrams/Trans/D12_intersection_trans.png")
+venn(list(D12G1=D12G1[,1],D12G2B=D12G2B[,1],D12G2C=D12G2C[,1],t12p=t12p[,1]),label=list("1111"=paste("In QTL:",sum(as.numeric(D12[,3])),sep=" ")))
+dev.off()
+png("VennDiagrams/Trans/D35_intersection_trans.png")
+venn(list(D35G1=D35G1[,1],D35G2B=D35G2B[,1],D35G2C=D35G2C[,1],t35p=t35p[,1]),label=list("1111"=paste("In QTL:",sum(as.numeric(D35[,3])),sep=" ")))
+dev.off()
+
+Dall<-D35[D35[,1] %in% D12[,1],]
+
+eae_all<-eae[eae[,1] %in% sud[sud[,1] %in% dud[dud[,1] %in% wl0[wl0[,1] %in% Dall[,1],1],1],1],]
+png("VennDiagrams/Trans/DiseaseCovariates_intersection_trans.png")
+venn(list(eae=eae[,1],sud=sud[,1],dud=dud[,1],wl0=wl0[,1],IgG=Dall[,1]),label=list("11111"=paste("In QTL:",sum(as.numeric(eae_all[,3])),sep=" ")))
+dev.off()
+all<-none[none[,1] %in% eae_all[,1],]
+none_single<-none[!(none[,1] %in% eae_all[,1]),]
+eae_all_single<-eae_all[!(eae_all[,1] %in% none[,1]),]
+
+png("VennDiagrams/Trans/DiseaseCovariates_transcript_intersection_trans.png")
+venn(list(transcript=none[,1],disease_covariates=eae_all[,1]),label=list("11"=paste("In QTL:",sum(as.numeric(all[,3])),sep=" "),"10"=paste("In QTL:",sum(as.numeric(none_single[,3])),sep=" "),"01"=paste("In QTL:",sum(as.numeric(eae_all_single[,3])),sep=" ")))
+dev.off()
+
