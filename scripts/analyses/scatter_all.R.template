@@ -43,7 +43,7 @@ offset.percent<-2
 library(RMySQL)
 library(getopt)
 
-cat("I was here 0.\n")
+# cat("I was here 0.\n")
 
 opt = getopt(matrix(c(                                            
    'verbose'    , 'v', 2, "integer",                              
@@ -57,7 +57,7 @@ opt = getopt(matrix(c(
    ),ncol=4,byrow=TRUE),
    debug=TRUE)
 
-cat("I was here 1.\n")
+if (!is.null(opt$verbose)) cat("I was here 1.\n")
 
 if ( !is.null(opt$help) ) {
    cat("Please run 'pod2man scatter_all.R | nroff -man | less' on this script to gain more insights.\n");
@@ -78,11 +78,11 @@ if (is.null(opt$LODmin)) {
    opt[["LODmin"]]<- -1
 }
 
-cat("I was here 2.\n")
+if (!is.null(opt$verbose)) cat("I was here 2.\n")
 
 con <- dbConnect(MySQL(),host="DATABASEHOSTLOCAL",db="DATABASEEQTLNAME",user="DATABASEEQTLUSER")
 
-cat("I was here 3.\n")
+if (!is.null(opt$verbose)) cat("I was here 3.\n")
 
 # find maximal cM for every chromosome
 
@@ -94,7 +94,7 @@ names(cM.offset)<-c(1:(POSITIONOFXCHROMOSOME-1),"X" #,"Y"
 )
 
 
-cat("I was here 4.\n")
+if (!is.null(opt$verbose)) cat("I was here 4.\n")
 
 # find maximal bp for every chromosome
 
@@ -105,7 +105,7 @@ bp.offset<-c(0,cumsum(chromosomal.length.bp[c(1:(POSITIONOFXCHROMOSOME-1),"X"),"
 names(bp.offset)<-c(1:(POSITIONOFXCHROMOSOME-1),"X" #,"Y"
 )
 
-cat("I was here 5.\n")
+if (!is.null(opt$verbose)) cat("I was here 5.\n")
 
 # Find covariates to work on
 
@@ -114,7 +114,7 @@ covariates.queried<-dbGetQuery(con,q)[,"covariates"]
 cat(paste("Found the following covariates in the database: ",
           paste(covariates.queried,collapse=";",sep=""),"\n",sep=""))
 
-cat("I was here 6.\n")
+if (!is.null(opt$verbose)) cat("I was here 6.\n")
 
 covariates.filter.string<-opt$covariates
 if(is.null(covariates.filter.string)) {
@@ -123,7 +123,7 @@ if(is.null(covariates.filter.string)) {
 }
 covariates.filter.list<-strsplit(covariates.filter.string,";")[[1]]
 
-cat("I was here 7.\n")
+if (!is.null(opt$verbose)) cat("I was here 7.\n")
 
 
 covariates<-covariates.queried[covariates.queried %in% covariates.filter.list]
