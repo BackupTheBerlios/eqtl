@@ -124,7 +124,19 @@ University of LE<uuml>beck, 2009
 		# invocation of external R script
 		#
 
-		echo exec("lisuz")
+		echo "cwd: " . getcwd() . "<br>\n";
+
+		$cmd = getcwd()."/../../scripts/analyses/scatter_all.R"
+		$outputfile = "tmp_images/scatter_output.png";
+
+		$cmd .= " --output $outputfilename";
+
+		echo "executing '$cmd'<br>\n";
+		echo "<small><pre>";
+		echo system($cmd);
+		echo "</pre></small>\n";
+
+		echo "<img src=\"$outputfile\">\n";
 	}
 
 ?>
