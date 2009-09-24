@@ -75,9 +75,10 @@ function gprofilerlink($traits,$genes,$query,$id="") {
 	echo "<td>";
 	echo "<form action=\"http:characterisation.php\" method=\"GET\">";
 	echo "<input type=\"submit\">\n";
+	echo "<input type=hidden name=\"query\" value=\"$query\">\n";
 	echo "<input type=hidden name=\"url\" value=\"$externalgprofiler\">\n";
-	echo "<input type=checkbox name=significant value=1 checked/>significant only<br>\n";
-	echo "<input type=hidden value=\"".join("+",$traits)."\" />\n";
+	echo "<input type=checkbox name=significant checked/>significant only<br>\n";
+#	echo "<input type=hidden value=\"".join("+",$traits)."\" />\n";
 	echo "ID of analysis: <input name=id value=\"$id\" size=15/><br/>\n";
 	echo "Traits: <textarea name=\"textarea\" rows=\"8\" cols=\"30\">".join(" ",$traits)."</textarea>\n";
 #	echo "Traits: ".join(" ",$traits);

@@ -127,6 +127,10 @@ Do all the steps described in 1.2.1.
 
   apt-get install mysql-server
 
+=item install software to show analyses
+
+  apt-get install r-cran-getopt r-recommended
+
 =back
 
 We have not tested it ourselves, but the adaptation for other database systems,
@@ -144,7 +148,7 @@ Do all the steps described in 1.2.1 and 1.2.2.
 
 =item R for analyses with R/qtl
 
-  apt-get install r-base-core r-cran-qtl 
+  apt-get install r-base-core r-cran-qtl
 
 =item initialise files to list resources and current status
 
