@@ -33,7 +33,18 @@ The routine is invoked from the qtl.php page and the interaction.php page.
 
 function gprofilerlink($traits,$genes,$query,$id="") {
 	$traits_unique = array_unique($traits);
-	$externalgprofiler  = "http://biit.cs.ut.ee/gprofiler/index.cgi?organism=ENSEMBLSPECIESMARTLONG&query=";
+	$chipOrganismShort="HU";
+	switch("ENSEMBLSPECIESMARTLONG") {
+		case "Rattus_norvegicus":
+			$chipOrganismShort="RA";
+			break;
+		case "Mus_musculus":
+			$chipOrganismShort="MU";
+			break;
+		default:
+			echo "<p>Unknown organism: 'ENSEMBLSPECIESMARTLONG', assuming compatibility with human</p>"
+	}
+	$externalgprofiler  = "http://biit.cs.ut.ee/gprofiler/index.cgi?organism=ENSEMBLSPECIESMARTLONG&prefix=AFFY_${$chipOrganismShort}GENE_1_0_ST_V1&query=";
 	$externalgprofiler_pretraits = $externalgprofiler.join("+",$traits_unique);
 	$externalgprofiler_traits = $externalgprofiler_pretraits."&output=png&significant=1";
 #	$cachedgprofiler  = "http:?query=";
@@ -87,6 +98,7 @@ function gprofilerlink($traits,$genes,$query,$id="") {
 
 =head1 AUTHOR
 
+Benedikt Bauer <bauer@inb.uni-luebeck.de>,
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
 
 =head1 COPYRIGHT
