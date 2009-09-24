@@ -21,27 +21,66 @@ Benedikt Bauer <bauer@cls.uni-luebeck.de>
 echo "<html><head><title>DB</title></head>\n";
 echo "<body>";
 
+$link=mysql_connect("DATABASEHOSTLOCAL","DATABASEQTLUSER","");
+mysql_select_db("DATABASEEQTLNAME");
+
+$char = mysql_query("select * from characteristics;");
+$groups = mysql_query("select * from groups;");
+$group_char = mysql_query("select * from group_characteristics;");
+
+#For table group
+
+$name=$_GET['id'];
+$query=$_GET['query'];
+
+if(isset($_GET['significant'])) {
+	$significant=1;
+}
+else {
+	$significant=0;
+}
+
+$trait_list=str_replace(" ",",",$_GET['textarea']);
+
+$group_arr = array();
+
+while($row = mysql_fetch_array($groups))
+{
+	$id=$row["name"];
+	array_push($group_arr, $id);
+}
+
+if(array_search($name,$group_arr)===FALSE){   # if there is NO entry with name=ID yet
+	#creating random number for group_id
+	srand(microtime()*1000000);
+	#$group_id= rand(1,10000000000)*rand(1,10000000000)*rand(1,10000000000)*rand(1,10000000000);
+	$group_id= rand(1,10)*rand(1,10);
+
+	mysql_query("insert into groups set name=\"$name\";");
+	mysql_query("update groups set group_id=\"$group_id\" where name=\"$name\";");
+}
+else {
+	$group_id=mysql_query("select group_id from groups where name=\"$name\";");
+	$group_id=mysql_fetch_array($group_id);
+	$group_id=$group_id['group_id'];
+	mysql_query("delete from group_characteristics where group_id=\"$group_id\";");
+}
+
+mysql_query("update groups set trait_list=\"$trait_list\" where name=\"$name\";");
+mysql_query("update groups set query=\"$query\" where name=\"$name\";");
+mysql_query("update groups set significant=\"$significant\" where name=\"$name\";");
+
 # For table "characteristics"
 
 $url = $_GET['url'];
 $url .= str_replace(" ","+",$_GET['textarea'])."&output=mini";
-if(isset($_GET['significant'])) {
-	$url .= "&significant=1";
-}
-else {
-	$url .= "&significant=0";
-}
-#echo "$url";
+$url .= "&significant=$significant";
+
 $fh = fopen($url,"r");
 $line=fgets($fh);
 $arr = array();
 
-$link=mysql_connect("DATABASEHOSTLOCAL","DATABASEQTLUSER","");
-mysql_select_db("DATABASEEQTLNAME");
-
-$erg = mysql_query("select * from characteristics;");
-
-while($row = mysql_fetch_array($erg))
+while($row = mysql_fetch_array($char))
 {
         $termid=$row["term_id"];
         $arr[$termid]["description"] = $row["description"];
@@ -55,6 +94,8 @@ while(!feof($fh) && strpos($fields[0],'#')!==0) {
         $description=$fields[11];
 	trim($description);
         echo "$description<br>";
+        $pvalue=$fields[2];
+	echo "$pvalue";
 #        $url=$fields[2];
         if(!empty($arr[$term_id])){
                 echo "$term_id gibt's schon. Aktualisiere \"Description\".<br>";
@@ -65,37 +106,17 @@ while(!feof($fh) && strpos($fields[0],'#')!==0) {
         }
         mysql_query("update characteristics set description=\"$description\" where term_id=\"$term_id\";");
 #       mysql_query("update characteristics set url=\"$url\" where term_id=\"$term_id\";");
+	mysql_query("insert into group_characteristics set group_id=\"$group_id\";");
+	mysql_query("update group_characteristics set term_id=\"$term_id\" where group_id=\"$group_id\" and term_id<=>NULL;");
+	mysql_query("update group_characteristics set pvalue=\"$pvalue\" where group_id=\"$group_id\" and term_id=\"$term_id\";");
         $line=fgets($fh);
         $fields = preg_split("/\t/",$line);
 }
 
-# For table "group_characteristics"
+# For table "groups"
 
-$groups = mysql_query("select * from group_characteristics;");
-
-$name=$_GET['id'];
-$trait_list=str_replace(" ",",",$_GET['textarea']);
-echo "$trait_list";
-echo "$name";
-$group_arr = array();
-
-while($row = mysql_fetch_array($groups))
-{
-        $id=$row["name"];
-	array_push($group_arr, $id);
-}
-
-$tmp=array_search($name,$group_arr);
-echo "$group_arr[$tmp]";
-if(0===FALSE){
-	echo "<br>leider ist 0 gleich false...";
-}
-if(array_search($name,$group_arr)===FALSE){
-	mysql_query("insert into group_characteristics set name=\"$name\";");
-}
-
-mysql_query("update group_characteristics set trait_list=\"$trait_list\" where name=\"$name\";");
-
+#mysql_query("update groups set term_id=\"$term_id\" where name=\"$name\";");
+echo "done :)";
 echo "</body>";
 echo "</html>";
 
