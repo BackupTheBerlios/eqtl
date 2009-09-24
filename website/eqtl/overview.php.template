@@ -151,9 +151,20 @@ University of LE<uuml>beck, 2009
 			if ("WHERE" != "$where") $where .= " AND ";
 			$where .= " qtl.LOD <= $LODmax ";
 		}
+		if (!empty($MeanMin)) {
+			if ("WHERE" != "$where") $where .= " AND ";
+			$where .= " trait.mean >= $MeanMin ";
+		}
+		if (!empty($MeanMax)) {
+			if ("WHERE" != "$where") $where .= " AND ";
+			$where .= " trait.mean <= $MeanMax ";
+		}
 
 		$query = "SELECT covariates,locus.chr,count(*) as numTraits,sum(cis) as numCis "
 			." FROM qtl join locus on qtl.Locus = locus.Name ";
+		if (!empty($MeanMax) or !empty($MeanMin)) {
+			 $query .= " join trait on qtl.Trait = trait_id ";
+		}
 		if ("WHERE" != "$where") $query .= " $where ";
 		$query .= " GROUP BY covariates,locus.chr ";
 
@@ -185,7 +196,11 @@ University of LE<uuml>beck, 2009
                                 // will return number of traits + 1 (for the 0)
 			. ",count(distinct IF(1=cis,qtl.Trait,0)) as numCis "
 			. ",count(distinct IF(0=cis,qtl.Trait,0)) as numTrans "
-			." FROM qtl join locus on qtl.Locus = locus.Name join qtl.eae_qtl as classicalQTL";
+			." FROM qtl join locus on qtl.Locus = locus.Name join qtl.eae_qtl as classicalQTL ";
+		if (!empty($MeanMax) or !empty($MeanMin)) {
+			$queryDiseaseLoci .= " join trait on qtl.Trait = trait_id ";
+		}		
+
 		if ("WHERE" != "$where") $where .= " AND ";
 		$where .=     " locus.Mbp IS NOT NULL ";
 		$where .= " AND classicalQTL.species='ENSEMBLSPECIESSEARCHURL' ";
@@ -352,5 +367,5 @@ University of LE<uuml>beck, 2009
 		echo "</caption>";
 		echo "</table>";
 	}
-
+	include("footer.php");
 ?>

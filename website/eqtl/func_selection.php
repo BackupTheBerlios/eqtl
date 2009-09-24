@@ -160,13 +160,13 @@ function print_selection_form($properties) {
 			break;
 
 		 case "table_overview_scanone":
+		 case "figure_scatter":
 			$properties = array(
-						"LOD", "pvalue"
-						#, "mean", "sd", "median", "variance" ,
+						"LOD", "pvalue", "mean", "sd", "median", "variance" ,
 						#, "number_of_chromosomes_per_trait"
 			);
 			break;
-		 
+
 		 default: 
 			$properties = preg_split("/,/",$properties);
 			break;
