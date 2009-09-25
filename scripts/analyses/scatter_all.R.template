@@ -1,4 +1,4 @@
-#!/usr/bin/r
+#!/usr/bin/env r
 
 doc<-"
 
@@ -33,8 +33,8 @@ width.pixel<-3*480
 width.inch<-11
 height.pixel<-width.pixel
 height.inch<-width.inch
-bp.offset.extra<-10^8
-cM.offset.extra<-0.7
+bp.offset.extra<-0.15*10^8
+cM.offset.extra<-8
 
 # indication of percentage separation betweeen
 # chromosomes
@@ -203,8 +203,9 @@ for(cov in covariates) {
   )
 
 
-  plot.new()
-  plot(pos.linear.cM,pos.linear.bp,
+  #plot.new()
+  plot(bp.offset.extra + pos.linear.cM,
+       cM.offset.extra + pos.linear.bp,
      xlim=c(0,max(cM.offset)),ylim=c(0,max(bp.offset)),
      axes=FALSE,main=cov,sub=paste("LODs>4,6,8, mean>=",opt$MeanMin))
   abline(v=cM.offset, col="lightgray")
