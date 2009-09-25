@@ -8,12 +8,48 @@ scatter_all.R - prepare scatter plots for all covariates
 
 =head1 SYNOPSIS
 
-to be started from within the R shell with no parameters
+scatter_all.R [options]
 
 =head1 DESCRIPTION
 
 This script plots the chromosomal location of the QTL 
 against the chromosomal location of the gene it affects.
+
+=over 4
+
+=item verbose <level>
+
+adds status reports - possibly insightful to interpret problems from users. A distinction between levels is not made.
+
+=item help
+
+instructions to use pod2man for seeing this documentation.
+
+=item MeanMin <value>
+
+Minimal expression level for a trait to be shown.
+
+=item LODmin
+
+Minimal LOD score for a trait to be shown.
+
+=item interactive
+
+to be set if the user shall be interactively working with the R shell rather than preparing an image file or a PDF.
+
+=item format
+
+the format in which the image is to be saved - pdf, jpeg, png are currently supported.
+
+=item covariates' , 'c', 1, "character",
+
+the covariates that should be compared
+
+=item output'     , 'o', 1, "character"
+
+the output file to which to write - if there is a file to write to.
+
+=back
 
 =head1 AUTHORS
 
