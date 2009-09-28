@@ -4,10 +4,9 @@
 
 /*
 
-=head1 scatter
+=head1 venn
 
-This script prepares a graphical "dot-plot" like presentation bringing
-the locations of the controlling region and those of the traits together.
+The script prepares for the display of genes that are regulated by the same loci across multiple phenotypes. This way, the traits that are unique to a subset of phens can be identified.
 
 =over 4
 
@@ -92,7 +91,7 @@ University of LE<uuml>beck, 2009
 		#   S E T T I N G  O F  P A R A M E T E R S 
 		#
 
-		echo "<form action=scatter.php method=post>\n";
+		echo "<form action=venn.php method=post>\n";
 		echo "<input type=hidden name=submitted value=1>\n";
 
 		echo "<table><tr>"; # the table has only a single row
@@ -100,7 +99,7 @@ University of LE<uuml>beck, 2009
 		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
 
 		echo "<table>\n";
-		print_selection_form("figure_scatter");
+		print_selection_form("figure_venn");
 		echo "<tr><th>Covariates of stored QTL</th><td>";
 		select_covariates_combinations(3);
 		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
@@ -136,7 +135,7 @@ University of LE<uuml>beck, 2009
 
 			if ($n>0) echo "<hr>";
 
-			$outputfilename = "tmp_images/scatter_output";
+			$outputfilename = "tmp_images/venn_output";
 			if (!empty($cov)) {
 			    $outputfilename .= "_cov_$cov";
 			}
@@ -155,7 +154,7 @@ University of LE<uuml>beck, 2009
 				    echo "<p>Removing filename to update: '$outputfilename'.</p>";
 				    unlink("$outputfilename");
 				}
-				$rscript = getcwd() . "/../../scripts/analyses/scatter_all.R";
+				$rscript = getcwd() . "/../../scripts/analyses/createVenn.R";
 				$attributes=array();
 				if (!file_exists($rscript)) {
 				  errorMessage("R script '$rscript' not found.");
@@ -173,7 +172,6 @@ University of LE<uuml>beck, 2009
 				}
 				$cmd .= " --output $outputfilename";
 				array_push($attributes,"--output",$outputfilename);
-				#$cmd = "./scatter_wrapper.sh ".join(" ",$attributes);
 				$cmd = "$rscript ".join(" ",$attributes);
 				
 				if ($verbose) {

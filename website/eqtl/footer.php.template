@@ -40,7 +40,7 @@ Universities of Rostock and LE<uuml>beck, 2001-2009
 			 "QTL"=>"qtl.php", "Groups"=>"qtl_groups.php",
 			 "Traits"=>"trait.php", "Phens"=>"phen.php"
 		 ),
-		 array("Overview"=>"overview.php", "Scatter"=>"scatter.php"),
+		 array("Overview"=>"overview.php", "Scatter"=>"scatter.php", "Venn"=>"venn.php"),
 		 array("Home"=>"index.php", "Help"=>"help.php", "Contact"=>"mailto:MAINTAINEREMAIL")
 	   ) as $n => $block)
    {
