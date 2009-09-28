@@ -76,7 +76,7 @@ rs<-dbGetQuery(con, paste(
 #exakte lokus übereinstimmung
 loc.trait<-apply(rs,1,function(x){return(paste(x[1],x[2],sep="_"))})
 
-covariate.members<-sapply(covariates,function(covar){
+loc.trait.covariate<-sapply(covariates,function(covar){
 	return(loc.trait[rs[,3]==covar])
 },USE.NAMES=TRUE)
 
@@ -136,7 +136,23 @@ if (FALSE) {
 	}
 }
 
-disease_qtl<-dbGetQuery(con, "SELECT chr, start_bps, stop_bps FROM qtl.eae_qtl WHERE species='ENSEMBLSPECIESSEARCHURL'");
+# For testing:
+# disease_qtl<-dbGetQuery(con, paste("SELECT name, chr, start_bps, stop_bps, species",
+#                                    "FROM qtl.eae_qtl",
+# 			           "WHERE species='Rattus_norvegicus'",
+# 			           "AND start_bps IS NOT NULL and stop_bps IS NOT NULL",sep=" "));
+
+disease_qtl<-dbGetQuery(con, paste("SELECT name, chr, start_bps, stop_bps, species",
+                                   "FROM qtl.eae_qtl",
+				   "WHERE species='ENSEMBLSPECIESSEARCHURL'",
+				     "AND start_bps IS NOT NULL and stop_bps IS NOT NULL",sep=" "));
+isInQTL<-function(pos,chr) {
+	s<-disease_qtl[,"chr"]==chr;
+	a<-(disease_qtl[,"start_bps"]<=pos)
+	b<-(disease_qtl[,"stop_bps"]>=pos)
+	r<-s&a&b
+	return(any(r))
+}
 
 
 #marker-trait dingens erstellen
@@ -146,7 +162,7 @@ for(i in 1:nrow(rs)){
 	cm<-rs$cMorgan_Peak[i]
 	#bp<-as.numeric(bp.position[i])
 	bp<-rs.map.cM2bp(cm)
-	inDiseaseQTL<-isInQTL(bp,rs$chromosome[i],disease_qtl)
+	inDiseaseQTL<-isInQTL(bp,rs$chromosome[i])
 	if(sum(rs.map$marker==rs$Locus[i])==1){
 		pos<-which(rs.map$marker==rs$Locus[i])
 		if(pos<nrow(rs.map) && rs.map$chr[pos+1]==rs.map$chr[pos]){
@@ -199,23 +215,28 @@ for(i in 1:nrow(rs)){
 
 
 
+marker.trait.covariate<-sapply(covariates,function(covar){
+	return(marker.trait[,3]==covar])
+},USE.NAMES=TRUE)
 
+if (FALSE) {
+	none<-marker.trait[which(marker.trait[,2]==""),]
+	eae<-marker.trait[which(marker.trait[,2]=="eae_add"),]
+	sud<-marker.trait[which(marker.trait[,2]=="sud_add"),]
+	dud<-marker.trait[which(marker.trait[,2]=="dud_add"),]
+	wl0<-marker.trait[which(marker.trait[,2]=="wl0_add"),]
+	D12G1<-marker.trait[which(marker.trait[,2]=="D12G1_add"),]
+	D12G2B<-marker.trait[which(marker.trait[,2]=="D12G2B_add"),]
+	D12G2C<-marker.trait[which(marker.trait[,2]=="D12G2C_add"),]
+	D35G1<-marker.trait[which(marker.trait[,2]=="D35G1_add"),]
+	D35G2B<-marker.trait[which(marker.trait[,2]=="D35G2B_add"),]
+	D35G2C<-marker.trait[which(marker.trait[,2]=="D35G2C_add"),]
+	t12p<-marker.trait[which(marker.trait[,2]=="t12p_add"),]
+	t35p<-marker.trait[which(marker.trait[,2]=="t35p_add"),]
+	D35<-(D35G1[D35G1[,1] %in% D35G2C[D35G2C[,1] %in% D35G2B[D35G2B[,1] %in% t35p[,1],1],1],])
+	D12<-(D12G1[D12G1[,1] %in% D12G2C[D12G2C[,1] %in% D12G2B[D12G2B[,1] %in% t12p[,1],1],1],])
+}
 
-none<-marker.trait[which(marker.trait[,2]==""),]
-eae<-marker.trait[which(marker.trait[,2]=="eae_add"),]
-sud<-marker.trait[which(marker.trait[,2]=="sud_add"),]
-dud<-marker.trait[which(marker.trait[,2]=="dud_add"),]
-wl0<-marker.trait[which(marker.trait[,2]=="wl0_add"),]
-D12G1<-marker.trait[which(marker.trait[,2]=="D12G1_add"),]
-D12G2B<-marker.trait[which(marker.trait[,2]=="D12G2B_add"),]
-D12G2C<-marker.trait[which(marker.trait[,2]=="D12G2C_add"),]
-D35G1<-marker.trait[which(marker.trait[,2]=="D35G1_add"),]
-D35G2B<-marker.trait[which(marker.trait[,2]=="D35G2B_add"),]
-D35G2C<-marker.trait[which(marker.trait[,2]=="D35G2C_add"),]
-t12p<-marker.trait[which(marker.trait[,2]=="t12p_add"),]
-t35p<-marker.trait[which(marker.trait[,2]=="t35p_add"),]
-D35<-(D35G1[D35G1[,1] %in% D35G2C[D35G2C[,1] %in% D35G2B[D35G2B[,1] %in% t35p[,1],1],1],])
-D12<-(D12G1[D12G1[,1] %in% D12G2C[D12G2C[,1] %in% D12G2B[D12G2B[,1] %in% t12p[,1],1],1],])
 #jetzt labeln
 png("VennDiagrams/Trans/D12_intersection_trans.png")
 venn(list(D12G1=D12G1[,1],D12G2B=D12G2B[,1],D12G2C=D12G2C[,1],t12p=t12p[,1]),label=list("1111"=paste("In QTL:",sum(as.numeric(D12[,3])),sep=" ")))
