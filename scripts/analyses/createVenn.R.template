@@ -8,22 +8,57 @@ createVenn.R - prepare Venn diagrams for traits shared between covariates
 
 =head1 SYNOPSIS
 
-to be started from within the R shell with no parameters
+createVenn.R [options]
+
+or to be sourced from within an R shell
 
 =head1 DESCRIPTION
 
-This script plots the chromosomal location of the QTL 
-against the chromosomal location of the gene it affects.
+=head1 OPTIONS
+
+=over 4
+
+=item verbose
+
+=item help
+
+=item MeanMin minimalExpressionLevel
+
+only traits with an expression level higher or equal to the value denoted will be included in the analysis
+
+=item LODmin minimalLODscore
+
+only traits with a LOD score of at least the value denoted will be included in the analysis
+
+=item cisDistMax maximalDistanceFromPeak
+
+for being accepted as 'cis', the distance of the peak from the location of the gene must be with in that denoted region, defaulting to 2*10^7 .
+
+=item interactive
+
+rather than dumping an image to a file, specified by '--output', the result can be analysed interactively with the R shell . This is useful only when sourcing the script from within an R shell
+
+=item format <png|jpeg|pdf>
+
+=item covariates
+
+list of covariates to be included 
+
+=item output
+
+complete path to file to include the resulting image
+
+=back
+
 
 =head1 AUTHORS
 
+Ann-Kristin Grimm <grimm@inb.uni-luebeck.de>,
 Steffen Moeller <moeller@inb.uni-luebeck.de>,
-ME<eacute>lanie ThessE<eacute>n Hedreul,
-Maja Jagodic E<#263>
 
 =head1 COPYRIGHT
 
-University of LE<uuml>beck and Karolinska Institute, Stockholm
+University of LE<uuml>beck, Germany, 2009
 
 =cut
 
