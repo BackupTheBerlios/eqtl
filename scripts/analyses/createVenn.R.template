@@ -41,12 +41,23 @@ opt = getopt(matrix(c(
     'help'       , 'h', 0, "logical",
     'MeanMin'    , 'm', 1, "double",
     'LODmin'     , 'l', 1, "double",
+    'cisDistMax' , 's', 1, "integer",
     'interactive', 'i', 0, "logical",
     'format'     , 'f', 1, "character",
     'covariates' , 'c', 1, "character",
     'output'     , 'o', 1, "character"
    ),ncol=4,byrow=TRUE),
    debug=TRUE)
+
+if (is.null(opt$LODmin)) {
+	opt[["LODmin"]] <- 3.5
+	if (!is.null(opt$verbose)) cat("Setting default LODmin to ",opt$LODmin,"\n");
+}
+
+if (is.null(opt$cisDistMax)) {
+	opt[["cisDistMax"]] <- 20*1000*1000
+	if (!is.null(opt$verbose)) cat("Setting default cisDistMax to ",opt$cisDistMax,"\n");
+}
 
 # for manual interaction in shell: 
 # con <- dbConnect(MySQL(),user="qtl", password="", dbname="eQTL_Stockholm", host="pc15.inb.uni-luebeck.de")
@@ -68,7 +79,7 @@ cat(paste("Working with the following covariates: ",paste(covariates, collapse="
 rs<-dbGetQuery(con, paste(
 	"SELECT Locus, Trait, covariates, chromosome, cis, cis_dist,cMorgan_Peak from qtl where covariates in ('",
 	paste(covariates,collapse="','",sep=""),
-	"') and ((cis=1 and cis_dist>20000000) or cis=0) and LOD >= 3.9",sep=""))
+	"') and ((cis=1 and cis_dist>",opt$cisDistMax) or cis=0) and LOD >= ",LODmin,sep=""))
 #rs<-dbGetQuery(con, "SELECT Locus, Trait, covariates, chromosome, cis, cis_dist,cMorgan_Peak from qtl where covariates in ('','eae_add','sud_add','dud_add','wl0_add','D12G1_add','D12G2B_add','D12G2C_add','D35G1_add','D35G2B_add','D35G2C_add','t12p_add','t35p_add') and cis=1 and cis_dist<=20000000 and LOD >= 3.9")
 
 
