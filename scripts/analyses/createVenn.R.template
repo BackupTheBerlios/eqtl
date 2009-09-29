@@ -119,10 +119,23 @@ if (is.null(opt$covariates)) {
 
 cat(paste("Working with the following covariates: ",paste(covariates, collapse="; "),"\n",sep=""))
 
-q<-paste(
-	"SELECT Locus, Trait, covariates, chromosome, cis, cis_dist,cMorgan_Peak from qtl where covariates in ('",
-	paste(covariates,collapse="','",sep=""),
-	"') and ((cis=1 and cis_dist>",opt$cisDistMax,") or cis=0) and LOD >= ",opt$LODmin,sep="")
+q<-paste( "SELECT Locus, Trait, covariates, chromosome, cis, cis_dist,cMorgan_Peak ",
+          "  FROM qtl JOIN trait ON trait_id=Trait JOIN locus ON locus.Name=qtl.Locus ",
+	  " WHERE covariates in ('",
+	  paste(covariates,collapse="','",sep=""),
+	  "') and ((cis=1 and cis_dist>",opt$cisDistMax,") or cis=0)")
+if (!is.null(opt$LODmin)) {
+	q<-paste(q," AND LOD >= ",opt$LODmin,sep="")
+}
+if (!is.null(opt$LODmax)) {
+	q<-paste(q," AND LOD <= ",opt$LODmax,sep="")
+}
+if (!is.null(opt$MeanMin)) {
+	q<-paste(q," AND mean >= ",opt$MeanMin,sep="")
+}
+if (!is.null(opt$MeanMax)) {
+	q<-paste(q," AND mean <= ",opt$MeanMax,sep="")
+}
 cat("Query: ",q,"\n")
 rs<-dbGetQuery(con,q)
 
@@ -134,22 +147,6 @@ loc.trait<-apply(rs,1,function(x){return(paste(x[1],x[2],sep="_"))})
 loc.trait.covariate<-sapply(covariates,function(covar){
 	return(loc.trait[rs[,3]==covar])
 },USE.NAMES=TRUE)
-
-if (FALSE) {
-	none<-loc.trait[which(rs[,3]=="")]
-	eae<-loc.trait[which(rs[,3]=="eae_add")]
-	sud<-loc.trait[which(rs[,3]=="sud_add")]
-	dud<-loc.trait[which(rs[,3]=="dud_add")]
-	wl0<-loc.trait[which(rs[,3]=="wl0_add")]
-	D12G1<-loc.trait[which(rs[,3]=="D12G1_add")]
-	D12G2B<-loc.trait[which(rs[,3]=="D12G2B_add")]
-	D12G2C<-loc.trait[which(rs[,3]=="D12G2C_add")]
-	D35G1<-loc.trait[which(rs[,3]=="D35G1_add")]
-	D35G2B<-loc.trait[which(rs[,3]=="D35G2B_add")]
-	D35G2C<-loc.trait[which(rs[,3]=="D35G2C_add")]
-	t12p<-loc.trait[which(rs[,3]=="t12p_add")]
-	t35p<-loc.trait[which(rs[,3]=="t35p_add")]
-}
 
 #
 #	V E N N  -  A L L
@@ -186,20 +183,20 @@ if(is.null(opt$interactive)) {
 
 rs.map<-dbGetQuery(con, "SELECT marker, cmorgan_rqtl, chr, bp FROM map ORDER BY chr,cmorgan_rqtl")
 rs.map.cM2bp <- sapply(unique(rs.map[,"chr"]),function(X){
-				print(paste("Chr:",X))
+				#print(paste("Chr:",X))
 				subset<-(rs.map[,"chr"]==X)
 				#print(which(subset))
 				data.pairs.relevant<-rs.map[subset,c("cmorgan_rqtl","bp")]
-				print(data.pairs.relevant)
+				#print(data.pairs.relevant)
 				approxfun(data.pairs.relevant)
 			},USE.NAMES=TRUE)
 
 rs.map.bp2cM <- sapply(unique(rs.map[,"chr"]),function(X){
-				print(paste("Chr:",X))
+				#print(paste("Chr:",X))
 				subset<-(rs.map[,"chr"]==X)
 				#print(which(subset))
 				data.pairs.relevant<-rs.map[subset,c("bp","cmorgan_rqtl")]
-				print(data.pairs.relevant)
+				#print(data.pairs.relevant)
 				approxfun(data.pairs.relevant)
 			},USE.NAMES=TRUE)
 
@@ -221,10 +218,7 @@ if (FALSE) {
 }
 
 # For testing:
-# disease_qtl<-dbGetQuery(con, paste("SELECT name, chr, start_bps, stop_bps, species",
-#                                    "FROM qtl.eae_qtl",
-# 			           "WHERE species='Rattus_norvegicus'",
-# 			           "AND start_bps IS NOT NULL and stop_bps IS NOT NULL",sep=" "));
+# disease_qtl<-dbGetQuery(con, paste("SELECT name, chr, start_bps, stop_bps, species", "FROM qtl.eae_qtl", "WHERE species='Rattus_norvegicus'", "AND start_bps IS NOT NULL and stop_bps IS NOT NULL",sep=" "));
 
 disease_qtl<-dbGetQuery(con, paste("SELECT name, chr, start_bps, stop_bps, species",
                                    "FROM qtl.eae_qtl",
@@ -244,10 +238,11 @@ marker.trait<-NULL
 for(i in 1:nrow(rs)){
 	locus<-rs$Locus[i]
 	cm<-rs$cMorgan_Peak[i]
-	#bp<-as.numeric(bp.position[i])
-	bp<-rs.map.cM2bp(cm)
-	inDiseaseQTL<-isInQTL(bp,rs$chromosome[i])
-	if(sum(rs.map$marker==rs$Locus[i])==1){
+	chr<-rs$chromosome[i]
+	bp<-rs.map.cM2bp[[chr]](cm)
+	inDiseaseQTL<-isInQTL(bp,chr)
+	if(1 == sum(rs.map$marker==rs$Locus[i])){
+		# The locus is assigned directly to a marker
 		pos<-which(rs.map$marker==rs$Locus[i])
 		if(pos<nrow(rs.map) && rs.map$chr[pos+1]==rs.map$chr[pos]){
 				marker.trait.value<-c(paste(rs$Locus[i],rs.map$marker[pos+1],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
@@ -274,7 +269,8 @@ for(i in 1:nrow(rs)){
 			marker.trait<-rbind(marker.trait,marker.trait.value)
 		}
 	}
-	else{
+	else if (0 == sum(rs.map$marker==rs$Locus[i])) {
+		# The locus is between two markers
 		rs.map.chr<-rs.map[which(rs.map$chr==rs$chromosome[i]),]
 		pos<-sum(rs.map.chr$cmorgan_rqtl<cm)
 		if(pos==0){
@@ -294,14 +290,17 @@ for(i in 1:nrow(rs)){
                 }
 
 	}
+	else {
+		cat("E: Internal error - locus is assigned to two markers - impossible.\n")
+	}
 
 }
 
 
 
 marker.trait.covariate<-sapply(covariates,function(covar){
-	return(marker.trait[,3]==covar])
-},USE.NAMES=TRUE)
+		return(marker.trait[,3]==covar])
+	},USE.NAMES=TRUE)
 
 if (FALSE) {
 	none<-marker.trait[which(marker.trait[,2]==""),]
