@@ -46,7 +46,15 @@ list of covariates to be included
 
 =item output
 
-complete path to file to include the resulting image
+complete path to file to include the resulting image, without any .jpeg etc suffix, please. There are multiple files to be created, each will receive its distinguished filename suffix:
+
+=over 8
+
+=item _all
+
+overlap of traits between covariates - no additional selection performed
+
+=back
 
 =back
 
@@ -111,17 +119,18 @@ if (is.null(opt$covariates)) {
 
 cat(paste("Working with the following covariates: ",paste(covariates, collapse="; "),"\n",sep=""))
 
-rs<-dbGetQuery(con, paste(
+q<-paste(
 	"SELECT Locus, Trait, covariates, chromosome, cis, cis_dist,cMorgan_Peak from qtl where covariates in ('",
 	paste(covariates,collapse="','",sep=""),
-	"') and ((cis=1 and cis_dist>",opt$cisDistMax) or cis=0) and LOD >= ",LODmin,sep=""))
-#rs<-dbGetQuery(con, "SELECT Locus, Trait, covariates, chromosome, cis, cis_dist,cMorgan_Peak from qtl where covariates in ('','eae_add','sud_add','dud_add','wl0_add','D12G1_add','D12G2B_add','D12G2C_add','D35G1_add','D35G2B_add','D35G2C_add','t12p_add','t35p_add') and cis=1 and cis_dist<=20000000 and LOD >= 3.9")
+	"') and ((cis=1 and cis_dist>",opt$cisDistMax,") or cis=0) and LOD >= ",opt$LODmin,sep="")
+cat("Query: ",q,"\n")
+rs<-dbGetQuery(con,q)
 
 
-
-#exakte lokus übereinstimmung
+# loc.trait has unique identifiers for all trait-covariate pairs
 loc.trait<-apply(rs,1,function(x){return(paste(x[1],x[2],sep="_"))})
 
+# loc.trait.covariate is a list of these traits, assigned to each covariate
 loc.trait.covariate<-sapply(covariates,function(covar){
 	return(loc.trait[rs[,3]==covar])
 },USE.NAMES=TRUE)
@@ -141,10 +150,39 @@ if (FALSE) {
 	t12p<-loc.trait[which(rs[,3]=="t12p_add")]
 	t35p<-loc.trait[which(rs[,3]=="t35p_add")]
 }
-#venn diagramme malen
-#venn(list(D12G1,D12G2B,D12G2C,t12p))
-#x11()
-#venn(list(D35G1,D35G2B,D35G2C,t35p))
+
+#
+#	V E N N  -  A L L
+#
+
+if (is.null(opt$interactive)) {
+	if (file.exists(opt$output)) {
+		cat(paste("Removing file '",opt$output,"'\n",sep=""))
+		file.remove(opt$output);
+	}
+	if (is.null(opt$format) || "png" == opt$format) {
+		png(opt[["output"]],width=width.pixel,height=height.pixel)
+	}
+	else if ("pdf" == opt$format) {
+		pdf(opt[["output"]],width=width.inch,height=height.inch)
+	}
+	else if ("jpg" == opt$format  || "jpeg" == opt$format) {
+		jpg(opt[["output"]],width=width.pixel,height=height.pixel)
+	}
+	else if ("gif" == opt$format) {
+		jpg(opt[["output"]],width=width.pixel,height=height.pixel)
+	}
+	else {
+		cat("Unknown format ",opt$format,"\n")
+		q(status=1);
+	}
+}
+
+venn(loc.trait.covariate)
+
+if(is.null(opt$interactive)) {
+	dev.off()
+}
 
 rs.map<-dbGetQuery(con, "SELECT marker, cmorgan_rqtl, chr, bp FROM map ORDER BY chr,cmorgan_rqtl")
 rs.map.cM2bp <- sapply(unique(rs.map[,"chr"]),function(X){
