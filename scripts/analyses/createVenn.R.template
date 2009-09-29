@@ -152,28 +152,28 @@ loc.trait.covariate<-sapply(covariates,function(covar){
 #	V E N N  -  A L L
 #
 
-if (is.null(opt$interactive)) {
-	if (file.exists(opt$output)) {
-		cat(paste("Removing file '",opt$output,"'\n",sep=""))
-		file.remove(opt$output);
-	}
-	if (is.null(opt$format) || "png" == opt$format) {
-		png(opt[["output"]],width=width.pixel,height=height.pixel)
-	}
-	else if ("pdf" == opt$format) {
-		pdf(opt[["output"]],width=width.inch,height=height.inch)
-	}
-	else if ("jpg" == opt$format  || "jpeg" == opt$format) {
-		jpg(opt[["output"]],width=width.pixel,height=height.pixel)
-	}
-	else if ("gif" == opt$format) {
-		jpg(opt[["output"]],width=width.pixel,height=height.pixel)
-	}
-	else {
-		cat("Unknown format ",opt$format,"\n")
-		q(status=1);
+prepareOutput <-function(filename) {
+	if (is.null(opt$interactive)) {
+		if (is.null(opt$format) || "png" == opt$format) {
+			png(opt[["output"]],width=width.pixel,height=height.pixel)
+		}
+		else if ("pdf" == opt$format) {
+			pdf(opt[["output"]],width=width.inch,height=height.inch)
+		}
+		else if ("jpg" == opt$format  || "jpeg" == opt$format) {
+			jpg(opt[["output"]],width=width.pixel,height=height.pixel)
+		}
+		else if ("gif" == opt$format) {
+			jpg(opt[["output"]],width=width.pixel,height=height.pixel)
+		}
+		else {
+			cat("Unknown format ",opt$format,"\n")
+			q(status=1);
+		}
 	}
 }
+
+prepareOutput(paste(opt$output,"_all.",opt$format,sep=""))
 
 venn(loc.trait.covariate)
 
@@ -233,44 +233,29 @@ isInQTL<-function(pos,chr) {
 }
 
 
-#marker-trait dingens erstellen
+# Transformation of locations to such of neighbouring markers
 marker.trait<-NULL
-for(i in 1:nrow(rs)){
-	locus<-rs$Locus[i]
-	cm<-rs$cMorgan_Peak[i]
-	chr<-rs$chromosome[i]
-	bp<-rs.map.cM2bp[[chr]](cm)
-	inDiseaseQTL<-isInQTL(bp,chr)
-	if(1 == sum(rs.map$marker==rs$Locus[i])){
-		# The locus is assigned directly to a marker
+for (i in 1:nrow(rs)) {
+	cat(i,"\n") ; chr<-rs$chromosome[i] ; locus<-rs$Locus[i] ; cm<-rs$cMorgan_Peak[i] ; bp<-rs.map.cM2bp[[chr]](cm) ; inDiseaseQTL<-isInQTL(bp,chr)
+	if (1 == sum(rs.map$marker==rs$Locus[i])) {         # The locus is assigned directly to a marker
 		pos<-which(rs.map$marker==rs$Locus[i])
-		if(pos<nrow(rs.map) && rs.map$chr[pos+1]==rs.map$chr[pos]){
-				marker.trait.value<-c(paste(rs$Locus[i],rs.map$marker[pos+1],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
-		}
-		else{
+		if (pos<nrow(rs.map) && rs.map$chr[pos+1]==rs.map$chr[pos]) {
+			marker.trait.value<-c(paste(rs$Locus[i],rs.map$marker[pos+1],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
+		} else {
 			marker.trait.value<-c(paste(rs$Locus[i],"end",rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
 		}
-		if(is.null(marker.trait)){
-			marker.trait<-marker.trait.value
-		}
-		else{
-			marker.trait<-rbind(marker.trait,marker.trait.value)
-		}
-		if(pos>1 && rs.map$chr[pos-1]==rs.map$chr[pos]){
-				marker.trait.value<-c(paste(rs.map$marker[pos-1],rs$Locus[i],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
-		}
-		else{
+		if(is.null(marker.trait)) {
+			marker.trait<-matrix(marker.trait.value,nrow=1)
+			colnames(marker.trait)<-c("Marker-Trait","Covariates","InDiseaseQTL")
+		} else { marker.trait<-rbind(marker.trait,marker.trait.value) }
+
+		if (pos>1 && rs.map$chr[pos-1]==rs.map$chr[pos]) {
+			marker.trait.value<-c(paste(rs.map$marker[pos-1],rs$Locus[i],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
+		} else {
 			marker.trait.value<-c(paste("begin",rs$Locus[i],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
 		}
-		if(is.null(marker.trait)){
-			marker.trait<-marker.trait.value
-		}
-		else{
-			marker.trait<-rbind(marker.trait,marker.trait.value)
-		}
-	}
-	else if (0 == sum(rs.map$marker==rs$Locus[i])) {
-		# The locus is between two markers
+		if(is.null(marker.trait)){ marker.trait<-marker.trait.value } else { marker.trait<-rbind(marker.trait,marker.trait.value) }
+	} else if (0 == sum(rs.map$marker==rs$Locus[i])) {  # The locus is between two markers
 		rs.map.chr<-rs.map[which(rs.map$chr==rs$chromosome[i]),]
 		pos<-sum(rs.map.chr$cmorgan_rqtl<cm)
 		if(pos==0){
@@ -282,55 +267,23 @@ for(i in 1:nrow(rs)){
 		else{
 			marker.trait.value<-c(paste(rs.map.chr$marker[pos],rs.map.chr$marker[pos+1],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
 		}
-		if(is.null(marker.trait)){
-                        marker.trait<-marker.trait.value
-                }
-                else{
-                        marker.trait<-rbind(marker.trait,marker.trait.value)
-                }
-
-	}
-	else {
+		if(is.null(marker.trait)){ marker.trait<-marker.trait.value } else{ marker.trait<-rbind(marker.trait,marker.trait.value) }
+	} else {
 		cat("E: Internal error - locus is assigned to two markers - impossible.\n")
 	}
-
 }
 
 
 
 marker.trait.covariate<-sapply(covariates,function(covar){
-		return(marker.trait[,3]==covar])
+		return(marker.trait[marker.trait[,2]==covar,])
 	},USE.NAMES=TRUE)
 
-if (FALSE) {
-	none<-marker.trait[which(marker.trait[,2]==""),]
-	eae<-marker.trait[which(marker.trait[,2]=="eae_add"),]
-	sud<-marker.trait[which(marker.trait[,2]=="sud_add"),]
-	dud<-marker.trait[which(marker.trait[,2]=="dud_add"),]
-	wl0<-marker.trait[which(marker.trait[,2]=="wl0_add"),]
-	D12G1<-marker.trait[which(marker.trait[,2]=="D12G1_add"),]
-	D12G2B<-marker.trait[which(marker.trait[,2]=="D12G2B_add"),]
-	D12G2C<-marker.trait[which(marker.trait[,2]=="D12G2C_add"),]
-	D35G1<-marker.trait[which(marker.trait[,2]=="D35G1_add"),]
-	D35G2B<-marker.trait[which(marker.trait[,2]=="D35G2B_add"),]
-	D35G2C<-marker.trait[which(marker.trait[,2]=="D35G2C_add"),]
-	t12p<-marker.trait[which(marker.trait[,2]=="t12p_add"),]
-	t35p<-marker.trait[which(marker.trait[,2]=="t35p_add"),]
-	D35<-(D35G1[D35G1[,1] %in% D35G2C[D35G2C[,1] %in% D35G2B[D35G2B[,1] %in% t35p[,1],1],1],])
-	D12<-(D12G1[D12G1[,1] %in% D12G2C[D12G2C[,1] %in% D12G2B[D12G2B[,1] %in% t12p[,1],1],1],])
-}
-
-#jetzt labeln
-png("VennDiagrams/Trans/D12_intersection_trans.png")
+prepareOutput(paste(opt$output,"_marker_trait.",opt$format,sep=""))
 venn(list(D12G1=D12G1[,1],D12G2B=D12G2B[,1],D12G2C=D12G2C[,1],t12p=t12p[,1]),label=list("1111"=paste("In QTL:",sum(as.numeric(D12[,3])),sep=" ")))
 dev.off()
-png("VennDiagrams/Trans/D35_intersection_trans.png")
-venn(list(D35G1=D35G1[,1],D35G2B=D35G2B[,1],D35G2C=D35G2C[,1],t35p=t35p[,1]),label=list("1111"=paste("In QTL:",sum(as.numeric(D35[,3])),sep=" ")))
-dev.off()
 
-Dall<-D35[D35[,1] %in% D12[,1],]
 
-eae_all<-eae[eae[,1] %in% sud[sud[,1] %in% dud[dud[,1] %in% wl0[wl0[,1] %in% Dall[,1],1],1],1],]
 png("VennDiagrams/Trans/DiseaseCovariates_intersection_trans.png")
 venn(list(eae=eae[,1],sud=sud[,1],dud=dud[,1],wl0=wl0[,1],IgG=Dall[,1]),label=list("11111"=paste("In QTL:",sum(as.numeric(eae_all[,3])),sep=" ")))
 dev.off()
