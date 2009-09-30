@@ -256,10 +256,7 @@ for (i in 1:nrow(rs)) {
 	cat(i,"\n") ; chr<-rs$chromosome[i] ; locus<-rs$Locus[i] ; cm<-rs$cMorgan_Peak[i] ; bp<-rs.map.cM2bp[[chr]](cm) ; inDiseaseQTL<-isInQTL(bp,chr)
 	if (1 == sum(rs.map$marker==rs$Locus[i])) {         # The locus is assigned directly to a marker
 		marker.trait.value<-c(paste(rs$Locus[i],markerDownstreamMarker(rs$Locus[i]),rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
-		if(is.null(marker.trait)) {
-			marker.trait<-matrix(marker.trait.value,nrow=1)
-			colnames(marker.trait)<-c("Marker-Trait","Covariates","InDiseaseQTL")
-		} else { marker.trait<-rbind(marker.trait,marker.trait.value) }
+		if(is.null(marker.trait)) { marker.trait<-marker.trait.value } else { marker.trait<-rbind(marker.trait,marker.trait.value) }
 
 		marker.trait.value<-c(paste(markerUpstreamMarker(rs$Locus[i]),rs$Locus[i],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
 		if(is.null(marker.trait)){ marker.trait<-marker.trait.value } else { marker.trait<-rbind(marker.trait,marker.trait.value) }
@@ -280,6 +277,7 @@ for (i in 1:nrow(rs)) {
 		cat("E: Internal error - locus is assigned to two markers - impossible.\n")
 	}
 }
+colnames(marker.trait)<-c("Marker-Trait","Covariates","InDiseaseQTL")
 
 
 marker.trait.covariate<-sapply(covariates,function(covar){
@@ -288,5 +286,16 @@ marker.trait.covariate<-sapply(covariates,function(covar){
 
 prepareOutput(paste(opt$output,"_marker_trait.",opt$format,sep=""))
 venn(sapply(marker.trait.covariate,function(X)X[,1],USE.NAMES=TRUE))
-dev.off()
+if(is.null(opt$interactive)) {
+	dev.off()
+}
 
+prepareOutput(paste(opt$output,"_marker_trait_InQTL.",opt$format,sep=""))
+venn(sapply(marker.trait.covariate,function(X){
+	inDiseaseQTL<-X[,3]=="TRUE"
+	columnToReturn<-X[,1]
+	return(columnToReturn[inDiseaseQTL])
+},USE.NAMES=TRUE))
+if(is.null(opt$interactive)) {
+	dev.off()
+}
