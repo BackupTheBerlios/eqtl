@@ -119,7 +119,7 @@ if (is.null(opt$covariates)) {
 
 cat(paste("Working with the following covariates: ",paste(covariates, collapse="; "),"\n",sep=""))
 
-q<-paste( "SELECT Locus, Trait, covariates, chromosome, cis, cis_dist,cMorgan_Peak ",
+q<-paste( "SELECT Locus, Trait, covariates, qtl.chromosome, cis, cis_dist,cMorgan_Peak ",
           "  FROM qtl JOIN trait ON trait_id=Trait JOIN locus ON locus.Name=qtl.Locus ",
 	  " WHERE covariates in ('",
 	  paste(covariates,collapse="','",sep=""),
@@ -201,21 +201,8 @@ rs.map.bp2cM <- sapply(unique(rs.map[,"chr"]),function(X){
 			},USE.NAMES=TRUE)
 
 
-dbDisconnect(con)
-#read disease qtl
-
-if (FALSE) {
-	disease_qtl<-read.table("/nfshome/grimm/gitEqtlRepo/data/xls/DAPVGdisease_loci_T_Olsson_090320.csv", sep=",",header=T)
-	isInQTL<-function(pos,chr,disease_qtl){
-		disease_qtl_chr<-disease_qtl[which(disease_qtl$RNO==chr),]
-		positions<-strsplit(as.character(disease_qtl_chr[,"Mb.positions"]),"-")
-		value<-unlist(lapply(positions,function(x){return(as.numeric(x[1])*1000000<=pos && pos<=as.numeric(x[2])*1000000)}))
-		if(sum(value)>=1){
-			return(1)
-		}
-		return(0)
-	}
-}
+# formerly
+#disease_qtl<-read.table("/nfshome/grimm/gitEqtlRepo/data/xls/DAPVGdisease_loci_T_Olsson_090320.csv", sep=",",header=T)
 
 # For testing:
 # disease_qtl<-dbGetQuery(con, paste("SELECT name, chr, start_bps, stop_bps, species", "FROM qtl.eae_qtl", "WHERE species='Rattus_norvegicus'", "AND start_bps IS NOT NULL and stop_bps IS NOT NULL",sep=" "));
@@ -233,31 +220,52 @@ isInQTL<-function(pos,chr) {
 }
 
 
+dbDisconnect(con)
+
+markerDownstreamMarker<-function(Locus) {
+	pos<-which(rs.map$marker==Locus)
+	if (0 == pos) {
+		stop("Should not be reached in markerDownstreamMarker\n")
+	}
+	else if (pos<nrow(rs.map) && rs.map$chr[pos+1]==rs.map$chr[pos]) {
+		v<-rs.map$marker[pos+1]
+	}
+	else {
+		v<-"end"
+	}
+	return(v)
+}
+
+markerUpstreamMarker<-function(Locus) {
+	pos<-which(rs.map$marker==Locus)
+	if (0 == pos) {
+		stop("Should not be reached in markerUpstreamMarker\n")
+	}
+	else if (pos>1 && rs.map$chr[pos-1]==rs.map$chr[pos]) {
+		v<-rs.map$marker[pos-1]
+	}
+	else {
+		v<-"begin"
+	}
+	return(v)
+}
+
 # Transformation of locations to such of neighbouring markers
 marker.trait<-NULL
 for (i in 1:nrow(rs)) {
 	cat(i,"\n") ; chr<-rs$chromosome[i] ; locus<-rs$Locus[i] ; cm<-rs$cMorgan_Peak[i] ; bp<-rs.map.cM2bp[[chr]](cm) ; inDiseaseQTL<-isInQTL(bp,chr)
 	if (1 == sum(rs.map$marker==rs$Locus[i])) {         # The locus is assigned directly to a marker
-		pos<-which(rs.map$marker==rs$Locus[i])
-		if (pos<nrow(rs.map) && rs.map$chr[pos+1]==rs.map$chr[pos]) {
-			marker.trait.value<-c(paste(rs$Locus[i],rs.map$marker[pos+1],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
-		} else {
-			marker.trait.value<-c(paste(rs$Locus[i],"end",rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
-		}
+		marker.trait.value<-c(paste(rs$Locus[i],markerDownstreamMarker(rs$Locus[i]),rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
 		if(is.null(marker.trait)) {
 			marker.trait<-matrix(marker.trait.value,nrow=1)
 			colnames(marker.trait)<-c("Marker-Trait","Covariates","InDiseaseQTL")
 		} else { marker.trait<-rbind(marker.trait,marker.trait.value) }
 
-		if (pos>1 && rs.map$chr[pos-1]==rs.map$chr[pos]) {
-			marker.trait.value<-c(paste(rs.map$marker[pos-1],rs$Locus[i],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
-		} else {
-			marker.trait.value<-c(paste("begin",rs$Locus[i],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
-		}
+		marker.trait.value<-c(paste(markerUpstreamMarker(rs$Locus[i]),rs$Locus[i],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
 		if(is.null(marker.trait)){ marker.trait<-marker.trait.value } else { marker.trait<-rbind(marker.trait,marker.trait.value) }
 	} else if (0 == sum(rs.map$marker==rs$Locus[i])) {  # The locus is between two markers
 		rs.map.chr<-rs.map[which(rs.map$chr==rs$chromosome[i]),]
-		pos<-sum(rs.map.chr$cmorgan_rqtl<cm)
+		pos<-sum(rs.map.chr$cmorgan_rqtl<rs$cMorgan_Peak[i])
 		if(pos==0){
 			marker.trait.value<-c(paste("begin",rs.map.chr$marker[1],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
 		}
@@ -274,24 +282,11 @@ for (i in 1:nrow(rs)) {
 }
 
 
-
 marker.trait.covariate<-sapply(covariates,function(covar){
-		return(marker.trait[marker.trait[,2]==covar,])
-	},USE.NAMES=TRUE)
+	return(marker.trait[marker.trait[,2]==covar,])
+},USE.NAMES=TRUE)
 
 prepareOutput(paste(opt$output,"_marker_trait.",opt$format,sep=""))
-venn(list(D12G1=D12G1[,1],D12G2B=D12G2B[,1],D12G2C=D12G2C[,1],t12p=t12p[,1]),label=list("1111"=paste("In QTL:",sum(as.numeric(D12[,3])),sep=" ")))
-dev.off()
-
-
-png("VennDiagrams/Trans/DiseaseCovariates_intersection_trans.png")
-venn(list(eae=eae[,1],sud=sud[,1],dud=dud[,1],wl0=wl0[,1],IgG=Dall[,1]),label=list("11111"=paste("In QTL:",sum(as.numeric(eae_all[,3])),sep=" ")))
-dev.off()
-all<-none[none[,1] %in% eae_all[,1],]
-none_single<-none[!(none[,1] %in% eae_all[,1]),]
-eae_all_single<-eae_all[!(eae_all[,1] %in% none[,1]),]
-
-png("VennDiagrams/Trans/DiseaseCovariates_transcript_intersection_trans.png")
-venn(list(transcript=none[,1],disease_covariates=eae_all[,1]),label=list("11"=paste("In QTL:",sum(as.numeric(all[,3])),sep=" "),"10"=paste("In QTL:",sum(as.numeric(none_single[,3])),sep=" "),"01"=paste("In QTL:",sum(as.numeric(eae_all_single[,3])),sep=" ")))
+venn(sapply(marker.trait.covariate,function(X)X[,1],USE.NAMES=TRUE))
 dev.off()
 
