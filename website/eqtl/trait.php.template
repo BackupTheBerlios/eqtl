@@ -252,6 +252,7 @@ ENDOFDOCUMENTATION
 
 		require_once("func_connect.php");
 		require_once("func_species.php");
+		require_once("func_conversion_ENSEMBLVERSION.php");
 
 		if (empty($linkLocal)) {
 			echo "<p>Could not create link to database.</p>";
@@ -604,7 +605,8 @@ ENDOFDOCUMENTATION
 			
 			# preparing the text to output below, so the number to expect can be determined
 			if (!empty($show_trait_loci)) {
-				$loci_query="SELECT locus.Chr,locus.cMorgan,locus.Mbp,"
+				$loci_query="SELECT locus.Chr,locus.cMorgan,"
+						# . "locus.Mbp,"
 						  ."qtl.LOD,qtl.pvalue,"
 				                  ."qtl.quantile,qtl.cis,qtl.covariates "
 				           ."FROM qtl join locus ON qtl.Locus=locus.Name "
@@ -640,7 +642,8 @@ ENDOFDOCUMENTATION
 					$htmlTextToRepresentLoci .=
 					     "<td>".$loci_line["Chr"]."</td>"
 					    ."<td>".round($loci_line["cMorgan"],0)."</td>"
-					    ."<td>".$loci_line["Mbp"]."</td>"
+					    #."<td>".$loci_line["Mbp"]."</td>"
+					    ."<td>".round(cM2bp($loci_line["Chr"],$loci_line["cMorgan"])/1000/1000,1)."</td>"
 					    ."<td>".round($loci_line["LOD"],2)."</td>"
 					    ."<td>".$loci_line["pvalue"]."</td>"
 					    ."<td>".round($loci_line["quantile"],2)."</td>"
