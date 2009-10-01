@@ -182,6 +182,9 @@ trait.covariate<-sapply(covariates,function(covar){
 
 # create some decent filename - if the analysis is not performed interactively
 prepareOutput <-function(filename) {
+	if (is.null(filename)) {
+		stop("prepareOutput has NULL as filename")
+	}
 	if (is.null(opt$interactive)) {
 		if (is.null(opt$format) || "png" == opt$format) {
 			png(opt[["output"]],width=width.pixel,height=height.pixel)
@@ -207,7 +210,7 @@ prepareOutput <-function(filename) {
 #	V E N N  -  exact locus - trait pairing
 #
 
-f<-paste(opt$output,"_",paste("exact_trait",selection.flag,sep="_"),".",opt$format,sep="")
+f<-paste(opt$output,"_",paste("exact_trait",selection.tag,sep="_"),".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n")
 prepareOutput(f))
 venn(loc.trait.covariate)
@@ -220,7 +223,7 @@ if(is.null(opt$interactive)) {
 #	V E N N  -  traits only
 #
 
-f<-paste(opt$output,"_",paste("trait",selection.flag,sep="_"),".",opt$format,sep="")
+f<-paste(opt$output,"_",paste("trait",selection.tag,sep="_"),".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n")
 prepareOutput(f))
 venn(loc.trait.covariate)
@@ -333,7 +336,7 @@ marker.trait.covariate<-sapply(covariates,function(covar){
 	return(marker.trait[marker.trait[,2]==covar,])
 },USE.NAMES=TRUE)
 
-f<-paste(opt$output,"_",paste("flanking_trait",selection.flag,sep="_"),".",opt$format,sep="")
+f<-paste(opt$output,"_",paste("flanking_trait",selection.tag,sep="_"),".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n")
 prepareOutput(f)
 venn(sapply(marker.trait.covariate,function(X)X[,1],USE.NAMES=TRUE))
@@ -341,7 +344,7 @@ if(is.null(opt$interactive)) {
 	dev.off()
 }
 
-f<-paste(opt$output,"_",paste("flanking_trait_indiseaseqtl",selection.flag,sep="_"),".",opt$format,sep="")
+f<-paste(opt$output,"_",paste("flanking_trait_indiseaseqtl",selection.tag,sep="_"),".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n")
 prepareOutput(f)
 venn(sapply(marker.trait.covariate,
