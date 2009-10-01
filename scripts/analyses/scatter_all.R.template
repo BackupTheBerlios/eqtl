@@ -113,6 +113,10 @@ if (is.null(opt$LODmin)) {
    cat("Setting LODmin to default value.\n")
    opt[["LODmin"]]<- -1
 }
+if (is.null(opt$format)) {
+   opt[["format"]]<-"png";
+   cat("Set format to default value '",opt$format,"'.\n")
+}
 
 if (!is.null(opt$verbose)) cat("I was here 2.\n")
 

@@ -40,6 +40,8 @@ rather than dumping an image to a file, specified by '--output', the result can 
 
 =item format <png|jpeg|pdf>
 
+The graphics format to be used. The default is 'png'. To use the typical display of the R shell, use set --interaction.
+
 =item covariates
 
 list of covariates to be included 
@@ -95,6 +97,11 @@ library(gplots) # for Venn diagrams
 
 # cat("I was here 0.\n")
 
+width.pixel<-3*480
+width.inch<-11
+height.pixel<-width.pixel
+height.inch<-width.inch
+
 opt = getopt(matrix(c(
     'verbose'    , 'v', 2, "integer",
     'help'       , 'h', 0, "logical",
@@ -106,8 +113,12 @@ opt = getopt(matrix(c(
     'format'     , 'f', 1, "character",
     'covariates' , 'c', 1, "character",
     'output'     , 'o', 1, "character"
-   ),ncol=4,byrow=TRUE),
-   debug=TRUE)
+   ),ncol=4,byrow=TRUE), debug=TRUE)
+
+if (!is.null(opt$help)) {
+   cat("Please run 'pod2man createVenn.R | nroff -man | less' on this script to gain more insights.\n");
+   q(status=1);
+}
 
 if (is.null(opt$LODmin)) {
 	opt[["LODmin"]] <- 3.5
@@ -117,6 +128,11 @@ if (is.null(opt$LODmin)) {
 if (is.null(opt$cisDistMax)) {
 	opt[["cisDistMax"]] <- 20*1000*1000
 	if (!is.null(opt$verbose)) cat("Setting default cisDistMax to ",opt$cisDistMax,"\n");
+}
+
+if (is.null(opt$format)) {
+   opt[["format"]]<-"png";
+   cat("Set format to default value '",opt$format,"'.\n")
 }
 
 # for manual interaction in shell: 
@@ -174,29 +190,28 @@ loc.trait.covariate<-sapply(covariates,function(covar){
 	return(loc.trait[rs[,3]==covar])
 },USE.NAMES=TRUE)
 
-# trait.covariate is a list of traits assigned to a covariate
+## trait.covariate is a list of traits assigned to a covariate
 trait.covariate<-sapply(covariates,function(covar){
 	return(rs[rs[,3]==covar,2])
-}
+})
 
-
-# create some decent filename - if the analysis is not performed interactively
-prepareOutput <-function(filename) {
+# prepare the output file
+prepareOutput<-function(filename) {
 	if (is.null(filename)) {
 		stop("prepareOutput has NULL as filename")
 	}
 	if (is.null(opt$interactive)) {
 		if (is.null(opt$format) || "png" == opt$format) {
-			png(opt[["output"]],width=width.pixel,height=height.pixel)
+			png(filename,width=width.pixel,height=height.pixel)
 		}
 		else if ("pdf" == opt$format) {
-			pdf(opt[["output"]],width=width.inch,height=height.inch)
+			pdf(filename,width=width.inch,height=height.inch)
 		}
 		else if ("jpg" == opt$format  || "jpeg" == opt$format) {
-			jpg(opt[["output"]],width=width.pixel,height=height.pixel)
+			jpg(filename,width=width.pixel,height=height.pixel)
 		}
 		else if ("gif" == opt$format) {
-			jpg(opt[["output"]],width=width.pixel,height=height.pixel)
+			jpg(filename,width=width.pixel,height=height.pixel)
 		}
 		else {
 			cat("Unknown format ",opt$format,"\n")
@@ -211,8 +226,8 @@ prepareOutput <-function(filename) {
 #
 
 f<-paste(opt$output,"_",paste("exact_trait",selection.tag,sep="_"),".",opt$format,sep="")
-cat(paste("<a href=\"",f,"\">",f,"</a>\n")
-prepareOutput(f))
+cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
+prepareOutput(f)
 venn(loc.trait.covariate)
 if(is.null(opt$interactive)) {
 	dev.off()
@@ -224,8 +239,8 @@ if(is.null(opt$interactive)) {
 #
 
 f<-paste(opt$output,"_",paste("trait",selection.tag,sep="_"),".",opt$format,sep="")
-cat(paste("<a href=\"",f,"\">",f,"</a>\n")
-prepareOutput(f))
+cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
+prepareOutput(f)
 venn(loc.trait.covariate)
 if(is.null(opt$interactive)) {
 	dev.off()
@@ -305,11 +320,11 @@ markerUpstreamMarker<-function(Locus) {
 # Transformation of locations to such of neighbouring markers
 marker.trait<-NULL
 for (i in 1:nrow(rs)) {
-	cat(i,"\n") ; chr<-rs$chromosome[i] ; locus<-rs$Locus[i] ; cm<-rs$cMorgan_Peak[i] ; bp<-rs.map.cM2bp[[chr]](cm) ; inDiseaseQTL<-isInQTL(bp,chr)
+	if (!is.null(opt$verbose)) cat(i,"\n")
+	chr<-rs$chromosome[i] ; locus<-rs$Locus[i] ; cm<-rs$cMorgan_Peak[i] ; bp<-rs.map.cM2bp[[chr]](cm) ; inDiseaseQTL<-isInQTL(bp,chr)
 	if (1 == sum(rs.map$marker==rs$Locus[i])) {         # The locus is assigned directly to a marker
 		marker.trait.value<-c(paste(rs$Locus[i],markerDownstreamMarker(rs$Locus[i]),rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
 		if(is.null(marker.trait)) { marker.trait<-marker.trait.value } else { marker.trait<-rbind(marker.trait,marker.trait.value) }
-
 		marker.trait.value<-c(paste(markerUpstreamMarker(rs$Locus[i]),rs$Locus[i],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
 		if(is.null(marker.trait)){ marker.trait<-marker.trait.value } else { marker.trait<-rbind(marker.trait,marker.trait.value) }
 	} else if (0 == sum(rs.map$marker==rs$Locus[i])) {  # The locus is between two markers
@@ -337,7 +352,7 @@ marker.trait.covariate<-sapply(covariates,function(covar){
 },USE.NAMES=TRUE)
 
 f<-paste(opt$output,"_",paste("flanking_trait",selection.tag,sep="_"),".",opt$format,sep="")
-cat(paste("<a href=\"",f,"\">",f,"</a>\n")
+cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 prepareOutput(f)
 venn(sapply(marker.trait.covariate,function(X)X[,1],USE.NAMES=TRUE))
 if(is.null(opt$interactive)) {
@@ -345,7 +360,7 @@ if(is.null(opt$interactive)) {
 }
 
 f<-paste(opt$output,"_",paste("flanking_trait_indiseaseqtl",selection.tag,sep="_"),".",opt$format,sep="")
-cat(paste("<a href=\"",f,"\">",f,"</a>\n")
+cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 prepareOutput(f)
 venn(sapply(marker.trait.covariate,
 	    function(X){
