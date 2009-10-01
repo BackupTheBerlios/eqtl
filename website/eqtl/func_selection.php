@@ -99,6 +99,32 @@ function print_row_one_text_single($rname,$name1,$val1,$size=7) {
 
 /*
 
+=item print_exclusive_selection($label,$variablename,$entryarray)
+
+A selection of radio buttons are prepared to allow an exclusive selection between the values.
+The first is selected by default.
+
+=cut
+
+*/
+
+function print_exclusive_selection($rname,$variablename,$entryarray) {
+
+  echo "<tr>";
+  echo "<th align=right>$rname:</th>";
+  echo "<td>";
+  $no=0;
+  foreach($entryarray as $presentation=>$value) {
+  	echo "<input type=radio name=\"$variablename\" value=\"$value\"".(0==$no?" selected":"")." />$presentation<br>\n";
+  	$no++;
+  }
+  echo "</td>";
+  echo "</tr>\n";
+
+}
+
+/*
+
 =back
 
 =cut
@@ -161,9 +187,15 @@ function print_selection_form($properties) {
 
 		 case "table_overview_scanone":
 		 case "figure_scatter":
-		 case "figure_venn":
 			$properties = array(
 						"LOD", "pvalue", "mean", "sd", "median", "variance" ,
+						#, "number_of_chromosomes_per_trait"
+			);
+			break;
+
+		 case "figure_venn":
+			$properties = array(
+						"LOD", "pvalue", "mean", "sd", "median", "variance", "cis_or_trans"
 						#, "number_of_chromosomes_per_trait"
 			);
 			break;
@@ -308,6 +340,10 @@ function print_selection_form($properties) {
 				break;
 			case "pvalue":
 				print_row_two_text_single("QTL P-value","PvalueMin","PvalueMax",$PvalueMin,$PvalueMax);
+				break;
+
+			case "cis_or_trans":
+				print_exclusive_selection("Cis/Trans","cis_or_trans",array("skip filter"=>"","cis"=>"cis","trans"=>"trans"));
 				break;
 
 			case "number_of_chromosomes_per_trait":

@@ -96,6 +96,38 @@ University of LE<uuml>beck, Germany, 2009
 
 =cut
 
+##
+##  I N T E R N A L   F U N C T I O N S
+##
+
+#
+# prepare the output file
+#
+prepareOutput<-function(filename) {
+	if (is.null(filename)) {
+		stop("prepareOutput has NULL as filename")
+	}
+	if (is.null(opt$interactive)) {
+		if (is.null(opt$format) || "png" == opt$format) {
+			png(filename,width=width.pixel,height=height.pixel)
+		}
+		else if ("pdf" == opt$format) {
+			pdf(filename,width=width.inch,height=height.inch)
+		}
+		else if ("jpg" == opt$format  || "jpeg" == opt$format) {
+			jpg(filename,width=width.pixel,height=height.pixel)
+		}
+		else if ("gif" == opt$format) {
+			jpg(filename,width=width.pixel,height=height.pixel)
+		}
+		else {
+			cat("Unknown format ",opt$format,"\n")
+			q(status=1);
+		}
+	}
+}
+
+
 "
 
 library(RMySQL)
@@ -117,7 +149,7 @@ opt = getopt(matrix(c(
     'MeanMin'    , 'm', 1, "double",
     'LODmin'     , 'l', 1, "double",
     'cisDistMax' , 's', 1, "integer",
-    'dis'        , 'a', 0, "logical",
+    'cistrans'   , 'a', 1, "character",
     'interactive', 'i', 0, "logical",
     'format'     , 'f', 1, "character",
     'covariates' , 'c', 1, "character",
@@ -213,7 +245,17 @@ if (!is.null(opt[["VarianceMin"]])) { query<-paste(query," AND variance >= ",opt
 }
 if (!is.null(opt[["VarianceMax"]])) { query<-paste(query," AND variance <= ",opt$VarianceMax,sep="")
 }
-if (!is.null(opt[["cis"]]))       { query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="")
+if (!is.null(opt[["cistrans"]]))    {
+	switch(opt[["cistrans"]]) {
+	case "cis":
+		query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="")
+		break;
+	case "trans":
+		query<-paste(query," AND (0 = cis OR cis_dist > ",opt$cisDistMax,")",sep="")
+		break;
+	default:
+		stop(paste("Unknow argument to --cistrans: ",opt[["cistrans"]],"\n",sep=""))
+	}
 }
 if (!is.null(opt[["debug"]]))     { query<-paste(query," LIMIT 100",sep="")
 }
@@ -237,37 +279,6 @@ loc.trait.covariate<-sapply(covariates,function(covar){
 	return(loc.trait[rs[,3]==covar])
 },USE.NAMES=TRUE)
 
-## trait.covariate is a list of traits assigned to a covariate
-trait.covariate<-sapply(covariates,function(covar){
-	line.selection<-(rs[,"covariates"]==covar)
-	return(rs[line.selection,"Trait"])
-})
-
-# prepare the output file
-prepareOutput<-function(filename) {
-	if (is.null(filename)) {
-		stop("prepareOutput has NULL as filename")
-	}
-	if (is.null(opt$interactive)) {
-		if (is.null(opt$format) || "png" == opt$format) {
-			png(filename,width=width.pixel,height=height.pixel)
-		}
-		else if ("pdf" == opt$format) {
-			pdf(filename,width=width.inch,height=height.inch)
-		}
-		else if ("jpg" == opt$format  || "jpeg" == opt$format) {
-			jpg(filename,width=width.pixel,height=height.pixel)
-		}
-		else if ("gif" == opt$format) {
-			jpg(filename,width=width.pixel,height=height.pixel)
-		}
-		else {
-			cat("Unknown format ",opt$format,"\n")
-			q(status=1);
-		}
-	}
-}
-
 
 #
 #	V E N N  -  exact locus - trait pairing
@@ -286,10 +297,16 @@ if(is.null(opt$interactive)) {
 #	V E N N  -  traits only
 #
 
+## trait.covariate is a list of traits assigned to a covariate
+trait.covariate<-sapply(covariates,function(covar){
+	line.selection<-(rs[,"covariates"]==covar)
+	return(rs[line.selection,"Trait"])
+})
+
 f<-paste(opt$output,"_","trait",".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 prepareOutput(f)
-venn(loc.trait.covariate)
+venn(trait.covariate)
 if(is.null(opt$interactive)) {
 	dev.off()
 }
