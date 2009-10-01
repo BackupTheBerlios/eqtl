@@ -104,6 +104,7 @@ height.inch<-width.inch
 
 opt = getopt(matrix(c(
     'verbose'    , 'v', 2, "integer",
+    'debug'    , 'd', 2, "integer",
     'help'       , 'h', 0, "logical",
     'MeanMin'    , 'm', 1, "double",
     'LODmin'     , 'l', 1, "double",
@@ -141,13 +142,14 @@ if (is.null(opt$format)) {
 con <- dbConnect(MySQL(),user="DATABASEEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
 
 #covariates<-c('','eae_add','sud_add','dud_add','wl0_add','D12G1_add','D12G2B_add','D12G2C_add','D35G1_add','D35G2B_add','D35G2C_add','t12p_add','t35p_add')
+covariates<-c()
 if (is.null(opt$covariates)) {
 	cat("Falling back to default covariates.\n")
 	covariates<-c('eae_int','sud_add','dud_add','wl0_add','D12G1_add')
 } else if (5<length(covariates)) {
 	q(status=1);
 } else {
-	covariates <- opt$covariates
+	covariates <- strsplit(x=opt$covariates,split=";",fixed=TRUE)[[1]]
 }
 
 cat(paste("Working with the following covariates: ",paste(covariates, collapse="; "),"\n",sep=""))
@@ -157,17 +159,36 @@ query<-paste( "SELECT Locus, Trait, covariates, qtl.chromosome, cis, cis_dist,cM
 	  " WHERE covariates in ('", paste(covariates,collapse="','",sep=""), "')", sep=""
 	)
 
-if (!is.null(opt$PvalueMin)) { query<-paste(query," AND pvalue >= ",opt$PvalueMin,sep="") }
-if (!is.null(opt$PvalueMax)) { query<-paste(query," AND pvalue <= ",opt$PvalueMax,sep="") }
-if (!is.null(opt$LODmin))    { query<-paste(query," AND LOD >= ",opt$LODmin,sep="") }
-if (!is.null(opt$LODmax))    { query<-paste(query," AND LOD <= ",opt$LODmax,sep="") }
-if (!is.null(opt$MeanMin))   { query<-paste(query," AND mean >= ",opt$MeanMin,sep="") }
-if (!is.null(opt$MeanMax))   { query<-paste(query," AND mean <= ",opt$MeanMax,sep="") }
-if (!is.null(opt$SdMin))     { query<-paste(query," AND sd >= ",opt$SdMin,sep="") }
-if (!is.null(opt$SdMax))     { query<-paste(query," AND sd <= ",opt$SdMax,sep="") }
-if (!is.null(opt$cis))       { query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="") }
+if (!is.null(opt$PvalueMin)) { query<-paste(query," AND pvalue >= ",opt$PvalueMin,sep="")
+}
+if (!is.null(opt$PvalueMax)) { query<-paste(query," AND pvalue <= ",opt$PvalueMax,sep="")
+}
+if (!is.null(opt$LODmin))    { query<-paste(query," AND LOD >= ",opt$LODmin,sep="")
+}
+if (!is.null(opt$LODmax))    { query<-paste(query," AND LOD <= ",opt$LODmax,sep="")
+}
+if (!is.null(opt$MeanMin))   { query<-paste(query," AND mean >= ",opt$MeanMin,sep="")
+}
+if (!is.null(opt$MeanMax))   { query<-paste(query," AND mean <= ",opt$MeanMax,sep="")
+}
+if (!is.null(opt$SdMin))     { query<-paste(query," AND sd >= ",opt$SdMin,sep="")
+}
+if (!is.null(opt$SdMax))     { query<-paste(query," AND sd <= ",opt$SdMax,sep="")
+}
+if (!is.null(opt$cis))       { query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="")
+}
+if (!is.null(opt$debug))     { query<-paste(query," LIMIT 100",sep="")
+}
 cat("Query: ",query,"\n")
+
 rs<-dbGetQuery(con,query)
+if (!is.null(opt$debug)) {
+	print(rs)
+}
+
+if (0 == nrow(rs)) {
+	stop("Have not received a single line from database. The query was not successful.\n")
+}
 
 
 # loc.trait has unique identifiers for all trait-covariate pairs
@@ -180,7 +201,8 @@ loc.trait.covariate<-sapply(covariates,function(covar){
 
 ## trait.covariate is a list of traits assigned to a covariate
 trait.covariate<-sapply(covariates,function(covar){
-	return(rs[rs[,3]==covar,2])
+	line.selection<-(rs[,"covariates"]==covar)
+	return(rs[line.selection,"Trait"])
 })
 
 # prepare the output file
@@ -308,7 +330,7 @@ markerUpstreamMarker<-function(Locus) {
 # Transformation of locations to such of neighbouring markers
 marker.trait<-NULL
 for (i in 1:nrow(rs)) {
-	if (!is.null(opt$verbose)) cat(i,"\n")
+	if (!is.null(opt$debug)) cat(i,"\n")
 	chr<-rs$chromosome[i] ; locus<-rs$Locus[i] ; cm<-rs$cMorgan_Peak[i] ; bp<-rs.map.cM2bp[[chr]](cm) ; inDiseaseQTL<-isInQTL(bp,chr)
 	if (1 == sum(rs.map$marker==rs$Locus[i])) {         # The locus is assigned directly to a marker
 		marker.trait.value<-c(paste(rs$Locus[i],markerDownstreamMarker(rs$Locus[i]),rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)

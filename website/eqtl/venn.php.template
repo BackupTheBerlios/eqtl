@@ -106,7 +106,7 @@ University of LE<uuml>beck, 2009
 		echo "<tr><td align=right><input type=submit></td>";
 		echo "<td align=left><input type=reset>";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=inlineImages value=1 />Inline Images";
-		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=rerunAnalyses value=1 />Rerun previous analyses";
+		//echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=rerunAnalyses value=1 />Rerun previous analyses";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=verbose value=1 />verbose";
 		echo "</td></tr>\n";
 		echo "</table>\n";
@@ -154,7 +154,7 @@ University of LE<uuml>beck, 2009
 		array_push($attributes,"--format","png");
 		if (!empty($qtl_covariates)) {
 		  $cmd .= " --covariates ".join(";",$qtl_covariates);
-		  array_push($attributes,"--covariates",$qtl_covariates);
+		  array_push($attributes,"--covariates",'"'.join(";",$qtl_covariates).'"');
 		}
 		if (!empty($verbose)) {
 		  $cmd .= " --verbose";

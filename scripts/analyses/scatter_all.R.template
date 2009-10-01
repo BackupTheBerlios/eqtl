@@ -41,11 +41,11 @@ to be set if the user shall be interactively working with the R shell rather tha
 
 the format in which the image is to be saved - pdf, jpeg, png are currently supported.
 
-=item covariates' , 'c', 1, "character",
+=item covariates
 
 the covariates that should be compared
 
-=item output'     , 'o', 1, "character"
+=item output
 
 the output file to which to write - if there is a file to write to.
 
