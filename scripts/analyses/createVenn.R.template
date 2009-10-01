@@ -50,9 +50,25 @@ complete path to file to include the resulting image, without any .jpeg etc suff
 
 =over 8
 
-=item _all
+=item _exact_all
 
-overlap of traits between covariates - no additional selection performed
+overlap of loci-traits pairs between covariates
+
+=item _marker_all
+
+loci are weakened for their flanking markers
+
+=item _trait_all
+
+only traits are inspected, the loci are ignored
+
+=item as before with s/all/cis/
+
+only the cis-acting loci are selected
+
+=item as before with s/all/disease/
+
+only the loci within a classical QTL are inspected
 
 =back
 
