@@ -300,7 +300,7 @@ if(is.null(opt$interactive)) {
 ## trait.covariate is a list of traits assigned to a covariate
 trait.covariate<-sapply(covariates,function(covar){
 	line.selection<-(rs[,"covariates"]==covar)
-	return(rs[line.selection,"Trait"])
+	return(unique(rs[line.selection,"Trait"]))
 })
 
 f<-paste(opt$output,"_","trait",".",opt$format,sep="")
