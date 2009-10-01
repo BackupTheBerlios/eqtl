@@ -50,11 +50,11 @@ complete path to file to include the resulting image, without any .jpeg etc suff
 
 =over 8
 
-=item _exact_all
+=item _exact__trait_all
 
 overlap of loci-traits pairs between covariates
 
-=item _marker_all
+=item _flanking_trait_all
 
 loci are weakened for their flanking markers
 
@@ -66,7 +66,7 @@ only traits are inspected, the loci are ignored
 
 only the cis-acting loci are selected
 
-=item as before with s/all/disease/
+=item as before with s/all/indiseaseqtl/
 
 only the loci within a classical QTL are inspected
 
@@ -101,6 +101,7 @@ opt = getopt(matrix(c(
     'MeanMin'    , 'm', 1, "double",
     'LODmin'     , 'l', 1, "double",
     'cisDistMax' , 's', 1, "integer",
+    'cis'        , 'a', 0, "logical",
     'interactive', 'i', 0, "logical",
     'format'     , 'f', 1, "character",
     'covariates' , 'c', 1, "character",
@@ -126,7 +127,7 @@ con <- dbConnect(MySQL(),user="DATABASEEQTLUSER", password="", dbname="DATABASEE
 #covariates<-c('','eae_add','sud_add','dud_add','wl0_add','D12G1_add','D12G2B_add','D12G2C_add','D35G1_add','D35G2B_add','D35G2C_add','t12p_add','t35p_add')
 if (is.null(opt$covariates)) {
 	cat("Falling back to default covariates.\n")
-	covariates<-c('eae_add','sud_add','dud_add','wl0_add','D12G1_add')
+	covariates<-c('eae_int','sud_add','dud_add','wl0_add','D12G1_add')
 } else if (5<length(covariates)) {
 	q(status=1);
 } else {
@@ -135,25 +136,34 @@ if (is.null(opt$covariates)) {
 
 cat(paste("Working with the following covariates: ",paste(covariates, collapse="; "),"\n",sep=""))
 
-q<-paste( "SELECT Locus, Trait, covariates, qtl.chromosome, cis, cis_dist,cMorgan_Peak ",
+query<-paste( "SELECT Locus, Trait, covariates, qtl.chromosome, cis, cis_dist,cMorgan_Peak ",
           "  FROM qtl JOIN trait ON trait_id=Trait JOIN locus ON locus.Name=qtl.Locus ",
-	  " WHERE covariates in ('",
-	  paste(covariates,collapse="','",sep=""),
-	  "') and ((cis=1 and cis_dist>",opt$cisDistMax,") or cis=0)")
+	  " WHERE covariates in ('", paste(covariates,collapse="','",sep=""), "')", sep=""
+	)
+
+selection.tag<-""
 if (!is.null(opt$LODmin)) {
-	q<-paste(q," AND LOD >= ",opt$LODmin,sep="")
+	query<-paste(query," AND LOD >= ",opt$LODmin,sep="")
+	selection.tag<-paste(selection.tag,"LODmin",opt$LODmin,sep="_")
 }
 if (!is.null(opt$LODmax)) {
-	q<-paste(q," AND LOD <= ",opt$LODmax,sep="")
+	query<-paste(query," AND LOD <= ",opt$LODmax,sep="")
+	selection.tag<-paste(selection.tag,"LODmax",opt$LODmax,sep="_")
 }
 if (!is.null(opt$MeanMin)) {
-	q<-paste(q," AND mean >= ",opt$MeanMin,sep="")
+	query<-paste(query," AND mean >= ",opt$MeanMin,sep="")
+	selection.tag<-paste(selection.tag,"MeanMin",opt$MeanMin,sep="_")
 }
 if (!is.null(opt$MeanMax)) {
-	q<-paste(q," AND mean <= ",opt$MeanMax,sep="")
+	query<-paste(query," AND mean <= ",opt$MeanMax,sep="")
+	selection.tag<-paste(selection.tag,"MeanMax",opt$MeanMax,sep="_")
 }
-cat("Query: ",q,"\n")
-rs<-dbGetQuery(con,q)
+if (!is.null(opt$cis)) {
+	query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="")
+	selection.tag<-paste(selection.tag,"cis",sep="_")
+}
+cat("Query: ",query,"\n")
+rs<-dbGetQuery(con,query)
 
 
 # loc.trait has unique identifiers for all trait-covariate pairs
@@ -164,10 +174,13 @@ loc.trait.covariate<-sapply(covariates,function(covar){
 	return(loc.trait[rs[,3]==covar])
 },USE.NAMES=TRUE)
 
-#
-#	V E N N  -  A L L
-#
+# trait.covariate is a list of traits assigned to a covariate
+trait.covariate<-sapply(covariates,function(covar){
+	return(rs[rs[,3]==covar,2])
+}
 
+
+# create some decent filename - if the analysis is not performed interactively
 prepareOutput <-function(filename) {
 	if (is.null(opt$interactive)) {
 		if (is.null(opt$format) || "png" == opt$format) {
@@ -189,14 +202,34 @@ prepareOutput <-function(filename) {
 	}
 }
 
-prepareOutput(paste(opt$output,"_all.",opt$format,sep=""))
 
+#
+#	V E N N  -  exact locus - trait pairing
+#
+
+f<-paste(opt$output,"_",paste("exact_trait",selection.flag,sep="_"),".",opt$format,sep="")
+cat(paste("<a href=\"",f,"\">",f,"</a>\n")
+prepareOutput(f))
 venn(loc.trait.covariate)
-
 if(is.null(opt$interactive)) {
 	dev.off()
 }
 
+
+#
+#	V E N N  -  traits only
+#
+
+f<-paste(opt$output,"_",paste("trait",selection.flag,sep="_"),".",opt$format,sep="")
+cat(paste("<a href=\"",f,"\">",f,"</a>\n")
+prepareOutput(f))
+venn(loc.trait.covariate)
+if(is.null(opt$interactive)) {
+	dev.off()
+}
+
+
+# retrieving marker data
 rs.map<-dbGetQuery(con, "SELECT marker, cmorgan_rqtl, chr, bp FROM map ORDER BY chr,cmorgan_rqtl")
 rs.map.cM2bp <- sapply(unique(rs.map[,"chr"]),function(X){
 				#print(paste("Chr:",X))
@@ -300,18 +333,23 @@ marker.trait.covariate<-sapply(covariates,function(covar){
 	return(marker.trait[marker.trait[,2]==covar,])
 },USE.NAMES=TRUE)
 
-prepareOutput(paste(opt$output,"_marker_trait.",opt$format,sep=""))
+f<-paste(opt$output,"_",paste("flanking_trait",selection.flag,sep="_"),".",opt$format,sep="")
+cat(paste("<a href=\"",f,"\">",f,"</a>\n")
+prepareOutput(f)
 venn(sapply(marker.trait.covariate,function(X)X[,1],USE.NAMES=TRUE))
 if(is.null(opt$interactive)) {
 	dev.off()
 }
 
-prepareOutput(paste(opt$output,"_marker_trait_InQTL.",opt$format,sep=""))
-venn(sapply(marker.trait.covariate,function(X){
-	inDiseaseQTL<-X[,3]=="TRUE"
-	columnToReturn<-X[,1]
-	return(columnToReturn[inDiseaseQTL])
-},USE.NAMES=TRUE))
+f<-paste(opt$output,"_",paste("flanking_trait_indiseaseqtl",selection.flag,sep="_"),".",opt$format,sep="")
+cat(paste("<a href=\"",f,"\">",f,"</a>\n")
+prepareOutput(f)
+venn(sapply(marker.trait.covariate,
+	    function(X){
+		inDiseaseQTL<-X[,3]=="TRUE"
+		columnToReturn<-X[,1]
+		return(columnToReturn[inDiseaseQTL])
+	    },USE.NAMES=TRUE))
 if(is.null(opt$interactive)) {
 	dev.off()
 }
