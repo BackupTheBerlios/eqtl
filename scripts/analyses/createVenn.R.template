@@ -117,7 +117,7 @@ opt = getopt(matrix(c(
     'MeanMin'    , 'm', 1, "double",
     'LODmin'     , 'l', 1, "double",
     'cisDistMax' , 's', 1, "integer",
-    'cis'        , 'a', 0, "logical",
+    'dis'        , 'a', 0, "logical",
     'interactive', 'i', 0, "logical",
     'format'     , 'f', 1, "character",
     'covariates' , 'c', 1, "character",
@@ -189,25 +189,33 @@ query<-paste( "SELECT Locus, Trait, covariates, qtl.chromosome, cis, cis_dist,cM
 	  " WHERE covariates in ('", paste(covariates,collapse="','",sep=""), "')", sep=""
 	)
 
-if (!is.null(opt$PvalueMin)) { query<-paste(query," AND pvalue >= ",opt$PvalueMin,sep="")
+if (!is.null(opt[["PvalueMin"]])) { query<-paste(query," AND pvalue >= ",opt$PvalueMin,sep="")
 }
-if (!is.null(opt$PvalueMax)) { query<-paste(query," AND pvalue <= ",opt$PvalueMax,sep="")
+if (!is.null(opt[["PvalueMax"]])) { query<-paste(query," AND pvalue <= ",opt$PvalueMax,sep="")
 }
-if (!is.null(opt$LODmin))    { query<-paste(query," AND LOD >= ",opt$LODmin,sep="")
+if (!is.null(opt[["LODmin"]]))    { query<-paste(query," AND LOD >= ",opt$LODmin,sep="")
 }
-if (!is.null(opt$LODmax))    { query<-paste(query," AND LOD <= ",opt$LODmax,sep="")
+if (!is.null(opt[["LODmax"]]))    { query<-paste(query," AND LOD <= ",opt$LODmax,sep="")
 }
-if (!is.null(opt$MeanMin))   { query<-paste(query," AND mean >= ",opt$MeanMin,sep="")
+if (!is.null(opt[["MeanMin"]]))   { query<-paste(query," AND mean >= ",opt$MeanMin,sep="")
 }
-if (!is.null(opt$MeanMax))   { query<-paste(query," AND mean <= ",opt$MeanMax,sep="")
+if (!is.null(opt[["MeanMax"]]))   { query<-paste(query," AND mean <= ",opt$MeanMax,sep="")
 }
-if (!is.null(opt$SdMin))     { query<-paste(query," AND sd >= ",opt$SdMin,sep="")
+if (!is.null(opt[["SdMin"]]))     { query<-paste(query," AND sd >= ",opt$SdMin,sep="")
 }
-if (!is.null(opt$SdMax))     { query<-paste(query," AND sd <= ",opt$SdMax,sep="")
+if (!is.null(opt[["SdMax"]]))     { query<-paste(query," AND sd <= ",opt$SdMax,sep="")
 }
-if (!is.null(opt$cis))       { query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="")
+if (!is.null(opt[["MedianMin"]]))   { query<-paste(query," AND median >= ",opt$MedianMin,sep="")
 }
-if (!is.null(opt$debug))     { query<-paste(query," LIMIT 100",sep="")
+if (!is.null(opt[["MedianMax"]]))   { query<-paste(query," AND median <= ",opt$MedianMax,sep="")
+}
+if (!is.null(opt[["VarianceMin"]])) { query<-paste(query," AND variance >= ",opt$VarianceMin,sep="")
+}
+if (!is.null(opt[["VarianceMax"]])) { query<-paste(query," AND variance <= ",opt$VarianceMax,sep="")
+}
+if (!is.null(opt[["cis"]]))       { query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="")
+}
+if (!is.null(opt[["debug"]]))     { query<-paste(query," LIMIT 100",sep="")
 }
 cat("Query: ",query,"\n")
 
