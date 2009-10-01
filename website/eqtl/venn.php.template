@@ -173,7 +173,7 @@ University of LE<uuml>beck, 2009
 		echo "</small>\n";
 
 		foreach (array("exact_trait","trait","flanking_trait","flanking_trait_indiseaseqtl") as $s) {
-			$imagePath=dirname($_SERVER["PHP_SELF"])."/$outputfilename";
+			$imagePath=dirname($_SERVER["PHP_SELF"])."/${outputfilename}_${s}.png";
 			if (!empty($inlineImages)) {
 				echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n";
 			}
