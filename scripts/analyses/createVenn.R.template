@@ -157,27 +157,15 @@ query<-paste( "SELECT Locus, Trait, covariates, qtl.chromosome, cis, cis_dist,cM
 	  " WHERE covariates in ('", paste(covariates,collapse="','",sep=""), "')", sep=""
 	)
 
-selection.tag<-""
-if (!is.null(opt$LODmin)) {
-	query<-paste(query," AND LOD >= ",opt$LODmin,sep="")
-	selection.tag<-paste(selection.tag,"LODmin",opt$LODmin,sep="_")
-}
-if (!is.null(opt$LODmax)) {
-	query<-paste(query," AND LOD <= ",opt$LODmax,sep="")
-	selection.tag<-paste(selection.tag,"LODmax",opt$LODmax,sep="_")
-}
-if (!is.null(opt$MeanMin)) {
-	query<-paste(query," AND mean >= ",opt$MeanMin,sep="")
-	selection.tag<-paste(selection.tag,"MeanMin",opt$MeanMin,sep="_")
-}
-if (!is.null(opt$MeanMax)) {
-	query<-paste(query," AND mean <= ",opt$MeanMax,sep="")
-	selection.tag<-paste(selection.tag,"MeanMax",opt$MeanMax,sep="_")
-}
-if (!is.null(opt$cis)) {
-	query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="")
-	selection.tag<-paste(selection.tag,"cis",sep="_")
-}
+if (!is.null(opt$PvalueMin)) { query<-paste(query," AND pvalue >= ",opt$PvalueMin,sep="") }
+if (!is.null(opt$PvalueMax)) { query<-paste(query," AND pvalue <= ",opt$PvalueMax,sep="") }
+if (!is.null(opt$LODmin))    { query<-paste(query," AND LOD >= ",opt$LODmin,sep="") }
+if (!is.null(opt$LODmax))    { query<-paste(query," AND LOD <= ",opt$LODmax,sep="") }
+if (!is.null(opt$MeanMin))   { query<-paste(query," AND mean >= ",opt$MeanMin,sep="") }
+if (!is.null(opt$MeanMax))   { query<-paste(query," AND mean <= ",opt$MeanMax,sep="") }
+if (!is.null(opt$SdMin))     { query<-paste(query," AND sd >= ",opt$SdMin,sep="") }
+if (!is.null(opt$SdMax))     { query<-paste(query," AND sd <= ",opt$SdMax,sep="") }
+if (!is.null(opt$cis))       { query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="") }
 cat("Query: ",query,"\n")
 rs<-dbGetQuery(con,query)
 
@@ -225,7 +213,7 @@ prepareOutput<-function(filename) {
 #	V E N N  -  exact locus - trait pairing
 #
 
-f<-paste(opt$output,"_",paste("exact_trait",selection.tag,sep="_"),".",opt$format,sep="")
+f<-paste(opt$output,"_","exact_trait",".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 prepareOutput(f)
 venn(loc.trait.covariate)
@@ -238,7 +226,7 @@ if(is.null(opt$interactive)) {
 #	V E N N  -  traits only
 #
 
-f<-paste(opt$output,"_",paste("trait",selection.tag,sep="_"),".",opt$format,sep="")
+f<-paste(opt$output,"_","trait",".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 prepareOutput(f)
 venn(loc.trait.covariate)
@@ -351,7 +339,7 @@ marker.trait.covariate<-sapply(covariates,function(covar){
 	return(marker.trait[marker.trait[,2]==covar,])
 },USE.NAMES=TRUE)
 
-f<-paste(opt$output,"_",paste("flanking_trait",selection.tag,sep="_"),".",opt$format,sep="")
+f<-paste(opt$output,"_","flanking_trait",".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 prepareOutput(f)
 venn(sapply(marker.trait.covariate,function(X)X[,1],USE.NAMES=TRUE))
@@ -359,7 +347,7 @@ if(is.null(opt$interactive)) {
 	dev.off()
 }
 
-f<-paste(opt$output,"_",paste("flanking_trait_indiseaseqtl",selection.tag,sep="_"),".",opt$format,sep="")
+f<-paste(opt$output,"_","flanking_trait_indiseaseqtl",".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 prepareOutput(f)
 venn(sapply(marker.trait.covariate,

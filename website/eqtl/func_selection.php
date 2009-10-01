@@ -161,6 +161,7 @@ function print_selection_form($properties) {
 
 		 case "table_overview_scanone":
 		 case "figure_scatter":
+		 case "figure_venn":
 			$properties = array(
 						"LOD", "pvalue", "mean", "sd", "median", "variance" ,
 						#, "number_of_chromosomes_per_trait"
