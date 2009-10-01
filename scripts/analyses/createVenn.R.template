@@ -72,6 +72,14 @@ only the cis-acting loci are selected
 
 only the loci within a classical QTL are inspected
 
+=item width I<number>
+
+The width of the figure, either in pixels (png, jpeg) or inch (pdf).
+
+=item height I<number>
+
+The width of the figure, defaults to width unless explicitly set.
+
 =back
 
 =back
@@ -97,7 +105,7 @@ library(gplots) # for Venn diagrams
 
 # cat("I was here 0.\n")
 
-width.pixel<-3*480
+width.pixel<-2*480
 width.inch<-11
 height.pixel<-width.pixel
 height.inch<-width.inch
@@ -134,6 +142,28 @@ if (is.null(opt$cisDistMax)) {
 if (is.null(opt$format)) {
    opt[["format"]]<-"png";
    cat("Set format to default value '",opt$format,"'.\n")
+}
+
+if ("pdf" == opt$format) {
+	if (!is.null(opt$width)) {
+		width.inch<-opt$width
+	}
+	if (!is.null(opt$height)) {
+		height.inches<-opt$height
+	}
+	else {
+		height.inch<-width.inch
+	}
+} else {
+	if (!is.null(opt$width)) {
+		width.pixel<-opt$width
+	}
+	if (!is.null(opt$height)) {
+		height.pixel<-opt$height
+	}
+	else {
+		height.pixel<-width.pixel
+	}
 }
 
 # for manual interaction in shell: 

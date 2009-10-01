@@ -167,17 +167,27 @@ University of LE<uuml>beck, 2009
 		if ($verbose) {
 			echo "executing '$cmd'<br>\n";
 		}
-		#print_r($attributes);
-		echo "<small>";
-		echo shell_exec($cmd);
-		echo "</small>\n";
+		
+		$t =  shell_exec($cmd);
 
-		foreach (array("exact_trait","trait","flanking_trait","flanking_trait_indiseaseqtl") as $s) {
+		if ($verbose) {
+			echo "<p>";
+			#print_r($attributes);
+			echo "<small>$t</small>\n";
+			echo "</p>\n";
+		}
+
+		echo "<h2>Created images</h2>\n";
+		foreach (array(
+			  "exact_trait" => "Locus and trait are compared by their exact syntactival identity, no shift in cM will be accepted",
+			  "trait"=>"The locus is completely ignored, only the traits are compared that are controlled by any region anywhere in the genome with that covariate",
+			  "flanking_trait"=>"The specification of chromosomal loci are weakened towards their flanking markers",
+			  "flanking_trait_indiseaseqtl"=>"As before, the specification of loci are reduced to flanking markers, and only thoes are shown, that are located within classical QTL") as $s=>$t) {
+			echo "<h3>$s</h3>\n";
 			$imagePath=dirname($_SERVER["PHP_SELF"])."/${outputfilename}_${s}.png";
-			if (!empty($inlineImages)) {
-				echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n";
-			}
-			echo "<a href=\"http:$imagePath\">${outputfilename}_${s}.png</a><br/>\n";
+			if (!empty($inlineImages)) { echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n"; }
+			echo "<a href=\"http:$imagePath\">${outputfilename}_${s}.png</a><br/>\n$t\n";
+			echo "<hr>\n";
 		}
 	}
 	include("footer.php");
