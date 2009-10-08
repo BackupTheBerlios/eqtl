@@ -8,7 +8,9 @@ Characterisation
 
 =head1 DESCRIPTION
 
-The documentation still needs to be prepared.
+This script sends a query of a specified group of genes to gprofiler to find significant term_ids.
+Furthermore it groups the term_ids in the database.
+The documentation still needs to be improved.
 
 =head1 AUTHORS
 
