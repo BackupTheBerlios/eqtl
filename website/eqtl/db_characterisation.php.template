@@ -37,8 +37,6 @@ echo " <th>significant</th>\n";
 echo "</tr>\n";
 
 $groups = mysql_query("select * from groups;");
-$group_characteristics = mysql_query("select * from group_characteristics;");
-$characteristics = mysql_query("select * from characteristics;");
 
 while($row = mysql_fetch_array($groups))
 {
