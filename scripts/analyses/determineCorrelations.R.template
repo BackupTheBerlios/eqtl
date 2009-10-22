@@ -47,7 +47,7 @@ TEMPLATEWARNINGHASH
 # read in data after conversion with OpenOffice from xls
 # further abstractions are required to adapt for multiple
 # organisms.
-d<-read.delim(file="CSVDATABASE/PHENOFILE",dec=",",sep="\t",row.names=1,skip=1)
+d<-read.delim(file="CSVDATABASE/PHENOFILE",dec=",",sep="PHENOFIELDSEP",row.names=1,skip=1)
 
 # columns with expression data
 p<-grep("^MT",colnames(d))
