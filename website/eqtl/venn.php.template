@@ -57,6 +57,7 @@ University of LE<uuml>beck, 2009
 		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
+		"cistrans",
 		"locus","chrlist", "condition"
 	);
 
@@ -124,6 +125,8 @@ University of LE<uuml>beck, 2009
 	}
 	else {
 
+		if (!empty($debug)) print_r($_POST);
+
 		#
 		# invocation of external R script
 		#
@@ -132,6 +135,8 @@ University of LE<uuml>beck, 2009
 		#print_r($_SERVER);
 
 		if ($n>0) echo "<hr>";
+
+		$attributes=array();
 
 		$outputfilename = "tmp_images/venn_output";
 		if (!empty($PvalueMin)) {
@@ -166,9 +171,12 @@ University of LE<uuml>beck, 2009
 			$outputfilename .= "_SdMax_$SdMax";
 			array_push($attributes,"--SdMax",$SdMax);
 		}
+		if (!empty($cistrans)) {
+			array_push($attributes,"--cistrans",$cistrans);
+			$outputfilename .= "_${cistrans}";
+		}
 
 		$rscript = getcwd() . "/../../scripts/analyses/createVenn.R";
-		$attributes=array();
 		if (!file_exists($rscript)) {
 		  errorMessage("R script '$rscript' not found.");
 		}
@@ -178,18 +186,18 @@ University of LE<uuml>beck, 2009
 		if (!empty($qtl_covariates)) {
 		  $cmd .= " --covariates ".join(";",$qtl_covariates);
 		  array_push($attributes,"--covariates",'"'.join(";",$qtl_covariates).'"');
-		  $outputfilename .= "_cov_".join(";",$qtl_covariates).'"');
+		  $outputfilename .= "_cov_".join(";",$qtl_covariates);
 		}
 		if (!empty($verbose)) {
 		  $cmd .= " --verbose";
 		  array_push($attributes,"--verbose",1);
 		}
-		$cmd .= " --output $outputfilename";
-		array_push($attributes,"--output",$outputfilename);
+		$cmd .= " --output \"$outputfilename\"";
+		array_push($attributes,"--output",'"'.$outputfilename.'"');
 		$cmd = "$rscript ".join(" ",$attributes);
 		
 		if ($verbose) {
-			echo "executing '$cmd'<br>\n";
+			echo "<p>executing '$cmd'</p><br />\n";
 		}
 		
 		$t =  shell_exec($cmd);
