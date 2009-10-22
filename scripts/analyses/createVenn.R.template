@@ -96,6 +96,8 @@ University of LE<uuml>beck, Germany, 2009
 
 =cut
 
+"
+
 ##
 ##  I N T E R N A L   F U N C T I O N S
 ##
@@ -105,7 +107,7 @@ University of LE<uuml>beck, Germany, 2009
 #
 prepareOutput<-function(filename) {
 	if (is.null(filename)) {
-		stop("prepareOutput has NULL as filename")
+		stop("prepareOutput has NULL as filename\n")
 	}
 	if (is.null(opt$interactive)) {
 		if (is.null(opt$format) || "png" == opt$format) {
@@ -128,7 +130,6 @@ prepareOutput<-function(filename) {
 }
 
 
-"
 
 library(RMySQL)
 library(getopt)
@@ -246,14 +247,11 @@ if (!is.null(opt[["VarianceMin"]])) { query<-paste(query," AND variance >= ",opt
 if (!is.null(opt[["VarianceMax"]])) { query<-paste(query," AND variance <= ",opt$VarianceMax,sep="")
 }
 if (!is.null(opt[["cistrans"]]))    {
-	switch(opt[["cistrans"]]) {
-	case "cis":
+	if("cis" == opt[["cistrans"]]) {
 		query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="")
-		break;
-	case "trans":
+	} else if ("trans" == opt[["cistrans"]]) {
 		query<-paste(query," AND (0 = cis OR cis_dist > ",opt$cisDistMax,")",sep="")
-		break;
-	default:
+	} else {
 		stop(paste("Unknow argument to --cistrans: ",opt[["cistrans"]],"\n",sep=""))
 	}
 }
