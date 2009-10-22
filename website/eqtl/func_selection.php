@@ -115,7 +115,7 @@ function print_exclusive_selection($rname,$variablename,$entryarray) {
   echo "<td>";
   $no=0;
   foreach($entryarray as $presentation=>$value) {
-  	echo "<input type=radio name=\"$variablename\" value=\"$value\"".(0==$no?" selected":"")." />$presentation<br>\n";
+  	echo "<input type=radio name=\"$variablename\" value=\"$value\"".(0==$no?" check":"")." />$presentation<br>\n";
   	$no++;
   }
   echo "</td>";
@@ -153,7 +153,8 @@ function print_selection_form($properties) {
 	       $MeanMin, $MeanMax, 
 	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,
                $PvalueMax,$PvalueMin,
-	       $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax
+	       $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax,
+	       $cistrans
 	;
 
 
@@ -195,7 +196,7 @@ function print_selection_form($properties) {
 
 		 case "figure_venn":
 			$properties = array(
-						"LOD", "pvalue", "mean", "sd", "median", "variance", "cis_or_trans"
+						"LOD", "pvalue", "mean", "sd", "median", "variance", "cistrans"
 						#, "number_of_chromosomes_per_trait"
 			);
 			break;
@@ -342,8 +343,8 @@ function print_selection_form($properties) {
 				print_row_two_text_single("QTL P-value","PvalueMin","PvalueMax",$PvalueMin,$PvalueMax);
 				break;
 
-			case "cis_or_trans":
-				print_exclusive_selection("Cis/Trans","cis_or_trans",array("skip filter"=>"","cis"=>"cis","trans"=>"trans"));
+			case "cistrans":
+				print_exclusive_selection("Cis/Trans","cistrans",array("skip filter"=>"","cis"=>"cis","trans"=>"trans"));
 				break;
 
 			case "number_of_chromosomes_per_trait":
