@@ -1,0 +1,63 @@
+<?php
+
+/*
+
+=head1 NAME
+
+Characterisation
+
+=head1 DESCRIPTION
+
+The documentation still needs to be prepared.
+
+=head1 AUTHORS
+
+Benedikt Bauer <bauer@cls.uni-luebeck.de>
+
+=cut
+
+*/
+
+require_once("header.php");
+require_once("func_covariates.php");
+require_once("func_selection.php"); // prints part of the HTML for forms
+
+show_small_header("Characterisation Entries",TRUE);
+
+include_once("func_connect.php");
+
+echo "<br>\n";
+echo "<table border=\"1\">\n";
+echo "<tr>\n";
+echo " <th>ID</th>\n";
+echo " <th>Term ID</th>\n";
+echo " <th>p-value</th>\n";
+echo " <th>Term ID Description</th>\n";
+echo "</tr>";
+
+$group_id=$_GET['group_id'];
+
+$group_characteristics = mysql_query("select * from group_characteristics where group_id=$group_id;");
+
+while($row = mysql_fetch_array($group_characteristics))
+{
+	$term_id=$row["term_id"];
+	
+	$characteristics = mysql_query("select * from characteristics where term_id=\"$term_id\";");
+	$chara = mysql_fetch_array($characteristics);
+	$desc = $chara["description"];
+	echo "<tr>\n";
+	echo " <td>".$row["group_characteristics_id"]."</td>\n";
+	echo " <td>".$term_id."</td>\n";
+	echo " <td>".$row["pvalue"]."</td>\n";
+	echo " <td>".$desc."</td>\n";
+	echo "<tr>\n";
+}
+
+echo "</table>\n";
+
+include("footer.php");
+
+?>
+</body>
+</html>

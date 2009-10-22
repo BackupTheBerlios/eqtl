@@ -1,0 +1,61 @@
+<?php
+
+/*
+
+=head1 NAME
+
+Characterisation
+
+=head1 DESCRIPTION
+
+The documentation still needs to be prepared.
+
+=head1 AUTHORS
+
+Benedikt Bauer <bauer@cls.uni-luebeck.de>
+
+=cut
+
+*/
+
+require_once("header.php");
+require_once("func_covariates.php");
+require_once("func_selection.php"); // prints part of the HTML for forms
+
+show_small_header("Characterisation Entries",TRUE);
+
+include_once("func_connect.php");
+
+echo "<table border=\"1\">\n";
+echo "<tr>\n";
+echo " <th>Group-ID</th>\n";
+echo " <th>Group Name</th>\n";
+echo " <th>covariates</th>\n";
+echo " <th>trait_list</th>\n";
+echo " <th>query</th>\n";
+echo " <th>significant</th>\n";
+echo "</tr>\n";
+
+$groups = mysql_query("select * from groups;");
+
+while($row = mysql_fetch_array($groups))
+{
+	echo "<tr>\n";
+	$group_id=$row["group_id"];
+	echo " <td>".$group_id."</td>\n";
+	echo " <td><a href=db_characterisation2.php?group_id=$group_id>".$row["name"]."</a></td>\n";
+	echo " <td>".$row["covariates"]."</td>\n";
+	echo " <td>".$row["trait_list"]."</td>\n";
+	echo " <td>".$row["query"]."</td>\n";
+	echo " <td>".$row["significant"]."</td>\n";
+	echo "</tr>\n";
+}
+
+include("footer.php");
+
+
+
+?>
+</body>
+</html>
+

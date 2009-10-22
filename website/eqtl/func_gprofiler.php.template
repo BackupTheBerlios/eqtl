@@ -71,7 +71,8 @@ function gprofilerlink($traits,$genes,$query,$id="") {
 	echo "<table border=\"0\"><th rowspan=2><a href=\"http://biit.cs.ut.ee/gprofiler/index.cgi\" border=\"0\"><img src=\"http://biit.cs.ut.ee/gprofiler/img/header.png\" width=\"160px\" height=\"40px\" border=\"0\"></a></th>\n";
 #	echo "<td><a href= $linkgprofiler>Manual inspection</a></td></tr>\n";
 	echo "<td><a href= $externalgprofiler_traits>Manual inspection</a></td>\n";
-	echo "<td><a href= $externalgprofiler_genes>Manual inspection gene_name</a></td></tr>\n";
+	echo "<td><a href= $externalgprofiler_genes>Manual inspection gene_name</a></td>\n";
+	echo "<td><a href =\"db_characterisation.php\">Show Characterisation Entries in Database</a></td></tr>\n";
 	echo "<td>";
 	echo "<form action=\"http:characterisation.php\" method=\"GET\">";
 	echo "<input type=\"submit\">\n";
