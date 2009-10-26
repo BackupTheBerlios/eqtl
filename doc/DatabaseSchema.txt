@@ -158,3 +158,20 @@ mysql> desc trait;
 8 rows in set (0.00 sec)
 
 
+Two tables for the integration of various separate analyses with the remaining data.
+
+
+CREATE TABLE trait_phen_analysis (
+  trait_phen_analysis_id MEDIUMINT NOT NULL AUTO_INCREMENT,
+  analysis varchar(20) COMMENT 'Verbal description of analysis, short identifier.',
+  description varchar(20) COMMENT 'Long description of the analysis performed.',
+  PRIMARY KEY (trait_phen_analysis_id)
+) COMMENT 'Overview on analyses being performed.';
+
+CREATE TABLE trait_phen_analysis_value (
+  trait_phen_analysis_id INTEGER COMMENT 'Reference to table trait_phen_analysis.',
+  trait_id VARCHAR(200) COMMENT 'Reference to table trait, the expression value analysed.',
+  value double COMMENT 'The result of the analysis.',
+  primary key (trait_id,trait_phen_analysis_id)
+) COMMENT 'Linking the analyses with traits and the results.';
+
