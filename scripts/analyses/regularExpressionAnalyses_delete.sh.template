@@ -1,0 +1,68 @@
+#!/bin/sh
+
+doc=<<EODOC
+
+=head1 NAME
+
+regularExpressionAnalyses_delete.sh - removate data
+
+=head1 SYNOPSIS
+
+regularExpressionAnalyses_add.sh (delete|drop) "analysis id"
+
+=head1 DESCRIPTION
+
+This script performs the removal of data from the system. This may
+(drop) or may not (delete) also the entry for the analysis itself.
+All data is always removed.
+
+=head1 OPTIONS
+
+=over 4
+
+=item delete|drop
+
+Remove data (delete) or data and the info on the analysis itself (drop).
+
+=item analysis id
+
+=head1 SEE ALSO
+
+regularExpressionAnalyses_add.sh,
+regularExpressionAnalyses_list.sh, 
+regularExpressionAnalyses_upload.sh
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2009
+
+=cut
+
+EODOC
+
+if [ "-h" = "$1" -o "--help" = "$1" ]; then
+	pod2man $0 | nroff -man | less
+	exit 1
+fi
+
+if [ -z "$2" -o -n "$3" ]; then
+	echo "Usage: $(basename $0) [-h|--help] (drop|delete) analysisID"
+	exit 1
+fi
+
+if [ 0 -ge "$2" ]; then
+	echo "analysis ID must be >0"
+	exit 1
+fi
+
+echo "delete from trait_phen_analysis_value where trait_phen_analysis_id=$2;" | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+if [ "drop" = "$1" ]; then
+	echo "Also removing entry on analysis $2 from trait_phen_analysis table."
+	echo "delete from trait_phen_analysis where trait_phen_analysis_id=$2;" | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+fi
+
+
