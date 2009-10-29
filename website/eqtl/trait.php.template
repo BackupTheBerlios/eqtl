@@ -70,6 +70,7 @@ ENDOFDOCUMENTATION
 			"phen_correlation",
 			"phen_pos_cor_min","phen_neg_cor_min",
 			"phen_pos_cor_max","phen_neg_cor_max",
+			"trait_phen_analysis_analysis","trait_phen_analysis_id","trait_phen_analysis_value_min","trait_phen_analysis_value_max",
 			"qtl_covariates",
 			"PvalueMin","PvalueMax",
 			"SdMin","SdMax",
@@ -97,6 +98,7 @@ ENDOFDOCUMENTATION
 		"positive_correlation"=>0,
 		"negative_correlation"=>0,
 		"phen_correlation"=>0,
+		"phen_analyses"=>0,
 		"trait_loci"=>1,
 		"number_of_chromosomes_per_trait",
 #		 "traits_pos_cor"=>1, "traits_pos_cor_rho"=>1,
@@ -262,7 +264,7 @@ ENDOFDOCUMENTATION
 			exit;
 		}
 
-		print_r($_GET);
+		//print_r($_GET);
 		//print_r($qtl_covariates);
 		
 		$distinct = "";
@@ -321,6 +323,8 @@ ENDOFDOCUMENTATION
 					$attribsGroup  .= ",traits_neg_cor, traits_neg_cor_rho";
 					$attribsGroup  .= ",traits_neg_cor_most, traits_neg_cor_most_rho";
 				*/
+					break;
+				case "phen_analyses":
 					break;
 				case "phen_correlation":
 				# the one-to-many relationship cannot be reasonably well
@@ -575,6 +579,9 @@ ENDOFDOCUMENTATION
 				if (!empty($show_mean_sd_variance)) {
 					echo "<th rowspan=2>Stats</th>\n";
 				}
+				if (!empty($show_phen_analyses)){
+					echo "<th rowspan=2>phen analyses</th>\n";
+				}
 				if (!empty($show_phen_correlation)){
 					echo "<th rowspan=2>phen correlation</th>\n";
 				}
@@ -775,6 +782,68 @@ ENDOFDOCUMENTATION
 				echo "# Loci: $numberOfLociToShow<br>\n";
 				echo "# Chr: ".$line["number_of_chromosomes_per_trait"];
 				echo "\n";
+				echo "</td>\n";
+			}
+			if (!empty($show_phen_analyses)){
+				echo "<td valign=top rowspan=$numberOfLociToShow>";
+				if (empty($traitid)) {
+					echo "<i>No trait specified in query.</i>";
+				}
+				else {
+					$phenanalysisquery  = "SELECT";
+					$phenanalysisquery .= " analysis";
+					$phenanalysisquery .= ",value";
+					$phenanalysisquery .= " FROM trait_phen_analysis_value left join trait_phen_analysis using(trait_phen_analysis_id)";
+					$phenanalysisquery .= " WHERE trait_id = '$traitid'";
+					if( !empty($trait_phen_analysis_value_min) or !empty($trait_phen_analysis_value_max))
+					{
+						$addme="";
+						if (!empty($trait_phen_analysis_value_min) and !empty($trait_phen_analysis_value_max)) {
+							$addme .= " (value >= $trait_phen_analysis_value_min AND value <= $trait_phen_analysis_value_max)";
+						}
+					 	else if($trait_phen_analysis_value_min){
+							$addme .= " value >= $trait_phen_analysis_value_min";
+						}
+					 	else if($trait_phen_analysis_value_max){
+							$addme .= " value <= $trait_phen_analysis_value_max";
+						}
+						$phenanalysisquery .= "  AND $addme";
+					}
+					else {
+					//	$phenanalysisquery .= "  AND value <= 0.05";
+					}
+
+					if (!empty($trait_phen_analysis_analysis)) {
+						$phenanalysisquery .= " AND analysis='$trait_phen_analysis_analysis' ";
+					}
+					if (!empty($trait_phen_analysis_id)) {
+						$phenanalysisquery .= " AND trait_phen_analysis_id=$trait_phen_analysis_id ";
+					}
+
+					$phenanalysisquery .= " ORDER BY value";
+					$resultPhenAnalysis = mysql_query($phenanalysisquery,$linkLocal);
+					#print $phenanalysisquery;
+					if (empty($resultPhenAnalysis)) {
+						echo "<p>".mysql_error($linkLocal)."</p>";
+						mysql_close($linkLocal);
+						exit;
+					}
+					$firstPhenAnalysis=true;
+					while ($linePhenAnalysis = mysql_fetch_array($resultPhenAnalysis,
+									MYSQL_ASSOC)) {
+						if($firstPhenAnalysis){
+							$firstPhenAnalysis=FALSE;
+							#print_r($line);
+						}
+						else{
+							echo ", ";
+						}
+						echo "<b>"     .$linePhenAnalysis["analysis"]."</b>"
+						   ." p=".round($linePhenAnalysis["value"],3);
+
+					}
+					mysql_free_result($resultPhenAnalysis);
+				}
 				echo "</td>\n";
 			}
 			if (!empty($show_phen_correlation)){
