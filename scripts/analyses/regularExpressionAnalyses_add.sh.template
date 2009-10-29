@@ -56,5 +56,6 @@ if [ -z "$2" -o -n "$3" ]; then
 	exit 1
 fi
 
+
 echo "INSERT INTO trait_phen_analysis SET analysis=\"$(echo $1|tr "\"" "'")\", description=\"$(echo $2|tr "\"" "'")\";" | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
 

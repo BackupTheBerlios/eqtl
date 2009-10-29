@@ -1,0 +1,61 @@
+#!/bin/sh
+
+doc=<<EODOC
+
+=head1 NAME
+
+regularExpressionAnalyses.sh - upload trait attributes
+
+=head1 SYNOPSIS
+
+regularExpressionAnalyses_add.sh "analysis ID" 
+
+=head1 DESCRIPTION
+
+This script expects pairs of "traid_id" and a numerical value
+on the standard input. The lines are transformed into regular
+SQL statements and already within the script forwarded to a 
+mysql client. The number of the analysis is passed as a
+command line parameter.
+
+=head1 SEE ALSO
+
+regularExpressionAnalyses_list.sh, 
+regularExpressionAnalyses_add.sh
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2009
+
+=cut
+
+EODOC
+
+set -e
+
+if [ "-h" = "$1" -o "--help" = "$1" ]; then
+	pod2man $0 | nroff -man | less
+	exit 1
+fi
+
+if [ -z "$1" -o -n "$2" ]; then
+	echo "Usage: $(basename $0) [-h|--help] \"short description\" \"long description\""
+	exit 1
+fi
+
+# +------------------------+-------------+------+-----+---------+-------+
+# | Field                  | Type        | Null | Key | Default | Extra |
+# +------------------------+-------------+------+-----+---------+-------+
+# | trait_phen_analysis_id | int(11)     | NO   | PRI | 0       |       |
+# | trait_id               | varchar(20) | NO   | PRI |         |       |
+# | value                  | double      | YES  |     | NULL    |       |
+# +------------------------+-------------+------+-----+---------+-------+
+
+echo "Adding data for analysis $1"
+
+sed -e "s/^\([^\t]*\)\t\(.*\)\$/INSERT INTO trait_phen_analysis_value SET trait_phen_analysis_id='$1', trait_id='\\1', value=\\2;/g" | sed -e 's/NA/NULL/g' | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+
