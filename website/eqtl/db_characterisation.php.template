@@ -26,6 +26,11 @@ show_small_header("Characterisation Entries",TRUE);
 
 include_once("func_connect.php");
 
+foreach($_GET as $key => $del)
+{
+	mysql_query("delete from groups where group_id=\"".$key."\";");
+}
+
 echo "<table border=\"1\">\n";
 echo "<tr>\n";
 echo " <th>Group-ID</th>\n";
@@ -34,10 +39,12 @@ echo " <th>covariates</th>\n";
 echo " <th>trait_list</th>\n";
 echo " <th>query</th>\n";
 echo " <th>significant</th>\n";
+echo " <th>selecting</th>\n";
 echo "</tr>\n";
 
 $groups = mysql_query("select * from groups;");
 
+echo "<form action=\"db_characterisation.php\" method=\"GET\">\n";
 while($row = mysql_fetch_array($groups))
 {
 	echo "<tr>\n";
@@ -48,12 +55,15 @@ while($row = mysql_fetch_array($groups))
 	echo " <td>".$row["trait_list"]."</td>\n";
 	echo " <td>".$row["query"]."</td>\n";
 	echo " <td>".$row["significant"]."</td>\n";
+	echo " <td><input type=\"checkbox\" name=\"".$group_id."\"></td>\n";
 	echo "</tr>\n";
 }
 
+echo "<input type=\"submit\" value=\"delete\">\n";
+
+echo "</form>\n";
+
 include("footer.php");
-
-
 
 ?>
 </body>
