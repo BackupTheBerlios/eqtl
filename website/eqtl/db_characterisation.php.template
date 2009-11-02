@@ -33,13 +33,13 @@ foreach($_GET as $key => $del)
 
 echo "<table border=\"1\">\n";
 echo "<tr>\n";
-echo " <th>Group-ID</th>\n";
+echo " <th rowspan=2>Group-ID</th>\n";
 echo " <th>Group Name</th>\n";
 echo " <th>covariates</th>\n";
 echo " <th>trait_list</th>\n";
-echo " <th>query</th>\n";
 echo " <th>significant</th>\n";
-echo " <th>selecting</th>\n";
+echo " <th rowspan=2>selecting</th></tr>\n";
+echo " <tr><th colspan=4>query</th>\n";
 echo "</tr>\n";
 
 $groups = mysql_query("select * from groups;");
@@ -49,13 +49,13 @@ while($row = mysql_fetch_array($groups))
 {
 	echo "<tr>\n";
 	$group_id=$row["group_id"];
-	echo " <td>".$group_id."</td>\n";
+	echo " <td rowspan=2>".$group_id."</td>\n";
 	echo " <td><a href=db_characterisation2.php?group_id=$group_id>".$row["name"]."</a></td>\n";
 	echo " <td>".$row["covariates"]."</td>\n";
-	echo " <td>".$row["trait_list"]."</td>\n";
-	echo " <td>".$row["query"]."</td>\n";
+	echo " <td>".join(", ",preg_split("/,\\s*/",$row["trait_list"]))."</td>\n";
 	echo " <td>".$row["significant"]."</td>\n";
-	echo " <td><input type=\"checkbox\" name=\"".$group_id."\"></td>\n";
+	echo " <td rowspan=2><input type=\"checkbox\" name=\"".$group_id."\"></td></tr>\n";
+	echo " <tr><td colspan=4>".$row["query"]."</td>\n";
 	echo "</tr>\n";
 }
 
