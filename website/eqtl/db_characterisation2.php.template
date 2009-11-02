@@ -37,15 +37,22 @@ echo "</tr>";
 
 $group_id=$_GET['group_id'];
 
-$group_characteristics = mysql_query("select * from group_characteristics where group_id=$group_id;");
+$query = "select group_characteristics_id, g.term_id, pvalue, c.description "
+        ."from group_characteristics as g join characteristics as c using(term_id) "
+	."where g.group_id=$group_id;";
+
+$group_characteristics = mysql_query($query);
+
+if (empty($group_characteristics)) {
+	errorMessage(mysql_error($linkLocal)."</p><p>".$query."</p>");
+	mysql_close($linkLocal);
+	exit;
+}
 
 while($row = mysql_fetch_array($group_characteristics))
 {
 	$term_id=$row["term_id"];
-	
-	$characteristics = mysql_query("select * from characteristics where term_id=\"$term_id\";");
-	$chara = mysql_fetch_array($characteristics);
-	$desc = $chara["description"];
+	$desc = $row["description"];
 	echo "<tr>\n";
 	echo " <td>".$row["group_characteristics_id"]."</td>\n";
 	echo " <td>".$term_id."</td>\n";
