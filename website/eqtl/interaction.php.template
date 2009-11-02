@@ -129,6 +129,7 @@ set in the configuration.
 				<th valign=top align=right>Covariates:<br>
 					<font size=-3><i>
 					<?php
+						$colors=array("red","green","blue","black");
 						$cvs=get_covars_on_your_own_from_qtl($linkLocal);
 						foreach ($cvs as $n=>$c) {
 							if ($n>0) {
@@ -137,7 +138,8 @@ set in the configuration.
 								#	echo "<br>\n";
 								#}
 							}
-							echo displayCovariates("$c");
+							$i=$n%count($colors);
+							echo "<font color=".$colors[$i].">".displayCovariates("$c")."</font>";
 						}
 					?>
 					</i></font>

@@ -230,6 +230,7 @@ ENDOFDOCUMENTATION
 	<font size=-3><i>
 	<?php
 		$cvs=get_covars_on_your_own_from_qtl($linkLocal);
+		$colors=array("red","green","blue","black");
 		foreach ($cvs as $n=>$c) {
 			if ($n>0) {
 				echo "; ";
@@ -237,7 +238,8 @@ ENDOFDOCUMENTATION
 				#	echo "<br>\n";
 				#}
 			}
-			echo displayCovariates("$c");
+			$i=$n%count($colors);
+			echo "<font color=".$colors[$i].">".displayCovariates("$c")."</font>";
 		}
 	?>
 	</i></font>
