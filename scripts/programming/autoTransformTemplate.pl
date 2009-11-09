@@ -25,8 +25,14 @@ analogous projects.
 
 =over 4
 
-=item -projectname <projectname> sets the name of the project. Configuration files
-        are expected at the directory ./conf_<projectname>
+=item -projectname <projectname>
+
+sets the name of the project. Configuration files are expected at the directory ./conf_<projectname>
+
+=item --force
+
+If set, no file will be spared from the transformation. This should be used after 
+performing changes to the configuration files.
 
 =back
 
@@ -43,11 +49,13 @@ University of LE<uuml>beck, 2008-2009
 use strict;
 use Getopt::Long;
 use Pod::Usage;
-my ($projectname,$help,$man);
+my ($projectname,$help,$man,$force) = (undef,undef,undef,undef);
 
 GetOptions(
 		"projectname=s"=>\$projectname,
-		"help"=>\$help
+		"help"=>\$help,
+		"man"=>\$man,
+		"force"=>\$force
 ) or pod2usage(2);
 
 if (defined($projectname)) {
@@ -115,7 +123,7 @@ sub transform($) {
 foreach my $f (@ARGV) {
 	my $fnew;
 	if (($fnew) = $f =~ /(.*)\.template$/m) {
-		if ( -M "$f" > -M  "$fnew" ) {
+		if ( !defined($force) and -M "$f" > -M  "$fnew" ) {
 			print STDERR "  Skipping '$f', not newer than '$fnew'.\n";
 			next;
 		}

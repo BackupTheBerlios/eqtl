@@ -9,7 +9,7 @@ update.sh - update cloned git repository with origin
 
 =head1 SYNOPSIS
 
-update.sh [--no-pull|-np] projectname
+update.sh [options] projectname
 
 =head1 DESCRIPTION
 
@@ -34,11 +34,16 @@ Don't execute 'git pull', only transform the templates.
 
 Be quiet.
 
+=item --force|-f
+
+Transform all, disregarding the age of the file or that of its template.
+
 =item 	projectname
 
 Expected as the suffix of a directory named conf_projectname.  This
 parameter becomes optional when there is a folder with configuration files
 (or a symbolic link to such) that is called 'conf'.
+
 
 =back
 
@@ -64,6 +69,7 @@ set -e
 redirect=""
 nopull=""
 projectname=""
+force=""
 
 for i in $*
 do
@@ -72,6 +78,8 @@ do
 		nopull="true"
 	elif [ "--quiet" == "$i" -o "-q" == "$i" ]; then
 		redirect=">& /dev/null"
+	elif [ "--force" == "$i" -o "-f" == "$i" ]; then
+		force="--force"
 	elif [ -z "$projectname" ]; then
 		projectname="$i"
 	else
@@ -134,9 +142,9 @@ AUTOTRANSFORMSCRIPT="scripts/programming/autoTransformTemplate.pl"
 if [ -x "$AUTOTRANSFORMSCRIPT" ]; then
 	echo "Now auto-transforming templates."
 	if [ -n "$internal_projectname" ]; then
-		eval "$AUTOTRANSFORMSCRIPT" --projectname $internal_projectname `find . -name "*.template" | grep -v "^./conf"` $redirect
+		eval "$AUTOTRANSFORMSCRIPT" $force --projectname $internal_projectname `find . -name "*.template" | grep -v "^./conf"` $redirect
 	else 
-		eval "$AUTOTRANSFORMSCRIPT" `find . -name "*.template" | grep -v "^./conf"` $redirect
+		eval "$AUTOTRANSFORMSCRIPT" $force `find . -name "*.template" | grep -v "^./conf"` $redirect
 	fi
 else
 	echo "Could not find script to transform templates."
