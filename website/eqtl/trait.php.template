@@ -156,50 +156,72 @@ ENDOFDOCUMENTATION
 			</tr>-->
 			<tr><th rowspan=3 align=left>Correlation and Loci</th>
 
-				<td valign=top><b>Expression correlation</b><br>
+			  <td valign=top><b>Expression correlation</b><br>
 					<code>&nbsp;0</code> &lt; <input type=text name=expr_pos_cor_min size=7> &lt; <code>+ cor</code> &lt; <input type=text name=expr_pos_cor_max size=7> &lt; <code>1</code>
 					<br>
 					<code>-1</code> &lt; <input type=text name=expr_neg_cor_min size=7> &lt; <code>- cor</code> &lt; <input type=text name=expr_neg_cor_max size=7> &lt; <code>0</code>
 				</td></tr>
 
-				<td valign=top><b>Phen covariates correlation</b><br>
+			  <tr><td valign=top><b>Phen covariates correlation</b><br>
 					<code>&nbsp;0</code> &lt; <input type=text name=phen_pos_cor_min size=7> &lt; <code>+ cor</code> &lt; <input type=text name=phen_pos_cor_max size=7> &lt; <code>1</code>
 					<br>
 					<code>-1</code> &lt; <input type=text name=phen_neg_cor_min size=7> &lt; <code>- cor</code> &lt; <input type=text name=phen_neg_cor_max size=7> &lt; <code>0</code>
 				</td></tr>
-			<tr><td valign=top>
+			  <tr><td valign=top>
 <?php
-			$query = "select distinct phen from trait_phen_cor";
-			$result = mysql_query($query) or die('Query failed: ' . mysql_error());
-			echo "<b>Show only data for the following phen(s):</b><br />";
-			/*
-			echo "<select name=phen multiple size=8>\n";
-			while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
-				echo "<option value=\"".$line["phen"]."\">"
-					.$line{"phen"}."</option>\n";
-			}
-			echo "</select>\n";
-			*/
-
-			$lno=0;
-			echo "<table><tr>";
-			while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
-				$lno++;
-				echo "<td>";
-				echo "<input name=\"phen\" type=\"checkbox\" "
-					. "value=\"".$line["phen"]."\">"
-					. $line["phen"];
-				echo "</td>";
-				if (0 == $lno % 5) {
-					echo "</tr><tr>";
-					#echo "<br />\n";
+				$query = "select distinct phen from trait_phen_cor";
+				$result = mysql_query($query) or die("Query '$query' failed: " . mysql_error());
+				echo "<b>Show only data for the following phen(s):</b><br />";
+				/*
+				echo "<select name=phen multiple size=8>\n";
+				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+					echo "<option value=\"".$line["phen"]."\">"
+						.$line{"phen"}."</option>\n";
 				}
-			}
-			echo "</tr></table>\n";
+				echo "</select>\n";
+				*/
 
-			mysql_free_result($result);
+				$lno=0;
+				echo "<table><tr>";
+				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+					$lno++;
+					echo "<td>";
+					echo "<input name=\"phen\" type=\"checkbox\" "
+						. "value=\"".$line["phen"]."\">"
+						. $line["phen"];
+					echo "</td>";
+					if (0 == $lno % 5) {
+						echo "</tr><tr>";
+						#echo "<br />\n";
+					}
+				}
+				echo "</tr></table>\n";
+
+				mysql_free_result($result);
 ?>
-		</td></tr>
+			</td>
+		     </tr>
+		     <tr>
+		    	<th>Phen Analyses:</th>
+			<td>
+<?php
+				$query = "select trait_phen_analysis_id, analysis, description from trait_phen_analysis";
+				$result = mysql_query($query) or die("Query '$query' failed: " . mysql_error());
+				echo "<b>Select analysis to constrain traits for:</b> (don't use yet)<br />";
+				echo "<select name=\"trait_phen_analysis_id\">\n";
+				echo "<option value=\"\">select test of concern</option>\n";
+				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+					echo "<option value=\"".$line["trait_phen_analysis_id"]."\">".$line["description"]."</option>\n";
+				}
+				mysql_free_result($result);
+				
+				echo "</select><br />\n";
+				print_two_input_text("trait_phen_analysis_value_min","trait_phen_analysis_value_max",
+				                     "0.000","0.001",FALSE,$size=7,$interspace=" &le; p value &le; "
+				); 
+?>
+			</td>
+		     </tr>
 <?php
 			print_selection_form("all_qtl_trait");
 ?>
@@ -214,12 +236,13 @@ ENDOFDOCUMENTATION
 						<select name=order>
 						<option value=trait_id>Trait ID</option>
 						<option value="number_of_chromosomes_per_trait DESC">Number of chromosomes per trait</option>
-						<option value="LOD DESC">LOD score</option>
-						<option value="pvalue DESC">pvalue</option>
-						<option value="mean DESC">Mean</option>
-						<option value="median DESC">Median</option>
-						<option value="sd DESC">Standard deviation</option>
-						<option value="variance DESC">Variance</option>
+						<option value="LOD DESC">QTL LOD score</option>
+						<option value="pvalue ASC, LOD DESC">QTL pvalue</option>
+						<option value="mean DESC">Trait mean expression</option>
+						<option value="median DESC">Trait median</option>
+						<option value="sd DESC">Trait standard deviation</option>
+						<option value="variance DESC">Trait variance</option>
+						<option value="trait_phen_analysis_value.value ASC">Phen Analysis Value</option>
 						<option value="traits_pos_cor_most_rho DESC">Positive correlation with other genes (descending)</option>
 						<option value="traits_neg_cor_most_rho DESC">Negative correlation with other genes (ascending)</option>
 						</select>
@@ -325,6 +348,8 @@ ENDOFDOCUMENTATION
 				*/
 					break;
 				case "phen_analyses":
+					//$attribsSelect .= ",trait_phen_analysis_value.value as trait_phen_analysis_value;
+					//$attribsSelect .= ",trait_phen_analysis_value";
 					break;
 				case "phen_correlation":
 				# the one-to-many relationship cannot be reasonably well
@@ -507,6 +532,20 @@ ENDOFDOCUMENTATION
 		if (!empty($expr_neg_cor_max)) {
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " traits_neg_cor_most_rho <= ".$expr_neg_cor_max;
+		}
+
+		if (!empty($trait_phen_analysis_id) or !empty($trait_phen_analysis_analysis)
+		 or !empty($trait_phen_analysis_value_min) or !empty($trait_phen_analysis_value_max)) {
+			require_once("trait_helper.php");
+			$from .= " join trait_phen_analysis_value using(trait_id) ";
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .=  add_sql_where_for_phen_analysis(
+					$trait_phen_analysis_id,$trait_phen_analysis_analysis,
+					$trait_phen_analysis_value_min,$trait_phen_analysis_value_max
+				   );
+		} else if ("trait_phen_analysis_value.value ASC" == "$order" ) {
+			errorMessage("Need to specify phen analysis to order for it.");
+			exit;
 		}
 
 		$query  = "SELECT $distinct $attribsSelect";
@@ -784,7 +823,9 @@ ENDOFDOCUMENTATION
 				echo "\n";
 				echo "</td>\n";
 			}
-			if (!empty($show_phen_analyses)){
+			if (!empty($show_phen_analyses)
+				//and empty($trait_phen_analysis_id) # There will be only one analysis-line per trait, show all
+			   ){
 				echo "<td valign=top rowspan=$numberOfLociToShow>";
 				if (empty($traitid)) {
 					echo "<i>No trait specified in query.</i>";
@@ -795,31 +836,12 @@ ENDOFDOCUMENTATION
 					$phenanalysisquery .= ",value";
 					$phenanalysisquery .= " FROM trait_phen_analysis_value left join trait_phen_analysis using(trait_phen_analysis_id)";
 					$phenanalysisquery .= " WHERE trait_id = '$traitid'";
-					if( !empty($trait_phen_analysis_value_min) or !empty($trait_phen_analysis_value_max))
-					{
-						$addme="";
-						if (!empty($trait_phen_analysis_value_min) and !empty($trait_phen_analysis_value_max)) {
-							$addme .= " (value >= $trait_phen_analysis_value_min AND value <= $trait_phen_analysis_value_max)";
-						}
-					 	else if($trait_phen_analysis_value_min){
-							$addme .= " value >= $trait_phen_analysis_value_min";
-						}
-					 	else if($trait_phen_analysis_value_max){
-							$addme .= " value <= $trait_phen_analysis_value_max";
-						}
-						$phenanalysisquery .= "  AND $addme";
-					}
-					else {
-					//	$phenanalysisquery .= "  AND value <= 0.05";
-					}
 
-					if (!empty($trait_phen_analysis_analysis)) {
-						$phenanalysisquery .= " AND analysis='$trait_phen_analysis_analysis' ";
-					}
-					if (!empty($trait_phen_analysis_id)) {
-						$phenanalysisquery .= " AND trait_phen_analysis_id=$trait_phen_analysis_id ";
-					}
-
+					require_once("trait_helper.php");
+					$phenanalysisquery .= " AND " . add_sql_where_for_phen_analysis(
+						$trait_phen_analysis_id,$trait_phen_analysis_analysis,
+						$trait_phen_analysis_value_min,$trait_phen_analysis_value_max
+					);
 					$phenanalysisquery .= " ORDER BY value";
 					$resultPhenAnalysis = mysql_query($phenanalysisquery,$linkLocal);
 					#print $phenanalysisquery;
