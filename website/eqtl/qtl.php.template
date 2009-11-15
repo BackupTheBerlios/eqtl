@@ -123,13 +123,14 @@ ENDOFDOCUMENTATION
 	# fields that should appear
 	$dataSelectionFieldsQTL = array(
 		"groups",
-		"Chromosome","ensemblversion",
+		"ensemblversion",
 		"cM_within","LODmax","LODmin",
 		"quantilemin","quantilemax",
 		"covariates",
 		"LODdiffmin","LODdiffmax",
 		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
+		"Mbp_Peak_Min","Mbp_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
 		"locus","chrlist", "condition"
 	);
@@ -322,12 +323,38 @@ ENDOFDOCUMENTATION
 			include_once("func_conversion_$ensemblversion.php");
 		}
 		else {
-			echo "<p>Missing file 'func_conversion_$ensemblversion.php' for the translation between cMorgan and bp.</p><br>\n";
+			errorMessage("Missing file 'func_conversion_$ensemblversion.php' for the translation between cMorgan and bp.");
+			exit;
 		}
 		if (file_exists("func_expressionview.php")) {
 			include_once("func_expressionview.php");
 		}
 		include_once("func_public_qtl.php");
+
+		if (!empty($Mbp_Peak_Min) and !empty($cM_Peak_Min)) {
+			errorMessage("Both minimal Mbp and minimal cMorgan are specified.");
+			exit;
+		}
+		elseif (!empty($Mbp_Peak_Min)) {
+			if (empty($chrlist) or is_array($chrlist)) {
+				echo "chrlist: "; print_r($chrlist);
+				errorMessage("When specifying Mbp positions, one also needs to specify exactly one chromosome.");
+
+				exit;
+			}
+			$cM_Peak_Min=bp2cM($chrlist,$Mbp_Peak_Min*1000*1000);
+		}
+		if (!empty($Mbp_Peak_Max) and !empty($cM_Peak_Max)) {
+			errorMessage("Both maximal Mbp and maximal cMorgan are specified.");
+			exit;
+		}
+		elseif (!empty($Mbp_Peak_Max)) {
+			if (empty($chrlist) or is_array($chrlist)) {
+				errorMessage("When specifying Mbp positions, one also needs to specify exactly one chromosome.");
+				exit;
+			}
+			$cM_Peak_Max=bp2cM($chrlist,$Mbp_Peak_Max*1000*1000);
+		}
 
 		$where="WHERE ";
 		$query = "SELECT ";
@@ -886,7 +913,12 @@ ENDOFDOCUMENTATION
 					if ("group_id"=="$n") $n = "Groups"; #FIXME: attribute name needs to be adjusted
 					$f="show_".$n;
 					if (!empty($$f)) {
-						echo "<th class=c><small>$n</small></th>";
+						if ("cMorgan_Peak" == "$n") {
+							echo "<th class=c><small>Peak in cM / Mbp</small></th>";
+						}
+						else {
+							echo "<th class=c><small>$n</small></th>";
+						}
 						if ("Trait"==$n) {
 							if(!empty($show_LocusOfGene) and !empty($show_ExpressionOfGene)) {
 								echo "<th class=c colspan=4><small>Trait<br>chr"
@@ -944,9 +976,13 @@ ENDOFDOCUMENTATION
 							echo "<td><a href=\"locus.php?Name=$l\">$l</a></td>";
 							break;
 						case "cMorgan_Peak":
-							echo "<td class=small><a href=\"http://www.ensembl.org/$ensemblorganism/contigview?chr=$c&vc_start="
-									.(cM2bp($c,$cMpeak)-100000)."&vc_end="
-									.(cM2bp($c,$cMpeak)+100000)."\">".round($cMpeak,4)."</a></td>";
+							$bpPeak = cM2bp($c,$cMpeak);
+							echo "<td class=small>";
+							echo round($cMpeak,1) . " cM /";
+							echo "<a href=\"http://www.ensembl.org/$ensemblorganism/contigview?chr=$c&vc_start="
+									.($bpPeak-100000)."&vc_end="
+									.($bpPeak+100000)."\">".round($bpPeak/1000/1000,1)."</a> Mbp";
+							echo "</td>";
 							break;
 						case "cMorgan_Min":
 							echo "<td class=small>".round($cMmin,4)."</td>";

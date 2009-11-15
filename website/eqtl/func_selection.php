@@ -168,9 +168,10 @@ function print_selection_form($properties) {
 		switch($properties) {
 		 case "all_qtl":
 			$properties = array("groups", "locus", 
-					    "chromosome", "LOD", "quantile", "LODdiff",
-					     "pvalue",
-					    "peak", "flanks", "trait",
+					    "chromosome", "peakInMbp",
+					    "peakInCentiMorgan", "flanks", "trait",
+					    "LOD", "quantile", "LODdiff",
+					    "pvalue",
 					    "mean", "sd");
 			break;
 		 case "all_qtl_groups":
@@ -289,9 +290,13 @@ function print_selection_form($properties) {
 <?php
 				break;
 
-			case "peak":
+			case "peakInCentiMorgan":
 				print_row_two_text_single("centi-Morgan span for peak","cM_Peak_Min","cM_Peak_Max",
 								$cM_Peak_Min,$cM_Peak_Max,4);
+				break;
+			case "peakInMbp":
+				print_row_two_text_single("Mbp span for peak","Mbp_Peak_Min","Mbp_Peak_Max",
+								$Mbp_Peak_Min,$Mbp_Peak_Max,5);
 				break;
 			case "flanks":
 ?>
