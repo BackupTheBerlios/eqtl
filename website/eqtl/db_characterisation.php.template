@@ -26,11 +26,23 @@ show_small_header("Characterisation Entries",TRUE);
 
 include_once("func_connect.php");
 
-foreach($_GET as $key => $del)
+$todo=array_pop($_GET);
+if ($todo=="delete")
 {
-	mysql_query("delete from groups where group_id=\"".$key."\";");
+	foreach($_GET as $key => $del)
+	{
+		mysql_query("delete from groups where group_id=\"".$key."\";");
+		mysql_query("delete from group_characteristics where group_id=\"".$key."\";");
+	}
 }
+elseif ($todo=="Change Group Name")
+	$new_group_name=array_pop($_GET);
+	foreach($_GET as $key => $del)
+	{
+		mysql_query("update groups set name=\"".$new_group_name."\" where group_id=\"".$key."\";");
+	}
 
+echo "<br>\n";
 echo "<table border=\"1\">\n";
 echo "<tr>\n";
 echo " <th rowspan=2>Group-ID</th>\n";
@@ -48,9 +60,10 @@ echo "<form action=\"db_characterisation.php\" method=\"GET\">\n";
 while($row = mysql_fetch_array($groups))
 {
 	echo "<tr>\n";
+	$name=$row["name"];
 	$group_id=$row["group_id"];
-	echo " <td rowspan=2>".$group_id."</td>\n";
-	echo " <td><a href=db_characterisation2.php?group_id=$group_id>".$row["name"]."</a></td>\n";
+	echo " <td rowspan=2><a href=db_characterisation2.php?group_id=$group_id&name=$name>".$group_id."</a></td>\n";
+	echo " <td>".$name."</td>\n";
 	echo " <td>".$row["covariates"]."</td>\n";
 	echo " <td>".join(", ",preg_split("/,\\s*/",$row["trait_list"]))."</td>\n";
 	echo " <td>".$row["significant"]."</td>\n";
@@ -58,9 +71,13 @@ while($row = mysql_fetch_array($groups))
 	echo " <tr><td colspan=4>".$row["query"]."</td>\n";
 	echo "</tr>\n";
 }
+echo "</table>\n";
 
-echo "<input type=\"submit\" value=\"delete\">\n";
+echo "<br>\n";
 
+echo "<input type=\"submit\" name=\"todo\" value=\"delete\">\n";
+echo "<input name=\"new_group_id\" size=\"15\">\n";
+echo "<input type=\"submit\" name=\"todo\" value=\"Change Group Name\" style=\"align:right\">\n";
 echo "</form>\n";
 
 include("footer.php");

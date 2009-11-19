@@ -33,7 +33,7 @@ $group_char = mysql_query("select * from group_characteristics;");
 #For table group
 
 $name=$_GET['id'];
-$query=$_GET['query'];
+$query=$_GET['gdesc'];
 
 if(isset($_GET['significant'])) {
 	$significant=1;

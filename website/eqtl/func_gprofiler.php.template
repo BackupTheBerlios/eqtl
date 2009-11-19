@@ -81,7 +81,8 @@ function gprofilerlink($traits,$genes,$query,$id="") {
 	echo "<input type=checkbox name=significant checked/>significant only<br>\n";
 #	echo "<input type=hidden value=\"".join("+",$traits)."\" />\n";
 	echo "ID of analysis: <input name=id value=\"$id\" size=15/><br/>\n";
-	echo "Traits: <textarea name=\"textarea\" rows=\"8\" cols=\"30\">".join(" ",$traits)."</textarea>\n";
+	echo "Group Description: <br> <textarea name=\"gdesc\" rows=\"8\" cols=\"50\">".$query."</textarea> <br>\n";
+	echo "Traits: <br> <textarea name=\"textarea\" rows=\"8\" cols=\"30\">".join(" ",$traits)."</textarea>\n";
 #	echo "Traits: ".join(" ",$traits);
 	echo "</form>";
 	echo "</td>\n";
@@ -94,7 +95,8 @@ function gprofilerlink($traits,$genes,$query,$id="") {
 	echo "<input type=checkbox name=\"significant\" checked/>significant only<br>\n";
 #	echo "<input type=hidden name =\"trait_list\" value=\"".join(",",$genes)."\" />\n";
 	echo "ID of analysis: <input name=id value=\"$id\" size=15/><br/>\n";
-	echo "Genes: <textarea name=\"textarea\" rows=\"8\" cols=\"30\">".join(" ",$genes)."</textarea>\n";
+	echo "Group Description: <br> <textarea name=\"gdesc\" rows=\"8\" cols=\"50\">".$query."</textarea> <br>\n";
+	echo "Genes: <br> <textarea name=\"textarea\" rows=\"8\" cols=\"30\">".join(" ",$genes)."</textarea>\n";
 
 #	echo "Genes: ".join(" ",$genes);
 	echo "</form>";
