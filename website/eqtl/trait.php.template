@@ -285,6 +285,10 @@ ENDOFDOCUMENTATION
 		require_once("func_species.php");
 		require_once("func_conversion_ENSEMBLVERSION.php");
 
+		if (empty($innerOrder)) {
+			$innerOrder = "locus.Chr,locus.cMorgan";
+		}
+
 		if (empty($linkLocal)) {
 			echo "<p>Could not create link to database.</p>";
 			exit;
@@ -686,7 +690,7 @@ ENDOFDOCUMENTATION
 
 				$loci_result = mysql_query($loci_query,$linkLocal);
 				if (empty($loci_result)) {
-					echo "<p>Problem: ".mysql_error($linkLocal)."</p>";
+					echo "<p>Problem in query '$loci_query': ".mysql_error($linkLocal)."</p>";
 					mysql_close($linkLocal);
 					exit;
 				}
@@ -843,15 +847,17 @@ ENDOFDOCUMENTATION
 					$phenanalysisquery .= " WHERE trait_id = '$traitid'";
 
 					require_once("trait_helper.php");
-					$phenanalysisquery .= " AND " . add_sql_where_for_phen_analysis(
+					$aswfpa = add_sql_where_for_phen_analysis(
 						$trait_phen_analysis_id,$trait_phen_analysis_analysis,
 						$trait_phen_analysis_value_min,$trait_phen_analysis_value_max
 					);
+					if (!empty($aswfpa)) $phenanalysisquery .= " AND $aswfpa";
+
 					$phenanalysisquery .= " ORDER BY value";
 					$resultPhenAnalysis = mysql_query($phenanalysisquery,$linkLocal);
 					#print $phenanalysisquery;
 					if (empty($resultPhenAnalysis)) {
-						echo "<p>".mysql_error($linkLocal)."</p>";
+						echo "<p>Problem with query $phenanalysisquery: ".mysql_error($linkLocal)."</p>";
 						mysql_close($linkLocal);
 						exit;
 					}
