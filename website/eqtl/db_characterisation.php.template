@@ -26,21 +26,37 @@ show_small_header("Characterisation Entries",TRUE);
 
 include_once("func_connect.php");
 
-$todo=array_pop($_GET);
-if ($todo=="delete")
-{
-	foreach($_GET as $key => $del)
-	{
-		mysql_query("delete from groups where group_id=\"".$key."\";");
-		mysql_query("delete from group_characteristics where group_id=\"".$key."\";");
+$todo=$_GET["todo"];
+$selection=$_GET["selection"];
+#print_r($_GET);
+
+if (!empty($selection)) {
+	if ($todo=="delete") {
+		echo "entering 'delete'";
+		$q = "delete from groups "
+		    ."where group_id in ('".join("','",$selection)."');";
+		$res = mysql_query($q);
+		if (!$res) echo "Error in query:<br>$q: " . mysql_error();
+		$q = "delete from group_characteristics "
+		    ."where group_id in ('".join("','",$selection)."');";
+		$res = mysql_query($q);
+		if (!$res) echo "Error in query:<br>$q: " . mysql_error();
+	}
+	elseif ($todo=="Change Group Name") {
+		$new_group_name=$_GET["new_group_id"];
+		if (empty($new_group_name)) {
+			echo "<p>Error: Please enter a new identifier for "
+			    ."in the empty field to change the identifiers "
+			    ."of the selected groups to.</p>";
+		}
+		else {
+			$q = "update groups set name='".$new_group_name."' "
+			    ."where group_id in ('".join("','",$selection)."');";
+			$res = mysql_query($q);
+			if (!$res) echo "Error in query:<br>$q: " . mysql_error();
+		}
 	}
 }
-elseif ($todo=="Change Group Name")
-	$new_group_name=array_pop($_GET);
-	foreach($_GET as $key => $del)
-	{
-		mysql_query("update groups set name=\"".$new_group_name."\" where group_id=\"".$key."\";");
-	}
 
 echo "<br>\n";
 echo "<table border=\"1\">\n";
@@ -67,7 +83,7 @@ while($row = mysql_fetch_array($groups))
 	echo " <td>".$row["covariates"]."</td>\n";
 	echo " <td>".join(", ",preg_split("/,\\s*/",$row["trait_list"]))."</td>\n";
 	echo " <td>".$row["significant"]."</td>\n";
-	echo " <td rowspan=2><input type=\"checkbox\" name=\"".$group_id."\"></td></tr>\n";
+	echo " <td rowspan=2><input type=\"checkbox\" name=\"selection[]\" value=".$group_id."></td></tr>\n";
 	echo " <tr><td colspan=4>".$row["query"]."</td>\n";
 	echo "</tr>\n";
 }
