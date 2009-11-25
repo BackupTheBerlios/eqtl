@@ -59,9 +59,12 @@ GetOptions(%options) or die "Could not parse options: $@\n";
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
 
-my $dbhEqtl = DBI->connect( DATABASECON ) or die "Database connection to expression QTL data could not established: $DBI::errstr";
+my $dbhEqtl = DBI->connect( DATABASECON )
+	or die "Database connection to expression QTL data could not established: $DBI::errstr";
 
-my $dbhEnsembl = DBI->connect( "DBI:mysql:database=ensembl_mart_ENSEMBLVERSION;host=DATABASEHOSTMART:DATABASEPORTMART", "DATABASEENSEMBLUSER")
+my $dbhEnsembl = DBI->connect(
+	"DBI:mysql:database=ensembl_mart_ENSEMBLVERSION;host=DATABASEHOSTMART:DATABASEPORTMART",
+	"DATABASEENSEMBLUSER")
 	or die "Database connection to expression QTL data could not established: $DBI::errstr";
 
 # variable containing a row
@@ -82,7 +85,7 @@ my $queryEnsemblMartForGeneName_string    = "SELECT"
 	. " stable_id_1023 AS ensembl_stable_gene_id, "
 	. " description_408 AS description "
 #	. " stable_id_1066_clash AS stable_id " # transcript
-	. " FROM mmusculus_gene_ensembl__gene__main"
+	. " FROM ENSEMBLSPECIESMARTLONG_gene_ensembl__gene__main"
 	. " WHERE display_label_1074 = ? LIMIT 10;";
 my $queryEnsemblMartForGeneName_statement = $dbhEnsembl->prepare($queryEnsemblMartForGeneName_string) or die $DBI::errstr; 
 
