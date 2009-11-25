@@ -23,7 +23,7 @@ This script calculates all correlations between
 
 =back
 
-For larger projects, only the calculation of the correlaction
+For larger projects, only the calculation of the correlation
 coefficients is practical to be applied for gene-gene comparisons.
 
 For comparisons with classical phenotypes and smaller projects
