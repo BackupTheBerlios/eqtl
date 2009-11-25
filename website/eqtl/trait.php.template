@@ -205,18 +205,21 @@ ENDOFDOCUMENTATION
 		    	<th>Phen Analyses:</th>
 			<td>
 <?php
-				$query = "select trait_phen_analysis_id, analysis, description from trait_phen_analysis";
+				$query = "select trait_phen_analysis_id, analysis, "
+					."description from trait_phen_analysis";
 				$result = mysql_query($query) or die("Query '$query' failed: " . mysql_error());
 				echo "<b>Select analysis to constrain traits for:</b><br />";
 				echo "<select name=\"trait_phen_analysis_id\">\n";
 				echo "<option value=\"\">select test of concern</option>\n";
 				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
-					echo "<option value=\"".$line["trait_phen_analysis_id"]."\">".$line["description"]."</option>\n";
+					echo "<option value=\"".$line["trait_phen_analysis_id"]."\">"
+						.$line["description"]."</option>\n";
 				}
 				mysql_free_result($result);
 				
 				echo "</select><br />\n";
-				print_two_input_text("trait_phen_analysis_value_min","trait_phen_analysis_value_max",
+				print_two_input_text("trait_phen_analysis_value_min",
+						     "trait_phen_analysis_value_max",
 				                     "0.000","0.001",FALSE,$size=7,$interspace=" &le; p value &le; "
 				); 
 ?>
@@ -226,27 +229,27 @@ ENDOFDOCUMENTATION
 			print_selection_form("all_qtl_trait");
 ?>
 			<tr><th align=right>inner order by:</th><td>
-						<select name=innerOrder>
-						<option value="LOD DESC">LOD</option>
-						<option value="Chr,cMorgan">Chr,cMorgan</option>
-						<option value="pvalue">pvalue</option>
-						</select>
+				<select name=innerOrder>
+					<option value="LOD DESC">LOD</option>
+					<option value="Chr,cMorgan">Chr,cMorgan</option>
+					<option value="pvalue">pvalue</option>
+				</select>
 			</td></tr>
 			<tr><th align=right>order by:</th><td>
-						<select name=order>
-						<option value=trait_id>Trait ID</option>
-						<option value="number_of_chromosomes_per_trait DESC">Number of chromosomes per trait</option>
-						<option value="LOD DESC">QTL LOD score</option>
-						<option value="pvalue ASC, LOD DESC">QTL pvalue</option>
-						<option value="mean DESC">Trait mean expression</option>
-						<option value="median DESC">Trait median</option>
-						<option value="sd DESC">Trait standard deviation</option>
-						<option value="variance DESC">Trait variance</option>
-						<option value="trait_phen_analysis_value.value ASC">Phen Analysis Value</option>
-						<option value="traits_pos_cor_most_rho DESC">Positive correlation with other genes (descending)</option>
-						<option value="traits_neg_cor_most_rho DESC">Negative correlation with other genes (ascending)</option>
-						</select>
-						</td></tr>
+				<select name=order>
+					<option value=trait_id>Trait ID</option>
+					<option value="number_of_chromosomes_per_trait DESC">Number of chromosomes per trait</option>
+					<option value="LOD DESC">QTL LOD score</option>
+					<option value="pvalue ASC, LOD DESC">QTL pvalue</option>
+					<option value="mean DESC">Trait mean expression</option>
+					<option value="median DESC">Trait median</option>
+					<option value="sd DESC">Trait standard deviation</option>
+					<option value="variance DESC">Trait variance</option>
+					<option value="trait_phen_analysis_value.value ASC">Phen Analysis Value</option>
+					<option value="traits_pos_cor_most_rho DESC">Positive correlation with other genes (descending)</option>
+					<option value="traits_neg_cor_most_rho DESC">Negative correlation with other genes (ascending)</option>
+				</select>
+			</td></tr>
 			<tr><th align=right>Limit lines shown:</th><td><input type=t_id limit 150 ext name=limit value=30></td></tr>
 			<tr><td>&nbsp;</td><td></td></tr>
 			<tr><td class=r><input type=submit></td><td align=left><input type=reset></td></tr>
@@ -594,7 +597,9 @@ ENDOFDOCUMENTATION
 							break;
 
 						case "trait_start":
-							echo "<th nowrap rowspan=2 valign=top><small>chr (strand):<br>start - stop</small></th>";
+							echo "<th nowrap rowspan=2 valign=top>";
+							echo "<small>chr (strand):<br>start - stop</small>";
+							echo "</th>";
 							break;
 
 						case "trait_name": //shown together with 'trait_id/Trait'
