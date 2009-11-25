@@ -227,8 +227,6 @@ function select_covariates($dbh,$cov,$maxPerLine=6) {
 		echo "<table>\n"
 		     ."<tr><th class=tl>$n</th></tr>\n"
 		     ."<tr><td valign=top nowrap>";
-		#foreach(("none"=="$c"?array("only"):array_merge(array("exclude"),$c)) as $v)
-		#foreach(("none"=="$c"?array("only"):array_merge($c,array("none"))) as $v)
 
 		if ("none" == "$n") {
 			echo "<input type=radio name=covariate_selection_type value='selected' checked>selected<br>\n";

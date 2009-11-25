@@ -1003,7 +1003,7 @@ ENDOFDOCUMENTATION
 							break;
 						case "covariates":
 							if (empty($l)) $l="none";
-							echo "<td class=small>$l</td>";
+							echo "<td class=small>".displayCovariates($l)."</td>";
 							break;
 						case "Groups":
 							# only one group per eQTL in current implementation
