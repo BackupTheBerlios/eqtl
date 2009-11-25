@@ -207,7 +207,7 @@ ENDOFDOCUMENTATION
 <?php
 				$query = "select trait_phen_analysis_id, analysis, description from trait_phen_analysis";
 				$result = mysql_query($query) or die("Query '$query' failed: " . mysql_error());
-				echo "<b>Select analysis to constrain traits for:</b> (don't use yet)<br />";
+				echo "<b>Select analysis to constrain traits for:</b><br />";
 				echo "<select name=\"trait_phen_analysis_id\">\n";
 				echo "<option value=\"\">select test of concern</option>\n";
 				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
