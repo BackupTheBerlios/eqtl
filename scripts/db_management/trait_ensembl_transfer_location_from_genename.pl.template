@@ -4,13 +4,13 @@ TEMPLATEWARNINGHASH
 
 =head1 NAME
 
-trait_ensembl_transfer.pl - retrieve info from Ensembl and update local trait table
+trait_ensembl_transfer_location_from_genename.pl - retrieve info from Ensembl and update local trait table
 
 =head1 SYNOPSIS
 
-trait_ensembl_transfer.pl (--help|--man)
+trait_ensembl_transfer_location_from_genename.pl (--help|--man)
 
-trait_ensembl_transfer.pl [--unassigned-only] | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+trait_ensembl_transfer_location_from_genename.pl [--unassigned-only] | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
 
 =head1 DESCRIPTION
 
@@ -25,8 +25,8 @@ single query for every gene.  In cases that there are multiple entries
 for a single gene, the first entry will be taken and all be printed to
 stdout for manual inspection.
 
-With the --unassigned-only entry set, the selection of trait will be constrained on this with
-an empty entry for the chromosome.
+With the --unassigned-only entry set, the selection of trait will be
+constrained on this with an empty entry for the chromosome.
 
 =head1 AUTHORS
 
