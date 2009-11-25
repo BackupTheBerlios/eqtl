@@ -16,6 +16,10 @@ The documentation still needs to be improved.
 
 Benedikt Bauer <bauer@cls.uni-luebeck.de>
 
+with some changes by
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
 =cut
 
 */
@@ -90,36 +94,38 @@ while($row = mysql_fetch_array($char))
 }
 
 $fields = preg_split("/\t/",$line);
+echo "<table><th>Term ID</th><th>Description</th><th>P Value</th><th>Action</th></tr>\n";
 while(!feof($fh) && strpos($fields[0],'#')!==0) {
         $term_id=$fields[8];
-        echo "$term_id";
         $description=$fields[11];
 	trim($description);
-        echo "$description<br>";
         $pvalue=$fields[2];
-	echo "$pvalue";
+        echo "<tr><td>$term_id</td><td>$description</td><td>$pvalue</td>\n";
 #        $url=$fields[2];
+	echo "<td>";
         if(!empty($arr[$term_id])){
-                echo "$term_id gibt's schon. Aktualisiere \"Description\".<br>";
+                echo "<td>Term '$term_id' already known to system, updating description.</td>";
         }
         else{
-                echo "$term_id noch nicht vorhanden. F&uuml;ge hinzu.<br>";
-                mysql_query("insert into characteristics set term_id=\"$term_id\";");
+                echo "Term '$term_id' was not seen before, adding it to internal term database.";
+                mysql_query("insert into characteristics set term_id='$term_id';");
         }
-        mysql_query("update characteristics set description=\"$description\" where term_id=\"$term_id\";");
-#       mysql_query("update characteristics set url=\"$url\" where term_id=\"$term_id\";");
-	mysql_query("insert into group_characteristics set group_id=\"$group_id\";");
-	mysql_query("update group_characteristics set term_id=\"$term_id\" where group_id=\"$group_id\" and term_id<=>NULL;");
-	mysql_query("update group_characteristics set pvalue=\"$pvalue\" where group_id=\"$group_id\" and term_id=\"$term_id\";");
+	echo "</td>";
+        mysql_query("update characteristics set description='$description' where term_id='$term_id';");
+#       mysql_query("update characteristics set url='$url' where term_id='$term_id';");
+	mysql_query("insert into group_characteristics set group_id='$group_id';");
+	mysql_query("update group_characteristics set term_id='$term_id' where group_id='$group_id' and term_id<=>NULL;");
+	mysql_query("update group_characteristics set pvalue='$pvalue' where group_id='$group_id' and term_id='$term_id';");
         $line=fgets($fh);
         $fields = preg_split("/\t/",$line);
 }
 
 # For table "groups"
 
-#mysql_query("update groups set term_id=\"$term_id\" where name=\"$name\";");
-echo "done :)";
-echo "</body>";
-echo "</html>";
-
+#mysql_query("update groups set term_id='$term_id' where name='$name';");
+echo "</table>\n";
+echo "<p><a href="db_characterisation.php">Show overview on characteristics.</a><p>\n";
+include("footer.php");
 ?>
+</body>
+</html>
