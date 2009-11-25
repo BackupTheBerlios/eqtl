@@ -123,6 +123,7 @@ ENDOFDOCUMENTATION
 	# fields that should appear
 	$dataSelectionFieldsQTL = array(
 		"groups",
+		"covariate_selection_type",
 		"ensemblversion",
 		"cM_within","LODmax","LODmin",
 		"quantilemin","quantilemax",
@@ -256,14 +257,10 @@ ENDOFDOCUMENTATION
 			<tr><th class=r>Order by:</th><td colspan=3>
 						<select name=order>
 						<option value=Chromosome>Chromosome</option>
-						<option value="pvalue" selected>LOD score</option>
+						<option value="pvalue ASC, LOD DESC" selected>P-value</option>
 						<option value="LOD DESC">LOD score</option>
 						<option value="LODdiff DESC">LOD-Quantile diff</option>
 						<option value=cMorgan_Peak>cMorgan</option>
-						<option value=Sex>Sex-dependency</option>
-						<option value=AUC>AUC score</option>
-						<!--<option value=AUCbinary>AUCbinary score</option> -->
-						<option value=Severity>Severity score</option>
 						</select>
 						</td></tr>
 			<tr><th class=r>Limit lines shown</th>
@@ -601,13 +598,15 @@ ENDOFDOCUMENTATION
 		#	Covariates - they are always queried
 		# 
 
-		if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
-			if ("WHERE " != $where) $where .= " AND ";
-			if (0==count($covariates)) {
-				$where .= " covariates='' ";
-			}
-			else {
-				$where .= " covariates='".join(",",$covariates)."' ";
+		if ("selected" == $covariate_selection_type) {
+			if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
+				if ("WHERE " != $where) $where .= " AND ";
+				if (0==count($covariates)) {
+					$where .= " covariates='' ";
+				}
+				else {
+					$where .= " covariates='".join(",",$covariates)."' ";
+				}
 			}
 		}
 
@@ -696,7 +695,6 @@ ENDOFDOCUMENTATION
 
 		$query .= " $where ";
 
-		#if (!empty($onlyNumbers) and !empty($onlyNumbersGrouped) and "totals" != "$onlyNumbersGrouped") {
 		if (!empty($onlyNumbers) and !empty($onlyNumbersGrouped) and "totals" != "$onlyNumbersGrouped" and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
 			$query .= " GROUP BY $onlyNumbersGrouped ORDER BY $onlyNumbersGrouped";
 		}
