@@ -339,7 +339,8 @@ function traitid2genename ($traitid,$connection) {
 			#print_r($s);
 			$n="* ".$s[1];
 		}
-		return("<a href=\"trait.php?traits=$tv\">".$n."</a>");
+		return("<a href=\"trait.php?direct=1&traits="
+			.$resultTraitDetailsLine["trait_id"]."\">".$n."</a>");
 	}
 	else {
 		return(FALSE);
@@ -725,14 +726,12 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 				if (!empty($show_phen_analyses)){
 					echo "<th rowspan=2>phen analyses</th>\n";
 				}
-				if (!empty($show_phen_correlation)){
+				if (!empty($show_phen_correlation) ){
 					echo "<th rowspan=2>phen correlation</th>\n";
 				}
-				if (!empty($show_positive_correlation)){
-					echo "<th rowspan=2>positive correlation</th>\n";
-				}
-				if (!empty($show_negative_correlation)){
-					echo "<th rowspan=2>negative correlation</th>\n";
+				if (!empty($show_negative_correlation)
+				 or !empty($show_positive_correlation)){
+					echo "<th rowspan=2>Exression Correlation</th>\n";
 				}
 				if (!empty($show_trait_loci)) {
 					echo "<th colspan=8>Loci</th>\n";
