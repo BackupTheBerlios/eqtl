@@ -314,6 +314,90 @@ ENDOFDOCUMENTATION
 			$attribsGroup  .= ", trait_$s";
 		}
 
+
+function presentRhoInTableElement($rho) {
+	echo "<td>".round($rho,2)."</td>";
+}
+
+function presentTraitInTableElement($traitid,$something,$connection) {
+	echo "<td>".traitid2genename($traitid,$connection)."</td>";
+}
+
+function traitid2genename ($traitid,$connection) {
+	$q="SELECT trait_id,gene_name FROM trait WHERE trait_id='$traitid'";
+	$resultTraitDetails = mysql_query($q,$connection);
+	if (!$resultTraitDetails){
+		echo "<p>Problem with query '$q': "
+			.mysql_error($connection)."</p>";
+		mysql_close($connection);
+		exit;
+	}
+	if ($resultTraitDetailsLine = mysql_fetch_array($resultTraitDetails,MYSQL_ASSOC)) {
+		$n=$resultTraitDetailsLine["gene_name"];
+		if (strlen($n)>25) {
+			$s=preg_split("/ [^A-Za-z0-9,'-][^A-Za-z0-9,'-] /",$n);
+			#print_r($s);
+			$n="* ".$s[1];
+		}
+		return("<a href=\"trait.php?traits=$tv\">".$n."</a>");
+	}
+	else {
+		return(FALSE);
+	}
+}
+
+function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesToShow,$connection) {
+	$corQuery  = "SELECT ";
+	$corQuery .= "traits_${posOrNeg}_cor";
+	$corQuery .= ", traits_${posOrNeg}_cor_rho, gene_name";
+	$corQuery .= " FROM trait";
+	$corQuery .= " WHERE trait_id = '$traitid';";
+	$resultCor = mysql_query($corQuery,$connection);
+	if (empty($resultCor)) {
+		echo "<p>Problem with query '$corQuery': "
+			.mysql_error($connection)."</p>";
+		mysql_close($connection);
+		exit;
+	}
+	$traits=""; $traitsRho="";
+	if ($lineCor = mysql_fetch_array($resultCor,
+					MYSQL_ASSOC)) {
+		$traits   =preg_split("/,/",$lineCor["traits_${posOrNeg}_cor"]);
+		$traitsRho=preg_split("/,/",$lineCor["traits_${posOrNeg}_cor_rho"]);
+		if ("horizontal"=="$orientation") {
+			echo "<small>";
+			echo "<table>\n";
+			echo "<tr>";
+			array_walk($traits,presentTraitInTableElement,$connection);
+			echo "</tr>\n";
+			echo "<tr>";
+			array_walk($traitsRho,presentRhoInTableElement);
+			echo "</tr>\n";
+			echo "</table>\n";
+			echo "</small>";
+		}
+		else {
+		   foreach($traits as $tp=>$tv) {
+			if (0 < $tp) echo ", ";
+			$genename=traitid2genename($tv,$connection);
+			if ($genename) {
+				echo $genename;
+			}
+			else {
+				echo "*<a href=\"trait.php?traits=$tv\">$tv</a>";
+			}
+
+			echo " (".round($traitsRho[$tp],2).")";
+			if ($maxNumCorrGenesToShow < $tp) break;
+		   }
+		}
+	}
+	else {
+		echo "Could not find any correlations for trait '$traitid'.\n";
+	}
+	mysql_free_result($resultCor);
+}
+
 		foreach ($a as $n=>$v) {
 			$showname="show_$n";
 			#echo "$showname<br>\n";
@@ -797,7 +881,7 @@ ENDOFDOCUMENTATION
 						// dealt with in 'start'
 						break;
 
-					case "gene_name":
+					case "ensembl_stable_gene_id":
 						$b=explode(".",$l);
 						echo "<td class=small rowspan=$numberOfLociToShow valign=top><a href=\""
 							.gene2ensemblUrl($b[0],$ensemblorganism)
@@ -959,74 +1043,24 @@ ENDOFDOCUMENTATION
 				}
 				echo "</td>\n";
 			}
-			if (!empty($show_positive_correlation)){
+			if (       !empty($show_positive_correlation)
+				or !empty($show_negative_correlation)) {
+
+			    # Tables are organised horizontally for easier cut'n'paste
+			    # Positive and negative are shown side-by-side
+				echo "<td valign=top rowspan=$numberOfLociToShow nowrap>";
 				if (empty($traitid)) {
 					echo "<i>No trait specified in query.</i>";
 				}
 				else {
-					$posCorQuery  = "SELECT ";
-					$posCorQuery .= "traits_pos_cor";
-					$posCorQuery .= ", traits_pos_cor_rho";
-					$posCorQuery .= " FROM trait";
-					$posCorQuery .= " WHERE trait_id = '$traitid';";
-					$resultPosCor = mysql_query($posCorQuery,$linkLocal);
-					if (empty($resultPosCor)) {
-						echo "<p>Problem with query '$posCorQuery': "
-							.mysql_error($linkLocal)."</p>";
-						mysql_close($linkLocal);
-						exit;
+					if (!empty($show_positive_correlation)){
+						retrieveCorrelations($traitid,"pos",
+						"horizontal",$maxNumCorrGenesToShow,$linkLocal);
 					}
-					echo "<td valign=top rowspan=$numberOfLociToShow>";
-					$traitsPos=""; $traitsPosRho="";
-					while ($linePosCor = mysql_fetch_array($resultPosCor,
-									MYSQL_ASSOC)) {
-						$traitsPos   =preg_split("/,/",$linePosCor["traits_pos_cor"]);
-						$traitsPosRho=preg_split("/,/",$linePosCor["traits_pos_cor_rho"]);
-						foreach($traitsPos as $tp=>$tv) {
-							if (0 < $tp) echo ", ";
-							#echo "<a href=\"".probe2ensemblUrl($tp,$species_name_ensembl_core) . "\">$tv</a>";
-							echo "<a href=\"trait.php?traits=$tv\">$tv</a>";
-							echo " (".round($traitsPosRho[$tp],2).")";
-							if ($maxNumCorrGenesToShow < $tp) break;
-						}
+					if (!empty($show_negative_correlation)){
+						retrieveCorrelations($traitid,"neg",
+						"horizontal",$maxNumCorrGenesToShow,$linkLocal);
 					}
-					mysql_free_result($resultPosCor);
-				}
-				echo "</td>\n";
-			}
-			if (!empty($show_negative_correlation)){
-				# FIXME: highly redundant code with pos correlation
-				if (empty($traitid)) {
-					echo "<i>No trait specified in query.</i>";
-				}
-				else {
-					$negCorQuery  = "SELECT ";
-					$negCorQuery .= "traits_neg_cor";
-					$negCorQuery .= ", traits_neg_cor_rho";
-					$negCorQuery .= " FROM trait";
-					$negCorQuery .= " WHERE trait_id = '$traitid';";
-					$resultNegCor = mysql_query($negCorQuery,$linkLocal);
-					if (empty($resultNegCor)) {
-						echo "<p>Problem with query '$negCorQuery': "
-							.mysql_error($linkLocal)."</p>";
-						mysql_close($linkLocal);
-						exit;
-					}
-					echo "<td valign=top rowspan=$numberOfLociToShow>";
-					$traitsNeg=""; $traitsNegRho="";
-					while ($lineNegCor = mysql_fetch_array($resultNegCor,
-									MYSQL_ASSOC)) {
-						$traitsNeg   =preg_split("/,/",$lineNegCor["traits_neg_cor"]);
-						$traitsNegRho=preg_split("/,/",$lineNegCor["traits_neg_cor_rho"]);
-						foreach($traitsNeg as $tp=>$tv) {
-							if (0 < $tp) echo ", ";
-							#echo "<a href=\"".probe2ensemblUrl($tp,$species_name_ensembl_core) . "\">$tv</a>";
-							echo "<a href=\"trait.php?traits=$tv\">$tv</a>";
-							echo " (".round($traitsNegRho[$tp],2).")";
-							if ($maxNumCorrGenesToShow < $tp) break;
-						}
-					}
-					mysql_free_result($resultNegCor);
 				}
 				echo "</td>\n";
 			}
