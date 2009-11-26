@@ -158,9 +158,9 @@ ENDOFDOCUMENTATION
 			<tr><th rowspan=3 align=left>Correlation and Loci</th>
 
 			  <td valign=top><b>Expression correlation</b><br>
-					<code>&nbsp;0</code> &lt; <input type=text name=expr_pos_cor_min size=7> &lt; <code>+ cor</code> &lt; <input type=text name=expr_pos_cor_max size=7> &lt; <code>1</code>   (show max <input type=text name=expr_pos_cor_limit size=5 value=10>)
+					<code>&nbsp;0</code> &lt; <input type=text name=expr_pos_cor_min size=7> &lt; <code>+ cor</code> &lt; <input type=text name=expr_pos_cor_max size=7> &lt; <code>1</code>   (show max <input type=text name="maxNumCorrGenesToShow" size=5 value=50>)
 					<br>
-					<code>-1</code> &lt; <input type=text name=expr_neg_cor_min size=7> &lt; <code>- cor</code> &lt; <input type=text name=expr_neg_cor_max size=7> &lt; <code>0</code>   (show max <input type=text name=expr_neg_cor_limit size=5 value=10>)
+					<code>-1</code> &lt; <input type=text name=expr_neg_cor_min size=7> &lt; <code>- cor</code> &lt; <input type=text name=expr_neg_cor_max size=7> &lt; <code>0</code> 
 				</td></tr>
 
 			  <tr><td valign=top><b>Phen covariates correlation</b><br>
@@ -363,7 +363,13 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 	if ($lineCor = mysql_fetch_array($resultCor,
 					MYSQL_ASSOC)) {
 		$traits   =preg_split("/,/",$lineCor["traits_${posOrNeg}_cor"]);
+		if (count($traits) > $maxNumCorrGenesToShow) {
+			$traits = array_slice($traits,0,$maxNumCorrGenesToShow);
+		}
 		$traitsRho=preg_split("/,/",$lineCor["traits_${posOrNeg}_cor_rho"]);
+		if (count($traitsRho) > $maxNumCorrGenesToShow) {
+			$traitsRho = array_slice($traitsRho,0,$maxNumCorrGenesToShow);
+		}
 		if ("horizontal"=="$orientation") {
 			echo "<small>";
 			echo "<table>\n";
