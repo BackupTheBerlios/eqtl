@@ -122,8 +122,10 @@ while(@r = $queryTraitsGeneName_statement->fetchrow_array()) {
 		or die $DBI::errstr;
 	while(my $m = $queryEnsemblCoreForTraitID_statement->fetchrow_hashref()) {
 		my $s = "UPDATE trait SET";
-		$s .=  " name='".$$m{"name"}."'" if exists($$m{"name"}) and defined($$m{"name"});
-		$s .= ", gene_name='".$$m{"gene_name"}."'";
+		$s .=  ' name="'.$$m{"name"}.'",'
+			if exists($$m{"name"}) and defined($$m{"name"});
+
+		$s .= ' gene_name="'.$$m{"gene_name"}.'"';
 		$s .=  " WHERE trait_id='$trait_id';\n";
 		print $s;
 	}
