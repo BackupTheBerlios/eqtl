@@ -141,8 +141,7 @@ ENDOFDOCUMENTATION
 		"LOD"=>1,"LODdiff"=>1,"pvalue" => 1, "Quantile"=>1,
 		"covariates"=>1,
 		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>0, "cMorgan_Max"=>0,
-		"Gid"=>0, "gene_name"=>1, 
-		"name"=>1, "mean"=>1, "sd"=>1 
+		"Gid"=>0, "gene_name"=>1, "name"=>1, "ensembl_stable_gene_id"=>1, "mean"=>1, "sd"=>1 
 	);
 			
 
@@ -389,8 +388,16 @@ ENDOFDOCUMENTATION
 				$query .= ", gene_name";
 			}
 
-			if (!empty($show_gene_name)) {
+			if (!empty($show_pvalue)) {
 				$query .= ", pvalue";
+			}
+
+			if (!empty($show_ensembl_stable_gene_id)) {
+				$query .= ", ensembl_stable_gene_id";
+			}
+
+			if (!empty($show_name)) {
+				$query .= ", trait.name";
 			}
 
 			if (!empty($show_LocusOfGene)) {
@@ -1003,7 +1010,7 @@ ENDOFDOCUMENTATION
 							break;
 						case "covariates":
 							if (empty($l)) $l="none";
-							echo "<td class=small>".displayCovariates($l)."</td>";
+							echo "<td class=small>".displayCovariates($l,",<BR>")."</td>";
 							break;
 						case "Groups":
 							# only one group per eQTL in current implementation
