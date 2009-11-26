@@ -15,6 +15,9 @@ scatter_all.R [options]
 This script plots the chromosomal location of the QTL 
 against the chromosomal location of the gene it affects.
 
+The data is futher described by the presentation of classical QTL
+as dark bars.
+
 =over 4
 
 =item verbose <level>
@@ -31,7 +34,11 @@ Minimal expression level for a trait to be shown.
 
 =item LODmin
 
-Minimal LOD score for a trait to be shown.
+Minimal LOD score for a QTL to be shown.
+
+=item Pmax
+
+Maximal P-value for a QTL to be shown
 
 =item interactive
 
@@ -82,15 +89,22 @@ library(getopt)
 # cat("I was here 0.\n")
 
 opt = getopt(matrix(c(                                            
-   'verbose'    , 'v', 2, "integer",                              
-   'help'       , 'h', 0, "logical",                              
-   'MeanMin'    , 'm', 1, "double",                               
-   'LODmin'     , 'l', 1, "double",                               
-   'interactive', 'i', 0, "logical",                               
-   'format'     , 'f', 1, "character",
-   'covariates' , 'c', 1, "character",
-   'output'     , 'o', 1, "character"
-   ),ncol=4,byrow=TRUE),
+   'verbose'    , 'v', 2, "integer",  "gives information on the internal status of program",
+   'help'       , 'h', 0, "logical",  "gives instructions on how to retrieve information on how to use the program",
+   'MeanMin'    , 'm', 1, "double",   "the threshold for a minimal expression level that the trait should have to be selected for display (as a dot on the plot)",
+   'LODmin'     , 'l', 1, "double",   "the minimal LOD score the expression QTL should have reached",
+   'Pmax'       , 'p', 1, "double",   "the maximal P value the expression QTL may have reached to be considered significant",
+   'interactive', 'i', 0, "logical",  "indication that this script is run from the UNIX shell",
+   'format'     , 'f', 1, "character","the format of the image that should present the plot",
+   'covariates' , 'c', 1, "character","covariates the plot shall be run for",
+   'output'     , 'o', 1, "character","name of output file",
+   'qtls'       , 'q', 2, "character","list of QTLs (their IDs in the database) that shall be represented on the plot",
+   'linecolour' , 'a', 1, "character","colour of lines separating the chromosomes",
+   'linewidth'  , 'w', 1, "double",   "width of lines separating the chromosomes",
+   'linetype'   , 't', 1, "integer",  "type of lines separating the chromosomes",
+   'axeslinecolour','b',1,"character","colour of axes",
+   'axeslinewidth' ,'x',1,"double",   "width of axes"
+   ),ncol=5,byrow=TRUE),
    debug=TRUE)
 
 if (!is.null(opt$verbose)) cat("I was here 1.\n")
@@ -113,9 +127,38 @@ if (is.null(opt$LODmin)) {
    cat("Setting LODmin to default value.\n")
    opt[["LODmin"]]<- -1
 }
+if (is.null(opt$Pmax)) {
+   cat("Setting Pmax to default value.\n")
+   opt[["Pmax"]]<- -1
+}
 if (is.null(opt$format)) {
    opt[["format"]]<-"png";
    cat("Set format to default value '",opt$format,"'.\n")
+}
+
+if (is.null(opt$linecolour)) {
+   opt[["linecolour"]]<-"lightgray"
+   cat("Changing to default colour for lines : ",opt$linecolour,"\n")
+}
+
+if (is.null(opt$linewidth)) {
+   opt[["linewidth"]]<-1
+   cat("Changing to default width for lines : ",opt$linewidth,"\n")
+}
+
+if (is.null(opt$linetype)) {
+   opt[["linetype"]]<-1
+   cat("Changing to default type for lines : ",opt$linetype,"\n")
+}
+
+if (is.null(opt$axeslinewidth)) {
+   opt[["axeslinewidth"]]<-3
+   cat("Changing to default width for axes : ",opt$axeslinewidth,"\n")
+}
+
+if (is.null(opt$axeslinecolour)) {
+   opt[["axeslinecolour"]]<-3
+   cat("Changing to default colour for axes : ",opt$axeslinecolour,"\n")
 }
 
 if (!is.null(opt$verbose)) cat("I was here 2.\n")
@@ -171,6 +214,7 @@ covariates<-covariates.queried[covariates.queried %in% covariates.filter.list]
 cat(paste("Working with the following covariates: ",paste(covariates,collapse=";",sep=""),".\n",sep=""))
 
 
+
 # do it for all covariates
 
 
@@ -204,11 +248,25 @@ for(cov in covariates) {
   # Input for plot
 
   q <- paste("SELECT ",
-	      "Trait,LOD,locus.chr,cMorgan_Peak,covariates,trait.chromosome,(trait.start+trait.stop)/2 as pos ",
+	      "Trait,LOD,pvalue,",				# 1 2 3
+	      "locus.chr,cMorgan_Peak,",			# 4 5
+	      "covariates,",					# 6
+	      "trait.chromosome,(trait.start+trait.stop)/2 ", 	# 7 8
+	      "as pos ",
            "FROM ",
               "qtl JOIN trait ON trait_id=Trait JOIN locus ON locus.Name=qtl.Locus ",
            "WHERE ",
-              "covariates='",cov,"' AND LOD>=",opt$LODmin," AND mean>=",opt$MeanMin,";",sep="")
+              "covariates='",cov,"'",sep="")
+  if (!is.null(opt$LODmin) && -1 < opt$LODmin) {
+	q <- paste(q," AND LOD>=",opt$LODmin,sep="")
+  }
+  if (!is.null(opt$Pmax) && -1 < opt$Pmax) {
+	 q <- paste(" AND pvalue<=",opt$Pmax,sep="")
+  }
+  if (!is.null(opt$MeanMin) && -1 < opt$MeanMin) {
+	 q <- paste(" AND mean>=",opt$MeanMin,sep="")
+  }
+  q <- paste(q,";",sep="")
 
 #Trait, Locus, LOD, covariates, Chromosome, cMorgan_Peak, cMorgan_Min, cMorgan_Max, Quantile, (LOD-Quantile) as LODdiff , unigene, swissprot_ID, gene_assignment, first_symbol,
 #       first_name, ProbeSequence, seqname as chr_name, strand, start as gene_chrom_start,stop as gene_chrom_end,
@@ -227,8 +285,8 @@ for(cov in covariates) {
   pos.linear.cM<-apply(selected.qtl,
       1,
       function(X){
-	 linearCentiMorgan<-cM.offset[X[3]]
-	 offset<-as.numeric(X[4])
+	 linearCentiMorgan<-cM.offset[X[4]]
+	 offset<-as.numeric(X[5])
          return(linearCentiMorgan+offset)
       }
   )
@@ -236,20 +294,29 @@ for(cov in covariates) {
   pos.linear.bp<-apply(selected.qtl,
       1,
       function(X){
-	 linearBP<-bp.offset[X[6]]
-	 offset<-as.numeric(X[7])
+	 linearBP<-bp.offset[X[7]]
+	 offset<-as.numeric(X[8])
          return(linearBP+offset)
       }
   )
 
+  if (is.null(opt$main)) {
+  	opt[["main"]]<-cov
+	cat("Set main title to ",opt$main,"\n")
+  }
+
+  if (is.null(opt$sub)) {
+  	opt[["sub"]]<-paste("LODs>4,6,8, mean>=",opt$MeanMin)
+	cat("Set sub title to ",opt$sub,"\n")
+  }
 
   #plot.new()
   plot(bp.offset.extra + pos.linear.cM,
        cM.offset.extra + pos.linear.bp,
      xlim=c(0,max(cM.offset)),ylim=c(0,max(bp.offset)),
-     axes=FALSE,main=cov,sub=paste("LODs>4,6,8, mean>=",opt$MeanMin))
-  abline(v=cM.offset, col="lightgray")
-  abline(h=bp.offset, col="lightgray")
+     axes=FALSE,main=opt$main,sub=opt$sub)
+  abline(v=cM.offset, col=opt$linecolour, lty=opt$linetype, lwd=opt$linewidth)
+  abline(h=bp.offset, col=opt$linecolour, lty=opt$linetype, lwd=opt$linewidth)
 
   in.red<-selected.qtl[,"LOD"]>=6
   points(pos.linear.cM[in.red],  pos.linear.bp[in.red],  col="red")
@@ -258,9 +325,9 @@ for(cov in covariates) {
   points(pos.linear.cM[in.green],pos.linear.bp[in.green],col="green")
 
   axis(1, at=(cM.offset[1:length(cM.offset)-1]+cM.offset[2:length(cM.offset)])/2,
-        labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"))
+        labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"),lwd=opt$axeslinewidth)
   axis(2, at=(bp.offset[1:length(bp.offset)-1]+bp.offset[2:length(bp.offset)])/2,
-        labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"))
+        labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"),lwd=opt$axeslinewidth)
 
 }
 
