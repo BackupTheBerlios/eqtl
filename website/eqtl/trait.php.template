@@ -60,6 +60,7 @@ ENDOFDOCUMENTATION
 
 	foreach(array("direct", "submitted",
 			"VarianceMin", "VarianceMax",
+			"maxNumCorrGenesToShow",
 			"expr_neg_cor_max",  "expr_neg_cor_min",
 			"expr_pos_cor_max",  "expr_pos_cor_min",
 			"LODmin","LODmax",
@@ -292,6 +293,10 @@ ENDOFDOCUMENTATION
 		if (empty($linkLocal)) {
 			echo "<p>Could not create link to database.</p>";
 			exit;
+		}
+
+		if (empty($maxNumCorrGenesToShow)) {
+			$maxNumCorrGenesToShow=50;
 		}
 
 		//print_r($_GET);
@@ -982,7 +987,7 @@ ENDOFDOCUMENTATION
 							#echo "<a href=\"".probe2ensemblUrl($tp,$species_name_ensembl_core) . "\">$tv</a>";
 							echo "<a href=\"trait.php?traits=$tv\">$tv</a>";
 							echo " (".round($traitsPosRho[$tp],2).")";
-							if (9 < $tp) break;
+							if ($maxNumCorrGenesToShow < $tp) break;
 						}
 					}
 					mysql_free_result($resultPosCor);
@@ -1018,7 +1023,7 @@ ENDOFDOCUMENTATION
 							#echo "<a href=\"".probe2ensemblUrl($tp,$species_name_ensembl_core) . "\">$tv</a>";
 							echo "<a href=\"trait.php?traits=$tv\">$tv</a>";
 							echo " (".round($traitsNegRho[$tp],2).")";
-							if (9 < $tp) break;
+							if ($maxNumCorrGenesToShow < $tp) break;
 						}
 					}
 					mysql_free_result($resultNegCor);
