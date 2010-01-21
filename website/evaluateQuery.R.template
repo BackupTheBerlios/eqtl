@@ -19,6 +19,9 @@ jobs during a time specified in hours. This maximum
 time allowed (controlled by the executing environment)
 is passed via the environment variable TIMEOUT.
 
+The script is offered for download from execute hosts
+for grid computing envrionments.
+
 =cut
 
 "
