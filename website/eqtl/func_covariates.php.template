@@ -39,6 +39,7 @@ and 'additive' with '<sup>(i)</sup>' and '<sup>(a)</sup>'.
 
 */
 function displayCovariates($cc,$separator=","){
+	if (empty($cc)) return("<i>none</i>");
 	if (","!=$separator) {
 		$cc=preg_replace("/,/",", ",$cc);
 	}
@@ -76,16 +77,31 @@ function convert_string_to_covariates_array($cov) {
 
 Inspects table qtl to read out all occuring covariates and return these in a list.
 
+=over 4
+
+=item dbh
+
+open connection to database
+
+=item ignorenone I<TRUE|FALSE>
+
+the empty covariate means no covariate. Depending on the context one may want to see it or not.
+Set to FALSE if the empty covariate shall be shown with the string none.
+
+=back
+
 =cut
 
- */
-function get_covars_on_your_own_from_qtl($dbh) {
+*/
+
+function get_covars_on_your_own_from_qtl($dbh,$ignorenone=TRUE) {
 	global $debug;
 	global $covariates_qtl;
 	if (isset($covariates_qtl)) {
 		return($covariates_qtl);
 	}
-	$query = "SELECT distinct covariates from qtl where covariates != ''";
+	$query = "SELECT distinct covariates from qtl";
+	if ($ignorenone) $query .= " where covariates != ''";
 	$result = mysql_query($query) or die('Query failed: ' . mysql_error());
 	$retrieved=array();
 	while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
@@ -271,13 +287,15 @@ expression QTL.
 
 function select_covariates_combinations($ncol=2,$htmlFieldName="qtl_covariates") {
 	echo "<b>Covariates:</b><br>";
-	$covars = get_covars_on_your_own_from_qtl($linkLocal);
+	$covars = get_covars_on_your_own_from_qtl($linkLocal,FALSE);
 	//print_r($covars);
 	echo "<table border=0><tr>";
 	foreach($covars as $n=>$covar) {
 		if (0 == $n % $ncol) echo "</tr><tr>";
 		echo "<td>";
-		echo "<input type=\"checkbox\" name=\"".$htmlFieldName."[]\" value=\"$covar\" />";
+		echo "<input type=\"checkbox\" name=\"".$htmlFieldName."[]\" value=\"";
+		if (!empty($covar)) echo $covar; else echo "none";
+		echo "\" />";
 		echo "</td><td>";
 		echo preg_replace("/,/"," ",displayCovariates($covar));
 		echo "</td>";
