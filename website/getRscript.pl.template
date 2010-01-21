@@ -183,9 +183,18 @@ preset by RECALCPORT
 
 EOGENERATEDFILEWARNING
 	
-	#
-	# probe set ID of gene to be analysed for controlling loci
-	#
+doc <- "
+
+=head3 Probeset ID
+
+Every QTL is for a single molecular effect only. The molecular effect is determined via the probeset ID,
+borrowing the term from Affymetrix. No logics have yet been implemented to inspect multime molecular
+probes at once. This would be of interest for inspecting probes individually or to see another gene's
+expression as a covariate.
+
+=cut
+
+"
 
 	my $probeID;
 	
@@ -241,11 +250,19 @@ EOGENERATEDFILEWARNING
 			$keyData = "$keyData"."_(none)";
 		}
 	}
+
+doc <- "
+
+=head3 Phenotype Column 'pc'
 	
-	#
-	# 'pc' denotes the column at which to expect the phenotype that should be
-	# modelled. It should be set to 3 for regular expression QTL analyses.
-	#
+'pc' denotes the column at which to expect the phenotype that should be
+modelled. It should be set to 3 for regular expression QTL analyses,
+ pointing to the expression level with the individual's number and ID
+occupying the first two columns. This will different for every project.
+
+=cut
+
+"
 
 	if( !defined($pc) ){
 		if( $probeID eq 'none' ){
@@ -259,8 +276,6 @@ EOGENERATEDFILEWARNING
 				."You may want to add &phenocol=PHENOCOL to the URL."
 				);
 			next;
-			#$phenocol = "pheno.col=3,";
-			#$pc = $probeID;
 		}
 	}else{
 		$phenocol = "pheno.col=$pc,";
@@ -269,11 +284,18 @@ EOGENERATEDFILEWARNING
 	my @rScript;
 	my $covStr = '';
 
-	#
-	#  Covariates can either look like cov_int, cov_add or cov 
-	#  cov_int means this covariate is use interactiv
-	#  cov_add uses this covariate just additive
-	#  cov uses this covariate as given in cov_meth, either int or add
+doc <- "
+
+=head3 Covariates
+
+Covariates can either look like cov_int, cov_add or cov 
+cov_int means this covariate is use interactiv
+cov_add uses this covariate just additive
+cov uses this covariate as given in cov_meth, either int or add
+
+=cut
+
+"
 	
 	my @covars_int = ();
 	my @covars_add = ();
@@ -643,6 +665,6 @@ Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
 
 =head1 COPYRIGHT
 
-University of LE<uuml>beck, 2008-2009
+University of LE<uuml>beck, 2008-2010
 
 =cut
