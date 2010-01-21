@@ -478,7 +478,8 @@ EOWRITETODISK
 # if still acceptable, perform permutation tests
 if (acceptable) {
 	# list of pairs identifying the number of permutations and the quantils that is to be reached
-	perm.checks<-list(c(  25,                1-$execParams{'alpha'}-0.2),
+	perm.checks<-list(c(  10,                1-0.5),
+	                  c(  25,                1-$execParams{'alpha'}-0.2),
 			  c( 100,                1-$execParams{'alpha'}-0.02),
 			  c($execParams{perms}/4,1-$execParams{'alpha'}),
 			  c($execParams{perms}/2,1-$execParams{'alpha'}),
