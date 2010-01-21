@@ -25,8 +25,14 @@ analogous projects.
 
 =over 4
 
-=item -projectname <projectname> sets the name of the project. Configuration files
-        are expected at the directory ./conf_<projectname>
+=item -projectname <projectname>
+
+sets the name of the project. Configuration files are expected at the directory ./conf_<projectname>
+
+=item --force
+
+If set, no file will be spared from the transformation. This should be used after 
+performing changes to the configuration files.
 
 =back
 
@@ -43,11 +49,13 @@ University of LE<uuml>beck, 2008-2009
 use strict;
 use Getopt::Long;
 use Pod::Usage;
-my ($projectname,$help,$man);
+my ($projectname,$help,$man,$force) = (undef,undef,undef,undef);
 
 GetOptions(
 		"projectname=s"=>\$projectname,
-		"help"=>\$help
+		"help"=>\$help,
+		"man"=>\$man,
+		"force"=>\$force
 ) or pod2usage(2);
 
 if (defined($projectname)) {
@@ -95,7 +103,10 @@ foreach my $n (keys %vars) {
 	print STDERR "\t$n:".$vars{$n}."\n";
 }
 
-foreach my $f (@ARGV) {
+
+# returns string with transformed content
+sub transform($) {
+	my $f = shift;
 	open(F,"<$f") or die "Could not open file '$f' to transform: $@\n";
 	my $ftext = join("",<F>);
 	
@@ -106,10 +117,20 @@ foreach my $f (@ARGV) {
 	$ftext =~ s/<LINEBREAK>/\n/g;
 	$ftext =~ s/<TABULATOR>/\t/g;
 
+	return $ftext;
+}
+
+foreach my $f (@ARGV) {
 	my $fnew;
 	if (($fnew) = $f =~ /(.*)\.template$/m) {
+		if ( !defined($force) and -M "$f" > -M  "$fnew" ) {
+			print STDERR "  Skipping '$f', not newer than '$fnew'.\n";
+			next;
+		}
+		
 		print STDERR "  Transforming '$f' to '$fnew'.\n";
 		open(FNEW,">$fnew") or die "Could not write to file '$fnew', $@\n";
+		my $ftext = transform($f);
 		print FNEW $ftext;
 		close(FNEW);
 		if ($ftext =~ /^#!/) {
@@ -118,7 +139,7 @@ foreach my $f (@ARGV) {
 	}
 	else {
 		print STDERR "  Transforming '$f'.\n";
-		print STDOUT $ftext;
+		print STDOUT transform($f);
 	}
 	close(F);
 }

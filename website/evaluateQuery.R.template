@@ -15,8 +15,9 @@ to be sourced without parameters from R shell
 =head1 DESCRIPTION
 
 This script is started to execute a varying number of
-jobs during a time specified in hours and passed via the
-environment variable TIMEOUT.
+jobs during a time specified in hours. This maximum
+time allowed (controlled by the executing environment)
+is passed via the environment variable TIMEOUT.
 
 =cut
 

@@ -1,0 +1,27 @@
+#!/bin/sh
+
+doc=<<EODOC
+
+=head1 NAME
+
+regularExpressionAnalyses_list.sh - show analyses already performed
+
+=head1 DESCRIPTION
+
+List all analyses known to the system
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2009
+
+=cut
+
+EODOC
+
+#echo "SELECT * FROM trait_phen_analysis;" | mysql -h pc15 -u qtl eQTL_Stockholm
+echo "SELECT * FROM trait_phen_analysis;" | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+

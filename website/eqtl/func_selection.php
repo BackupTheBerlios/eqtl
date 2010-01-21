@@ -99,6 +99,32 @@ function print_row_one_text_single($rname,$name1,$val1,$size=7) {
 
 /*
 
+=item print_exclusive_selection($label,$variablename,$entryarray)
+
+A selection of radio buttons are prepared to allow an exclusive selection between the values.
+The first is selected by default.
+
+=cut
+
+*/
+
+function print_exclusive_selection($rname,$variablename,$entryarray) {
+
+  echo "<tr>";
+  echo "<th align=right>$rname:</th>";
+  echo "<td>";
+  $no=0;
+  foreach($entryarray as $presentation=>$value) {
+  	echo "<input type=radio name=\"$variablename\" value=\"$value\"".(0==$no?" check":"")." />$presentation<br>\n";
+  	$no++;
+  }
+  echo "</td>";
+  echo "</tr>\n";
+
+}
+
+/*
+
 =back
 
 =cut
@@ -127,7 +153,8 @@ function print_selection_form($properties) {
 	       $MeanMin, $MeanMax, 
 	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,
                $PvalueMax,$PvalueMin,
-	       $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax
+	       $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax,
+	       $cistrans
 	;
 
 
@@ -141,9 +168,10 @@ function print_selection_form($properties) {
 		switch($properties) {
 		 case "all_qtl":
 			$properties = array("groups", "locus", 
-					    "chromosome", "LOD", "quantile", "LODdiff",
-					     "pvalue",
-					    "peak", "flanks", "trait",
+					    "chromosome", "peakInMbp",
+					    "peakInCentiMorgan", "flanks", "trait",
+					    "LOD", "quantile", "LODdiff",
+					    "pvalue",
 					    "mean", "sd");
 			break;
 		 case "all_qtl_groups":
@@ -161,9 +189,15 @@ function print_selection_form($properties) {
 
 		 case "table_overview_scanone":
 		 case "figure_scatter":
-		 case "figure_venn":
 			$properties = array(
 						"LOD", "pvalue", "mean", "sd", "median", "variance" ,
+						#, "number_of_chromosomes_per_trait"
+			);
+			break;
+
+		 case "figure_venn":
+			$properties = array(
+						"LOD", "pvalue", "mean", "sd", "median", "variance", "cistrans"
 						#, "number_of_chromosomes_per_trait"
 			);
 			break;
@@ -256,9 +290,13 @@ function print_selection_form($properties) {
 <?php
 				break;
 
-			case "peak":
+			case "peakInCentiMorgan":
 				print_row_two_text_single("centi-Morgan span for peak","cM_Peak_Min","cM_Peak_Max",
 								$cM_Peak_Min,$cM_Peak_Max,4);
+				break;
+			case "peakInMbp":
+				print_row_two_text_single("Mbp span for peak","Mbp_Peak_Min","Mbp_Peak_Max",
+								$Mbp_Peak_Min,$Mbp_Peak_Max,5);
 				break;
 			case "flanks":
 ?>
@@ -308,6 +346,10 @@ function print_selection_form($properties) {
 				break;
 			case "pvalue":
 				print_row_two_text_single("QTL P-value","PvalueMin","PvalueMax",$PvalueMin,$PvalueMax);
+				break;
+
+			case "cistrans":
+				print_exclusive_selection("Cis/Trans","cistrans",array("skip filter"=>"","cis"=>"cis","trans"=>"trans"));
 				break;
 
 			case "number_of_chromosomes_per_trait":

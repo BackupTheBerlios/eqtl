@@ -1,0 +1,136 @@
+#!/usr/bin/perl -w
+
+TEMPLATEWARNINGHASH
+
+=head1 NAME
+
+trait_ensembl_transfer_genename_from_traitid.pl - retrieve info from Ensembl and update local trait table
+
+=head1 SYNOPSIS
+
+trait_ensembl_transfer_genename_from_traitid.pl (--help|--man)
+
+trait_ensembl_transfer_genename_from_traitid.pl [--unassigned-only] | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+
+=head1 DESCRIPTION
+
+This script uses information from the field trait_id to access
+Ensembl and retrieve information on the genes name and description.
+The database accessed is the Ensembl Core database.  It is
+possible to use a local mirror for this purpose, but the accession of
+the public version should be preferred.
+
+This script iterates over all entries in the trait table and performs a
+single query for every gene.  In cases that there are multiple entries
+for a single gene, the first entry will be taken and all be printed to
+stdout for manual inspection.
+
+Caveat: This script was only tested for a single experiment. It may
+required further adjustments to become applicable.
+
+With the --unassigned-only entry set, the selection of trait will be constrained on this with
+an empty entry for the chromosome.
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
+
+=cut
+
+TEMPLATEWARNINGHASH
+
+use strict;
+use Cwd;   
+use DBI;   
+use Getopt::Long;
+use Pod::Usage;
+
+my ($help,$man,$unassignedOnly) = (0,0,0);
+
+my %options=(
+	help              => \$help,
+	man               => \$man,
+	"unassigned-only" => \$unassignedOnly
+);
+
+GetOptions(%options) or die "Could not parse options: $@\n";
+
+pod2usage(-verbose => 1) if $help;
+pod2usage(-verbose => 2) if $man;
+
+# variable containing a row
+my @r;                     
+
+my $dbhEqtl = DBI->connect( DATABASECON )
+	or die "Database connection to expression QTL data could not established: $DBI::errstr";
+
+#my $dbhEnsembl = DBI->connect(
+#	"DBI:mysql:database=ensembl_mart_ENSEMBLVERSION;host=DATABASEHOSTCORE:DATABASEPORTCORE",
+#	"DATABASEENSEMBLUSER")
+#	or die "Database connection to expression QTL data could not established: $DBI::errstr";
+my $dbhEnsembl = DBI->connect(
+	"DBI:mysql:host=DATABASEHOSTCORE;port=DATABASEPORTCORE",
+	"DATABASEENSEMBLUSER")
+	or die "Database connection to expression QTL data could not established: $DBI::errstr";
+
+# Finding the right version of the Ensembl Core Database
+
+my $q = "SHOW DATABASES LIKE 'ENSEMBLSPECIESDB_core_ENSEMBLVERSION_%';";
+my $q_statement = $dbhEnsembl->prepare($q)
+	or die $DBI::errstr; 
+
+$q_statement -> execute() or die $DBI::errstr;
+my $db;
+if(($db) = $q_statement->fetchrow_array()) {
+	print STDERR "$db\n";
+}
+else {
+	die "Was not successful with query '$q'.\n";
+}
+$q="use $db;";
+$q_statement = $dbhEnsembl->prepare($q);
+$q_statement -> execute() or die $DBI::errstr;
+
+
+
+my $queryTraitsGeneName_string    = "SELECT DISTINCT trait_id FROM trait";
+if ($unassignedOnly) {
+	$queryTraitsGeneName_string .= " WHERE gene_name IS NULL or '' = gene_name";
+}
+my $queryTraitsGeneName_statement = $dbhEqtl->prepare($queryTraitsGeneName_string)
+	or die $DBI::errstr;
+
+my $queryEnsemblCoreForTraitID_string = 
+	 "SELECT xa.display_label as trait_id, xb.display_label as gene_name, xb.description as name "
+	."FROM xref AS xa JOIN object_xref AS oxa using(xref_id) "
+	."JOIN transcript ON oxa.ensembl_id=transcript.transcript_id "
+	."JOIN gene USING(gene_id) JOIN xref AS xb ON xb.xref_id=gene.display_xref_id "
+	."WHERE oxa.ensembl_object_type='Transcript' AND  xa.display_label = ? LIMIT 1";
+
+my $queryEnsemblCoreForTraitID_statement = $dbhEnsembl->prepare($queryEnsemblCoreForTraitID_string)
+	or die $DBI::errstr; 
+
+$queryTraitsGeneName_statement -> execute() or die $DBI::errstr;
+while(@r = $queryTraitsGeneName_statement->fetchrow_array()) {
+	my ($trait_id) = @r;
+	print STDERR $trait_id,"\n";
+	$queryEnsemblCoreForTraitID_statement->execute($trait_id)
+		or die $DBI::errstr;
+	while(my $m = $queryEnsemblCoreForTraitID_statement->fetchrow_hashref()) {
+		my $s = "UPDATE trait SET";
+		$s .=  ' name="'.$$m{"name"}.'",'
+			if exists($$m{"name"}) and defined($$m{"name"});
+
+		$s .= ' gene_name="'.$$m{"gene_name"}.'"';
+		$s .=  " WHERE trait_id='$trait_id';\n";
+		print $s;
+	}
+}
+
+1;
+
+

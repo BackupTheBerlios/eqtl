@@ -76,7 +76,7 @@ for such assigned to a cluster of genes.
 =head1 AUTHOR
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
-ME<eacute>lanie Thessén Hedreul <melthe@ki.se>
+ME<eacute>lanie ThessE<eacute>n Hedreul <melthe@ki.se>
 
 =head1 COPYRIGHT
 
@@ -123,13 +123,15 @@ ENDOFDOCUMENTATION
 	# fields that should appear
 	$dataSelectionFieldsQTL = array(
 		"groups",
-		"Chromosome","ensemblversion",
+		"covariate_selection_type",
+		"ensemblversion",
 		"cM_within","LODmax","LODmin",
 		"quantilemin","quantilemax",
 		"covariates",
 		"LODdiffmin","LODdiffmax",
 		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
+		"Mbp_Peak_Min","Mbp_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
 		"locus","chrlist", "condition"
 	);
@@ -139,8 +141,7 @@ ENDOFDOCUMENTATION
 		"LOD"=>1,"LODdiff"=>1,"pvalue" => 1, "Quantile"=>1,
 		"covariates"=>1,
 		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>0, "cMorgan_Max"=>0,
-		"Gid"=>0, "gene_name"=>1, 
-		"name"=>1, "mean"=>1, "sd"=>1 
+		"Gid"=>0, "gene_name"=>1, "name"=>1, "ensembl_stable_gene_id"=>1, "mean"=>1, "sd"=>1 
 	);
 			
 
@@ -230,6 +231,7 @@ ENDOFDOCUMENTATION
 	<font size=-3><i>
 	<?php
 		$cvs=get_covars_on_your_own_from_qtl($linkLocal);
+		$colors=array("red","green","blue","black");
 		foreach ($cvs as $n=>$c) {
 			if ($n>0) {
 				echo "; ";
@@ -237,7 +239,8 @@ ENDOFDOCUMENTATION
 				#	echo "<br>\n";
 				#}
 			}
-			echo displayCovariates("$c");
+			$i=$n%count($colors);
+			echo "<font color=".$colors[$i].">".displayCovariates("$c")."</font>";
 		}
 	?>
 	</i></font>
@@ -253,14 +256,10 @@ ENDOFDOCUMENTATION
 			<tr><th class=r>Order by:</th><td colspan=3>
 						<select name=order>
 						<option value=Chromosome>Chromosome</option>
-						<option value="pvalue" selected>LOD score</option>
+						<option value="pvalue ASC, LOD DESC" selected>P-value</option>
 						<option value="LOD DESC">LOD score</option>
 						<option value="LODdiff DESC">LOD-Quantile diff</option>
 						<option value=cMorgan_Peak>cMorgan</option>
-						<option value=Sex>Sex-dependency</option>
-						<option value=AUC>AUC score</option>
-						<!--<option value=AUCbinary>AUCbinary score</option> -->
-						<option value=Severity>Severity score</option>
 						</select>
 						</td></tr>
 			<tr><th class=r>Limit lines shown</th>
@@ -320,12 +319,38 @@ ENDOFDOCUMENTATION
 			include_once("func_conversion_$ensemblversion.php");
 		}
 		else {
-			echo "<p>Missing file 'func_conversion_$ensemblversion.php' for the translation between cMorgan and bp.</p><br>\n";
+			errorMessage("Missing file 'func_conversion_$ensemblversion.php' for the translation between cMorgan and bp.");
+			exit;
 		}
 		if (file_exists("func_expressionview.php")) {
 			include_once("func_expressionview.php");
 		}
 		include_once("func_public_qtl.php");
+
+		if (!empty($Mbp_Peak_Min) and !empty($cM_Peak_Min)) {
+			errorMessage("Both minimal Mbp and minimal cMorgan are specified.");
+			exit;
+		}
+		elseif (!empty($Mbp_Peak_Min)) {
+			if (empty($chrlist) or is_array($chrlist)) {
+				echo "chrlist: "; print_r($chrlist);
+				errorMessage("When specifying Mbp positions, one also needs to specify exactly one chromosome.");
+
+				exit;
+			}
+			$cM_Peak_Min=bp2cM($chrlist,$Mbp_Peak_Min*1000*1000);
+		}
+		if (!empty($Mbp_Peak_Max) and !empty($cM_Peak_Max)) {
+			errorMessage("Both maximal Mbp and maximal cMorgan are specified.");
+			exit;
+		}
+		elseif (!empty($Mbp_Peak_Max)) {
+			if (empty($chrlist) or is_array($chrlist)) {
+				errorMessage("When specifying Mbp positions, one also needs to specify exactly one chromosome.");
+				exit;
+			}
+			$cM_Peak_Max=bp2cM($chrlist,$Mbp_Peak_Max*1000*1000);
+		}
 
 		$where="WHERE ";
 		$query = "SELECT ";
@@ -363,8 +388,16 @@ ENDOFDOCUMENTATION
 				$query .= ", gene_name";
 			}
 
-			if (!empty($show_gene_name)) {
+			if (!empty($show_pvalue)) {
 				$query .= ", pvalue";
+			}
+
+			if (!empty($show_ensembl_stable_gene_id)) {
+				$query .= ", ensembl_stable_gene_id";
+			}
+
+			if (!empty($show_name)) {
+				$query .= ", trait.name";
 			}
 
 			if (!empty($show_LocusOfGene)) {
@@ -572,13 +605,15 @@ ENDOFDOCUMENTATION
 		#	Covariates - they are always queried
 		# 
 
-		if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
-			if ("WHERE " != $where) $where .= " AND ";
-			if (0==count($covariates)) {
-				$where .= " covariates='' ";
-			}
-			else {
-				$where .= " covariates='".join(",",$covariates)."' ";
+		if ("selected" == $covariate_selection_type) {
+			if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
+				if ("WHERE " != $where) $where .= " AND ";
+				if (0==count($covariates)) {
+					$where .= " covariates='' ";
+				}
+				else {
+					$where .= " covariates='".join(",",$covariates)."' ";
+				}
 			}
 		}
 
@@ -667,7 +702,6 @@ ENDOFDOCUMENTATION
 
 		$query .= " $where ";
 
-		#if (!empty($onlyNumbers) and !empty($onlyNumbersGrouped) and "totals" != "$onlyNumbersGrouped") {
 		if (!empty($onlyNumbers) and !empty($onlyNumbersGrouped) and "totals" != "$onlyNumbersGrouped" and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
 			$query .= " GROUP BY $onlyNumbersGrouped ORDER BY $onlyNumbersGrouped";
 		}
@@ -884,7 +918,12 @@ ENDOFDOCUMENTATION
 					if ("group_id"=="$n") $n = "Groups"; #FIXME: attribute name needs to be adjusted
 					$f="show_".$n;
 					if (!empty($$f)) {
-						echo "<th class=c><small>$n</small></th>";
+						if ("cMorgan_Peak" == "$n") {
+							echo "<th class=c><small>Peak in cM / Mbp</small></th>";
+						}
+						else {
+							echo "<th class=c><small>$n</small></th>";
+						}
 						if ("Trait"==$n) {
 							if(!empty($show_LocusOfGene) and !empty($show_ExpressionOfGene)) {
 								echo "<th class=c colspan=4><small>Trait<br>chr"
@@ -942,9 +981,13 @@ ENDOFDOCUMENTATION
 							echo "<td><a href=\"locus.php?Name=$l\">$l</a></td>";
 							break;
 						case "cMorgan_Peak":
-							echo "<td class=small><a href=\"http://www.ensembl.org/$ensemblorganism/contigview?chr=$c&vc_start="
-									.(cM2bp($c,$cMpeak)-100000)."&vc_end="
-									.(cM2bp($c,$cMpeak)+100000)."\">".round($cMpeak,4)."</a></td>";
+							$bpPeak = cM2bp($c,$cMpeak);
+							echo "<td class=small>";
+							echo round($cMpeak,1) . " cM /";
+							echo "<a href=\"http://www.ensembl.org/$ensemblorganism/contigview?chr=$c&vc_start="
+									.($bpPeak-100000)."&vc_end="
+									.($bpPeak+100000)."\">".round($bpPeak/1000/1000,1)."</a> Mbp";
+							echo "</td>";
 							break;
 						case "cMorgan_Min":
 							echo "<td class=small>".round($cMmin,4)."</td>";
@@ -967,7 +1010,7 @@ ENDOFDOCUMENTATION
 							break;
 						case "covariates":
 							if (empty($l)) $l="none";
-							echo "<td class=small>$l</td>";
+							echo "<td class=small>".displayCovariates($l,",<BR>")."</td>";
 							break;
 						case "Groups":
 							# only one group per eQTL in current implementation

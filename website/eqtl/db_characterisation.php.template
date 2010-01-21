@@ -26,34 +26,77 @@ show_small_header("Characterisation Entries",TRUE);
 
 include_once("func_connect.php");
 
+$todo=$_GET["todo"];
+$selection=$_GET["selection"];
+#print_r($_GET);
+
+if (!empty($selection)) {
+	if ($todo=="delete") {
+		echo "entering 'delete'";
+		$q = "delete from groups "
+		    ."where group_id in ('".join("','",$selection)."');";
+		$res = mysql_query($q);
+		if (!$res) echo "Error in query:<br>$q: " . mysql_error();
+		$q = "delete from group_characteristics "
+		    ."where group_id in ('".join("','",$selection)."');";
+		$res = mysql_query($q);
+		if (!$res) echo "Error in query:<br>$q: " . mysql_error();
+	}
+	elseif ($todo=="Change Group Name") {
+		$new_group_name=$_GET["new_group_id"];
+		if (empty($new_group_name)) {
+			echo "<p>Error: Please enter a new identifier for "
+			    ."in the empty field to change the identifiers "
+			    ."of the selected groups to.</p>";
+		}
+		else {
+			$q = "update groups set name='".$new_group_name."' "
+			    ."where group_id in ('".join("','",$selection)."');";
+			$res = mysql_query($q);
+			if (!$res) echo "Error in query:<br>$q: " . mysql_error();
+		}
+	}
+}
+
+echo "<br>\n";
 echo "<table border=\"1\">\n";
 echo "<tr>\n";
-echo " <th>Group-ID</th>\n";
+echo " <th rowspan=2>Group-ID</th>\n";
 echo " <th>Group Name</th>\n";
 echo " <th>covariates</th>\n";
 echo " <th>trait_list</th>\n";
-echo " <th>query</th>\n";
 echo " <th>significant</th>\n";
+echo " <th rowspan=2>selecting</th></tr>\n";
+echo " <tr><th colspan=4>query</th>\n";
 echo "</tr>\n";
 
 $groups = mysql_query("select * from groups;");
 
+echo "<form action=\"db_characterisation.php\" method=\"GET\">\n";
 while($row = mysql_fetch_array($groups))
 {
 	echo "<tr>\n";
+	$name=$row["name"];
 	$group_id=$row["group_id"];
-	echo " <td>".$group_id."</td>\n";
-	echo " <td><a href=db_characterisation2.php?group_id=$group_id>".$row["name"]."</a></td>\n";
+	echo " <td rowspan=2><a href=db_characterisation2.php?group_id=$group_id&name=$name>".$group_id."</a></td>\n";
+	echo " <td>".$name."</td>\n";
 	echo " <td>".$row["covariates"]."</td>\n";
-	echo " <td>".$row["trait_list"]."</td>\n";
-	echo " <td>".$row["query"]."</td>\n";
+	echo " <td>".join(", ",preg_split("/,\\s*/",$row["trait_list"]))."</td>\n";
 	echo " <td>".$row["significant"]."</td>\n";
+	echo " <td rowspan=2><input type=\"checkbox\" name=\"selection[]\" value=".$group_id."></td></tr>\n";
+	echo " <tr><td colspan=4>".$row["query"]."</td>\n";
 	echo "</tr>\n";
 }
+echo "</table>\n";
+
+echo "<br>\n";
+
+echo "<input type=\"submit\" name=\"todo\" value=\"delete\">\n";
+echo "<input name=\"new_group_id\" size=\"15\">\n";
+echo "<input type=\"submit\" name=\"todo\" value=\"Change Group Name\" style=\"align:right\">\n";
+echo "</form>\n";
 
 include("footer.php");
-
-
 
 ?>
 </body>

@@ -23,7 +23,7 @@ This script calculates all correlations between
 
 =back
 
-For larger projects, only the calculation of the correlaction
+For larger projects, only the calculation of the correlation
 coefficients is practical to be applied for gene-gene comparisons.
 
 For comparisons with classical phenotypes and smaller projects
@@ -47,7 +47,7 @@ TEMPLATEWARNINGHASH
 # read in data after conversion with OpenOffice from xls
 # further abstractions are required to adapt for multiple
 # organisms.
-d<-read.delim(file="CSVDATABASE/PHENOFILE",dec=",",sep="\t",row.names=1,skip=1)
+d<-read.delim(file="CSVDATABASE/PHENOFILE",dec=",",sep="PHENOFIELDSEP",row.names=1,skip=1)
 
 # columns with expression data
 p<-grep("^MT",colnames(d))

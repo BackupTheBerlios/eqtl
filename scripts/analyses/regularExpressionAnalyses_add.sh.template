@@ -1,0 +1,61 @@
+#!/bin/sh
+
+doc=<<EODOC
+
+=head1 NAME
+
+regularExpressionAnalyses_add.sh - add description of analysis
+
+=head1 SYNOPSIS
+
+regularExpressionAnalyses_add.sh "short description" "long description"
+
+=head1 DESCRIPTION
+
+In preparation of the upload of (probesetid,value) pairs, this script
+first introduces the analysis performed on single probesets to the system.
+This script prepares an SQL insert statement and invokes the mysql-client
+to execute it.
+
+=head1 OPTIONS
+
+=over 4
+
+=item short description
+
+An identifier of the analysis to be performed.
+
+=item long description
+
+Long free text to give details of the analysis.
+
+=head1 SEE ALSO
+
+regularExpressionAnalyses_list.sh, 
+regularExpressionAnalyses_upload.sh
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2009
+
+=cut
+
+EODOC
+
+if [ "-h" = "$1" -o "--help" = "$1" ]; then
+	pod2man $0 | nroff -man | less
+	exit 1
+fi
+
+if [ -z "$2" -o -n "$3" ]; then
+	echo "Usage: $(basename $0) [-h|--help] \"short description\" \"long description\""
+	exit 1
+fi
+
+
+echo "INSERT INTO trait_phen_analysis SET analysis=\"$(echo $1|tr "\"" "'")\", description=\"$(echo $2|tr "\"" "'")\";" | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+

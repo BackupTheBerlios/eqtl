@@ -72,6 +72,14 @@ only the cis-acting loci are selected
 
 only the loci within a classical QTL are inspected
 
+=item width I<number>
+
+The width of the figure, either in pixels (png, jpeg) or inch (pdf).
+
+=item height I<number>
+
+The width of the figure, defaults to width unless explicitly set.
+
 =back
 
 =back
@@ -80,7 +88,7 @@ only the loci within a classical QTL are inspected
 =head1 AUTHORS
 
 Ann-Kristin Grimm <grimm@inb.uni-luebeck.de>,
-Steffen Moeller <moeller@inb.uni-luebeck.de>,
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
 
 =head1 COPYRIGHT
 
@@ -90,6 +98,39 @@ University of LE<uuml>beck, Germany, 2009
 
 "
 
+##
+##  I N T E R N A L   F U N C T I O N S
+##
+
+#
+# prepare the output file
+#
+prepareOutput<-function(filename) {
+	if (is.null(filename)) {
+		stop("prepareOutput has NULL as filename\n")
+	}
+	if (is.null(opt$interactive)) {
+		if (is.null(opt$format) || "png" == opt$format) {
+			png(filename,width=width.pixel,height=height.pixel)
+		}
+		else if ("pdf" == opt$format) {
+			pdf(filename,width=width.inch,height=height.inch)
+		}
+		else if ("jpg" == opt$format  || "jpeg" == opt$format) {
+			jpg(filename,width=width.pixel,height=height.pixel)
+		}
+		else if ("gif" == opt$format) {
+			jpg(filename,width=width.pixel,height=height.pixel)
+		}
+		else {
+			cat("Unknown format ",opt$format,"\n")
+			q(status=1);
+		}
+	}
+}
+
+
+
 library(RMySQL)
 library(getopt)
 
@@ -97,18 +138,19 @@ library(gplots) # for Venn diagrams
 
 # cat("I was here 0.\n")
 
-width.pixel<-3*480
+width.pixel<-2*480
 width.inch<-11
 height.pixel<-width.pixel
 height.inch<-width.inch
 
 opt = getopt(matrix(c(
     'verbose'    , 'v', 2, "integer",
+    'debug'    , 'd', 2, "integer",
     'help'       , 'h', 0, "logical",
     'MeanMin'    , 'm', 1, "double",
     'LODmin'     , 'l', 1, "double",
     'cisDistMax' , 's', 1, "integer",
-    'cis'        , 'a', 0, "logical",
+    'cistrans'   , 'a', 1, "character",
     'interactive', 'i', 0, "logical",
     'format'     , 'f', 1, "character",
     'covariates' , 'c', 1, "character",
@@ -132,7 +174,29 @@ if (is.null(opt$cisDistMax)) {
 
 if (is.null(opt$format)) {
    opt[["format"]]<-"png";
-   cat("Set format to default value '",opt$format,"'.\n")
+   cat("Set format to default value '",opt$format,"'.\n",sep="")
+}
+
+if ("pdf" == opt$format) {
+	if (!is.null(opt$width)) {
+		width.inch<-opt$width
+	}
+	if (!is.null(opt$height)) {
+		height.inches<-opt$height
+	}
+	else {
+		height.inch<-width.inch
+	}
+} else {
+	if (!is.null(opt$width)) {
+		width.pixel<-opt$width
+	}
+	if (!is.null(opt$height)) {
+		height.pixel<-opt$height
+	}
+	else {
+		height.pixel<-width.pixel
+	}
 }
 
 # for manual interaction in shell: 
@@ -141,33 +205,74 @@ if (is.null(opt$format)) {
 con <- dbConnect(MySQL(),user="DATABASEEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
 
 #covariates<-c('','eae_add','sud_add','dud_add','wl0_add','D12G1_add','D12G2B_add','D12G2C_add','D35G1_add','D35G2B_add','D35G2C_add','t12p_add','t35p_add')
+covariates<-c()
 if (is.null(opt$covariates)) {
 	cat("Falling back to default covariates.\n")
-	covariates<-c('eae_int','sud_add','dud_add','wl0_add','D12G1_add')
+	covariates<-c('eae_int','sud_add','dud_add','wl0_add','none')
 } else if (5<length(covariates)) {
-	q(status=1);
+	cat("Maximally 5 covariates are tolerated for a comparison, currently: ",length(covariates),"\n",sep="")
+	q(status=1)
 } else {
-	covariates <- opt$covariates
+	covariates <- strsplit(x=opt$covariates,split=";",fixed=TRUE)[[1]]
 }
 
 cat(paste("Working with the following covariates: ",paste(covariates, collapse="; "),"\n",sep=""))
 
-query<-paste( "SELECT Locus, Trait, covariates, qtl.chromosome, cis, cis_dist,cMorgan_Peak ",
-          "  FROM qtl JOIN trait ON trait_id=Trait JOIN locus ON locus.Name=qtl.Locus ",
-	  " WHERE covariates in ('", paste(covariates,collapse="','",sep=""), "')", sep=""
-	)
+if ('none' %in% covariates) {
+	cat("Substituting 'none' covariate name with empty string.\n")
+	covariates['none' == covariates] <- ''
+}
 
-if (!is.null(opt$PvalueMin)) { query<-paste(query," AND pvalue >= ",opt$PvalueMin,sep="") }
-if (!is.null(opt$PvalueMax)) { query<-paste(query," AND pvalue <= ",opt$PvalueMax,sep="") }
-if (!is.null(opt$LODmin))    { query<-paste(query," AND LOD >= ",opt$LODmin,sep="") }
-if (!is.null(opt$LODmax))    { query<-paste(query," AND LOD <= ",opt$LODmax,sep="") }
-if (!is.null(opt$MeanMin))   { query<-paste(query," AND mean >= ",opt$MeanMin,sep="") }
-if (!is.null(opt$MeanMax))   { query<-paste(query," AND mean <= ",opt$MeanMax,sep="") }
-if (!is.null(opt$SdMin))     { query<-paste(query," AND sd >= ",opt$SdMin,sep="") }
-if (!is.null(opt$SdMax))     { query<-paste(query," AND sd <= ",opt$SdMax,sep="") }
-if (!is.null(opt$cis))       { query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="") }
+query<-paste("SELECT Locus, Trait, covariates, qtl.chromosome, cis, cis_dist,cMorgan_Peak ",
+	     " FROM qtl JOIN trait ON trait_id=Trait JOIN locus ON locus.Name=qtl.Locus ",
+	     " WHERE covariates in ('", paste( covariates, collapse="','",sep=""), "')", sep=""
+)
+
+if (!is.null(opt[["PvalueMin"]])) { query<-paste(query," AND pvalue >= ",opt$PvalueMin,sep="")
+}
+if (!is.null(opt[["PvalueMax"]])) { query<-paste(query," AND pvalue <= ",opt$PvalueMax,sep="")
+}
+if (!is.null(opt[["LODmin"]]))    { query<-paste(query," AND LOD >= ",opt$LODmin,sep="")
+}
+if (!is.null(opt[["LODmax"]]))    { query<-paste(query," AND LOD <= ",opt$LODmax,sep="")
+}
+if (!is.null(opt[["MeanMin"]]))   { query<-paste(query," AND mean >= ",opt$MeanMin,sep="")
+}
+if (!is.null(opt[["MeanMax"]]))   { query<-paste(query," AND mean <= ",opt$MeanMax,sep="")
+}
+if (!is.null(opt[["SdMin"]]))     { query<-paste(query," AND sd >= ",opt$SdMin,sep="")
+}
+if (!is.null(opt[["SdMax"]]))     { query<-paste(query," AND sd <= ",opt$SdMax,sep="")
+}
+if (!is.null(opt[["MedianMin"]]))   { query<-paste(query," AND median >= ",opt$MedianMin,sep="")
+}
+if (!is.null(opt[["MedianMax"]]))   { query<-paste(query," AND median <= ",opt$MedianMax,sep="")
+}
+if (!is.null(opt[["VarianceMin"]])) { query<-paste(query," AND variance >= ",opt$VarianceMin,sep="")
+}
+if (!is.null(opt[["VarianceMax"]])) { query<-paste(query," AND variance <= ",opt$VarianceMax,sep="")
+}
+if (!is.null(opt[["cistrans"]]))    {
+	if("cis" == opt[["cistrans"]]) {
+		query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="")
+	} else if ("trans" == opt[["cistrans"]]) {
+		query<-paste(query," AND (0 = cis OR cis_dist > ",opt$cisDistMax,")",sep="")
+	} else {
+		stop(paste("Unknow argument to --cistrans: ",opt[["cistrans"]],"\n",sep=""))
+	}
+}
+if (!is.null(opt[["debug"]]))     { query<-paste(query," LIMIT 100",sep="")
+}
 cat("Query: ",query,"\n")
+
 rs<-dbGetQuery(con,query)
+if (!is.null(opt$debug)) {
+	print(rs)
+}
+
+if (0 == nrow(rs)) {
+	stop("Have not received a single line from database. The query was not successful.\n")
+}
 
 
 # loc.trait has unique identifiers for all trait-covariate pairs
@@ -175,37 +280,14 @@ loc.trait<-apply(rs,1,function(x){return(paste(x[1],x[2],sep="_"))})
 
 # loc.trait.covariate is a list of these traits, assigned to each covariate
 loc.trait.covariate<-sapply(covariates,function(covar){
-	return(loc.trait[rs[,3]==covar])
-},USE.NAMES=TRUE)
+						return(loc.trait[rs[,3]==covar])
+					},USE.NAMES=TRUE)
 
-## trait.covariate is a list of traits assigned to a covariate
-trait.covariate<-sapply(covariates,function(covar){
-	return(rs[rs[,3]==covar,2])
-})
-
-# prepare the output file
-prepareOutput<-function(filename) {
-	if (is.null(filename)) {
-		stop("prepareOutput has NULL as filename")
+pretty.print.columnames<-function(X) {
+	if ('' %in% X) {
+		X[X==''] <- 'none'
 	}
-	if (is.null(opt$interactive)) {
-		if (is.null(opt$format) || "png" == opt$format) {
-			png(filename,width=width.pixel,height=height.pixel)
-		}
-		else if ("pdf" == opt$format) {
-			pdf(filename,width=width.inch,height=height.inch)
-		}
-		else if ("jpg" == opt$format  || "jpeg" == opt$format) {
-			jpg(filename,width=width.pixel,height=height.pixel)
-		}
-		else if ("gif" == opt$format) {
-			jpg(filename,width=width.pixel,height=height.pixel)
-		}
-		else {
-			cat("Unknown format ",opt$format,"\n")
-			q(status=1);
-		}
-	}
+	return(X)
 }
 
 
@@ -216,6 +298,7 @@ prepareOutput<-function(filename) {
 f<-paste(opt$output,"_","exact_trait",".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 prepareOutput(f)
+colnames(loc.trait.covariate)<-pretty.print.columnames(colnames(loc.trait.covariate))
 venn(loc.trait.covariate)
 if(is.null(opt$interactive)) {
 	dev.off()
@@ -226,10 +309,17 @@ if(is.null(opt$interactive)) {
 #	V E N N  -  traits only
 #
 
+## trait.covariate is a list of traits assigned to a covariate
+trait.covariate<-sapply(covariates,function(covar){
+line.selection<-(rs[,"covariates"]==covar)
+	return(unique(rs[line.selection,"Trait"]))
+})
+
 f<-paste(opt$output,"_","trait",".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 prepareOutput(f)
-venn(loc.trait.covariate)
+colnames(trait.covariate)<-pretty.print.columnames(colnames(trait.covariate))
+venn(trait.covariate)
 if(is.null(opt$interactive)) {
 	dev.off()
 }
@@ -263,7 +353,7 @@ rs.map.bp2cM <- sapply(unique(rs.map[,"chr"]),function(X){
 # disease_qtl<-dbGetQuery(con, paste("SELECT name, chr, start_bps, stop_bps, species", "FROM qtl.eae_qtl", "WHERE species='Rattus_norvegicus'", "AND start_bps IS NOT NULL and stop_bps IS NOT NULL",sep=" "));
 
 disease_qtl<-dbGetQuery(con, paste("SELECT name, chr, start_bps, stop_bps, species",
-                                   "FROM qtl.eae_qtl",
+				   "FROM qtl.eae_qtl",
 				   "WHERE species='ENSEMBLSPECIESSEARCHURL'",
 				     "AND start_bps IS NOT NULL and stop_bps IS NOT NULL",sep=" "));
 isInQTL<-function(pos,chr) {
@@ -308,13 +398,24 @@ markerUpstreamMarker<-function(Locus) {
 # Transformation of locations to such of neighbouring markers
 marker.trait<-NULL
 for (i in 1:nrow(rs)) {
-	if (!is.null(opt$verbose)) cat(i,"\n")
+	if (!is.null(opt$debug)) cat(i,"\n")
 	chr<-rs$chromosome[i] ; locus<-rs$Locus[i] ; cm<-rs$cMorgan_Peak[i] ; bp<-rs.map.cM2bp[[chr]](cm) ; inDiseaseQTL<-isInQTL(bp,chr)
 	if (1 == sum(rs.map$marker==rs$Locus[i])) {         # The locus is assigned directly to a marker
-		marker.trait.value<-c(paste(rs$Locus[i],markerDownstreamMarker(rs$Locus[i]),rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
-		if(is.null(marker.trait)) { marker.trait<-marker.trait.value } else { marker.trait<-rbind(marker.trait,marker.trait.value) }
-		marker.trait.value<-c(paste(markerUpstreamMarker(rs$Locus[i]),rs$Locus[i],rs$Trait[i],sep="_"),rs$covariates[i],inDiseaseQTL)
-		if(is.null(marker.trait)){ marker.trait<-marker.trait.value } else { marker.trait<-rbind(marker.trait,marker.trait.value) }
+		marker.trait.value<-c(paste(rs$Locus[i],
+					    markerDownstreamMarker(rs$Locus[i]),rs$Trait[i],sep="_"),
+					    rs$covariates[i],inDiseaseQTL)
+		if(is.null(marker.trait)) {
+			marker.trait<-marker.trait.value
+		} else {
+			marker.trait<-rbind(marker.trait,marker.trait.value)
+		}
+		marker.trait.value<-c(paste(markerUpstreamMarker(rs$Locus[i]),rs$Locus[i],rs$Trait[i],sep="_"),
+				            rs$covariates[i],inDiseaseQTL)
+		if(is.null(marker.trait)){
+			marker.trait<-marker.trait.value
+		} else {
+			marker.trait<-rbind(marker.trait,marker.trait.value)
+		}
 	} else if (0 == sum(rs.map$marker==rs$Locus[i])) {  # The locus is between two markers
 		rs.map.chr<-rs.map[which(rs.map$chr==rs$chromosome[i]),]
 		pos<-sum(rs.map.chr$cmorgan_rqtl<rs$cMorgan_Peak[i])
@@ -336,13 +437,15 @@ colnames(marker.trait)<-c("Marker-Trait","Covariates","InDiseaseQTL")
 
 
 marker.trait.covariate<-sapply(covariates,function(covar){
-	return(marker.trait[marker.trait[,2]==covar,])
-},USE.NAMES=TRUE)
+					return(marker.trait[marker.trait[,2]==covar,])
+				},USE.NAMES=TRUE)
 
 f<-paste(opt$output,"_","flanking_trait",".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 prepareOutput(f)
-venn(sapply(marker.trait.covariate,function(X)X[,1],USE.NAMES=TRUE))
+trait.flanking<-sapply(marker.trait.covariate,function(X)X[,1],USE.NAMES=TRUE)
+colnames(trait.flanking)<-pretty.print.columnames(colnames(trait.flanking))
+venn(trait.flanking)
 if(is.null(opt$interactive)) {
 	dev.off()
 }
@@ -350,12 +453,15 @@ if(is.null(opt$interactive)) {
 f<-paste(opt$output,"_","flanking_trait_indiseaseqtl",".",opt$format,sep="")
 cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 prepareOutput(f)
-venn(sapply(marker.trait.covariate,
-	    function(X){
-		inDiseaseQTL<-X[,3]=="TRUE"
-		columnToReturn<-X[,1]
-		return(columnToReturn[inDiseaseQTL])
-	    },USE.NAMES=TRUE))
+trait.flanking.indiseaseqtl<-sapply(marker.trait.covariate,
+    function(X){
+	inDiseaseQTL<-X[,3]=="TRUE"
+	columnToReturn<-X[,1]
+	return(columnToReturn[inDiseaseQTL])
+    },USE.NAMES=TRUE)
+
+colnames(trait.flanking.indiseaseqtl)<-pretty.print.columnames(colnames(trait.flanking.indiseaseqtl))
+venn(trait.flanking.indiseaseqtl)
 if(is.null(opt$interactive)) {
 	dev.off()
 }

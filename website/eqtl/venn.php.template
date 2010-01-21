@@ -57,6 +57,7 @@ University of LE<uuml>beck, 2009
 		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
+		"cistrans",
 		"locus","chrlist", "condition"
 	);
 
@@ -106,7 +107,7 @@ University of LE<uuml>beck, 2009
 		echo "<tr><td align=right><input type=submit></td>";
 		echo "<td align=left><input type=reset>";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=inlineImages value=1 />Inline Images";
-		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=rerunAnalyses value=1 />Rerun previous analyses";
+		//echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=rerunAnalyses value=1 />Rerun previous analyses";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=verbose value=1 />verbose";
 		echo "</td></tr>\n";
 		echo "</table>\n";
@@ -124,6 +125,8 @@ University of LE<uuml>beck, 2009
 	}
 	else {
 
+		if (!empty($debug)) print_r($_POST);
+
 		#
 		# invocation of external R script
 		#
@@ -133,19 +136,47 @@ University of LE<uuml>beck, 2009
 
 		if ($n>0) echo "<hr>";
 
+		$attributes=array();
+
 		$outputfilename = "tmp_images/venn_output";
-		if (!empty($cov))       { $outputfilename .= "_cov_$cov"; }
-		if (!empty($PvalueMin)) { $outputfilename .= "_PvalueMin_$PvalueMin"; }
-		if (!empty($PvalueMax)) { $outputfilename .= "_PvalueMax_$PvalueMax"; }
-		if (!empty($LODmin))    { $outputfilename .= "_LODmin_$LODmin"; }
-		if (!empty($LODmax))    { $outputfilename .= "_LODmax_$LODmax"; }
-		if (!empty($MeanMin))   { $outputfilename .= "_MeanMin_$MeanMin"; }
-		if (!empty($MeanMax))   { $outputfilename .= "_MeanMax_$MeanMax"; }
-		if (!empty($SdMin))     { $outputfilename .= "_SdMin_$SdMin"; }
-		if (!empty($SdMax))     { $outputfilename .= "_SdMax_$SdMax"; }
+		if (!empty($PvalueMin)) {
+			$outputfilename .= "_PvalueMin_$PvalueMin";
+			array_push($attributes,"--PvalueMin",$PvalueMin);
+		}
+		if (!empty($PvalueMax)) {
+			$outputfilename .= "_PvalueMax_$PvalueMax";
+			array_push($attributes,"--PvalueMax",$PvalueMax);
+		}
+		if (!empty($LODmin))    {
+			$outputfilename .= "_LODmin_$LODmin";
+			array_push($attributes,"--LODmin",$LODmin);
+		}
+		if (!empty($LODmax))    {
+			$outputfilename .= "_LODmax_$LODmax";
+			array_push($attributes,"--LODmax",$LODmax);
+		}
+		if (!empty($MeanMin))   {
+			$outputfilename .= "_MeanMin_$MeanMin";
+			array_push($attributes,"--MeanMin",$MeanMin);
+		}
+		if (!empty($MeanMax))   {
+			$outputfilename .= "_MeanMax_$MeanMax";
+			array_push($attributes,"--MeanMax",$MeanMax);
+		}
+		if (!empty($SdMin))     {
+			$outputfilename .= "_SdMin_$SdMin";
+			array_push($attributes,"--SdMin",$SdMin);
+		}
+		if (!empty($SdMax))     {
+			$outputfilename .= "_SdMax_$SdMax";
+			array_push($attributes,"--SdMax",$SdMax);
+		}
+		if (!empty($cistrans)) {
+			array_push($attributes,"--cistrans",$cistrans);
+			$outputfilename .= "_${cistrans}";
+		}
 
 		$rscript = getcwd() . "/../../scripts/analyses/createVenn.R";
-		$attributes=array();
 		if (!file_exists($rscript)) {
 		  errorMessage("R script '$rscript' not found.");
 		}
@@ -154,30 +185,41 @@ University of LE<uuml>beck, 2009
 		array_push($attributes,"--format","png");
 		if (!empty($qtl_covariates)) {
 		  $cmd .= " --covariates ".join(";",$qtl_covariates);
-		  array_push($attributes,"--covariates",$qtl_covariates);
+		  array_push($attributes,"--covariates",'"'.join(";",$qtl_covariates).'"');
+		  $outputfilename .= "_cov_".join(";",$qtl_covariates);
 		}
 		if (!empty($verbose)) {
 		  $cmd .= " --verbose";
 		  array_push($attributes,"--verbose",1);
 		}
-		$cmd .= " --output $outputfilename";
-		array_push($attributes,"--output",$outputfilename);
+		$cmd .= " --output \"$outputfilename\"";
+		array_push($attributes,"--output",'"'.$outputfilename.'"');
 		$cmd = "$rscript ".join(" ",$attributes);
 		
 		if ($verbose) {
-			echo "executing '$cmd'<br>\n";
+			echo "<p>executing '$cmd'</p><br />\n";
 		}
-		#print_r($attributes);
-		echo "<small>";
-		echo shell_exec($cmd);
-		echo "</small>\n";
+		
+		$t =  shell_exec($cmd);
 
-		foreach (array("exact_trait","trait","flanking_trait","flanking_trait_indiseaseqtl") as $s) {
-			$imagePath=dirname($_SERVER["PHP_SELF"])."/$outputfilename";
-			if (!empty($inlineImages)) {
-				echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n";
-			}
-			echo "<a href=\"http:$imagePath\">${outputfilename}_${s}.png</a><br/>\n";
+		if ($verbose) {
+			echo "<p>";
+			#print_r($attributes);
+			echo "<small>$t</small>\n";
+			echo "</p>\n";
+		}
+
+		echo "<h2>Created images</h2>\n";
+		foreach (array(
+			  "exact_trait" => "Locus and trait are compared by their exact syntactival identity, no shift in cM will be accepted",
+			  "trait"=>"The locus is completely ignored, only the traits are compared that are controlled by any region anywhere in the genome with that covariate",
+			  "flanking_trait"=>"The specification of chromosomal loci are weakened towards their flanking markers",
+			  "flanking_trait_indiseaseqtl"=>"As before, the specification of loci are reduced to flanking markers, and only thoes are shown, that are located within classical QTL") as $s=>$t) {
+			echo "<h3>$s</h3>\n";
+			$imagePath=dirname($_SERVER["PHP_SELF"])."/${outputfilename}_${s}.png";
+			if (!empty($inlineImages)) { echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n"; }
+			echo "<a href=\"http:$imagePath\">${outputfilename}_${s}.png</a><br/>\n$t\n";
+			echo "<hr>\n";
 		}
 	}
 	include("footer.php");

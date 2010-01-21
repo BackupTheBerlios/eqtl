@@ -425,7 +425,8 @@ if (empty($submitted)) {
 						if (!empty($$f)) {
 							echo "<th><small>$n</small></th>";
 							if ("bp"==$n && !empty($show_bp)) {
-								echo "<th><small>Bp interpolated</small></th>";
+								echo "<th><small>Bp (<i>by cM2bp()</i> )</small></th>";
+								echo "<th><small>cM (<i>by bp2cM()</i> )</small></th>";
 							}
 						}
 					}
@@ -462,8 +463,18 @@ if (empty($submitted)) {
 								echo "<td>$l</td>";
 							}
 							echo "<td>";
+							$bp="N/A";
 							if ($funcConversionExists) {
-								echo round(cM2bp($line["chr"],$line["cmorgan_rqtl"]));
+								$bp=cM2bp($line["chr"],$line["cmorgan_rqtl"]);
+								echo round($bp);
+							}
+							else {
+								echo "N/A";
+							}
+							echo "</td>";
+							echo "<td>";
+							if ($funcConversionExists) {
+								echo round(bp2cM($line["chr"],$bp),5);
 							}
 							else {
 								echo "N/A";
@@ -705,6 +716,8 @@ function cM2bp($chr,$cm=0) {
 						$lastcM=$prevcM;
 						$lastbp=$prevbp;
 					}
+					break;
+					break;
 				}
 			}
 			$prevcM=$cMorgan;
@@ -730,6 +743,88 @@ function cM2bp($chr,$cm=0) {
 			}
 		}
 		return(round($ret));
+	}
+}
+
+function bp2cM($chr,$bpInput=0) {
+	global $conv;
+	$chrconv=$conv[$chr];
+	$cMmin=$bpmin=-1;
+	$cMmax=$bpmax=-1;
+	$actbp=$lastbp=-1;
+	$actcM=$lastcM=-1;
+	$found=FALSE;
+	$prevcM=$secondCM=-1;
+	$prevbp=$secondBP=-1;
+	if (empty($chrconv)) {
+		echo "&lt;p>marker.php: No information for chromosome \'$chr\'.&lt;/p>\n";
+		return (-2);
+	} elseif (!is_array($chrconv)) {
+		echo "&lt;p>func_conversion_ENSEMBLVERSION.php: Internal error. (chr \'$chr\').&lt;/p>\n";
+		return (-3);
+	} else {
+		foreach($chrconv as $cMorgan=>$bp) {
+			if (-1 == $cMmin) {
+				# first time this loop was entered
+				# this will also be the minimal value
+				$cMmin=$cMmax=$cMorgan;
+				$bpmin=$bpmax=$bp;
+			}
+			else {
+				if (-1 == $secondCM && !empty($cMorgan)) {
+					$secondCM=$cMorgan;
+					$secondBP=$bp;
+				}
+				if ($bp>$bpmax) {
+					$bpmax=$bp;
+					$cMmax=$cMorgan;
+				}
+				if (! $bp >= $bpmin) { // avoiding the lt sign
+					echo  "Suddenly found bp value at $bp smaller than current minimum at $bpmin.";
+					$bpmin=$bp;
+					$cMmin=$cMorgan;
+				}
+			}
+
+			if ($found) {
+			}
+			else {
+				if ($bpInput >= $bp) { // avoiding the lt sign for web presentation
+				}
+				else {
+					$found=TRUE;
+					if (-1 == $actcM) {
+						$actcM=$cMorgan;
+						$actbp=$bp;
+						$lastcM=$prevcM;
+						$lastbp=$prevbp;
+					}
+					break;
+				}
+			}
+			$prevcM=$cMorgan;
+			$prevbp=$bp;
+		}
+
+		if ($bpInput<=$bpmin) {
+			// bp requested upstream of first marker
+			$ret=$cMmin+($bpInput-$bpmin)/($secondBP-$bpmin)*($secondCM-$cMmin);
+		} elseif (-1 != $actcM) {
+			$ret=$lastcM+($bpInput-$lastbp)/($actbp-$lastbp)*($actcM-$lastcM);
+		} else {
+			// downstream of rightmost marker
+			if ($cMmax==$cMmin) {
+				// we only have a single marker - helpless?
+				// FIMXE: implement extra point (0,0)
+				echo "&lt;p>cMmax==cMmin ($cMmax==$cMmin)\n&lt;p>";
+				$ret=-1;
+			}
+			else {
+				// extrapolating from the first to the last marker
+				$ret=$cMmin+($bpInput-$bpmin)/($bpmax-$bpmin)*($cMmax-$cMmin);
+			}
+		}
+		return($ret);
 	}
 }
 ';

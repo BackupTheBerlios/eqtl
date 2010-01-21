@@ -38,7 +38,11 @@ and 'additive' with '<sup>(i)</sup>' and '<sup>(a)</sup>'.
 =cut
 
 */
-function displayCovariates($cc){
+function displayCovariates($cc,$separator=","){
+	if (empty($cc)) return("<i>none</i>");
+	if (","!=$separator) {
+		$cc=preg_replace("/,/",", ",$cc);
+	}
 	return(preg_replace("/_add/","<sup>(a)</sup>",
 		  preg_replace("/_int/","<sup>(i)</sup>",$cc)));
 }
@@ -73,16 +77,31 @@ function convert_string_to_covariates_array($cov) {
 
 Inspects table qtl to read out all occuring covariates and return these in a list.
 
+=over 4
+
+=item dbh
+
+open connection to database
+
+=item ignorenone I<TRUE|FALSE>
+
+the empty covariate means no covariate. Depending on the context one may want to see it or not.
+Set to FALSE if the empty covariate shall be shown with the string none.
+
+=back
+
 =cut
 
- */
-function get_covars_on_your_own_from_qtl($dbh) {
+*/
+
+function get_covars_on_your_own_from_qtl($dbh,$ignorenone=TRUE) {
 	global $debug;
 	global $covariates_qtl;
 	if (isset($covariates_qtl)) {
 		return($covariates_qtl);
 	}
-	$query = "SELECT distinct covariates from qtl where covariates != ''";
+	$query = "SELECT distinct covariates from qtl";
+	if ($ignorenone) $query .= " where covariates != ''";
 	$result = mysql_query($query) or die('Query failed: ' . mysql_error());
 	$retrieved=array();
 	while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
@@ -187,6 +206,9 @@ function prepare_covariates_statistics($dbh,$initial=array()) {
 
 =head2 select_covariates
 
+A routine to print a matrix, for which every element indicates a name of a phenotype
+and two checkboxes to indicate if additive or interacting or both should be selected for.
+
 =cut
 
 */
@@ -224,16 +246,21 @@ function select_covariates($dbh,$cov,$maxPerLine=6) {
 		echo "<table>\n"
 		     ."<tr><th class=tl>$n</th></tr>\n"
 		     ."<tr><td valign=top nowrap>";
-		#foreach(("none"=="$c"?array("only"):array_merge(array("exclude"),$c)) as $v)
-		foreach(("none"=="$c"?array("only"):$c) as $v)
-		#foreach(("none"=="$c"?array("only"):array_merge($c,array("none"))) as $v)
-		{
-			echo "<input type=checkbox name=\"covariates[]\" value=\"".$n."_".$v."\"";
-			#print_r($covariates);
-			if ((!empty($covariates)) and is_array($covariates)) {
-				if (in_array(($n."_".$v),$covariates,TRUE)) echo " checked";
+
+		if ("none" == "$n") {
+			echo "<input type=radio name=covariate_selection_type value='selected' checked>selected<br>\n";
+			echo "<input type=radio name=covariate_selection_type value='all'>all available\n";
+		}
+		else {
+			foreach($c as $v) 
+			{
+				echo "<input type=checkbox name='covariates[]' value='".$n."_".$v."'";
+				#print_r($covariates);
+				if ((!empty($covariates)) and is_array($covariates)) {
+					if (in_array(($n."_".$v),$covariates,TRUE)) echo " checked";
+				}
+				echo ">$v<br>\n";
 			}
-			echo ">$v<br>\n";
 		}
 		echo " </td></tr></table>";
 		echo "</td>";
@@ -260,13 +287,15 @@ expression QTL.
 
 function select_covariates_combinations($ncol=2,$htmlFieldName="qtl_covariates") {
 	echo "<b>Covariates:</b><br>";
-	$covars = get_covars_on_your_own_from_qtl($linkLocal);
+	$covars = get_covars_on_your_own_from_qtl($linkLocal,FALSE);
 	//print_r($covars);
 	echo "<table border=0><tr>";
 	foreach($covars as $n=>$covar) {
 		if (0 == $n % $ncol) echo "</tr><tr>";
 		echo "<td>";
-		echo "<input type=\"checkbox\" name=\"".$htmlFieldName."[]\" value=\"$covar\" />";
+		echo "<input type=\"checkbox\" name=\"".$htmlFieldName."[]\" value=\"";
+		if (!empty($covar)) echo $covar; else echo "none";
+		echo "\" />";
 		echo "</td><td>";
 		echo preg_replace("/,/"," ",displayCovariates($covar));
 		echo "</td>";
