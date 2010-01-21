@@ -10,6 +10,12 @@ prepareRqtlInputData.pl - transforms expresssion data and genotype data into sin
 
 Called from the web server. Needs identifier 'probesetid' to denote the gene to be investigated.
 
+For debugging:
+
+./prepareRqtlInputData.pl [--verbose] probesetid
+
+./prepareRqtlInputData.pl [--man|--help]
+
 =head1 DESCRIPTION
 
 Except for a change in the interpretation of covariates, i.e. from interacting to additive,
@@ -23,6 +29,9 @@ it only prepares the data.
 It should be mentioned that (although preferred) the data of genotypes and phenotypes
 are not required to be in the same order. There should however be a way to match the
 names from the genotype file to the names of the phenotype file.
+
+The term phenotypes here refers to the molecular phenotypes. The classical/clinical
+phenotypes are expected together with the genotypes.
 
 =head1 OPTIONS
 
@@ -58,8 +67,23 @@ use Getopt::Long;
 my $help=0;
 my $man=0;
 my $verbose=0;
+my $applyLog2="APPLYLOG2";
+my $applyTrue;
+my $applyFalse;
 
-GetOptions("verbose" =>\$verbose, "help" => \$help, "man" => \$man) or die "Could not parse options.\n";
+GetOptions("verbose" =>\$verbose, "help" => \$help, "man" => \$man,
+	"applyLog2" => \$applyTrue, "doNotApplyLog2" => \$applyFalse
+	) or die "Could not parse options: $@.\n";
+
+if ($applyTrue and $applyFalse) {
+	die "Error, cannot instruct to both apply and not-apply Log2 transformation.\n";
+}
+elsif ($applyTrue) {
+	$applyLog2="TRUE";
+}
+elsif ($applyFalse) {
+	$applyLog2="FALSE";
+}
 
 
 my $request = FCGI::Request();
@@ -72,15 +96,33 @@ my %data =  (
 #pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man or $help;
 
+# We need the dual logarithm further down
+my $logOf2 = log(2);
+
 my $base="BASEDIR";
 my $database="URLCSVDEPOT";
 
 #
-# R E A D I N G   P H E N O T Y P E   D A T A
+#  R E A D I N G   (molecular)  P H E N O T Y P E   D A T A
 #
 
+=head3 Reading Molecular Phenotype Data
+
+The molecular phenotype data is expected to be organised in rows for
+every probeset and columns for the individuals. While initialising
+this script, all the rows are read, the name of every row (or whatever
+identifies the probe) are mapped to the line number of that row.
+
+Also, the names of all individuals are read. Analgously, a mapping of
+the individual's ID to the position in the row is performed.
+
+=cut
+
 printf STDERR "opening phenotype file\n" if $verbose;
-open(getFrom, '<', $base.$database.$data{'phenofile'}) || open(getFrom,'<', $database.$data{'phenofile'}) || open(getFrom,'<', $data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
+open(getFrom, '<', $base.$database.$data{'phenofile'})
+	|| open(getFrom,'<', $database.$data{'phenofile'})
+	|| open(getFrom,'<', $data{'phenofile'})
+	|| die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
 
 printf STDERR "reading phenotype file into hash table\n" if $verbose;
 my %probe2line;
@@ -88,10 +130,18 @@ my $individualsString = undef;
 my @individualsArray = undef;
 while( <getFrom> ){
         my $l = $_;
+	# don't expect quotes
+	$l =~ s/^"//;
+	$l =~ s/"PHENOFIELDSEP"/PHENOFIELDSEP/g;
+	$l =~ s/"$//;
 	my ($p,$_) = split( /PHENOFIELDSEP/,$l);
-	if (!defined($individualsString) and $p =~ /^(id|rat|mouse|name|ind|probeset_id)/i) {
-		$individualsString = $l;
-		@individualsArray=split(/PHENOFIELDSEP/,$individualsString);
+	if (!defined($individualsString)) {
+		print STDERR "Undefined individualsString and p='$p'.\n" if $verbose;
+		if ($p =~ /^(id|rat|mouse|name|ind|probeset)/i) {
+			$individualsString = $l;
+			@individualsArray=split(/PHENOFIELDSEP/,$individualsString);
+			print STDERR  "individualsString now set to '$individualsString'\n" if $verbose;
+		}
 		next;
 	}
 	$probe2line{$p}=$l;
@@ -104,12 +154,15 @@ print STDERR "$individualsString\n" if $verbose;
 my %individualIDtoProbePosition;
 for(my $i=0; $i<=$#individualsArray; $i++) {
 	my $id=$individualsArray[$i];
-	if ($id =~ /^MT(\d+)/) {
+	if (!defined($id)) {
+		die "Was pointed to undefined individualsArray ID entry at position $i.\n";
+	}
+	elsif ($id =~ /^MT(\d+)/) {
 		my $realId=$1;
 		#print STDERR "\$1=$1\n";
 		$individualIDtoProbePosition{"$realId"}=$i; 
 		if ($realId =~ /^0+([1-9]\d*)$/) {
-			print STDERR "Minimsed numerical ID to '$1'.\n" if $verbose;
+			print STDERR "Minimised numerical ID to '$1'.\n" if $verbose;
 			$individualIDtoProbePosition{"$1"}=$i; 
 		}
 	}
@@ -128,6 +181,15 @@ for(my $i=0; $i<=$#individualsArray; $i++) {
 #
 # R E A D I N G   G E N O T Y P E   F I L E
 #
+
+=head3 Reading genotype file
+
+The genotyping data is stored together with the genotype data in a way
+that is directly suitable as an input for R/qtl. The challenge for this
+script is (mainly) to split the genotyping file at a particular position
+and fill it with the expression data from the molecular phenotype file.
+
+=cut
 		
 printf STDERR "opening genotype file\n" if $verbose;
 my @genotypeLines;
@@ -153,10 +215,15 @@ while (FCGI::accept >= 0) {
 	if (exists($ENV{'QUERY_STRING'})) {
 		@params = split(/&/, $ENV{'QUERY_STRING'});
 	}
+
 	my $probeID;
 
 	foreach my $key (@params){
-		if( $key =~ m/probesetid/ ){
+		if( $key =~ m/probesetid/i ){
+			my @tmp = split(/=/,$key);
+			$probeID = $tmp[1];
+		}
+		elsif ($key =~ m/applyLog2/i ){
 			my @tmp = split(/=/,$key);
 			$probeID = $tmp[1];
 		}
@@ -168,10 +235,12 @@ while (FCGI::accept >= 0) {
 		$probeID = $ARGV[0];				#id of probset to insert
 	}
 
+	$applyLog2 = "APPLYLOG2" unless defined($applyLog2);
+
 	
 	if( !defined( $probeID) ){
 		print "Usage when accessed via web address :\t<url>?probesetid=<probesetid>\n",
-		      "      When accessed via command line:\tinsertProbe_online.pl gene-file pheno-file probesetid\n";
+		      "      When accessed via command line:\tprepareRqtlInputData.pl gene-file pheno-file probesetid\n";
 		exit(-1);
 	}
 
@@ -188,8 +257,8 @@ while (FCGI::accept >= 0) {
 		my @phenofields = split(/PHENOFIELDSEP/,$probe2line{$probeID});
 		
 		if( !@phenofields ){
-			print "No such probesetID: $probeID";
-			print "Some examples for probesetIDs in system: ";
+			print "No such probesetID: '$probeID'. ";
+			print "Some examples for probesetIDs in your system:\n";
 			my @ks=keys(%probe2line);
 			print "\t$ks[0]\n\t$ks[1]\n\t$ks[2]\n";
 			exit(-1);
@@ -216,7 +285,12 @@ while (FCGI::accept >= 0) {
 					print STDERR "Directed query on '$id' to field position '$positionOfPhenotypeInfo' "
 						    ."with value $phenofields[$positionOfPhenotypeInfo] for probe '$probeID'.\n" if $verbose;
 					$ret .= $sep;
-					$ret .= $phenofields[$positionOfPhenotypeInfo];
+					if ("TRUE" eq "$applyLog2") {
+						$ret .= log($phenofields[$positionOfPhenotypeInfo])/$logOf2;
+					}
+					else {
+						$ret .= $phenofields[$positionOfPhenotypeInfo];
+					}
 				}
 				else {
 					die "Cannot find phenotype data for probe '$probeID' and individual '$id'.\n";
