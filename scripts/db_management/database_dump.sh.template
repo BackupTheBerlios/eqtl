@@ -74,7 +74,7 @@ For classical QTL substitute EQTL with QTL in the variable names listed above.
 
 =item database_upload.sh
 
-script to upload that data to localhost that were dumped with this script
+script to upload that data that was dumped with this script
 
 =back
 
