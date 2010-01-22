@@ -398,6 +398,7 @@ EOWRITETODISK
 
 	my $getDataUrl='URLGETDATA?probesetid='.$probeID.'&applyLog2='.$execParams{'applyLog2'}
 			.'&score='.join(",",@covars); # this join causes the trouble
+		# the score is not interpreted by URLGETDATA for the very moment
 	my $getData = <<EOWRITETODISK;
 
 cat("Fetching data from url '$getDataUrl'.\\n")
