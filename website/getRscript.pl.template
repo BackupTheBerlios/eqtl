@@ -26,6 +26,18 @@ use FCGI;
 use CGI::Carp qw(fatalsToBrowser);
 use Cwd;
 
+use Pod::Usage;
+use Getopt::Long;
+
+my $help;
+my $man;
+my $verbose;
+
+GetOptions("verbose" =>\$verbose, "help" => \$help, "man" => \$man)
+	or die "Could not parse options: $@.\n";
+
+pod2usage(-verbose => 2) if $man or $help;
+
 my $request = FCGI::Request();
 
 
@@ -63,11 +75,6 @@ sub errorMessage($) {
 	print "q(save=\"no\")\n"
 }
 
-#
-# A counter of the number of tasks prepared
-#
-my $probeCNT = 0;
-
 
 =head2 main loop
 
@@ -76,13 +83,6 @@ The script is prepared for FastCGI. A series of parameters may be passed
 =cut
 
 while (FCGI::accept >= 0) {
-
-
-	#
-	# A counter of the number of tasks prepared
-	#
-	$probeCNT++;
-
 
 	my @params;
 	my @covars;
@@ -133,7 +133,7 @@ preset by RECALCPORT
 				'errorP' => ERRORP,
 				'draws' => DRAWS,
 				'threshold' => THRESHOLD,
-				'applyLog2' => APPLYLOG2,
+				'applyLog2' => "APPLYLOG2",
 				'method' => 'hk',
 				'cov_meth' => 'int',
 				'd'=>'RECALCDIR',
@@ -185,8 +185,6 @@ preset by RECALCPORT
 
 EOGENERATEDFILEWARNING
 	
-doc <- "
-
 =head3 Probeset ID
 
 Every QTL is for a single molecular effect only. The molecular effect is determined via the probeset ID,
@@ -195,8 +193,6 @@ probes at once. This would be of interest for inspecting probes individually or 
 expression as a covariate.
 
 =cut
-
-"
 
 	my $probeID;
 	
@@ -253,8 +249,6 @@ expression as a covariate.
 		}
 	}
 
-doc <- "
-
 =head3 Phenotype Column 'pc'
 	
 'pc' denotes the column at which to expect the phenotype that should be
@@ -263,8 +257,6 @@ modelled. It should be set to 3 for regular expression QTL analyses,
 occupying the first two columns. This will different for every project.
 
 =cut
-
-"
 
 	if( !defined($pc) ){
 		if( $probeID eq 'none' ){
@@ -286,7 +278,6 @@ occupying the first two columns. This will different for every project.
 	my @rScript;
 	my $covStr = '';
 
-doc <- "
 
 =head3 Covariates
 
@@ -296,8 +287,6 @@ cov_add uses this covariate just additive
 cov uses this covariate as given in cov_meth, either int or add
 
 =cut
-
-"
 	
 	my @covars_int = ();
 	my @covars_add = ();
