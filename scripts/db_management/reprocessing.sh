@@ -14,7 +14,10 @@ if [ "-h" = "$1" -o "--help" = "$1" ]; then
 
 =head1 NAME
 
-`basename $0` - resets a job to reprocessing state
+calculate.sh - resets a job to calculate state
+recalculate.sh - resets a job to recalculate state
+processing.sh - resets a job to processing state
+reprocessing.sh - resets a job to reprocessing state
 
 =head1 SYNOPSIS
 
@@ -27,9 +30,16 @@ to be problematic, it is not unlikely that the computation of that file should
 be reperformed or some sort. This script presents the SQL to perform
 an update of the status to '$operation'.
 
+These scripts cannot create new entries to the computation table, but
+change the instructions on how to deal with the data.
+
 =head1 EXAMPLE
 
 `basename $0` . | mysql -h eqtl.org
+
+=head1 SEE ALSO
+
+uploadExpectedFiles.pl to fill the 'computation' table.
 
 =head1 AUTHOR
 
@@ -70,4 +80,4 @@ do
 
 	fi
 done
-	
+
