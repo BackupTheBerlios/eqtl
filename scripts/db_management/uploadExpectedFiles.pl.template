@@ -8,7 +8,8 @@ uploadExpectedFiles - prepare table 'computation' of workunits
 
 =head1 SYNOPSIS
 
-Usage: uploadExpectedFiles --analysis=(scanone|scantwo|both) <covariates>\n"
+Usage: uploadExpectedFiles --analysis=(scanone|scantwo|both) none\n"
+       uploadExpectedFiles --analysis=(scanone|scantwo|both) <covariates>\n"
        uploadExpectedFiles --list | -ls | list \n"
        uploadExpectedFiles --help | -h  | help | --man  | man\n";
 
@@ -19,6 +20,11 @@ are stored in the table 'computation'. That table will be queried when new work 
 from grid jobs and is updated when the results are uploaded to the database.
 
 =head1 OPTIONS
+
+Options for thresholds etc are coming from the files in conf/* . One
+cannot change the parameters for a job once it was computed, i.e. for
+such changes one would need to create a new entry showing the same set
+of covariates but a different job name.
 
 =over 4
 
@@ -63,6 +69,12 @@ but for R/qtl.
 
 The traits to be calculated are retrieved from the table 'traits'.
 
+=head1 SEE ALSO
+
+There are scripts to reassign the status of the job descriptions in the
+here prepared table 'computation'. See computation, processing,
+recalculate, reprocessing.
+
 =head1 AUTHORS
 
 Jan Kolbaum,
@@ -72,7 +84,7 @@ Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
 
 =head1 COPYRIGHT
 
-University of LE<uuml>beck, 2009
+University of LE<uuml>beck, 2009-2010
 
 =cut
 
