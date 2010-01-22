@@ -36,14 +36,6 @@ performing changes to the configuration files.
 
 =back
 
-=head1 AUTHORS
-
-Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
-
-=head1 COPYRIGHT
-
-University of LE<uuml>beck, 2008-2009
-
 =cut
 
 use strict;
@@ -146,7 +138,10 @@ foreach my $f (@ARGV) {
 
 =head1 AUTHORS
 
-Steffen Moeller <moeller@inb.uni-luebeck.de>
-2008-2009, University of Lübeck
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+2008-2010, University of LE<uuml>beck
 
 =cut
