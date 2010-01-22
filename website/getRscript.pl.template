@@ -133,6 +133,7 @@ preset by RECALCPORT
 				'errorP' => ERRORP,
 				'draws' => DRAWS,
 				'threshold' => THRESHOLD,
+				'applyLog2' => APPLYLOG2,
 				'method' => 'hk',
 				'cov_meth' => 'int',
 				'd'=>'RECALCDIR',
@@ -171,7 +172,8 @@ preset by RECALCPORT
 			"covar=EAE",
 			"probesetid=31",
 			"phenocol=PHENOCOL",
-			"mode=scanone"
+			"mode=scanone",
+			"applyLog2=APPLYLOG2"
 		);
 	}
 
@@ -405,7 +407,8 @@ writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 }
 EOWRITETODISK
 
-	my $getDataUrl='URLGETDATA?probesetid='.$probeID.'&score='.join(",",@covars); # this join causes the trouble
+	my $getDataUrl='URLGETDATA?probesetid='.$probeID.'&applyLog2='.$execParams{'applyLog2'}
+			.'&score='.join(",",@covars); # this join causes the trouble
 	my $getData = <<EOWRITETODISK;
 
 cat("Fetching data from url '$getDataUrl'.\\n")
