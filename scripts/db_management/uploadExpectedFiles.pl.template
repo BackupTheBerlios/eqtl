@@ -8,10 +8,10 @@ uploadExpectedFiles - prepare table 'computation' of workunits
 
 =head1 SYNOPSIS
 
-Usage: uploadExpectedFiles --analysis=(scanone|scantwo|both) none\n"
-       uploadExpectedFiles --analysis=(scanone|scantwo|both) <covariates>\n"
-       uploadExpectedFiles --list | -ls | list \n"
-       uploadExpectedFiles --help | -h  | help | --man  | man\n";
+	uploadExpectedFiles --analysis=(scanone|scantwo|both) none\n"
+	uploadExpectedFiles --analysis=(scanone|scantwo|both) <covariates>\n"
+	uploadExpectedFiles --list | -ls | list \n"
+	uploadExpectedFiles --help | -h  | help | --man  | man\n";
 
 =head1 DESCRIPTION
 
