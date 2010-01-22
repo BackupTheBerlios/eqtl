@@ -68,7 +68,7 @@ my $help=0;
 my $man=0;
 my $verbose=0;
 my $applyLog2="APPLYLOG2";
-print STDERR "\n *** applyLog2 initialised to '$applyLog2'.\n\n";
+# print STDERR "\n *** applyLog2 initialised to '$applyLog2'.\n\n";
 my $applyTrue;
 my $applyFalse;
 
