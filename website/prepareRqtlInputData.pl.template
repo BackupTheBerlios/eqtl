@@ -68,6 +68,7 @@ my $help=0;
 my $man=0;
 my $verbose=0;
 my $applyLog2="APPLYLOG2";
+print STDERR "\n *** applyLog2 initialised to '$applyLog2'.\n\n";
 my $applyTrue;
 my $applyFalse;
 
@@ -193,7 +194,10 @@ and fill it with the expression data from the molecular phenotype file.
 		
 printf STDERR "opening genotype file\n" if $verbose;
 my @genotypeLines;
-open(INSERT, '<', $base.$database.$data{'genofile'}) || open(INSERT,'<', $database.$data{'genofile'}) || open(INSERT,'<', $data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
+open(INSERT, '<', $base.$database.$data{'genofile'}) 
+	|| open(INSERT,'<', $database.$data{'genofile'})
+	|| open(INSERT,'<', $data{'genofile'})
+	|| die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
 
 printf STDERR "reading genotype file into hash table\n" if $verbose;
 while(<INSERT>){
@@ -219,13 +223,14 @@ while (FCGI::accept >= 0) {
 	my $probeID;
 
 	foreach my $key (@params){
+		#print "key='$key'\n"; # verbose is not defined at this point, yet
 		if( $key =~ m/probesetid/i ){
 			my @tmp = split(/=/,$key);
 			$probeID = $tmp[1];
 		}
 		elsif ($key =~ m/applyLog2/i ){
 			my @tmp = split(/=/,$key);
-			$probeID = $tmp[1];
+			$applyLog2 = $tmp[1];
 		}
 	}
 	
@@ -234,6 +239,7 @@ while (FCGI::accept >= 0) {
 	}elsif( !defined( $probeID ) && $#ARGV == 0 ){
 		$probeID = $ARGV[0];				#id of probset to insert
 	}
+
 
 	$applyLog2 = "APPLYLOG2" unless defined($applyLog2);
 
