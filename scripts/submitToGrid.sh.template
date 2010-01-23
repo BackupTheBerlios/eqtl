@@ -1,0 +1,86 @@
+#!/bin/sh
+
+. <<EOPOD
+
+=head1 NAME
+
+submitToGrid.sh - prepare xRSL file to submit to computational grid
+
+=head1 SYNOPSIS
+
+submitToGrid.sh 
+
+=head1 DESCRIPTION
+
+The script expects everything to be prepared to execute ngsub and prepares the xRSL file
+to submit the job. For the very moment, the script is not abstracted to the degree that
+deserves it, i.e. the name of the cluster is predefined and various other parameters.
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2010
+
+=cut
+
+EOPOD
+
+
+TIMEOUT=$1
+if [ -z "$TIMEOUT" ]; then
+	TIMEOUT=24
+fi
+
+NUMBEROFJOBS=$2
+if [ -z "$NUMBEROFJOBS" ]; then
+	NUMBEROFJOBS=1
+fi
+
+INPUTFILES=${INPUTFILES:-evaluateQuery.R executeQuery.sh}
+EXECUTABLE=${EXECUTABLE:-executeQuery.sh}
+CLUSTERS=${CLUSTERS:-kiniini.csc.fi}
+NAME=${NAME:-eQTL}
+
+cmdClusters=
+if [ -z "$CLUSTERS" ]; then
+	for c in $CLUSTERS; do
+		cmdClusters = "$cmdClusters -c $c"
+	done
+fi
+
+xrslInputfiles=
+if [ -z "$INPUTFILES" ]; then
+	for i in $INPUTFILES; do
+		xrslInputfiles="$xrslInputfiles (\"$i\" \"URLWEBSITE/$i\")"
+	done
+fi
+
+
+for i in `seq 1 $NUMBEROFJOBS`
+do
+	jobname="${NAME}_${i}"
+	echo
+	echo "Starting job #$i"
+	cat <<EOXRSL > TMPDIR/${jobname}.xrsl
+&
+("jobname" = "$jobname" )
+("inputfiles" = $xrslInputfiles )
+("runtimeenvironment" = "APPS/STATISTICS/R-CRAN-QTL-1.14-2" )
+("runtimeenvironment" = "APPS/STATISTICS/R-2.8.1" )
+("walltime" = "24hours" )
+("cputime" = "24hours" )
+("outputfiles" = ("gridlog" "" ) ("evaluate_out.txt" "" ) ("/" "" ) ("evaluate_err.txt" "" ) )
+("disk" = "100" )("memory" = "1000" )
+("stdout" = "evaluate_out.txt" )("stderr" = "evaluate_err.txt" )("gmlog" = "gridlog" )
+("executable" = "$EXECUTABLE" )
+EOXRSL
+	if ngsub$cmdClusters $TMPDIR/${jobname}.xrsl ; then
+		echo " [ok]"
+	else
+		echo " [failed]"
+	fi
+	echo
+done
