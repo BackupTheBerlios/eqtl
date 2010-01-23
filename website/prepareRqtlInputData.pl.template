@@ -291,11 +291,18 @@ while (FCGI::accept >= 0) {
 					print STDERR "Directed query on '$id' to field position '$positionOfPhenotypeInfo' "
 						    ."with value $phenofields[$positionOfPhenotypeInfo] for probe '$probeID'.\n" if $verbose;
 					$ret .= $sep;
+					my $expressionValue=$phenofields[$positionOfPhenotypeInfo];
 					if ("TRUE" eq "$applyLog2") {
-						$ret .= log($phenofields[$positionOfPhenotypeInfo])/$logOf2;
+						my $expressionValueOffset = 50;
+						if (-$expressionValueOffset < $expressionValue) {
+							$ret .= log($expressionValue+$expressionValueOffset)/$logOf2;
+						}
+						else {
+							$ret .= "NA";
+						}
 					}
 					else {
-						$ret .= $phenofields[$positionOfPhenotypeInfo];
+						$ret .= $expressionValue;
 					}
 				}
 				else {
