@@ -446,8 +446,22 @@ my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, 
 acceptable <- T
 my.success<-0
 perms.done<-0
-my.max<-max(my.$mode.S\$lod)
+EOWRITETODISK
 
+if ($mode =~ /scanone/) {
+	$tryPermutations .= <<EOWRITETODISK;
+my.max<-max(my.$mode.S\$lod)
+EOWRITETODISK
+}
+elsif ($mode =~ /scantwo/) {
+	$tryPermutations .= <<EOWRITETODISK;
+my.max<-max(my.$mode.S\$lod.full)
+EOWRITETODISK
+}
+else {
+}
+
+$tryPermutations .= <<EOWRITETODISK;
 # if acceptable, perform check on maximal LOD found
 if (acceptable) {
 	if (THRESHOLD>my.max) {
@@ -457,8 +471,6 @@ if (acceptable) {
 		cat(paste("\\nRegular LOD score achieved ($mode) : ",my.max,"\\n",sep=""))
 	}
 }
-
-
 
 EOWRITETODISK
 
