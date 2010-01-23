@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 . <<EOPOD
 
 =head1 NAME
@@ -43,16 +45,22 @@ INPUTFILES=${INPUTFILES:-evaluateQuery.R executeQuery.sh}
 EXECUTABLE=${EXECUTABLE:-executeQuery.sh}
 CLUSTERS=${CLUSTERS:-kiniini.csc.fi}
 NAME=${NAME:-eQTL}
+TMPDIR=${TMPDIR:-/tmp}
+DEBUG=${DEBUG:-2}
+
+if [ -n "$DEBUG" ]; then
+	DEBUG="-d $DEBUG"
+fi
 
 cmdClusters=
-if [ -z "$CLUSTERS" ]; then
+if [ -n "$CLUSTERS" ]; then
 	for c in $CLUSTERS; do
-		cmdClusters = "$cmdClusters -c $c"
+		cmdClusters="$cmdClusters -c $c"
 	done
 fi
 
 xrslInputfiles=
-if [ -z "$INPUTFILES" ]; then
+if [ -n "$INPUTFILES" ]; then
 	for i in $INPUTFILES; do
 		xrslInputfiles="$xrslInputfiles (\"$i\" \"URLWEBSITE/$i\")"
 	done
@@ -61,23 +69,23 @@ fi
 
 for i in `seq 1 $NUMBEROFJOBS`
 do
-	jobname="${NAME}_${i}"
+	jobName="${NAME}_${i}"
 	echo
 	echo "Starting job #$i"
-	cat <<EOXRSL > TMPDIR/${jobname}.xrsl
+	cat <<EOXRSL > $TMPDIR/${jobname}.xrsl
 &
 ("jobname" = "$jobname" )
 ("inputfiles" = $xrslInputfiles )
 ("runtimeenvironment" = "APPS/STATISTICS/R-CRAN-QTL-1.14-2" )
 ("runtimeenvironment" = "APPS/STATISTICS/R-2.8.1" )
-("walltime" = "24hours" )
-("cputime" = "24hours" )
+("walltime" = "$TIMEOUT hours" )
+("cputime" = "$TIMEOUT hours" )
 ("outputfiles" = ("gridlog" "" ) ("evaluate_out.txt" "" ) ("/" "" ) ("evaluate_err.txt" "" ) )
 ("disk" = "100" )("memory" = "1000" )
 ("stdout" = "evaluate_out.txt" )("stderr" = "evaluate_err.txt" )("gmlog" = "gridlog" )
 ("executable" = "$EXECUTABLE" )
 EOXRSL
-	if ngsub$cmdClusters $TMPDIR/${jobname}.xrsl ; then
+	if ngsub$cmdClusters $TMPDIR/${jobname}.xrsl $DEBUG; then
 		echo " [ok]"
 	else
 		echo " [failed]"
