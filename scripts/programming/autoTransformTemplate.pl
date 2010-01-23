@@ -115,7 +115,7 @@ sub transform($) {
 foreach my $f (@ARGV) {
 	my $fnew;
 	if (($fnew) = $f =~ /(.*)\.template$/m) {
-		if ( !defined($force) and -M "$f" > -M  "$fnew" ) {
+		if ( -f "$fnew" and !defined($force) and -M "$f" > -M  "$fnew" ) {
 			print STDERR "  Skipping '$f', not newer than '$fnew'.\n";
 			next;
 		}
