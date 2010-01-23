@@ -41,7 +41,7 @@ if [ -z "$NUMBEROFJOBS" ]; then
 	NUMBEROFJOBS=1
 fi
 
-INPUTFILES=${INPUTFILES:-evaluateQuery.R executeQuery.sh}
+INPUTFILES=${INPUTFILES:-"evaluateQuery.R executeQuery.sh"}
 EXECUTABLE=${EXECUTABLE:-executeQuery.sh}
 CLUSTERS=${CLUSTERS:-kiniini.csc.fi}
 NAME=${NAME:-eQTL}
@@ -61,21 +61,29 @@ fi
 
 xrslInputfiles=
 if [ -n "$INPUTFILES" ]; then
+	xrslInputfiles="
+(\"inputfiles\" = "
 	for i in $INPUTFILES; do
-		xrslInputfiles="$xrslInputfiles (\"$i\" \"URLWEBSITE/$i\")"
+		xrslInputfiles="$xrslInputfiles
+      (\"$i\" \"URLWEBSITE/$i\")"
 	done
+	xrslInputfiles="$xrslInputfiles
+)"
 fi
+
+ngsub=`which ngsub||true`
+
+echo "Submitting $NUMBEROFJOBS jobs to the grid."
 
 
 for i in `seq 1 $NUMBEROFJOBS`
 do
 	jobName="${NAME}_${i}"
 	echo
-	echo "Starting job #$i"
-	cat <<EOXRSL > $TMPDIR/${jobname}.xrsl
+	echo "Starting job #$i : $jobName"
+	cat <<EOXRSL > $TMPDIR/${jobName}.xrsl
 &
-("jobname" = "$jobname" )
-("inputfiles" = $xrslInputfiles )
+("jobName" = "$jobName" )$xrslInputfiles
 ("runtimeenvironment" = "APPS/STATISTICS/R-CRAN-QTL-1.14-2" )
 ("runtimeenvironment" = "APPS/STATISTICS/R-2.8.1" )
 ("walltime" = "$TIMEOUT hours" )
@@ -85,10 +93,15 @@ do
 ("stdout" = "evaluate_out.txt" )("stderr" = "evaluate_err.txt" )("gmlog" = "gridlog" )
 ("executable" = "$EXECUTABLE" )
 EOXRSL
-	if ngsub$cmdClusters $TMPDIR/${jobname}.xrsl $DEBUG; then
-		echo " [ok]"
+	if [ -n "$ngsub" ]; then
+		if $ngsub$cmdClusters $TMPDIR/${jobname}.xrsl $DEBUG; then
+			echo " [ok]"
+		else
+			echo " [failed]"
+		fi
 	else
-		echo " [failed]"
+		echo
+		echo "Could not find ngsub - skipped submission, single xRSL file was prepared for inspection as '$TMPDIR/${jobName}.xrsl'."
 	fi
 	echo
 done
