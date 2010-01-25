@@ -54,6 +54,10 @@ Presents the calculations already in the system.
 
 Short and long summary of instructions.
 
+=item --list-covariates
+
+Display of covariates that may be added for the analysis.
+
 =item covariates
 
 list of covariates, for indicating their modelling as additive or
@@ -67,7 +71,7 @@ but for R/qtl.
 
 =back
 
-The traits to be calculated are retrieved from the table 'traits'.
+The traits (molecular phenotypes) to be calculated are retrieved from the table 'traits'.
 
 =head1 SEE ALSO
 
@@ -101,12 +105,14 @@ my $dir;
 my $help;
 my $man;
 my $list;
+my $listCovariates;
 my $verbose;
 
 GetOptions("verbose" =>\$verbose,
 	"help" => \$help,
 	"man" => \$man,
 	"list" => \$list,
+	"list-covariates" => \$listCovariates,
 	"analysis:s" => \$analysis
 ) or die "Could not parse options.\n";
 
@@ -125,7 +131,9 @@ my $dbh = DBI->connect( DATABASECON ) or die "Database connection to expression 
 my @r;
 
 
-if ($list) {
+if ($list or $listCovariates) {
+
+    if ($list) {
 	my $list_query = "select distinct application, filename from computation;";
 	my $sth_list = $dbh->prepare($list_query) or die $DBI::errstr;
 	$sth_list -> execute() or die $DBI::errstr;
@@ -144,7 +152,29 @@ if ($list) {
 	foreach my $k (sort keys %past) {
 		print "$k (".$past{$k}.")\n";
 	}
-	exit 0;
+    }
+
+    if ($listCovariates) {
+	my $list_query = "describe qtl;";
+	my $sth_list = $dbh->prepare($list_query) or die $DBI::errstr;
+	$sth_list -> execute() or die $DBI::errstr;
+	while(@r = $sth_list->fetchrow_array()) {
+		my $a=$r[0];
+		next unless $a =~ /covariates/i;
+
+		my $v = $r[1];
+		my @vv = split(/set\('|','|'\)/,$v);
+		my %vvu;
+		# taking the _int, _add away
+		foreach my $vvv (@vv) {
+			next unless $vvv =~ /_/;
+			my ($vvvv,$_) = split(/_/,$vvv);
+			$vvu{$vvvv}=1;
+		}
+		print join("\n",sort keys %vvu),"\n";
+	}
+    }
+    exit 0;
 }
 
 
