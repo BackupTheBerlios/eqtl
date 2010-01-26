@@ -59,7 +59,7 @@ the name of the nodes to submit to
 
 =item NAME
 
-identifier to appear as eQTL_\${NAME}_\$jobnumber
+identifier to appear as eQTL_${NAME}_$jobnumber
 
 =item CALCULATIONS
 
