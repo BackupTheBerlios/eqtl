@@ -18,6 +18,49 @@ The script expects everything to be prepared to execute ngsub and prepares the x
 to submit the job. For the very moment, the script is not abstracted to the degree that
 deserves it, i.e. the name of the cluster is predefined and various other parameters.
 
+=head1 OPTIONS
+
+The principles behind submitToGrid are the same as with its companion submitToTorque.
+The frist argument specifies the number of hours to perform the computations. The second argument specifies the number of grid jobs to send of (which will then retrieve jobs as long as time permits).
+
+The other options (to help the parsing) are implemented as enviornment variables.
+
+=head1 ENVIRONMENT
+
+=over 4
+
+=item INPUTFILES=${INPUTFILES:-"evaluateQuery.R executeQuery.sh"}
+
+The set of files that the grid job needs to be started
+
+=item EXECUTABLE=${EXECUTABLE:-executeQuery.sh}
+
+The file that shall be executed to get the computation going.
+
+=item CLUSTERS=${CLUSTERS:-kiniini.csc.fi}
+
+The clusters on the grid that perform the computation.
+
+=item NAME=${NAME:-eQTL}
+
+The name of the job.
+
+=item TMPDIR=${TMPDIR:-/tmp}
+
+A temprary directory.
+
+=item DEBUG=${DEBUG:-2}
+
+Debug level.
+
+=back
+
+=head1 EXAMPLE
+
+The following submits a sigle job to the default cluster.
+
+NAME="eQTL_additive"  ./submitToGrid.sh 5 1
+
 =head1 AUTHOR
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
@@ -75,6 +118,8 @@ ngsub=`which ngsub||true`
 
 echo "Submitting $NUMBEROFJOBS jobs to the grid."
 
+TIMEOUT_minutes=$(($TIMEOUT * 60))
+
 
 for i in `seq 1 $NUMBEROFJOBS`
 do
@@ -86,15 +131,15 @@ do
 ("jobName" = "$jobName" )$xrslInputfiles
 ("runtimeenvironment" = "APPS/STATISTICS/R-CRAN-QTL-1.14-2" )
 ("runtimeenvironment" = "APPS/STATISTICS/R-2.8.1" )
-("walltime" = "$TIMEOUT hours" )
-("cputime" = "$TIMEOUT hours" )
+("walltime" = "$TIMEOUT_minutes" )
 ("outputfiles" = ("gridlog" "" ) ("evaluate_out.txt" "" ) ("/" "" ) ("evaluate_err.txt" "" ) )
 ("disk" = "100" )("memory" = "1000" )
 ("stdout" = "evaluate_out.txt" )("stderr" = "evaluate_err.txt" )("gmlog" = "gridlog" )
 ("executable" = "$EXECUTABLE" )
 EOXRSL
 	if [ -n "$ngsub" ]; then
-		if $ngsub$cmdClusters $TMPDIR/${jobname}.xrsl $DEBUG; then
+		echo "Submitting to clusters $cmdClusters the file $TMPDIR/${jobName}.xrsl"
+		if $ngsub$cmdClusters $TMPDIR/${jobName}.xrsl $DEBUG; then
 			echo " [ok]"
 		else
 			echo " [failed]"
@@ -102,6 +147,7 @@ EOXRSL
 	else
 		echo
 		echo "Could not find ngsub - skipped submission, single xRSL file was prepared for inspection as '$TMPDIR/${jobName}.xrsl'."
+		exit -1
 	fi
 	echo
 done
