@@ -120,10 +120,22 @@ the individual's ID to the position in the row is performed.
 =cut
 
 printf STDERR "opening phenotype file\n" if $verbose;
-open(getFrom, '<', $base.$database.$data{'phenofile'})
-	|| open(getFrom,'<', $database.$data{'phenofile'})
-	|| open(getFrom,'<', $data{'phenofile'})
-	|| die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";		#insert-file will  be expaneded by probe-column
+my @filenames=($base.$database.$data{'phenofile'},$database.$data{'phenofile'},$database.$data{'phenofile'}, $data{'phenofile'});
+my $opened=0;
+foreach my $f (@filenames) {
+	if (open(getFrom, '<', $f)) {
+		$opened=1;
+		print STDERR "Successfully opened file '$f' with molecular phenotypes\n";
+		last;
+	}
+	else {
+		print STDERR "Failed attempt to open molecular phenotype file '$f'.\n";
+	}
+}
+
+unless ($opened) {
+	die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";
+}
 
 printf STDERR "reading phenotype file into hash table\n" if $verbose;
 my %probe2line;
@@ -194,10 +206,25 @@ and fill it with the expression data from the molecular phenotype file.
 		
 printf STDERR "opening genotype file\n" if $verbose;
 my @genotypeLines;
-open(INSERT, '<', $base.$database.$data{'genofile'}) 
-	|| open(INSERT,'<', $database.$data{'genofile'})
-	|| open(INSERT,'<', $data{'genofile'})
-	|| die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
+my @genotypeFilenames=(
+		$base.$database.$data{'genofile'},
+		$database.$data{'genofile'},
+		$data{'genofile'}
+);
+my $gfsuccess=0;
+foreach my $gf (@genotypeFilenames) {
+	if (open(INSERT,'<', $gf)) {
+		$gfsuccess=1;
+		print STDERR "Successfully opened file '$gf' with genotype information.\n";
+		last;
+	}
+	else {
+		print STDERR "Failed attempt to open genotype file '$gf'.\n";
+	}
+}
+unless ($gfsuccess) {
+	die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;		#open the file wich contains probe-data
+}
 
 printf STDERR "reading genotype file into hash table\n" if $verbose;
 while(<INSERT>){
