@@ -168,7 +168,8 @@ if ($list or $listCovariates) {
 		# taking the _int, _add away
 		foreach my $vvv (@vv) {
 			next unless $vvv =~ /_/;
-			my ($vvvv,$_) = split(/_/,$vvv);
+			my $vvvv;
+			($vvvv,$@) = split(/_/,$vvv);
 			$vvu{$vvvv}=1;
 		}
 		print join("\n",sort keys %vvu),"\n";
