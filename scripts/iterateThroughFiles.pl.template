@@ -17,7 +17,10 @@ a machine from which this script is executed. It will inspect these files and up
 the findings to the results database. It is that database from which all analyses
 are performed and without this script, no data will get there.
 
-The only argument is the folder that contains the results.
+The only argument is the folder that contains the results. The results can either be
+a tar file with a series of gzipped files, each containing the evaluation of a single
+probe for a particular set of covariates, or it could be a folder with those files,
+directly.
 
 =head1 OPTIONS
 
