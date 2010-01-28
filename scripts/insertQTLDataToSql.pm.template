@@ -686,15 +686,28 @@ sub perform {
 						print STDERR "\tWriting single effect into QTL table - scanoneline:$scanoneline" if $verbose;
 
 						unless ($dryrun) {
-							$sth_qtl->execute($compute_id,
-										$lineFields[0], # Locus/Marker
-										$trait,
-										$lineFields[3], # LOD score
-										$lineFields[4], # p-Value
-										$lineFields[1], # Chromosome
-										$lineFields[2], # cMorgan
-										$quant[0],
-										join(",",@covars_array), $phenocol);
+							if ( ! $sth_qtl->execute($compute_id,
+										 $lineFields[0], # Locus/Marker
+										 $trait,
+										 $lineFields[3], # LOD score
+										 $lineFields[4], # p-Value
+										 $lineFields[1], # Chromosome
+										 $lineFields[2], # cMorgan
+										 $quant[0],
+										 join(",",@covars_array), $phenocol))
+							{
+								print STDERR "** Problem writing single effect into QTL table: scanoneline:$scanoneline:\n"
+									 . "\t"."lineFields[0]: ". $lineFields[0]. "# Locus/Marker " ."\n"
+									 . "\t"."trait: ".$trait ."\n"
+									 . "\t"."lineFields[3]: ". $lineFields[3]. "# LOD score " ."\n"
+									 . "\t"."lineFields[4]: ". $lineFields[4]. "# p-Value " ."\n"
+									 . "\t"."lineFields[1]: ". $lineFields[1]. "# Chromosome " ."\n"
+									 . "\t"."lineFields[2]: ". $lineFields[2]. "# cMorgan " ."\n"
+									 . "\t"."quant[0]: ",$quant[0], ."\n"
+									 . "\t"."covariates: ". join(",",@covars_array)."\n"
+									 . "\t"."phenocol: ". $phenocol ."\n"
+								;
+							}
 							$sth_qtl->finish;
 
 							if( ! exists($committed_loci{$lineFields[0]}) ){
