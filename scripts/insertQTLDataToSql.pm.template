@@ -729,13 +729,19 @@ sub perform {
 								}
 								$sth_jobexists->finish;
 								if($loc_name eq ""){
-									$sth_loc->execute($lineFields[0],
+									if (!$sth_loc->execute($lineFields[0],
 											     $lineFields[1], 
-												$lineFields[2], $NULL);
+												$lineFields[2], $NULL)) {
+										print STDERR "***** FIXME *** explain what this error (ide:dguhsh) is about: ";
+										harmless($DBI::errstr,-1);
+									}
 									$sth_loc->finish;
 								}
 								elsif ($loc_name eq $lineFields[0] and $loc_pos ne $lineFields[2]){
-									$sth_loc_update->execute("$lineFields[2]","$loc_name")
+									if (!$sth_loc_update->execute("$lineFields[2]","$loc_name")) {
+										print STDERR "***** FIXME *** explain what this error (ide:dgifuhlf) is about: ";
+										harmless($DBI::errstr,-1);
+									}
 								}
 								$committed_loci{$lineFields[0]}="scanone";
 							}
