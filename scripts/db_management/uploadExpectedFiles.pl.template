@@ -187,18 +187,37 @@ if( !defined($analysis) or $analysis ne 'scanone' and $analysis ne 'scantwo' and
 my @covar = @A;
 
 my $test_query = "SELECT computation_id FROM computation WHERE jobname=?;";
-my $sth_test = $dbh->prepare($test_query) or die $DBI::errstr;
+my ($sth_test, $sth_update, $sth_insert);
+if ( ! $sth_test= $dbh->prepare($test_query)) {
+	print STDERR "$DBI::errstr";
+	$dbh->disconnect;
+	exit(-1);
+}
 
 my $update_query ="UPDATE computation SET status='RECALCULATE' WHERE jobname=?;";
-my $sth_update = $dbh->prepare($update_query) or die $DBI::errstr;
+if ( ! $sth_update = $dbh->prepare($update_query)) {
+        print STDERR "$DBI::errstr";
+	$dbh->disconnect;
+	exit(-1);
+}
+
 
 my $insert_query = "INSERT INTO computation(status, application, trait_id, jobname, filename) VALUES('QUEUED',?,?,?,?);";
-my $sth_insert = $dbh->prepare($insert_query) or die $DBI::errstr;
+my $sth_insert = $dbh->prepare($insert_query)) {
+        print STDERR "$DBI::errstr";
+	$dbh->disconnect;
+	exit(-1);
+}
 
 
 print "\tRETRIEVING TRAIT NAMES\t\t\t";
 my $sth_traits = $dbh->prepare("SELECT trait_id FROM trait;");
-$sth_traits -> execute() or die $DBI::errstr;
+if ( ! $sth_traits -> execute()) {
+	print STDERR $DBI::errstr;
+	$dbh->disconnect;
+	exit(-1);
+}
+
 my @traits;
 while (@r=$sth_traits->fetchrow_array()) {
 	push(@traits,$r[0]);
@@ -221,15 +240,27 @@ foreach my $cov (@covar) {
 			my $jobname = "scanone_".${line}."_THRESHOLD_PERMS_($cov).csv.gz";
 
 			# checking for existance of that job
-			$sth_test->execute($jobname) or die $DBI::errstr;	
+			if ( ! $sth_test->execute($jobname)) {
+				print STDERR $DBI::errstr;
+			        $dbh->disconnect;
+				exit(-1);
+			}
 			my $query;
  			my @a = $sth_test->fetchrow_array();
 			#print "\@a = (" . join(",",@a).")\n" if $verbose;
 			if(@a){
-				$sth_update->execute($jobname) or die $DBI::errstr;
+				if ( ! $sth_update->execute($jobname)) {
+					print STDERR $DBI::errstr;
+					$dbh->disconnect;
+					exit(-1);
+				}
 			}
 			else{
-				$sth_insert->execute('SCANONE',$line,$jobname,$jobname) or die $DBI::errstr;
+				if ( ! $sth_insert->execute('SCANONE',$line,$jobname,$jobname)) {
+					print STDERR $DBI::errstr;
+					$dbh->disconnect;
+					exit(-1);
+				}
 			}
 		}
 	}
@@ -242,16 +273,28 @@ foreach my $cov (@covar) {
 			my $jobname = "scantwo_".${line}."_THRESHOLD_PERMS_($cov).csv.gz";
 
 			# checking for existance of that job
-			$sth_test->execute($jobname) or die $DBI::errstr;	
+			if ( $sth_test->execute($jobname) or die $DBI::errstr;	
 			my $query;
  			my @a = $sth_test->fetchrow_array();
 			if(@a){
-				$sth_update->execute($jobname) or die $DBI::errstr;
+				if ( $sth_update->execute($jobname)) {
+					print STDERR $DBI::errstr;
+					$dbh->disconnect;
+					exit(-1);
+				}
 			}
 			else{
-				$sth_insert->execute('SCANTWO',$line,$jobname,$jobname);
+				if ( $sth_insert->execute('SCANTWO',$line,$jobname,$jobname)) {
+					print STDERR $DBI::errstr;
+					$dbh->disconnect;
+					exit(-1);
+				}
 			}
 		}
 	}
 }
 print "\t[DONE]\n";
+
+$dbh->disconnect;
+
+
