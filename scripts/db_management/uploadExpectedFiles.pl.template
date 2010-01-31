@@ -168,11 +168,18 @@ if ($list or $listCovariates) {
 		# taking the _int, _add away
 		foreach my $vvv (@vv) {
 			next unless $vvv =~ /_/;
-			my $vvvv;
-			($vvvv,$@) = split(/_/,$vvv);
-			$vvu{$vvvv}=1;
+			my ($vvvv,$addInt);
+			($vvvv,$addInt) = split(/_/,$vvv);
+			if (exists($vvu{$vvvv})) {
+				push @{$vvu{$vvvv}},$addInt;
+			}
+			else {
+				$vvu{$vvvv}=[$addInt];
+			}
 		}
-		print join("\n",sort keys %vvu),"\n";
+		foreach my $k (sort keys %vvu) {
+			print "$k\t(".join(",",@{$vvu{$k}}).")\n";
+		}
 	}
     }
     exit 0;
@@ -187,15 +194,17 @@ if( !defined($analysis) or $analysis ne 'scanone' and $analysis ne 'scantwo' and
 my @covar = @A;
 
 my $test_query = "SELECT computation_id FROM computation WHERE jobname=?;";
-my ($sth_test, $sth_update, $sth_insert);
-if ( ! $sth_test= $dbh->prepare($test_query)) {
+my ($sth_test, $sth_update, $sth_insert, $sth_traits);
+print "huhu";
+
+unless (defined($sth_test = $dbh->prepare($test_query))) {
 	print STDERR "$DBI::errstr";
 	$dbh->disconnect;
 	exit(-1);
 }
 
 my $update_query ="UPDATE computation SET status='RECALCULATE' WHERE jobname=?;";
-if ( ! $sth_update = $dbh->prepare($update_query)) {
+unless (defined($sth_update = $dbh->prepare($update_query))) {
         print STDERR "$DBI::errstr";
 	$dbh->disconnect;
 	exit(-1);
@@ -203,7 +212,7 @@ if ( ! $sth_update = $dbh->prepare($update_query)) {
 
 
 my $insert_query = "INSERT INTO computation(status, application, trait_id, jobname, filename) VALUES('QUEUED',?,?,?,?);";
-my $sth_insert = $dbh->prepare($insert_query)) {
+unless (defined($sth_insert = $dbh->prepare($insert_query))) {
         print STDERR "$DBI::errstr";
 	$dbh->disconnect;
 	exit(-1);
@@ -211,7 +220,7 @@ my $sth_insert = $dbh->prepare($insert_query)) {
 
 
 print "\tRETRIEVING TRAIT NAMES\t\t\t";
-my $sth_traits = $dbh->prepare("SELECT trait_id FROM trait;");
+$sth_traits = $dbh->prepare("SELECT trait_id FROM trait;");
 if ( ! $sth_traits -> execute()) {
 	print STDERR $DBI::errstr;
 	$dbh->disconnect;
@@ -273,18 +282,23 @@ foreach my $cov (@covar) {
 			my $jobname = "scantwo_".${line}."_THRESHOLD_PERMS_($cov).csv.gz";
 
 			# checking for existance of that job
-			if ( $sth_test->execute($jobname) or die $DBI::errstr;	
+			if ( ! $sth_test->execute($jobname)) {
+				print STDERR $DBI::errstr;
+				$dbh->disconnect;
+				exit(-1);
+			}
+
 			my $query;
  			my @a = $sth_test->fetchrow_array();
 			if(@a){
-				if ( $sth_update->execute($jobname)) {
+				if ( ! $sth_update->execute($jobname)) {
 					print STDERR $DBI::errstr;
 					$dbh->disconnect;
 					exit(-1);
 				}
 			}
 			else{
-				if ( $sth_insert->execute('SCANTWO',$line,$jobname,$jobname)) {
+				if ( ! $sth_insert->execute('SCANTWO',$line,$jobname,$jobname)) {
 					print STDERR $DBI::errstr;
 					$dbh->disconnect;
 					exit(-1);
