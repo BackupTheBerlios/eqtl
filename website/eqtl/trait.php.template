@@ -35,7 +35,13 @@ needs to be performed once by the maintainer of this installation.
 
 =head1 SEE ALSO
 
-scripts/db_management/trait_ensembl_transfer.pl
+=over 4
+
+=item scripts/db_management/trait_ensembl_transfer.pl - 
+
+=item trait_summary.php - overview on covariates for single trait
+
+=cut
 
 =head1 AUTHOR
 
