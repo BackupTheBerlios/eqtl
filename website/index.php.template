@@ -167,32 +167,7 @@ if (0<count($vals_single)) {
 		else {
 			$first=0;
 		}
-		if ("none" == "$vs") {
-			echo "<a href=\"URLPORTALROOT/qtl.php?";
-			$ffirst=1;
-			foreach ($vals_single as $vss) {
-				if(!$ffirst) {
-					echo "&";
-				}
-				else {
-					$ffirst=0;
-				}
-				$pair=preg_split("/_/","$vss");
-				echo strtolower($pair[0])."[]=none";
-			}
-		}
-		else {
-			echo "<a href=\"URLPORTALROOT/qtl.php?";
-			$multipleCovars=preg_split("/,/",$vs);
-			foreach ($multipleCovars as $n=>$m) {
-				if ($n>0) {
-					echo "&";
-				}
-				$pair=preg_split("/_/","$m");
-				echo strtolower($pair[0])."[]=".$pair[1];
-			}
-		}
-		echo "\">$vs</a>";
+		echo "<a href=\"URLPORTALROOT/qtl.php?covariates=$vs"\">$vs</a>";
 	}
 	echo "<br>\n";
 }
