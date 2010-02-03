@@ -195,7 +195,6 @@ my @covar = @A;
 
 my $test_query = "SELECT computation_id FROM computation WHERE jobname=?;";
 my ($sth_test, $sth_update, $sth_insert, $sth_traits);
-print "huhu";
 
 unless (defined($sth_test = $dbh->prepare($test_query))) {
 	print STDERR "$DBI::errstr";
