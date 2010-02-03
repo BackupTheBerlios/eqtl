@@ -1,0 +1,213 @@
+<?php
+
+/*
+
+	TEMPLATEWARNINGHASH
+
+=head1 NAME
+
+trait_summary.php - presenting all covariates for single trait
+
+=head1 DESCRIPTION
+
+This PHP script prepares a table with all covariates in the system and the interacting and additive effects between them - all for a single given trait that is passed as an argument.
+
+=head1 OPTIONS
+
+=over 4
+
+=item traits
+
+Single trait to display, the presentation of multiple traits is not implemented.
+
+=back
+
+=head1 SEE ALSO
+
+trait.php
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2010
+
+=cut
+
+
+*/
+
+	require_once("header.php");
+	$database="DATABASEEQTLNAME";
+	require_once("func_connect.php");
+	require_once("func_covariates.php");
+	require_once("func_selection.php"); // prints parts of the HTML for forms
+
+	show_small_header("Summary for single eTrait",TRUE);
+
+	foreach(array("direct", "submitted",
+			"debug",
+			"qtl_covariates",
+			"traitlist", "traits",
+			"limit","order","innerOrder") as $vname)
+	{
+		if (isset($_POST[$vname])) {
+			$$vname = $_POST[$vname];
+		}
+		elseif(isset($_GET[$vname])) {
+			$$vname = $_GET[$vname];
+			//if ("expr_pos_cor_max" == "$vname") echo "found $vname to be " . $$vname . "\n";
+			//if ("phen" == "$vname") echo "found $vname to be " . $$vname . "\n";
+		}
+	}
+
+
+	if (!empty($traitlist)) {
+		if (is_array($traitlist)) {
+			$traits=join(",",$traitlist);
+		}
+		else {
+			$traits=$traitlist;
+			$traitlist="";
+		}
+	}
+
+
+	require_once("func_connect.php");
+	//require_once("func_species.php");
+	//require_once("func_conversion_ENSEMBLVERSION.php");
+
+	if (empty($traits)) {
+		$url="http://".$_SERVER["HTTP_HOST"].":".$_SERVER["HTTP_PORT"].$_SERVER["SCRIPT_NAME"]."?traits=10700825";
+		# print_r($_SERVER);
+		echo "Try this URL <a href=\"$url\">$url</a> as an example.";
+		errorMessage("No trait specified.");
+		exit;
+	}
+
+	$traitlist=preg_split("/,/",$traits);
+
+	echo "Traitlist: "; 
+	print_r($traitlist);
+
+	foreach ($traitlist as $trait_id) {
+
+		$qtls = array();
+
+		$qtls_query = mysql_query("SELECT * FROM qtl WHERE Trait='$trait_id';")
+				or die("Query '$query' failed: " . mysql_error());
+
+		$chromosome_info = array();
+		$covars_seen = array();
+		$covars_seen_short = array();
+
+		# There is only a single QTL for a covariate set on one chromosome
+		# The chromosomes need to be treated separately
+ 
+		echo "Reading in data from database.";
+
+		while ($qtls_result = mysql_fetch_array($qtls_query,MYSQL_ASSOC)) {
+			#print_r($qtls_result);
+
+			$covariates=$qtls_result["covariates"];
+			$chromosome=$qtls_result["Chromosome"];
+
+			if (!empty($debug)) {
+				echo "Chromosome: $chromosome, covariates: $covariates<br>\n";
+			}
+
+			if (!array_key_exists($chromosome,$chromosome_info)) {
+				$chromosome_info[$chromosome]=array();
+				$covars_seen[$chromosome]=array();
+				$covars_seen_short[$chromosome]=array();
+			}
+
+			if (empty($covariates)) $covariates="none";
+			$chromosome_info[$chromosome][$covariates]=$qtls_result;
+
+			$covs = preg_split("/,/",$covariates);
+			foreach ($covs as $c) {
+				if (!array_key_exists($c,$covars_seen[$chromosome])) {
+					$covars_seen[$chromosome][$c]=array();
+				}
+				$covars_seen[$chromosome][$c][$covariates]=$qtls_result;
+
+				$cc = preg_split("/_/",$c);
+				if (!array_key_exists($cc[0],$covars_seen_short[$chromosome])) {
+					$covars_seen_short[$chromosome][$cc[0]]=array();
+				}
+				$covars_seen_short[$chromosome][$cc[0]][$covariates]=$qtls_result;
+
+			}
+		}
+
+		echo "<h1>Details on trait '$trait_id'</h1>\n";
+
+		function displayQtlEntry($q) {
+			echo "<dt>".(empty($q["covariates"])?"none":$q["covariates"]);
+			echo "<dd>";
+			#print_r($q);
+			echo "LOD: ".round($q["LOD"],2)."<br>\n";
+			echo "P-Value: ".$q["pvalue"];
+			#print_r($q);
+			echo "</dd>";
+		}
+
+		foreach ($chromosome_info as $chr => $info) {
+
+			echo "<h2>$chr</h2>\n";
+
+			if (!empty($debug)) {
+				#echo "<dl>";
+				#$qtls = $chromosome_info[$chr];
+				#foreach ($qtls as $covariates=>$qtl) {
+				#	displayQtlEntry($qtl);
+				#}
+				#echo "</dl>";
+			}
+
+			echo "<table border=1>\n";
+			/* header */
+			echo "<thead><tr><th></th>";
+			foreach ($covars_seen_short[$chr] as $n=>$covsFrom) {
+				echo "<th>$n</th>";
+			}
+			echo "</tr></thead>\n";
+			/* body */
+			echo "<tbody>\n";
+			foreach ($covars_seen_short[$chr] as $nFrom=>$qtlsFrom) {
+				echo "<tr><th>$nFrom</th>";
+				foreach ($covars_seen_short[$chr] as $nTo=>$qtlsTo) {
+					echo "<td nowrap>";
+					echo "<dl>\n";
+
+					if ("none" == $nFrom) {
+						foreach ($qtlsFrom as $qFrom) {
+							displayQtlEntry($qFrom);
+						}
+					}
+					else {
+						foreach ($qtlsTo as $covariates=>$q) {
+							if (empty($q["covariates"]) or preg_match("/${nFrom}_/",$q["covariates"])) {
+								#print_r($q);
+								displayQtlEntry($q);
+							}
+						}
+
+					}
+					echo "</dl>\n";
+					echo "</td>";
+				}
+			}
+			echo "</tr>\n";
+		}
+		echo "</tbody>\n";
+		echo "</table>";
+	}
+
+	include("footer.php");
+?>
+    </body>
+</html>
