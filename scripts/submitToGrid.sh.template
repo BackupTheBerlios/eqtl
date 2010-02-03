@@ -37,7 +37,7 @@ The set of files that the grid job needs to be started
 
 The file that shall be executed to get the computation going.
 
-=item CLUSTERS=${CLUSTERS:-kiniini.csc.fi}
+=item CLUSTERS=${CLUSTERS:-"fyrgrid.grid.aau.dk kiniini.csc.fi"}
 
 The clusters on the grid that perform the computation.
 
@@ -86,7 +86,7 @@ fi
 
 INPUTFILES=${INPUTFILES:-"evaluateQuery.R executeQuery.sh"}
 EXECUTABLE=${EXECUTABLE:-executeQuery.sh}
-CLUSTERS=${CLUSTERS:-kiniini.csc.fi}
+CLUSTERS=${CLUSTERS:-"kiniini.csc.fi fyrgrid.grid.aau.dk"}
 NAME=${NAME:-eQTL}
 TMPDIR=${TMPDIR:-/tmp}
 DEBUG=${DEBUG:-2}
@@ -120,34 +120,76 @@ echo "Submitting $NUMBEROFJOBS jobs to the grid."
 
 TIMEOUT_minutes=$(($TIMEOUT * 60))
 
+JobsPerFile=5
+MaxFilesPerNgSub=15
+CurFilesPerNgSub=0
+FileNameList=""
+FileNamesInListCounter=0
+xRslFilename="/tmp/unset.deleteme"
+
+submitJob() {
+		echo 
+		echo
+		if [ -z "$ngsub" ]; then
+			echo "Could not find ngsub - skipped submission, single xRSL file was prepared for inspection as '$xRslFilename'."
+			exit -1
+		fi
+		#echo "Starting submit to clusters $cmdClusters of $FileNamesInListCounter files: $FileNameList"  
+		echo "Starting submit to clusters $cmdClusters of $FileNamesInListCounter"  
+		if $ngsub${cmdClusters}${FileNameList} $DEBUG; then
+			echo " [ok]"
+		else
+			echo " [failed]"
+		fi
+}
+
 
 for i in `seq 1 $NUMBEROFJOBS`
 do
 	jobName="${NAME}_${i}"
 	echo
 	echo "Starting job #$i : $jobName"
-	cat <<EOXRSL > $TMPDIR/${jobName}.xrsl
+	xRslFilename="$TMPDIR/${jobName}.xrsl"
+	FileNameList="$FileNameList $xRslFilename"
+	FileNamesInListCounter=$(($FileNamesInListCounter + 1))
+
+	if [ -r "$xRslFilename" ]; then rm -f "$xRslFilename"; fi
+
+	if [ -n $JobsPerFile ] && [ 1 -lt $JobsPerFile ]; then
+		echo "Preparing file '$xRslFilename'."
+		echo "+" > $xRslFilename
+	fi
+
+	for jobsubno in $(seq 1 $JobsPerFile)
+	do
+		if [ -n $JobsPerFile ] && [ 1 -lt $JobsPerFile ]; then
+			if [ 1 = $jobsubno ]; then echo "+" > $xRslFilename; fi
+			echo "(" >> $xRslFilename
+		fi
+		cat <<EOXRSL >> $xRslFilename
 &
-("jobName" = "$jobName" )$xrslInputfiles
+("jobName" = "$jobName.$jobsubno" )$xrslInputfiles
 ("runtimeenvironment" = "APPS/STATISTICS/R-CRAN-QTL-1.14-2" )
 ("runtimeenvironment" = "APPS/STATISTICS/R-2.8.1" )
 ("walltime" = "$TIMEOUT_minutes" )
-("outputfiles" = ("gridlog" "" ) ("evaluate_out.txt" "" ) ("/" "" ) ("evaluate_err.txt" "" ) )
+("outputfiles" = ("gridlog" "" ) ("evaluate_out.txt" "" ) ("/" "" ) ("evaluate_err.txt" "" ) ("evaluatedQueries.tar" ""))
 ("disk" = "100" )("memory" = "1000" )
 ("stdout" = "evaluate_out.txt" )("stderr" = "evaluate_err.txt" )("gmlog" = "gridlog" )
 ("executable" = "$EXECUTABLE" )
 EOXRSL
-	if [ -n "$ngsub" ]; then
-		echo "Submitting to clusters $cmdClusters the file $TMPDIR/${jobName}.xrsl"
-		if $ngsub$cmdClusters $TMPDIR/${jobName}.xrsl $DEBUG; then
-			echo " [ok]"
-		else
-			echo " [failed]"
+		if [ -n $JobsPerFile ] && [ 1 -lt $JobsPerFile ]; then
+			echo ")" >> $xRslFilename
 		fi
-	else
-		echo
-		echo "Could not find ngsub - skipped submission, single xRSL file was prepared for inspection as '$TMPDIR/${jobName}.xrsl'."
-		exit -1
+	done
+
+	if [ $FileNamesInListCounter -ge $MaxFilesPerNgSub ]; then
+		submitJob
+		FileNamesInListCounter=0
+		FileNameList=""
 	fi
 	echo
 done
+
+if [ -n $FileNamesInListCounter ]; then
+	submitJob
+fi
