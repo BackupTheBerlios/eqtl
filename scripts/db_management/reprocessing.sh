@@ -8,20 +8,23 @@ then
 	exit -1
 fi
 
-if [ "-h" = "$1" -o "--help" = "$1" ]; then
+if [ "-h" = "$1" -o "--help" = "$1" -o -"-man" = "$1" -o "-help" = "$1" ]; then
 
 : <<=cut
 
 =head1 NAME
 
 calculate.sh - resets a job to calculate state
+
 recalculate.sh - resets a job to recalculate state
+
 processing.sh - resets a job to processing state
+
 reprocessing.sh - resets a job to reprocessing state
 
 =head1 SYNOPSIS
 
-`basename $0` <jobnames, expected to be file- or directory names>
+(calculate|recalculate|processing|reprocessing).sh <jobnames, expected to be file- or directory names>
 
 =head1 DESCRIPTION
 
@@ -35,7 +38,7 @@ change the instructions on how to deal with the data.
 
 =head1 EXAMPLE
 
-`basename $0` . | mysql -h eqtl.org
+calculate.sh . | mysql -h eqtl.org
 
 =head1 SEE ALSO
 
@@ -50,8 +53,14 @@ Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
 University of LE<uuml>beck, 2009
 
 =cut
-	pod2man $0 | nroff -man | less
-	exit 1;
+
+	if which pod2man; then
+		pod2man $0 | nroff -man | less
+	else
+		echo "Please install 'pod2man' for the display of the help text."
+	fi
+	exit 1
+
 fi
 
 function doit {
