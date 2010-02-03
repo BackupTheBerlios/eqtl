@@ -840,13 +840,22 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 						break;
 					case "Trait":
 						$traitid=$l;
-						echo "<td align=right nowrap valign=top rowspan=$numberOfLociToShow>"
+						echo "<td align=left nowrap valign=top rowspan=$numberOfLociToShow>"
 						."<a href=\"".probe2ensemblUrl($l,$species_name_ensembl_core)
-						."\">$l</a> ["
-						."<a href=\"qtl.php?traitlist=$l\">q</a>"
-						."<a href=\"interaction.php?traitlist=$l&type=X\">i</a>"
-						."<a href=\"interaction.php?traitlist=$l&type=Y\">j</a>"
-						."]";
+						."\">$l</a>";
+						echo "<ul>"
+						."<li>Singular Effects"
+						."<ul>"
+						."<li><a href=\"qtl.php?traitlist=$l\">QTL form - entry mask</a>"
+						."<li><a href=\"qtl.php?traitlist=$l\">QTL form - show all</a>"
+						."<li><a href=\"trait_summary.php?traitlist=$l\">Tabular overview</a>"
+						."</ul>"
+						."<li>Interactions"
+						."<ul>"
+						."<li><a href=\"interaction.php?traitlist=$l&type=X\">i</a>"
+						."<li><a href=\"interaction.php?traitlist=$l&type=Y\">j</a>"
+						."</ul>"
+						."</ul>";
 						echo "<br>";
 						echo "<a href=\""
 						    .probe2ensemblSearchUrl($l,$species_name_ensembl_core)
