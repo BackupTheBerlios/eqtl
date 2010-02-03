@@ -1,0 +1,111 @@
+#!/usr/bin/perl -w
+
+TEMPLATEWARNINGHASH
+
+=head1 NAME
+
+checkIfUploaded - tests if a filename appears as such in the computation table
+
+=head1 SYNOPSIS
+
+	checkIfUploaded [options] filenames 
+
+=head1 DESCRIPTION
+
+The workunits, i.e. combinations of traits with covariates and the
+analysis to be perfomed, are stored in the table 'computation'. That
+table will be queried when new work is demanded from grid jobs and is
+updated when the results are uploaded to the database.
+
+The results from individual computations are stored as files. The
+computation table has an attribute 'filename' that should list the
+basnemae of the respective file. This script individually checks for
+every file given as an argument if that is stored in the table or not.
+
+The script becomes particularly handy for organising the upload of
+files since (with multiple computations running in parallel and tasks
+not always being separateable) it is now always clear if a file has
+already been updated or not.
+
+=head1 OPTIONS
+
+=head1 SEE ALSO
+
+There are scripts to reassign the status of the job descriptions in the
+here prepared table 'computation'. See computation, processing,
+recalculate, reprocessing.
+
+The tool preparing the entries in calculations.php is uploadExpectedFiles.
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2010
+
+=cut
+
+use strict;
+use Cwd;
+use DBI;
+use Pod::Usage;
+use Getopt::Long;
+
+use File::Basename;
+
+
+
+my $analysis;
+my $dir;
+my $help;
+my $man;
+my $list;
+my $listCovariates;
+my $verbose;
+
+GetOptions("verbose" =>\$verbose,
+	"help" => \$help,
+	"man" => \$man,
+) or die "Could not parse options.\n";
+
+TEMPLATEWARNINGHASH
+
+my @A=@ARGV;
+
+pod2usage(-verbose => 1) if $help;
+pod2usage(-verbose => 2) if $man;
+
+print "key params: analysis:$analysis \@A:".join(",",@A)."\n" if $verbose;
+
+my $dbh = DBI->connect( DATABASECON ) or die "Database connection to expression QTLs could not be established: $DBI::errstr";
+	
+my $list_query = "select computation_id, status from computation where filename=?;";
+my $sth_list = $dbh->prepare($list_query) or die $DBI::errstr;
+
+foreach my $arg (@ARGV) {
+
+	my $b = basename($arg);
+
+	if ( ! $sth_list->execute($b) ) {
+		print STDERR $DBI::errstr;
+		$dbh->disconnect;
+		exit(-1);
+	}
+
+	my @r;
+	if (@r = $sth_list->fetchrow_array()) {
+		my $computation_id = $r[0];
+		my $status = $r[1];
+		print "known\t$status\t$arg\t$computation_id\n";
+		while(@r = $sth_list->fetchrow_array()) {
+			print STDERR "redundant\t$computation_id\t$r[0]\n";
+		}
+	}
+	else {
+		print "unknown\t$arg\t$b\n";
+	}
+}
+
+$dbh->disconnect;
