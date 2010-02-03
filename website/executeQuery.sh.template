@@ -1,0 +1,131 @@
+#!/bin/sh
+
+TEMPLATEWARNINGHASH
+
+if [ "-h" = "$1" -o "--help" = "$1" ]; then
+
+: <<=cut
+
+=head1 NAME
+
+executeQuery.sh - calculate several expression QTL
+
+=head1 SYNOPSIS
+
+executeQuery.sh
+
+=head1 DESCRIPTION
+
+This script, a wrapper of the evaluateExpression.R script, initiates
+the computation of expression QTL. No particular preparation needs to
+be performed, except for the project-invariant installation of a recent
+R/qtl package.  Only this regular shell script shall be copied to the
+destination host and executed.  Several workunits are performed.
+
+The script ends when no further jobs are available or after a
+maximal number of hours has been invested. This script is meant to
+be used in syntheny with a queueing system. Just qsub this script,
+see 'scripts/submitToTorqueLocally.sh' for a script to do that in a
+nicer fashion. If you don't have a queueing system at your disposal
+(you should), then ensure to have ssh-access to these machines that
+does not require the entering of passwords. See 'ssh-copy-id (1)' for
+details. Then copy this script over and execute it:
+
+   # remove previous calculations
+   for i in `seq 131 150`; do ssh -f griduser1@141.83.147.$i rm -rf RECALCDIR executeQuery.sh nohup.out evaluateQuery.Rout evaluatedQueries.tar; done
+   # copy over this script
+   for i in `seq 131 150`; do scp executeQuery.sh griduser1@141.83.147.$i: ; done
+   # execute it in the background
+   for i in `seq 131 150`; do ssh -f griduser1@141.83.147.$i nohup ./executeQuery.sh; done
+   
+The retrieval of the final data is performed by another scp
+
+   for i in `seq 131 150`; do scp griduser@141.83.147.$i:evaluatedQueries.tar . ; done
+
+
+=head1 ENVIRONMENT
+
+=over 4
+
+=item TIMEOUT
+
+maximal number of hours to spend
+
+=item JOBNOMAX
+
+maximal number of workunits to perform
+
+=back
+
+=head1 SEE ALSO
+
+scripts/submitToTorqueLocally.sh,
+ssh-copy-id (1)
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+Benedikt Bauer <bauer@cls.uni-luebeck.de>,
+Ann-Kristin Grimm <grimm@cls.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, 2009
+
+=cut
+
+	pod2man $0 | nroff -man | less
+	exit
+
+fi
+
+# bail out in case of error
+set -e
+
+if [ -r ../evaluatedQueries.tar ]; then
+	echo "!!!!ATTENTION!!!! There is another RECALCDIR/../evaluatedQueries.tar file. Cannot continue."
+	exit 1
+fi
+
+
+Rscript=evaluateQuery.R
+
+if [ ! -r "$Rscript" -a -x /usr/bin/wget ]; then
+	echo "Cannot find R script '$Rscript', attempting download from web."
+	wget URLWEBSITE/$Rscript
+else
+	echo "Reusing existing script '$Rscript' in `pwd`."
+fi
+
+if [ ! -r "$Rscript" ]; then
+	echo "Could not find R script to execute, expected at '$Rscript'."
+	exit 1
+fi
+
+if [ -n "$VERBOSE" ]; then echo "Invoking R script."; fi
+
+
+if ! TIMEOUT=70 R CMD BATCH --vanilla --no-save $Rscript; then
+	echo "Problem with executing R script at '$Rscript' in `pwd`."
+	echo "Collecting results to the degree that these are available";
+fi
+
+if [ -n "$VERBOSE" ]; then echo "R script completed"; fi
+
+if ! cd RECALCDIR; then
+	echo "Could not change into 'RECALCDIR', exiting."
+	exit -1
+fi
+
+# packing ".", the few extra files are tolerated, passing long
+# argument list is circumvented
+TARCMD="tar cf ../evaluatedQueries.tar ."
+
+if $TARCMD; then
+	echo "Taring RECALCDIR/*.gz was successful."
+	rm -f *.gz
+else
+	echo "Could not tar *.gz files, leaving everything as it was."
+	echo "Please use results directly from RECALCDIR folder.!"
+fi
+
