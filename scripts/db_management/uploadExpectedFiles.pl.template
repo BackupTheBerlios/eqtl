@@ -98,7 +98,7 @@ use DBI;
 use Pod::Usage;
 use Getopt::Long;
 
-
+TEMPLATEWARNINGHASH
 
 my $analysis;
 my $dir;
