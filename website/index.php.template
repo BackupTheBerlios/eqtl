@@ -167,7 +167,7 @@ if (0<count($vals_single)) {
 		else {
 			$first=0;
 		}
-		echo "<a href=\"URLPORTALROOT/qtl.php?covariates=$vs"\">$vs</a>";
+		echo "<a href=\"URLPORTALROOT/qtl.php?covariates=$vs\">$vs</a>";
 	}
 	echo "<br>\n";
 }
