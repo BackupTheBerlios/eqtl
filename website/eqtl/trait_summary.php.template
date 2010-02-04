@@ -89,8 +89,11 @@ University of LE<uuml>beck, 2010
 
 	$traitlist=preg_split("/,/",$traits);
 
-	echo "Traitlist: "; 
-	print_r($traitlist);
+	if ($debug) {
+		#echo "Traitlist: "; 
+		#print_r($traitlist);
+		#print "Debug=$debug";
+	}
 
 	foreach ($traitlist as $trait_id) {
 
@@ -114,9 +117,9 @@ University of LE<uuml>beck, 2010
 			$covariates=$qtls_result["covariates"];
 			$chromosome=$qtls_result["Chromosome"];
 
-			if (!empty($debug)) {
-				echo "Chromosome: $chromosome, covariates: $covariates<br>\n";
-			}
+			#if (!empty($debug)) {
+			#	echo "Chromosome: $chromosome, covariates: $covariates<br>\n";
+			#}
 
 			if (!array_key_exists($chromosome,$chromosome_info)) {
 				$chromosome_info[$chromosome]=array();
@@ -178,22 +181,43 @@ University of LE<uuml>beck, 2010
 			/* body */
 			echo "<tbody>\n";
 			foreach ($covars_seen_short[$chr] as $nFrom=>$qtlsFrom) {
-				echo "<tr><th>$nFrom</th>";
+				echo "<tr><th>"
+					#."From: "
+					."$nFrom</th>";
 				foreach ($covars_seen_short[$chr] as $nTo=>$qtlsTo) {
 					echo "<td nowrap>";
 					echo "<dl>\n";
 
 					if ("none" == $nFrom) {
 						foreach ($qtlsFrom as $qFrom) {
-							displayQtlEntry($qFrom);
+							#if (preg_match("/^${nTo}_(int|add)\$/",$qFrom["covariates"])) {
+								displayQtlEntry($qFrom);
+							#}
+						}
+					}
+					else if ("none" == $nTo) {
+						foreach ($qtlsTo as $qTo) {
+							#if (preg_match("/^${nFrom}_(int|add)\$/",$qFrom["covariates"])) {
+								displayQtlEntry($qTo);
+							#}
 						}
 					}
 					else {
 						foreach ($qtlsTo as $covariates=>$q) {
-							if (empty($q["covariates"]) or preg_match("/${nFrom}_/",$q["covariates"])) {
+							#if (empty($q["covariates"]) and "none"="$) {
+							#	#displayQtlEntry($q);
+							#}
+							#else
+							if (!preg_match("/${nFrom}_(int|add)/",$q["covariates"])) {
 								#print_r($q);
-								displayQtlEntry($q);
+								continue;
 							}
+							if ("$nFrom" == "$nTo") {
+								if (!preg_match("/^${nFrom}_(int|add)\$/",$q["covariates"])) {
+									continue;
+								}
+							}
+							displayQtlEntry($q);
 						}
 
 					}
