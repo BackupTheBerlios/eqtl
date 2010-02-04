@@ -160,7 +160,7 @@ University of LE<uuml>beck, 2010
 
 		foreach ($chromosome_info as $chr => $info) {
 
-			echo "<h2>$chr</h2>\n";
+			echo "<h2>Chromosome $chr</h2>\n";
 
 			if (!empty($debug)) {
 				#echo "<dl>";
@@ -224,12 +224,12 @@ University of LE<uuml>beck, 2010
 					echo "</dl>\n";
 					echo "</td>";
 				}
+				echo "</tr>\n";
 			}
-			echo "</tr>\n";
-		}
-		echo "</tbody>\n";
-		echo "</table>";
-	}
+			echo "</tbody>\n";
+			echo "</table>";
+		} # for each chromosome
+	} # for each trait
 
 	include("footer.php");
 ?>
