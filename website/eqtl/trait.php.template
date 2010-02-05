@@ -326,7 +326,16 @@ function presentRhoInTableElement($rho) {
 }
 
 function presentTraitInTableElement($traitid,$something,$connection) {
-	echo "<td>".traitid2genename($traitid,$connection)."</td>";
+	$n=traitid2genename($traitid,$connection);
+	echo "<td>";
+	if (empty($n)) {
+		echo "unassigned $traitid";
+	}
+	else {
+		// the return value will always be non-empty because of the hyperlink wrapped around it
+		echo "$n";
+	}
+	echo "</td>";
 }
 
 function traitid2genename ($traitid,$connection) {
@@ -340,7 +349,10 @@ function traitid2genename ($traitid,$connection) {
 	}
 	if ($resultTraitDetailsLine = mysql_fetch_array($resultTraitDetails,MYSQL_ASSOC)) {
 		$n=$resultTraitDetailsLine["gene_name"];
-		if (strlen($n)>25) {
+		if (empty($n)) {
+			$n="$traitid";
+		}
+		else if (strlen($n)>25) {
 			$s=preg_split("/ [^A-Za-z0-9,'-][^A-Za-z0-9,'-] /",$n);
 			#print_r($s);
 			$n="* ".$s[1];
@@ -379,11 +391,11 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 		}
 		if ("horizontal"=="$orientation") {
 			echo "<small>";
-			echo "<table>\n";
-			echo "<tr>";
+			echo "<table border=1>\n";
+			echo "<tr><th rowspan=2>$posOrNeg</th><th>Gene</th>";
 			array_walk($traits,presentTraitInTableElement,$connection);
 			echo "</tr>\n";
-			echo "<tr>";
+			echo "<tr><th>Rho</th>";
 			array_walk($traitsRho,presentRhoInTableElement);
 			echo "</tr>\n";
 			echo "</table>\n";
@@ -737,7 +749,7 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 				}
 				if (!empty($show_negative_correlation)
 				 or !empty($show_positive_correlation)){
-					echo "<th rowspan=2>Exression Correlation</th>\n";
+					echo "<th rowspan=2>Expression Correlation</th>\n";
 				}
 				if (!empty($show_trait_loci)) {
 					echo "<th colspan=8>Loci</th>\n";
