@@ -191,9 +191,10 @@ if ($list or $listCovariates or $listUploaded) {
     }
 
     if ($listUploaded){
-	my $list_query = "SELECT covariates,COUNT(*) AS c FROM qtl GROUP BY covariates  ORDER BY c";
+	my $list_query = "SELECT covariates, COUNT(*), AVG(LOD), MAX(LOD) AS c FROM qtl GROUP BY covariates  ORDER BY c";
 	my $sth_list = $dbh->prepare($list_query) or die $DBI::errstr;
 	$sth_list -> execute() or die $DBI::errstr;
+	print "Covaraites\t#QTLs\tMean Lod\tMax lod\n";
 	while(@r = $sth_list->fetchrow_array()) {
 		print join("\t",@r);
 		print "\n";
