@@ -48,15 +48,16 @@ Perform both, scanone and scantwo
 
 =item --list
 
-Presents the calculations already in the system.
-
-=item --help, --man
-
-Short and long summary of instructions.
+Presents the calculations already in the system of the calculations table. This is slow since the system was not prepared for this.
 
 =item --list-covariates
 
-Display of covariates that may be added for the analysis.
+Display of covariates that may be added for the analysis. This is very quick, but does not inform about the combinations that are already available as job descriptions.
+
+=item --list-uploaded
+
+Display of all combinations of covariates that are already referenced
+by a QTL in the system.
 
 =item covariates
 
@@ -68,6 +69,10 @@ The case of covariates needs to be reflected properly - not for the
 internal representation in the database, so please ensure that all
 traits can be distinguished after being transformed to lower case,
 but for R/qtl.
+
+=item --help, --man
+
+Short and long summary of instructions.
 
 =back
 
@@ -106,6 +111,7 @@ my $help;
 my $man;
 my $list;
 my $listCovariates;
+my $listUploaded;
 my $verbose;
 
 GetOptions("verbose" =>\$verbose,
@@ -113,6 +119,7 @@ GetOptions("verbose" =>\$verbose,
 	"man" => \$man,
 	"list" => \$list,
 	"list-covariates" => \$listCovariates,
+	"list-uploaded" => \$listUploaded,
 	"analysis:s" => \$analysis
 ) or die "Could not parse options.\n";
 
@@ -131,7 +138,7 @@ my $dbh = DBI->connect( DATABASECON ) or die "Database connection to expression 
 my @r;
 
 
-if ($list or $listCovariates) {
+if ($list or $listCovariates or $listUploaded) {
 
     if ($list) {
 	my $list_query = "select distinct application, filename from computation;";
@@ -180,6 +187,16 @@ if ($list or $listCovariates) {
 		foreach my $k (sort keys %vvu) {
 			print "$k\t(".join(",",@{$vvu{$k}}).")\n";
 		}
+	}
+    }
+
+    if ($listUploaded){
+	my $list_query = "SELECT covariates,COUNT(*) AS c FROM qtl GROUP BY covariates  ORDER BY c";
+	my $sth_list = $dbh->prepare($list_query) or die $DBI::errstr;
+	$sth_list -> execute() or die $DBI::errstr;
+	while(@r = $sth_list->fetchrow_array()) {
+		print join("\t",@r);
+		print "\n";
 	}
     }
     exit 0;
