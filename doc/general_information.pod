@@ -55,12 +55,20 @@ installation can analogously be performed on any operating system.
 
 This setup is a subset of the full szenario. Here we assume
 the local expression QTL database to be available already and
-we only want to perpare or own analyses or perform changes
+we only want to perpare your own analyses or perform changes
 to the presentation.
 
 This szenario is fairly common for developers to improve the
 analyses once the major computations have been performed and
 the database was filled with expression QTL.
+
+=head5 1.2.1.1 Installation of a web server
+
+If you are not running the installation on a machine on which you have
+root access, then there is some good chance that you need to talk back
+to your system administration to add the one or other package to your
+institution's web server. As a start, skip the installation and see if
+the scripting language PHP is already installed.
 
 =over 4
 
@@ -74,7 +82,7 @@ to be installed, first.
 
 =item Add web server's PHP scripting capability:
 
-  apt-get install libapache-mod-php5
+  apt-get install libapache2-mod-php5
 
 =item Allow PHP to access MySQL database:
 
@@ -87,7 +95,22 @@ to be installed, first.
 =back
 
 A web browser pointing to http://localhost should then show a page stating
-"It works!".  The git repository is expected to have been placed in a
+"It works!". In regular setups, the home public_html directories of users are
+accessible as http://servername/~username, but this needs to be configured
+or at least enabled with newly installed browsers. On Debian/Ubuntu do
+
+  cd /etc/apache2/mods-enabled
+  sudo ln -s ../mods-available/userdir.* .
+
+In userdir.conf, check that the <Directory /home/*/public_html> setting is
+indeed where the public HTML directories of the users shall be, adjust if not.
+~/public_html will be presumed in the remainder of this document. Reload apache:
+
+  sudo /etc/init.d/apache2 reload
+
+=head5 1.2.1.2 Pointing the web server to the web pages
+
+The git repository is expected to have been placed in a
 user's regular directory, we are presuming the path ~/gitpath.  This path
 needs to be available via the web server. As we find the easiest way to
 achieve such is to link to that directory from the ~/public_html folder:
@@ -115,7 +138,6 @@ Check if you have permissions for http://localhost/~user/projectname/ .
 After continuing the instructions below, in particular a run to
 update -np -q, the websites are then ready.
 
-  
 
 =head4 1.2.2 For having the data locally, too
 
