@@ -10,6 +10,7 @@ usereqtl=${DBUSEREQTL:-DATABASEEQTLUSER}
 userqtl=${DBUSERQTL:-DATABASEQTLUSER}
 nameeqtl=${DBNAMEEQTL:-DATABASEEQTLNAME}
 nameqtl=${DBNAMEQTL:-DATABASEQTLNAME}
+destdir=${DESTDIR:-.}
 dbdumpoptions=${DBDUMPOPTIONS:-}
 
 d=$(date +"%Y%m%d")
@@ -63,6 +64,10 @@ sets the name of the database that needs to be dumped, defaults to 'DATABASEEQTL
 =item DBDUMPOPTIONS
 
 set if extra parameters should be passed mysqldump .
+
+=item DESTDIR
+
+path to directory into which to write the database dump
 
 =back
 
@@ -120,14 +125,14 @@ fi
 
 echo -n "Backing up database '$nameeqtl'"
 
-if $mysqldump --create-options -h $dbhost_eqtl -u $usereqtl $nameeqtl $dbdumpoptions | gzip -c9 > backup_db_${nameeqtl}_${d}${intern_namesuffix}.sql.gz ; then
+if $mysqldump --create-options -h $dbhost_eqtl -u $usereqtl $nameeqtl $dbdumpoptions | gzip -c9 > $destdir/backup_db_${nameeqtl}_${d}${intern_namesuffix}.sql.gz ; then
 	echo " [ok]"
 else
 	echo " [failed]."
 fi
 
 echo -n "Backing up database '$nameqtl'"
-if $mysqldump --create-options -h $dbhost_qtl -u $userqtl $nameqtl $dbdumpoptions | gzip -c9 > backup_db_${nameqtl}_${d}${intern_namesuffix}.sql.gz ; then
+if $mysqldump --create-options -h $dbhost_qtl -u $userqtl $nameqtl $dbdumpoptions | gzip -c9 > $destdir/backup_db_${nameqtl}_${d}${intern_namesuffix}.sql.gz ; then
 	echo " [ok]"
 else
 	echo " [failed]"
