@@ -41,7 +41,7 @@ needs to be performed once by the maintainer of this installation.
 
 =item trait_summary.php - overview on covariates for single trait
 
-=cut
+=back
 
 =head1 AUTHOR
 
@@ -49,7 +49,7 @@ Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
 
 =head1 COPYRIGHT
 
-Universities of Rostock and LE<uuml>beck, 2003-2009
+Universities of Rostock and LE<uuml>beck, 2003-2010
 
 =cut
 
@@ -291,6 +291,8 @@ ENDOFDOCUMENTATION
 		require_once("func_connect.php");
 		require_once("func_species.php");
 		require_once("func_conversion_ENSEMBLVERSION.php");
+		require_once("func_covariates.php");
+		require_once("class_Trait.php");
 
 		if (empty($innerOrder)) {
 			$innerOrder = "locus.Chr,locus.cMorgan";
@@ -326,7 +328,9 @@ function presentRhoInTableElement($rho) {
 }
 
 function presentTraitInTableElement($traitid,$something,$connection) {
-	$n=traitid2genename($traitid,$connection);
+	$t = new Trait();
+	$n = $t->retrieveFromDBviaTraitID($traitid,$connection);
+
 	echo "<td>";
 	if (empty($n)) {
 		echo "unassigned $traitid";
@@ -338,32 +342,22 @@ function presentTraitInTableElement($traitid,$something,$connection) {
 	echo "</td>";
 }
 
+/*
+
+=head2
+
+The function wraps Trait -> retrieveFromDBviaTraitID to return to transform the trait_id into a genename.
+
+=cut
+
+*/
+
 function traitid2genename ($traitid,$connection) {
-	$q="SELECT trait_id,gene_name FROM trait WHERE trait_id='$traitid'";
-	$resultTraitDetails = mysql_query($q,$connection);
-	if (!$resultTraitDetails){
-		echo "<p>Problem with query '$q': "
-			.mysql_error($connection)."</p>";
-		mysql_close($connection);
-		exit;
-	}
-	if ($resultTraitDetailsLine = mysql_fetch_array($resultTraitDetails,MYSQL_ASSOC)) {
-		$n=$resultTraitDetailsLine["gene_name"];
-		if (empty($n)) {
-			$n="$traitid";
-		}
-		else if (strlen($n)>25) {
-			$s=preg_split("/ [^A-Za-z0-9,'-][^A-Za-z0-9,'-] /",$n);
-			#print_r($s);
-			$n="* ".$s[1];
-		}
-		return("<a href=\"trait.php?direct=1&traits="
-			.$resultTraitDetailsLine["trait_id"]."\">".$n."</a>");
-	}
-	else {
-		return(FALSE);
-	}
+	$t = new Trait();
+	$t->retrieveFromDBviaTraitID($traitid,$connection);
+	return $t->genename;
 }
+
 
 function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesToShow,$connection) {
 	$corQuery  = "SELECT ";
@@ -825,7 +819,7 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 					    ."<td valign=top>".$loci_line["pvalue"]."</td>"
 					    ."<td valign=top>".round($loci_line["quantile"],2)."</td>"
 					    ."<td valign=top>".($loci_line["cis"]?"cis":"trans")."</td>"
-					    ."<td valign=top>".$loci_line["covariates"]."</td>"
+					    ."<td valign=top>".displayCovariates($loci_line["covariates"])."</td>"
 					;
 					$htmlTextToRepresentLoci .= "</tr>\n";
 				}
