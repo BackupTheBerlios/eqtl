@@ -76,6 +76,7 @@ University of LE<uuml>beck, 2010
 
 
 	require_once("func_connect.php");
+	require_once("func_covariates.php");
 	//require_once("func_species.php");
 	//require_once("func_conversion_ENSEMBLVERSION.php");
 
@@ -149,13 +150,12 @@ University of LE<uuml>beck, 2010
 		echo "<h1>Details on trait '<a href=\"trait.php?traits=$trait_id\">$trait_id</a>'</h1>\n";
 
 		function displayQtlEntry($q) {
-			echo "<dt>".(empty($q["covariates"])?"none":$q["covariates"]);
-			echo "<dd>";
+			echo empty($q["covariates"])?"none":displayCovariates($q["covariates"]);
+			echo "<br>\n";
 			#print_r($q);
-			echo "LOD: ".round($q["LOD"],2)."<br>\n";
-			echo "P-Value: ".$q["pvalue"];
+			echo "&nbsp;&nbsp; LOD: ".round($q["LOD"],2)."<br>\n";
+			echo "&nbsp;&nbsp; P-Value: ".$q["pvalue"]."<br>\n";
 			#print_r($q);
-			echo "</dd>";
 		}
 
 		foreach ($chromosome_info as $chr => $info) {
