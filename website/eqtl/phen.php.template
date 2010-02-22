@@ -184,7 +184,7 @@ ENDOFDOCUMENTATION
 		$limit=25;
 	}
 
-	echo "<table>";
+	echo "<table width=100%>";
 
 	foreach ($phenotypes as $n=>$p) {
 		if (0==$n%2) {
@@ -194,12 +194,12 @@ ENDOFDOCUMENTATION
 			echo "<tr>";
 		}
 		echo "<a name=\"$p\" />";
-		echo "<table><tr><th colspan=2><a href=\"http:phen.php?phen=$p&limit=500\">$p</a> - <a href=\"#top\">top</a></th></tr>";
+		echo "<table width=100%><tr><th colspan=2 align=center><a href=\"http:phen.php?phen=$p&limit=500\">$p</a> - <a href=\"#top\">top</a></th></tr>";
 		echo "<tr><th>DESC</th><th>ASC</th></tr>\n";
 		echo "<tr>";
 		$os=array("DESC","ASC");
 		foreach ($os as $o) {
-			echo "<td>";
+			echo "<td width=50% valign=top>";
 			$where = "WHERE phen='$p' ";
 
 
@@ -260,16 +260,17 @@ ENDOFDOCUMENTATION
 			}
 
 
-			$queryAllCorrelations = "SELECT trait_phen_cor.trait_id,rho,p "
+			$queryAllCorrelations = "SELECT trait_phen_cor.trait_id,trait.gene_name,trait.chromosome,rho,p "
 				 ." FROM trait_phen_cor "
-				 . ((empty($MeanMin) and empty($MeanMax) and empty($SdMin) and empty($SdMax) and
-				     empty($MedianMin) and empty($MedianMax) and empty($VarianceMin) and empty($VarianceMax))?"":"right join trait using(trait_id)")
+				 ." right join trait using(trait_id) "
 				 ." $where "
 				 ." ORDER BY rho $o " ."LIMIT $limit";
 			;
 
 
-			echo "Query: '$queryAllCorrelations'<br>";
+			if (false and $verbose) {
+				echo "Query: '$queryAllCorrelations'<br>";
+			}
 
 			$result = mysql_query($queryAllCorrelations,$linkLocal);
 			if (empty($result)) {
@@ -278,11 +279,22 @@ ENDOFDOCUMENTATION
 				//echo "LinkLocal: "; print_r($linkLocal);
 				exit;
 			}
+			echo "<table border=1 width=100%>";
+			echo "<tr><th>Probe</th><th>Gene Name</th><th>Chr</th><th>&rho;</th><th>P</th></tr>\n";
 			while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
-				echo "<a href=\"http:trait.php?traits=".$line["trait_id"]."\">".$line["trait_id"]."</a> ";
-				echo round($line["rho"],3)." (".round($line["p"],5).")\n";
+				if (false) {
+					echo "{<a href=\"http:trait.php?traits=".$line["trait_id"]."\">".$line["trait_id"]."</a>"
+					   . "=[".$line["gene_name"]."@".$line["chromosome"]."] : ";
+					echo round($line["rho"],3)." (".round($line["p"],5).")} \n";
+				}
+				echo "<tr>";
+				echo "<td><a href=\"http:trait.php?traits=".$line["trait_id"]."\">".$line["trait_id"]."</a></td>"
+				   . "<td>".$line["gene_name"]."</td><td>".$line["chromosome"]."</td><td>";
+				echo round($line["rho"],3)."</td><td>".round($line["p"],5)."</td>";
+				echo "</tr>\n";
 			}
 			mysql_free_result($result);
+			echo "</table>";
 			echo "</td>";
 		}
 
