@@ -194,10 +194,11 @@ if (!exists($conv{"Y"})) {
 	$conv{21 + 1}=$conv{"Y"};
 }
 
-exit;
-
-1; 
-
+# for increased compatibility with PHP code
+sub empty($) {
+	my $v=shift;
+	return(defined($v) or 0 == $v);
+}
 
 sub cM2bp($$) {
 	my $chr = shift;
@@ -278,11 +279,17 @@ sub cM2bp($$) {
 	}
 }
 
-sub bp2cM() {
+sub bp2cM($$) {
 	my $chr=shift;
-	die "bp2cM needs chromosome specified as first argument, bp comes second";
+	die "bp2cM needs chromosome specified as first argument, bp comes second" unless defined($chr);
 	my $bpInput=shift;
 	$bpInput=0 unless defined($bpInput);
+
+	if (!exists($conv{$chr})) {
+		print "<p>marker.php: No information for chromosome '$chr'.</p>\n";
+		return (-2);
+	}
+
 	my $chrconv=$conv{$chr};
 	my $cMmin=-1; my $bpmin=-1;
 	my $cMmax=-1; my $bpmax=-1;
@@ -291,12 +298,11 @@ sub bp2cM() {
 	my $found=0;
 	my $prevcM=-1; my $secondCM=-1;
 	my $prevbp=-1; my $secondBP=-1;
-	if (empty($chrconv)) {
-		print "<p>marker.php: No information for chromosome '$chr'.</p>\n";
-		return (-2);
-	} elsif (!is_array($chrconv)) {
-		print "<p>func_conversion_55.php: Internal error. (chr '$chr').</p>\n";
-		return (-3);
+	#if (empty($chrconv)) {
+	#} elsif (!is_array($chrconv)) {
+	#	print "<p>func_conversion_55.php: Internal error. (chr '$chr').</p>\n";
+	#	return (-3);
+	if (0) {
 	} else {
 		foreach my $k (@$chrconv) {
 			my ($cMorgan,$bp) = @$k;
@@ -366,12 +372,26 @@ sub bp2cM() {
 	}
 }
 
+print "Now some tests.\n";
+
 foreach my $chr (keys %conv) {
-	print "*************\n"
-	print "** $chr\n";
-	print "*************\n"
-	foreach my $k (@{$conv{$chr}}) {
-		print join("\t",@$k)."\n";
+	print "***************\n";
+	print "** $chr : bp2cM\n";
+	print "***************\n";
+	my $aref=$conv{$chr};
+	my @a=@$aref;
+	my $bppref=undef;
+	my $cmpref=undef;
+	foreach my $k (@a) {
+		my ($cm,$bp)=@{$k};
+		if (defined($bppref)) {
+			my $meanBp=($bp+$bppref)/2;
+			print "Mid:\t".(($cm+$cmpref)/2)."\t$meanBp\t";
+			print bp2cM($chr,$meanBp)."\n";
+		}
+		print "\t".join("\t",@{$k})."\t->\t". bp2cM($chr,$bp)."\t".cM2bp($chr,$cm)."\n";
+		print "\n";
+		($cmpref,$bppref)=@{$k};
 	}
 	last;
 }
