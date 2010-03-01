@@ -79,7 +79,7 @@ $conv{17} = [
 [0 , 16053310],
 [25.9841 , 31007409],
 [48.3653 , 64047700],
-[84.828 , 96587775], # no information on marker 'D17Rat47' - skipped
+[84.828 , 96587775] # no information on marker 'D17Rat47' - skipped
 ];
 $conv{18} = [
 [0 , 11593055],
@@ -211,14 +211,14 @@ sub cM2bp($$) {
 	my $cMmax=-1; my $bpmax=-1;
 	my $actbp=-1; my $lastbp=-1;
 	my $actcM=-1; my $lastcM=-1;
-	my $found=FALSE;
+	my $found=0;
 	my $prevcM=-1; my $secondCM=-1;
 	my $prevbp=-1; my $secondBP=-1;
 	if(-1 == $#chrconv) {
 		print "<p>marker.php: No information for chromosome '$chr'.</p>\n";
 		return (-2);
 	} else {
-		foreach my $k (keys @chrconv) {
+		foreach my $k (@chrconv) {
 			my ($cMorgan,$bp) = @$k;
 			if (-1 == $cMmin) {
 				$cMmin=$cMmax=$cMorgan;
@@ -239,15 +239,15 @@ sub cM2bp($$) {
 			}
 			else {
 				if ($cm<$cMorgan) {
-					$found=TRUE;
+					$found=1;
 					if (-1 == $actcM) {
 						$actcM=$cMorgan;
 						$actbp=$bp;
 						$lastcM=$prevcM;
 						$lastbp=$prevbp;
 					}
-					break;
-					break;
+					last;
+					next;
 				}
 			}
 			$prevcM=$cMorgan;
@@ -278,13 +278,17 @@ sub cM2bp($$) {
 	}
 }
 
-function bp2cM($chr,$bpInput=0) {
+sub bp2cM() {
+	my $chr=shift;
+	die "bp2cM needs chromosome specified as first argument, bp comes second";
+	my $bpInput=shift;
+	$bpInput=0 unless defined($bpInput);
 	my $chrconv=$conv{$chr};
 	my $cMmin=-1; my $bpmin=-1;
 	my $cMmax=-1; my $bpmax=-1;
 	my $actbp=-1; my $lastbp=-1;
 	my $actcM=-1; my $lastcM=-1;
-	my $found=FALSE;
+	my $found=0;
 	my $prevcM=-1; my $secondCM=-1;
 	my $prevbp=-1; my $secondBP=-1;
 	if (empty($chrconv)) {
@@ -294,7 +298,8 @@ function bp2cM($chr,$bpInput=0) {
 		print "<p>func_conversion_55.php: Internal error. (chr '$chr').</p>\n";
 		return (-3);
 	} else {
-		foreach($chrconv as $cMorgan=>$bp) {
+		foreach my $k (@$chrconv) {
+			my ($cMorgan,$bp) = @$k;
 			if (-1 == $cMmin) {
 				# first time this loop was entered
 				# this will also be the minimal value
@@ -310,7 +315,7 @@ function bp2cM($chr,$bpInput=0) {
 					$bpmax=$bp;
 					$cMmax=$cMorgan;
 				}
-				if (! $bp >= $bpmin) { // avoiding the lt sign
+				if (! $bp > $bpmin) {  # avoiding the lt sign on web page by negation
 					print  "Suddenly found bp value at $bp smaller than current minimum at $bpmin.";
 					$bpmin=$bp;
 					$cMmin=$cMorgan;
@@ -320,43 +325,56 @@ function bp2cM($chr,$bpInput=0) {
 			if ($found) {
 			}
 			else {
-				if ($bpInput >= $bp) { // avoiding the lt sign for web presentation
+				if ($bpInput >= $bp) {  # avoiding the lt sign for web presentation
 				}
 				else {
-					$found=TRUE;
+					$found=1;
 					if (-1 == $actcM) {
 						$actcM=$cMorgan;
 						$actbp=$bp;
 						$lastcM=$prevcM;
 						$lastbp=$prevbp;
 					}
-					break;
+					last;
+					next;
 				}
 			}
 			$prevcM=$cMorgan;
 			$prevbp=$bp;
 		}
 
+	 	my $ret;
 		if ($bpInput<=$bpmin) {
-			// bp requested upstream of first marker
+			# bp requested upstream of first marker
 			$ret=$cMmin+($bpInput-$bpmin)/($secondBP-$bpmin)*($secondCM-$cMmin);
 		} elsif (-1 != $actcM) {
 			$ret=$lastcM+($bpInput-$lastbp)/($actbp-$lastbp)*($actcM-$lastcM);
 		} else {
-			// downstream of rightmost marker
+			# downstream of rightmost marker
 			if ($cMmax==$cMmin) {
-				// we only have a single marker - helpless?
-				// FIMXE: implement extra point (0,0)
+				# we only have a single marker - helpless?
+				# FIMXE: implement extra point (0,0)
 				print "<p>cMmax==cMmin ($cMmax==$cMmin)\n<p>";
 				$ret=-1;
 			}
 			else {
-				// extrapolating from the first to the last marker
+				# extrapolating from the first to the last marker
 				$ret=$cMmin+($bpInput-$bpmin)/($bpmax-$bpmin)*($cMmax-$cMmin);
 			}
 		}
 		return($ret);
 	}
 }
-// This conversion is based on ensembl database ensembl_mart_55 on host martdb.ensembl.org:5316
-?>
+
+foreach my $chr (keys %conv) {
+	print "*************\n"
+	print "** $chr\n";
+	print "*************\n"
+	foreach my $k (@{$conv{$chr}}) {
+		print join("\t",@$k)."\n";
+	}
+	last;
+}
+
+
+# This conversion is based on ensembl database ensembl_mart_55 on host martdb.ensembl.org:5316
