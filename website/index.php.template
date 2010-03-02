@@ -19,12 +19,15 @@ TEMPLATEWARNINGXML
 <?php
 
 $link = mysql_connect('DATABASEHOSTLOCAL', 'DATABASEEQTLUSER')
-    or die('Could not connect: ' . mysql_error());
-mysql_select_db('DATABASEEQTLNAME') or die('Could not select database'.mysql_error());
+    //or die("Could not connect ('DATABASEHOSTLOCAL', 'DATABASEEQTLUSER'): " . mysql_error());
+    or die("Could not connect: " . mysql_error());
+mysql_select_db('DATABASEEQTLNAME') or die('Could not select database DATABASEEQTLNAME: '.mysql_error());
 
 #
 # STATUS INFO
 #
+
+include_once("eqtl/func_covariates.php");
 
 echo "<table align=\"center\" border=\"0\" width=\"100%\">";
 echo "<tr>";
@@ -158,18 +161,18 @@ mysql_close($link);
 
 <?php
 if (0<count($vals_single)) {
-	echo "<b><i>Single QTLs with covariates in database:</i></b> ";
+	echo "<b><i>Single QTLs with covariates in database:</i></b> <small>";
 	$first=1;
 	foreach ($vals_single as $vs) {
 		if (!$first) {
-			echo ", ";
+			echo ";&nbsp; ";
 		}
 		else {
 			$first=0;
 		}
-		echo "<a href=\"URLPORTALROOT/qtl.php?covariates=$vs\">$vs</a>";
+		echo "<a href=\"URLPORTALROOT/qtl.php?covariates=$vs\">".displayCovariates($vs)."</a>";
 	}
-	echo "<br>\n";
+	echo "</small><br>\n";
 }
 else {
 	echo "<b><i>No QTLs currently in database.</i></b> ";
