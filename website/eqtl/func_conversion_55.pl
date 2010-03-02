@@ -199,14 +199,25 @@ sub empty($) {
 	my $v=shift;
 	return(defined($v) or 0 == $v);
 }
+sub round($) {
+	my $v=shift;
+	return(int($v+0.5));
+}
+
+#my $debug=1;
 
 sub cM2bp($$) {
 	my $chr = shift;
+	die "cM2bp needs chromosome specified as first argument, bp comes second" unless defined($chr);
 	my $cm = shift;
 
 	my @chrconv;
 	if (exists($conv{$chr})) {
 		@chrconv=@{$conv{$chr}};
+	}
+	else {
+		print "<p>marker.php: No information for chromosome '$chr'.</p>\n";
+		return (-2);
 	}
 	my $cMmin=-1; my $bpmin=-1;
 	my $cMmax=-1; my $bpmax=-1;
@@ -221,6 +232,7 @@ sub cM2bp($$) {
 	} else {
 		foreach my $k (@chrconv) {
 			my ($cMorgan,$bp) = @$k;
+			#print "Learning ($chr): cMorgan: $cMorgan, bp:$bp\n" if $debug;
 			if (-1 == $cMmin) {
 				$cMmin=$cMmax=$cMorgan;
 				$bpmin=$bpmax=$bp;
@@ -240,6 +252,7 @@ sub cM2bp($$) {
 			}
 			else {
 				if ($cm<$cMorgan) {
+					#print "cm:$cm < cMorgan:$cMorgan\n" if $debug;
 					$found=1;
 					if (-1 == $actcM) {
 						$actcM=$cMorgan;
@@ -249,6 +262,9 @@ sub cM2bp($$) {
 					}
 					last;
 					next;
+				}
+				else {
+					#print "cm:$cm >= cMorgan:$cMorgan\n" if $debug;
 				}
 			}
 			$prevcM=$cMorgan;
@@ -290,7 +306,10 @@ sub bp2cM($$) {
 		return (-2);
 	}
 
-	my $chrconv=$conv{$chr};
+	my @chrconv;
+	if (exists($conv{$chr})) {
+		@chrconv = @{$conv{$chr}};
+	}
 	my $cMmin=-1; my $bpmin=-1;
 	my $cMmax=-1; my $bpmax=-1;
 	my $actbp=-1; my $lastbp=-1;
@@ -302,9 +321,12 @@ sub bp2cM($$) {
 	#} elsif (!is_array($chrconv)) {
 	#	print "<p>func_conversion_55.php: Internal error. (chr '$chr').</p>\n";
 	#	return (-3);
-	if (0) {
+	#}
+	if(-1 == $#chrconv) {
+		print "<p>marker.php: No information for chromosome '$chr'.</p>\n";
+		return (-2);
 	} else {
-		foreach my $k (@$chrconv) {
+		foreach my $k (@chrconv) {
 			my ($cMorgan,$bp) = @$k;
 			if (-1 == $cMmin) {
 				# first time this loop was entered
@@ -372,28 +394,30 @@ sub bp2cM($$) {
 	}
 }
 
-print "Now some tests.\n";
-
-foreach my $chr (keys %conv) {
-	print "***************\n";
-	print "** $chr : bp2cM\n";
-	print "***************\n";
-	my $aref=$conv{$chr};
-	my @a=@$aref;
-	my $bppref=undef;
-	my $cmpref=undef;
-	foreach my $k (@a) {
-		my ($cm,$bp)=@{$k};
-		if (defined($bppref)) {
-			my $meanBp=($bp+$bppref)/2;
-			print "Mid:\t".(($cm+$cmpref)/2)."\t$meanBp\t";
-			print bp2cM($chr,$meanBp)."\n";
+if (1) {
+	print "Now some tests.\n";
+	foreach my $chr (keys %conv) {
+		print "***************\n";
+		print "** $chr : cm\tbp\tbp2cM\tcM2bp\n";
+		print "***************\n";
+		my $aref=$conv{$chr};
+		my @a=@$aref;
+		my $bppref=undef;
+		my $cmpref=undef;
+		foreach my $k (@a) {
+			my ($cm,$bp)=@{$k};
+			if (defined($bppref)) {
+				my $meanBp=($bp+$bppref)/2;
+				my $meanCm=($cm+$cmpref)/2;
+				print "Mid:\t$meanCm\t$meanBp\t";
+				print bp2cM($chr,$meanBp)."\t".cM2bp($chr,$meanCm)."\n";
+			}
+			print "\t".join("\t",@{$k})."\t->\t". bp2cM($chr,$bp)."\t".cM2bp($chr,$cm)."\n";
+			print "\n";
+			($cmpref,$bppref)=@{$k};
 		}
-		print "\t".join("\t",@{$k})."\t->\t". bp2cM($chr,$bp)."\t".cM2bp($chr,$cm)."\n";
-		print "\n";
-		($cmpref,$bppref)=@{$k};
+		last;
 	}
-	last;
 }
 
 
