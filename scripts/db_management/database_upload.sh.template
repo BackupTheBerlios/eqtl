@@ -8,6 +8,7 @@ usereqtl=${DBUSEREQTL:-DATABASEEQTLUSER}
 userqtl=${DBUSERQTL:-DATABASEQTLUSER}
 nameeqtl=${DBNAMEEQTL:-DATABASEEQTLNAME}
 nameqtl=${DBNAMEQTL:-DATABASEQTLNAME}
+sourcedir=${SOURCEDIR:-.}
 
 d=$(date +"%Y%m%d")
 
@@ -45,6 +46,10 @@ sets the mysql user with which to log in, defaults to 'DATABASEEQTLUSER'
 
 sets the name of the database that needs to be dumped, defaults to 'DATABASEEQTLNAME'
 
+=item SOURCEDIR
+
+name of the directory in which to look for the files containing the information to upload
+
 =back
 
 For classical QTL substitute EQTL with QTL in the variable names listed above.
@@ -77,8 +82,8 @@ University of LE<uuml>beck, 2009
 fi
 
 
-fileeqtl="backup_db_${nameeqtl}_$d.sql.gz"
-fileqtl="backup_db_${nameqtl}_$d.sql.gz"
+fileeqtl="$sourcedir/backup_db_${nameeqtl}_$d.sql.gz"
+fileqtl="$sourcedir/backup_db_${nameqtl}_$d.sql.gz"
 
 if [ ! -r "$fileeqtl" ]; then
 	echo "Could not find backup file with expression QTL expected at '$fileeqtl'."
