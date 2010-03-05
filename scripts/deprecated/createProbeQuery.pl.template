@@ -2,6 +2,15 @@
 
 TEMPLATEWARNINGHASH
 
+=head1 NAME
+
+createProbeQuery.pl - documentation missing
+
+=cut
+
+
+TEMPLATEWARNINGHASH
+
 use strict;
 
 my $src="PHENOFILE";
