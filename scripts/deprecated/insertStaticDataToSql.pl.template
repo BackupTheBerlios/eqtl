@@ -4,26 +4,26 @@ TEMPLATEWARNINGHASH
 
 =head1 NAME
 
-	insertStaticDataToSql.pl - adds data to tables that are invariant of calculations
+insertStaticDataToSql.pl - adds data to tables that are invariant of calculations
 
 =head1 SYNOPSIS
 
-	insertStaticDataToSql.pl	
+insertStaticDataToSql.pl	
 
 =head1 DESCRIPTION
 
-	Information on traits and others are invariant of the computations.
-	Nonetheless, one frequently desires to see those data added to the results
-	and as such these should find entry in the database tables from which those
-	are generated.
+Information on traits and others are invariant of the computations.
+Nonetheless, one frequently desires to see those data added to the results
+and as such these should find entry in the database tables from which those
+are generated.
 
-	The concept and with it this script have become outdated. The individual
-	tools that generate the contents for the files that are expected by this script
-	to exist should prepare the required SQL statements themselves.
+The concept and with it this script have become outdated. The individual
+tools that generate the contents for the files that are expected by this script
+to exist should prepare the required SQL statements themselves.
 
 =head1 AUTHORS
 
-	Jan Kolbaum
+Jan Kolbaum
 
 =cut
 
