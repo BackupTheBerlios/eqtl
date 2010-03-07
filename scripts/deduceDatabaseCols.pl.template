@@ -60,11 +60,19 @@ Transforms information on centiMorgan into Megabasepairs.
 
 Ann-Kristin Gimmm <grimm@inb.uni-luebeck.de>
 
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
 =head1 COPYRIGHT
 
 University of LE<uuml>beck, Germany, 2009
 
 =cut
+
+BEGIN {
+	for my $d (("./scripts","./","../scripts","..")) {
+		push @INC,"$d" if -d "$d";
+	}
+}
 
 #FIXME:
 #extend documentation
@@ -72,7 +80,9 @@ University of LE<uuml>beck, Germany, 2009
 use DBI;
 use LWP::Simple;
 
-my $dbh = DBI->connect( DATABASECON ) || die "Database connection not made: $DBI::errstr";
+use func_conversion_55;
+
+my $dbh = DBI->connect( DATABASECON ) or die "Database connection not made: $DBI::errstr";
 
 $| = 1;
 
@@ -94,13 +104,13 @@ if( @ARGV ) {
 		}
 	}
 } else {
-	die "USAGE: ".$0." [ qtlCis | qtlCisDist | liCis | liCisDist | locComb | ratGenes | all | qtlPos]*\n";
+	die "USAGE: ".$0." [ qtlCis | qtlCisDist | liCis | liCisDist | locComb | ratGenes | qtlPos | all ]*\n";
 }
 
 my $start = time;
 
 # Update cis information in table locus
-if( $toDo{'qtlCis'}==1 || $toDo{'all'}==1 ) {
+if( $toDo{'qtlCis'}==1 or $toDo{'all'}==1 ) {
 	print "\tUPDATING: cis informations (qtl):\t\t\t\t";
 	my $sth = $dbh->prepare("UPDATE qtl as l JOIN (SELECT qtl.No, TRAITSDETAILSCHIPDATA.seqname, qtl.Locus FROM locus JOIN qtl ON qtl.Locus=locus.Name JOIN TRAITSDETAILSCHIPDATA on qtl.Trait=TRAITSDETAILSCHIPDATA.probeset_id) AS x ON (x.No=l.No) SET cis=(l.Chromosome=x.seqname)")
 			or die "Couldn\'t prepare statement: " . $dbh->errstr;
@@ -109,47 +119,63 @@ if( $toDo{'qtlCis'}==1 || $toDo{'all'}==1 ) {
 	print "\t\t[DONE]\n";
 }
 
-if( $toDo{'qtlPos'}==1 || $toDo{'all'}==1){
-	print "\tCALCULATING Mbp positions:\t\t\t\t";
+if( $toDo{'qtlPos'}==1 or $toDo{'all'}==1){
+	print "\tCALCULATING Mbp positions for table locus:\t\t\t\t";
+	my $sth = $dbh->prepare("SELECT No, Name, Chr, cMorgan FROM locus ORDER BY Name")
+		or die "Couldn\'t prepare statement: " . $dbh->errstr;
+	$sth->execute() or die "Couldn\'t execute statement: " . $sth->errstr;
+	my $sth_update = $dbh->prepare("UPDATE locus SET Mbp=? WHERE No=?") or die "Couldn\'t prepare statement: " . $dbh->errstr;
+	my $prevName = "";
+	my $locPos = 0;
+	while( my @data = $sth->fetchrow_array() ){
+		my $chr=$data[2];
+		my $cM=$data[3];
+		if( $prevName ne $data[1] ) {
+			$locPos = cM2bp($chr,$cM);
+			$prevName = $data[1];
+		}
+		$locPosMb = $locPos/1000000;
+		$sth_update->execute($locPosMb,$data[0]) or die "Couldn\'t execute statement: " . $sth->errstr;
+	}
+	$sth_update->finish;
+	$sth->finish;
+	print "\t\t[DONE]\n";
+   if (0) {
+	print "\tCALCULATING Mbp positions for table qtl (which should not be used):\t\t\t\t";
 	my $sth = $dbh->prepare("SELECT No, Locus, Trait, cMorgan_Peak, Chromosome FROM qtl WHERE LOD IS NOT NULL ORDER BY Locus") or die "Couldn\'t prepare statement: " . $dbh->errstr;
 	$sth->execute() or die "Couldn\'t execute statement: " . $sth->errstr;
-	my $locus = "";
+	my $prevLocus = "";
 	my $locPos = 0;
 	while( my @data = $sth->fetchrow_array() ){
 		my $cM=$data[3];
-		$cM = $cM.".0" unless $cM =~ /\./;
-		if( $locus ne $data[1] ) {
-# 			$locPos = get "URLFILEHAND?get_bp=on&cM=".$data[3]."&chromosome=".$data[4];
-			#$locPos = get "http://grid64inb.inb.uni-luebeck.de/~grimm/stockholm/eqtl/filehandler?get_bp=on&cM=".$cM."&chromosome=".$data[4];	
-			$locPos = get "URLEQTL/filehandler?get_bp=on&cM=".$cM."&chromosome=".$data[4];	
-		}
-		if($locPos=~ /Not enough data<br>parameters/){
-			print "$data[0], $data[1], $data[2],  $data[3], $data[4]\n";
+		my $chr=$data[4];
+		if( $prevLocus ne $data[1] ) {
+			$locPos = cM2bp($chr,$cM);
+			$prevLocus = $data[1];
 		}
 		$locPosMb = $locPos/1000000;
-		$locPosMb = sprintf("%.2f",$locPosMb);
 		my $sth_tmp = $dbh->prepare("UPDATE qtl SET Mbp_Peak =".$locPosMb." WHERE No=\"".$data[0]."\"") or die "Couldn\'t prepare statement: " . $dbh->errstr;
 		$sth_tmp->execute() or die "Couldn\'t execute statement: " . $sth->errstr;
 		$sth_tmp->finish;
 	}
 	$sth->finish;
 	print "\t\t[DONE]\n";
+   }
 }
 
-if( $toDo{'qtlCisDist'}==1 || $toDo{'all'}==1 ) {
+if( $toDo{'qtlCisDist'}==1 or $toDo{'all'}==1 ) {
 	print "\tCALCULATING DISTANCES (cis-qtl):\t\t\t\t";
 	my $sth = $dbh->prepare("SELECT q.No, Locus, Trait, cMorgan_Peak, l.Chr, b.start, b.stop FROM qtl AS q JOIN locus AS l ON l.Name = Locus JOIN TRAITSDETAILSCHIPDATA AS b ON Trait = b.probeset_id WHERE LOD IS NOT NULL ORDER BY Locus") or die "Couldn\'t prepare statement: " . $dbh->errstr;
 	$sth->execute() or die "Couldn\'t execute statement: " . $sth->errstr;
-	my $locus = "";
+	my $prevLocus = "";
 	my $locPos = 0;
 	while( my @data = $sth->fetchrow_array() ){
 		my $cM=$data[3];
-		$cM = $cM.".0" unless $cM =~ /\./;
-		if( $locus ne $data[1] ) {
-# 			$locPos = get "URLFILEHAND?get_bp=on&cM=".$data[3]."&chromosome=".$data[4];
-			$locPos = get "http://grid64inb.inb.uni-luebeck.de/~kolbaum/stockholm/eqtl/filehandler?get_bp=on&cM=".$cM."&chromosome=".$data[4];	
+		my $chr=$data[4];
+		if( $prevLocus ne $data[1] ) {
+			$locPos=cM2bp($chr,$cM);
+			$prevLocus=$data[1];
 		}
-# 		die ">>".$locPos."\nhttp://grid64inb.inb.uni-luebeck.de/~kolbaum/stockholm/eqtl/filehandler?get_bp=on&cM=".$data[3]."&chromosome=".$data[4]."\n";
 		my $distance = abs($locPos-(($data[5]+$data[6])/2));
 		my $sth_tmp = $dbh->prepare("UPDATE qtl SET cis_dist=\"".$distance."\" WHERE No=\"".$data[0]."\" AND cis=\"1\"") or die "Couldn\'t prepare statement: " . $dbh->errstr;
 		$sth_tmp->execute() or die "Couldn\'t execute statement: " . $sth->errstr;
@@ -160,7 +186,7 @@ if( $toDo{'qtlCisDist'}==1 || $toDo{'all'}==1 ) {
 }
 
 # Update cis information in table locusInteraction
-if( $toDo{'liCis'}==1 || $toDo{'all'}==1 ) {
+if( $toDo{'liCis'}==1 or $toDo{'all'}==1 ) {
 	print "\tUPDATING: cis informations (locusInteraction):\t\t\t";
 	$sth = $dbh->prepare("UPDATE locusInteraction AS l JOIN (SELECT li.No, bea.probeset_id, bea.seqname, A.Chr AS A_Chr, B.Chr AS B_Chr FROM locusInteraction AS li JOIN locus AS A ON ( li.A=A.Name ) JOIN locus AS B ON (B.Name=li.B) JOIN TRAITSDETAILSCHIPDATA AS bea ON (li.Trait=bea.probeset_id)) AS x ON (l.No=x.No) SET l.cis=(IF((x.A_Chr=x.seqname)&&(x.B_Chr=x.seqname), '11', NULL))")
 			or die "Couldn\'t prepare statement: " . $dbh->errstr;
@@ -182,7 +208,7 @@ if( $toDo{'liCis'}==1 || $toDo{'all'}==1 ) {
 }
 
 # Update locCom (locusCombination) column
-if( $toDo{'locComb'}==1 || $toDo{'all'}==1 ) {
+if( $toDo{'locComb'}==1 or $toDo{'all'}==1 ) {
 	print "\tRETRIEVING: informations on locusInteractions:\t\t\t";
 	$sth = $dbh->prepare("SELECT A, B, COUNT(*) FROM locusInteraction GROUP BY A,B")
 			or die "Couldn\'t prepare statement: " . $dbh->errstr;
@@ -212,7 +238,7 @@ if( $toDo{'locComb'}==1 || $toDo{'all'}==1 ) {
 }
 
 # Get rat gene ids belonging to each locus
-if( $toDo{'ratGenes'}==1 || $toDo{'all'}==1 ) {
+if( $toDo{'ratGenes'}==1 or $toDo{'all'}==1 ) {
 	
 }
 
