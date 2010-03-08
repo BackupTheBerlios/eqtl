@@ -78,6 +78,12 @@ Short and long summary of instructions.
 
 The traits (molecular phenotypes) to be calculated are retrieved from the table 'traits'.
 
+=head1 EXAMPLE
+
+ ./uploadExpectedFiles.pl --analysis scantwo none
+
+The above will add compute requests for the basic interacting effects with no covariates.
+
 =head1 SEE ALSO
 
 There are scripts to reassign the status of the job descriptions in the
@@ -284,6 +290,7 @@ foreach my $cov (@covar) {
 			else{
 				if ( ! $sth_insert->execute('SCANONE',$line,$jobname,$jobname)) {
 					print STDERR $DBI::errstr;
+					print STDERR "Please ensure the db user has the respective privileges. Try 'GRANT insert ON computation TO username'.<br/>";
 					$dbh->disconnect;
 					exit(-1);
 				}
