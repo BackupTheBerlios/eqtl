@@ -85,13 +85,13 @@ while (FCGI::accept >= 0) {
 	# lock database
 	#
 
-	$sth_lock->execute() or die "# $DBI::errstr\n";
+	$sth_lock->execute() or die "Failure to execute lock: $DBI::errstr\n";
 
 	#
 	# Check for job to be CALCULATED
 	#
 
-	$sth_select->execute() or die "# $DBI::errstr\n";
+	$sth_select->execute() or die "Failure to execute select: $DBI::errstr\n";
 
 	my $compute_id = undef;
 	my $jobname = undef;
