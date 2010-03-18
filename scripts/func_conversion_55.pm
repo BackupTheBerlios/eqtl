@@ -217,7 +217,7 @@ sub cM2bp($$) {
 		@chrconv=@{$conv{$chr}};
 	}
 	else {
-		print "<p>marker.php: No information for chromosome '$chr'.</p>\n";
+		print STDERR "func_conversion.pm: No information for chromosome '$chr'.\n";
 		return (-2);
 	}
 	my $cMmin=-1; my $bpmin=-1;
@@ -228,7 +228,7 @@ sub cM2bp($$) {
 	my $prevcM=-1; my $secondCM=-1;
 	my $prevbp=-1; my $secondBP=-1;
 	if(-1 == $#chrconv) {
-		print "<p>marker.php: No information for chromosome '$chr'.</p>\n";
+		print STDERR "func_conversion.pm: No information for chromosome '$chr'.\n";
 		return (-2);
 	} else {
 		foreach my $k (@chrconv) {
@@ -303,7 +303,7 @@ sub bp2cM($$) {
 	$bpInput=0 unless defined($bpInput);
 
 	if (!exists($conv{$chr})) {
-		print "<p>marker.php: No information for chromosome '$chr'.</p>\n";
+		print STDERR "func_conversion.pm: No information for chromosome '$chr'.\n";
 		return (-2);
 	}
 
@@ -324,7 +324,7 @@ sub bp2cM($$) {
 	#	return (-3);
 	#}
 	if(-1 == $#chrconv) {
-		print "<p>marker.php: No information for chromosome '$chr'.</p>\n";
+		print STDERR "func_conversion.pm: No information for chromosome '$chr'.\n";
 		return (-2);
 	} else {
 		foreach my $k (@chrconv) {
@@ -394,33 +394,6 @@ sub bp2cM($$) {
 		return($ret);
 	}
 }
-
-if (1) {
-	print "Now some tests.\n";
-	foreach my $chr (keys %conv) {
-		print "***************\n";
-		print "** $chr : cm\tbp\tbp2cM\tcM2bp\n";
-		print "***************\n";
-		my $aref=$conv{$chr};
-		my @a=@$aref;
-		my $bppref=undef;
-		my $cmpref=undef;
-		foreach my $k (@a) {
-			my ($cm,$bp)=@{$k};
-			if (defined($bppref)) {
-				my $meanBp=($bp+$bppref)/2;
-				my $meanCm=($cm+$cmpref)/2;
-				print "Mid:\t$meanCm\t$meanBp\t";
-				print bp2cM($chr,$meanBp)."\t".cM2bp($chr,$meanCm)."\n";
-			}
-			print "\t".join("\t",@{$k})."\t->\t". bp2cM($chr,$bp)."\t".cM2bp($chr,$cm)."\n";
-			print "\n";
-			($cmpref,$bppref)=@{$k};
-		}
-		last;
-	}
-}
-
 
 # This conversion is based on ensembl database ensembl_mart_55 on host martdb.ensembl.org:5316
 
