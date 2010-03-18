@@ -925,10 +925,12 @@ ENDOFDOCUMENTATION
 							echo "<th class=c><small>$n</small></th>";
 						}
 						if ("Trait"==$n) {
+							echo "<th class=c colspan=1>";
 							if(!empty($show_LocusOfGene) and !empty($show_ExpressionOfGene)) {
-								echo "<th class=c colspan=4><small>Trait<br>chr"
+								echo "Trait <small>chr"
 									#.",strand"
-									.",start,mean,sd</small></th>";
+									.":start</small><br>"
+									."Expression <small>mean (sd)</small>";
 							}
 							else if(!empty($show_LocusOfGene)) {
 								echo "<th class=c colspan=2><small>Trait<br>chr"
@@ -936,8 +938,9 @@ ENDOFDOCUMENTATION
 								.",start</small></th>";
 							}
 							else if(!empty($show_ExpressionOfGene)) {
-								echo "<th class=c colspan=2><small>Trait<br>mean,sd</small></th>";
+								echo "<small>Expression mean (sd)</small>";
 							}
+							echo "</th>";
 						}
 					}
 				}
@@ -961,15 +964,18 @@ ENDOFDOCUMENTATION
 							."<a href=\"interaction.php?direct=1&traitlist=$l&type=X\">i</a>"
 							."<a href=\"interaction.php?direct=1&traitlist=$l&type=Y\">j</a>"
 							."]</td>";
-							if (!empty($show_LocusOfGene)) {
-								echo "<td class=small>".$line["chr_name"]."</td>";
-								#echo "<td class=small>".$line["strand"]."</td>";
-								echo "<td class=small>"
-									.$line["gene_chrom_start"]."</td>";
-							}
-							if (!empty($show_ExpressionOfGene)) {
-								echo "<td class=small>".$line["mean"]."</td>";
-								echo "<td class=small>".$line["sd"]."</td>";
+							if (!empty($show_LocusOfGene) or !empty($show_ExpressionOfGene)) {
+								echo "<td class=small align=center><small>";
+								if (!empty($show_LocusOfGene)) {
+									echo $line["chr_name"].":";
+									#echo "<td class=small>".$line["strand"]."</td>";
+									echo $line["gene_chrom_start"]."-".$line["gene_chrom_end"];
+								}
+								if (!empty($show_ExpressionOfGene)) {
+									if (!empty($show_LocusOfGene)) echo "<br />";
+									echo $line["mean"]." (".$line["sd"].")";
+								}
+								echo "<small></td>";
 							}
 							break;
 						case "Chr":
