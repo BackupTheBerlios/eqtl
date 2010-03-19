@@ -50,6 +50,7 @@ University of LE<uuml>beck, Germany, 2010
 
 	require_once("header.php");
 	require_once("func_covariates.php");
+	require_once("func_dbconfig.php"); // errorMessage
 	require_once("func_selection.php"); // prints part of the HTML for forms
 
 	show_small_header("EffectPlot",TRUE);
@@ -159,13 +160,13 @@ University of LE<uuml>beck, Germany, 2010
 
 		if (empty($traits)) {
 			errorMessage("The traits for which to print effect plots have not been specified. "
-				    ."Fill out the <a href="effectplot.php">effectPlot form</a>.");
+				    ."Fill out the <a href=\"effectplot.php\">effectPlot form</a>.");
 		}
 
 		$traitlist=preg_split("/,\s*/",$traits);
 
 		if (1<count($traitlist)) {
-			echo "<h1>Effect Plots</h1>\n";
+			//echo "<h1>Effect Plots</h1>\n";
 			foreach ($traitlist as $n=>$trait) {
 				echo " <a href=\"#$trait\">$trait</a>";
 			}
