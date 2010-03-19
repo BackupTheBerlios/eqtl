@@ -1,0 +1,249 @@
+#!/usr/bin/env r
+
+doc<-"
+
+=head1 NAME
+
+effectPlot.R - show quantitative influence of genotype of expression level
+
+=head1 SYNOPSIS
+
+effectPlot.R [options]
+
+or to be sourced from within an R shell
+
+=head1 DESCRIPTION
+
+=head1 OPTIONS
+
+=over 4
+
+=item verbose
+
+=item help
+
+=item trait I<trait_id>
+
+Only a single trait is worked on. If there is demand, this will be extended towards the simultaneous treatment of multiple traits.
+
+=item LODmin minimalLODscore
+
+only loci with a LOD score of at least the value denoted will be included in the analysis (not yet implemented)
+
+=item cisDistMax maximalDistanceFromPeak
+
+only show effect for cis-acting loci (not yet implemented)
+
+=item interactive
+
+rather than dumping an image to a file, specified by '--output', the result can be analysed interactively with the R shell . This is useful only when sourcing the script from within an R shell
+
+=item format <png|jpeg|pdf>
+
+The graphics format to be used. The default is 'png'. To use the typical display of the R shell, use set --interaction.
+
+=item covariates
+
+list of covariates to be included  (not implemented)
+
+=item output
+
+complete path to file to include the resulting image, without any .jpeg etc suffix, please. Multiple images may be created (with highly-scored QTL on multiple chromosomes). It will receive a filename with _Chr_cM suffix.
+
+=item width I<number>
+
+The width of the figure, either in pixels (png, jpeg) or inch (pdf).
+
+=item height I<number>
+
+The width of the figure, defaults to width unless explicitly set.
+
+=back
+
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2009
+
+=cut
+
+"
+
+##
+##  I N T E R N A L   F U N C T I O N S
+##
+
+#
+# prepare the output file
+#
+prepareOutput<-function(filename) {
+	if (is.null(filename)) {
+		stop("prepareOutput has NULL as filename\n")
+	}
+	if (is.null(opt$interactive)) {
+		if (is.null(opt$format) || "png" == opt$format) {
+			png(filename,width=width.pixel,height=height.pixel)
+		}
+		else if ("pdf" == opt$format) {
+			pdf(filename,width=width.inch,height=height.inch)
+		}
+		else if ("jpg" == opt$format  || "jpeg" == opt$format) {
+			jpg(filename,width=width.pixel,height=height.pixel)
+		}
+		else if ("gif" == opt$format) {
+			jpg(filename,width=width.pixel,height=height.pixel)
+		}
+		else {
+			cat("Unknown format ",opt$format,"\n")
+			q(status=1);
+		}
+	}
+}
+
+
+
+library(RMySQL)
+library(getopt)
+
+library(gplots) # for Venn diagrams
+
+# cat("I was here 0.\n")
+
+width.pixel<-2*480
+width.inch<-11
+height.pixel<-width.pixel
+height.inch<-width.inch
+
+opt = getopt(matrix(c(
+    'verbose'    , 'v', 2, "integer",
+    'debug'    , 'd', 2, "integer",
+    'help'       , 'h', 0, "logical",
+    'MeanMin'    , 'm', 1, "double",
+    'LODmin'     , 'l', 1, "double",
+    'cisDistMax' , 's', 1, "integer",
+    'cistrans'   , 'a', 1, "character",
+    'interactive', 'i', 0, "logical",
+    'format'     , 'f', 1, "character",
+    'covariates' , 'c', 1, "character",
+    'output'     , 'o', 1, "character"
+   ),ncol=4,byrow=TRUE), debug=TRUE)
+
+if (!is.null(opt$help)) {
+   cat("Please run 'pod2man createVenn.R | nroff -man | less' on this script to gain more insights.\n");
+   q(status=1);
+}
+
+if (is.null(opt$LODmin)) {
+	opt[["LODmin"]] <- 3.5
+	if (!is.null(opt$verbose)) cat("Setting default LODmin to ",opt$LODmin,"\n");
+}
+
+if (is.null(opt$cisDistMax)) {
+	opt[["cisDistMax"]] <- 20*1000*1000
+	if (!is.null(opt$verbose)) cat("Setting default cisDistMax to ",opt$cisDistMax,"\n");
+}
+
+if (is.null(opt$format)) {
+   opt[["format"]]<-"png";
+   cat("Set format to default value '",opt$format,"'.\n",sep="")
+}
+
+if ("pdf" == opt$format) {
+	if (!is.null(opt$width)) {
+		width.inch<-opt$width
+	}
+	if (!is.null(opt$height)) {
+		height.inches<-opt$height
+	}
+	else {
+		height.inch<-width.inch
+	}
+} else {
+	if (!is.null(opt$width)) {
+		width.pixel<-opt$width
+	}
+	if (!is.null(opt$height)) {
+		height.pixel<-opt$height
+	}
+	else {
+		height.pixel<-width.pixel
+	}
+}
+
+# for manual interaction in shell: 
+# con <- dbConnect(MySQL(),user="qtl", password="", dbname="eQTL_Stockholm", host="pc15.inb.uni-luebeck.de")
+
+con <- dbConnect(MySQL(),user="DATABASEEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
+
+if (F) {
+#covariates<-c('','eae_add','sud_add','dud_add','wl0_add','D12G1_add','D12G2B_add','D12G2C_add','D35G1_add','D35G2B_add','D35G2C_add','t12p_add','t35p_add')
+covariates<-c()
+	if (is.null(opt$covariates)) {
+		cat("Falling back to default covariates.\n")
+		covariates<-c('eae_int','sud_add','dud_add','wl0_add','none')
+	} else if (5<length(covariates)) {
+		cat("Maximally 5 covariates are tolerated for a comparison, currently: ",length(covariates),"\n",sep="")
+		q(status=1)
+	} else {
+		covariates <- strsplit(x=opt$covariates,split=";",fixed=TRUE)[[1]]
+	}
+
+	cat(paste("Working with the following covariates: ",paste(covariates, collapse="; "),"\n",sep=""))
+
+	if ('none' %in% covariates) {
+		cat("Substituting 'none' covariate name with empty string.\n")
+		covariates['none' == covariates] <- ''
+	}
+}
+
+query<-paste("SELECT Locus, Trait, covariates, qtl.chromosome, cis, cis_dist,cMorgan_Peak ",
+	     " FROM qtl JOIN trait ON trait_id=Trait JOIN locus ON locus.Name=qtl.Locus ",
+	     " WHERE covariates in ('", paste( covariates, collapse="','",sep=""), "')", sep=""
+)
+
+if (!is.null(opt[["traits"]])) { query<-paste(query," AND pvalue >= ",opt$PvalueMin,sep="")
+}
+}
+if (!is.null(opt[["LODmin"]]))  { query<-paste(query," AND LOD >= ",opt$LODmin,sep="")
+}
+if (!is.null(opt[["LODmax"]]))  { query<-paste(query," AND LOD <= ",opt$LODmax,sep="")
+}
+if (!is.null(opt[["cistrans"]])) {
+	if("cis" == opt[["cistrans"]]) {
+		query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="")
+	} else if ("trans" == opt[["cistrans"]]) {
+		query<-paste(query," AND (0 = cis OR cis_dist > ",opt$cisDistMax,")",sep="")
+	} else {
+		stop(paste("Unknow argument to --cistrans: ",opt[["cistrans"]],"\n",sep=""))
+	}
+}
+if (!is.null(opt[["debug"]]))     { query<-paste(query," LIMIT 100",sep="")
+}
+cat("Query: ",query,"\n")
+
+rs<-dbGetQuery(con,query)
+if (!is.null(opt$debug)) {
+	print(rs)
+}
+
+if (0 == nrow(rs)) {
+	stop("Have not received a single line from database. The query was not successful.\n")
+}
+
+
+#
+#	Effect Plots
+#
+
+f<-paste(opt$output,"_","exact_trait",".",opt$format,sep="")
+cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
+prepareOutput(f)
+colnames(loc.trait.covariate)<-pretty.print.columnames(colnames(loc.trait.covariate))
+venn(loc.trait.covariate)
+if(is.null(opt$interactive)) {
+	dev.off()
+}
