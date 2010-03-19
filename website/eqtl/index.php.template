@@ -75,6 +75,7 @@ echo "</table>\n";
 $analyses=array();
 $analyses[]=array(href=>"scatter.php", title=>"Cause-vs-Effect Location Scatter Plot");
 $analyses[]=array(href=>"venn.php", title=>"Venn diagrams for Covariates");
+$analyses[]=array(href=>"effectplot.php", title=>"Effect plot for individual traits");
 $analyses[]=array(href=>"analyses/SingleQTL/index.php", title=>"Density of QTLs");
 $analyses[]=array(href=>"analyses/Interactions/", title=>"Density of Interactions");
 $analyses[]=array(href=>"analyses/Interactions_Selection/index.php", title=>"Density of Interactions (selected traits)");
