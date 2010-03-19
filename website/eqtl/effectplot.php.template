@@ -1,0 +1,243 @@
+<?php
+
+	TEMPLATEWARNINGHASH
+
+/*
+
+=head1 effectplot
+
+Display of strain differences on the expression levels. This can be shown only for individual marker (or QTL).
+The script will perform a complete rerun of the QTL and then show effect plots for all loci above a particular LOD score.
+No permutation tests are performed, i.e. a filtering for p-Values not supported.
+
+The interface shall also be usable to rerun the QTL with another (most CPU-intensive, possibly) method.
+
+=over 4
+
+=item LODmin 
+
+defaulting to 3
+
+=item method
+
+defaulting to hk
+
+=item covariates
+
+not yet implemented
+
+=item chromosomes
+
+not yet implemented
+
+=item location in classical disease qtl
+
+not yet implemented
+
+=back
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2010
+
+=cut
+
+*/
+
+	require_once("header.php");
+	require_once("func_covariates.php");
+	require_once("func_selection.php"); // prints part of the HTML for forms
+
+	show_small_header("EffectPlot",TRUE);
+
+	$database="DATABASEEQTLNAME";
+	include_once("func_connect.php");
+	require_once("func_public_qtl.php");
+
+	# fields that should appear
+	$dataSelectionFieldsQTL = array(
+		"traits","traitlist",
+		"groups",
+		"Chromosome","ensemblversion",
+		"cM_within","LODmax","LODmin",
+		"quantilemin","quantilemax",
+		"qtl_covariates",
+		"cqtl",
+		"LODdiffmin","LODdiffmax",
+		"PvalueMin","PvalueMax",
+		"cM_Peak_Min","cM_Peak_Max",
+		"MeanMin","MeanMax","SdMin","SdMax",
+		"cistrans",
+		"locus","chrlist", "condition"
+	);
+
+
+
+	$accessible_fields_in_POST_or_GET = array_merge (
+		array("submitted","direct","inlineImages","rerunAnalyses","verbose"),
+		$dataSelectionFieldsQTL
+	);
+
+	foreach($accessible_fields_in_POST_or_GET as $vname)
+	{
+		if (isset($_POST[$vname])) {
+			$$vname = $_POST[$vname];
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+		elseif(isset($_GET[$vname])) {
+			$$vname = $_GET[$vname];
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+	}
+
+	# transforming array of traits into comma separated string
+	if (!empty($traitlist)) {
+		if (is_array($traitlist)) {
+			$traits=join(",",$traitlist);
+		}
+		else {
+			$traits=$traitlist;
+			$traitlist="";
+		}
+	}
+
+	if (empty($submitted) and empty($direct)) {
+
+		#
+		#   S E T T I N G  O F  P A R A M E T E R S 
+		#
+
+		echo "<p>Use this form to perform a single QTL analysis on
+		a single trait. It uses those insights to then show all
+		effect plots for the LOD scores above the <i>LODmin</i>
+		threshold.</p>";
+
+		echo "<form action=effectplot.php method=post>\n";
+		echo "<input type=hidden name=submitted value=1>\n";
+
+		echo "<table><tr>"; # the table has only a single row
+
+		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
+
+		echo "<table>\n";
+		print_selection_form("figure_effectplot");
+		//echo "<tr><th>Covariates of stored QTL</th><td>";
+		//select_covariates_combinations(3);
+		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
+		echo "<tr><td align=right><input type=submit></td>";
+		echo "<td align=left><input type=reset>";
+		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=inlineImages value=1 />Inline Images";
+		//echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=rerunAnalyses value=1 />Rerun previous analyses";
+		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=verbose value=1 />verbose";
+		echo "</td></tr>\n";
+		echo "</table>\n";
+
+		if ("" == "this is not yet implemented") {
+		  echo "</td>\n<td valign=top>";
+		  select_from_public_qtls($linkLocal,TRUE);
+		  echo "</td>";
+		}
+		echo "</tr>";
+		echo "</table>";
+
+		echo "<p>Sorry, Maja, I am still at it.</p>\n";
+
+		echo "</form>\n";
+
+	}
+	else {
+
+		if (!empty($debug)) print_r($_POST);
+
+		if (empty($traits)) {
+			errorMessage("The traits for which to print effect plots have not been specified. "
+				    ."Fill out the <a href="effectplot.php">effectPlot form</a>.");
+		}
+
+		$traitlist=preg_split("/,\s*/",$traits);
+
+		if (1<count($traitlist)) {
+			echo "<h1>Effect Plots</h1>\n";
+			foreach ($traitlist as $n=>$trait) {
+				echo " <a href=\"#$trait\">$trait</a>";
+			}
+		}
+
+		foreach ($traitlist as $trait) {
+
+			if (1<count($traitlist)) {
+				echo "<h2>Trait <i>$trait</$i></h2>\n";
+			}
+			else {
+				echo "<h1>Effect Plot on trait <i>$trait</$i></h1>\n";
+			}
+		
+			#
+			# invocation of external R script
+			#
+
+			echo "cwd: " . getcwd() . "<br>\n";
+			#print_r($_SERVER);
+
+			if ($n>0) echo "<hr>";
+
+			$attributes=array();
+
+			$outputfilename = "tmp_images/effectplot_output";
+			if (empty($trait)) {
+				$outputfilename .= "_trait_$trait";
+				array_push($attributes,"--Ptrait",$trait);
+			}
+			if (!empty($LODmin))    {
+				$outputfilename .= "_LODmin_$LODmin";
+				array_push($attributes,"--LODmin",$LODmin);
+			}
+			if (!empty($LODmax))    {
+				$outputfilename .= "_LODmax_$LODmax";
+				array_push($attributes,"--LODmax",$LODmax);
+			}
+
+			$rscript = getcwd() . "/../../scripts/analyses/effectplot.R";
+			if (!file_exists($rscript)) {
+			  errorMessage("R script '$rscript' not found.");
+			}
+			$cmd = "$rscript";
+			$cmd .= " --format png";
+			array_push($attributes,"--format","png");
+			/*
+			if (!empty($qtl_covariates)) {
+			  $cmd .= " --covariates ".join(";",$qtl_covariates);
+			  array_push($attributes,"--covariates",'"'.join(";",$qtl_covariates).'"');
+			  $outputfilename .= "_cov_".join(";",$qtl_covariates);
+			}
+			*/
+			if (!empty($verbose)) {
+			  $cmd .= " --verbose";
+			  array_push($attributes,"--verbose",1);
+			}
+			$cmd .= " --output \"$outputfilename\"";
+			array_push($attributes,"--output",'"'.$outputfilename.'"');
+			$cmd = "$rscript ".join(" ",$attributes);
+			
+			if ($verbose) {
+				echo "<p>executing '$cmd'</p><br />\n";
+			}
+		
+			$t =  shell_exec($cmd);
+
+			echo "<p>";
+			#print_r($attributes);
+			echo "<small>$t</small>\n";
+			echo "</p>\n";
+		}
+	}
+	include("footer.php");
+?>
