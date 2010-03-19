@@ -133,6 +133,7 @@ ENDOFDOCUMENTATION
 		}
 	}
 
+	# transforming array of traits into comma separated string
 	if (!empty($traitlist)) {
 		if (is_array($traitlist)) {
 			$traits=join(",",$traitlist);
