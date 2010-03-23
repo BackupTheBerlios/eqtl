@@ -104,12 +104,9 @@ prepareOutput<-function(filename) {
 	}
 }
 
-
-
-library(RMySQL)
 library(getopt)
+library(qtl)
 
-library(gplots) # for Venn diagrams
 
 # cat("I was here 0.\n")
 
@@ -120,12 +117,16 @@ height.inch<-width.inch
 
 opt = getopt(matrix(c(
     'verbose'    , 'v', 2, "integer",
-    'debug'    , 'd', 2, "integer",
+    'debug'      , 'd', 2, "integer",
     'help'       , 'h', 0, "logical",
-    'MeanMin'    , 'm', 1, "double",
+    'trait'      , 't', 1, "character",
+    'chromosome1', 'e', 2, "character",
+    'chromosome2', 'w', 2, "character",
+    'cM1'        , 'm', 2, "double",
+    'cM2'        , 'n', 2, "double",
+    'marker1'    , 'a', 2, "double",
+    'marker2'    , 'b', 2, "double",
     'LODmin'     , 'l', 1, "double",
-    'cisDistMax' , 's', 1, "integer",
-    'cistrans'   , 'a', 1, "character",
     'interactive', 'i', 0, "logical",
     'format'     , 'f', 1, "character",
     'covariates' , 'c', 1, "character",
@@ -133,8 +134,20 @@ opt = getopt(matrix(c(
    ),ncol=4,byrow=TRUE), debug=TRUE)
 
 if (!is.null(opt$help)) {
-   cat("Please run 'pod2man createVenn.R | nroff -man | less' on this script to gain more insights.\n");
+   cat("Please run 'pod2man createVenn.R | nroff -man | less' on this script to gain more insights.\n")
    q(status=1);
+}
+
+if (is.null(opt$trait)) {
+   cat("Please place trait  with -t option.\n")
+   q(status=1);
+}
+
+if (is.null(opt[["marker1"]])) {
+	if (is.null(opt$chromosome1) & is.null(opt$cM1)) {
+	   cat("Neither marker nor chr/cM pair specified.\n")
+	   q(status=1);
+	}
 }
 
 if (is.null(opt$LODmin)) {
@@ -142,10 +155,10 @@ if (is.null(opt$LODmin)) {
 	if (!is.null(opt$verbose)) cat("Setting default LODmin to ",opt$LODmin,"\n");
 }
 
-if (is.null(opt$cisDistMax)) {
-	opt[["cisDistMax"]] <- 20*1000*1000
-	if (!is.null(opt$verbose)) cat("Setting default cisDistMax to ",opt$cisDistMax,"\n");
-}
+#if (is.null(opt$cisDistMax)) {
+#	opt[["cisDistMax"]] <- 20*1000*1000
+#	if (!is.null(opt$verbose)) cat("Setting default cisDistMax to ",opt$cisDistMax,"\n");
+#}
 
 if (is.null(opt$format)) {
    opt[["format"]]<-"png";
@@ -174,76 +187,74 @@ if ("pdf" == opt$format) {
 	}
 }
 
-# for manual interaction in shell: 
-# con <- dbConnect(MySQL(),user="qtl", password="", dbname="eQTL_Stockholm", host="pc15.inb.uni-luebeck.de")
-
-con <- dbConnect(MySQL(),user="DATABASEEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
-
-if (F) {
-#covariates<-c('','eae_add','sud_add','dud_add','wl0_add','D12G1_add','D12G2B_add','D12G2C_add','D35G1_add','D35G2B_add','D35G2C_add','t12p_add','t35p_add')
-covariates<-c()
-	if (is.null(opt$covariates)) {
-		cat("Falling back to default covariates.\n")
-		covariates<-c('eae_int','sud_add','dud_add','wl0_add','none')
-	} else if (5<length(covariates)) {
-		cat("Maximally 5 covariates are tolerated for a comparison, currently: ",length(covariates),"\n",sep="")
-		q(status=1)
-	} else {
-		covariates <- strsplit(x=opt$covariates,split=";",fixed=TRUE)[[1]]
-	}
-
-	cat(paste("Working with the following covariates: ",paste(covariates, collapse="; "),"\n",sep=""))
-
-	if ('none' %in% covariates) {
-		cat("Substituting 'none' covariate name with empty string.\n")
-		covariates['none' == covariates] <- ''
-	}
-}
-
-query<-paste("SELECT Locus, Trait, covariates, qtl.chromosome, cis, cis_dist,cMorgan_Peak ",
-	     " FROM qtl JOIN trait ON trait_id=Trait JOIN locus ON locus.Name=qtl.Locus ",
-	     " WHERE covariates in ('", paste( covariates, collapse="','",sep=""), "')", sep=""
-)
-
-if (!is.null(opt[["traits"]])) { query<-paste(query," AND pvalue >= ",opt$PvalueMin,sep="")
-}
-}
-if (!is.null(opt[["LODmin"]]))  { query<-paste(query," AND LOD >= ",opt$LODmin,sep="")
-}
-if (!is.null(opt[["LODmax"]]))  { query<-paste(query," AND LOD <= ",opt$LODmax,sep="")
-}
-if (!is.null(opt[["cistrans"]])) {
-	if("cis" == opt[["cistrans"]]) {
-		query<-paste(query," AND 1 = cis AND cis_dist <= ",opt$cisDistMax,sep="")
-	} else if ("trans" == opt[["cistrans"]]) {
-		query<-paste(query," AND (0 = cis OR cis_dist > ",opt$cisDistMax,")",sep="")
-	} else {
-		stop(paste("Unknow argument to --cistrans: ",opt[["cistrans"]],"\n",sep=""))
-	}
-}
-if (!is.null(opt[["debug"]]))     { query<-paste(query," LIMIT 100",sep="")
-}
-cat("Query: ",query,"\n")
-
-rs<-dbGetQuery(con,query)
-if (!is.null(opt$debug)) {
-	print(rs)
-}
-
-if (0 == nrow(rs)) {
-	stop("Have not received a single line from database. The query was not successful.\n")
-}
-
-
 #
-#	Effect Plots
+# Read data - just the default one as a start
 #
 
-f<-paste(opt$output,"_","exact_trait",".",opt$format,sep="")
-cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
-prepareOutput(f)
-colnames(loc.trait.covariate)<-pretty.print.columnames(colnames(loc.trait.covariate))
-venn(loc.trait.covariate)
-if(is.null(opt$interactive)) {
-	dev.off()
+fname.input<-paste(
+	"http://grid64inb.inb.uni-luebeck.de:80/~moeller/stockholm/prepareRqtlInputData.pl?probesetid=",
+	opt$trait,
+	"&applyLog2=TRUE&score=",sep="")
+
+my.cross <- NULL
+my.cross <- read.cross(	format="csv", dir="",
+                       	file=fname.input,
+		        genotypes=RQTLREADCROSSGENOTYPES,
+			alleles=RQTLREADCROSSALLELES ,
+			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )
+
+if (is.null(my.cross)) {
+	cat("Could no read data for trait '",trait,"'.\n")
+	q("no")
+}
+
+ep<-function(marker,chr,cM) {
+	cat("ep:start\n")
+	mname1<-NULL
+	#if (is.null(marker))
+	if (T) {
+		# Find marker closest to the Chr and cMorgan specified
+		cat("ep:find.marker")
+		mname1 <- find.marker(my.cross, chr, cM)
+		#mname1 <- find.marker(my.cross, 1, 30)
+		cat("Investigating marker '",mname1,
+			" as determined from coordinates ",chr,"@",cM,".\n")
+	}
+	else {
+		# Use marker as specified
+		mname1 <- marker
+		cat("Investigating marker '",mname1," as specified\n")
+	}
+
+	if (is.null(mname1)) {
+		cat("ep: Could not determine marker.\n")
+	}
+
+	#	Effect Plots
+
+	f<-paste(opt$output,"_",mname1,"exact_trait",".",opt$format,sep="")
+	cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
+	prepareOutput(f)
+	cat("ep:invocation of effectplot\n")
+	effectplot(my.cross,mname1=mname1)
+	if(is.null(opt$interactive)) {
+		dev.off()
+	}
+	cat("ep:end\n")
+}
+
+m<-opt[["marker1"]]
+chr<-opt[["chromosome1"]]
+cM<-opt[["cM1"]]
+
+if (is.null(m) & (is.null(cM) | is.null(chr))) {
+	stop("The rerun of single QTL analysis is not yet implemented.\n")
+	# no locus specified, go for them all
+	my.cross <- calc.genoprob( my.cross, step=1, error.prob=0.01 )
+	my.scanone.S <- scanone( my.cross, pheno.col=3, method="hk", verbose=FALSE )
+} else {
+	if (is.null(cM)|is.null(chr)) {
+		stop("Please specify both cM ('",cM,"') and chr ('",chr,"').\n",sep="")
+	}
+	ep(m,chr,cM)
 }

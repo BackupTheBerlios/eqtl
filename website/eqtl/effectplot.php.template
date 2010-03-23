@@ -7,8 +7,12 @@
 =head1 effectplot
 
 Display of strain differences on the expression levels. This can be shown only for individual marker (or QTL).
-The script will perform a complete rerun of the QTL and then show effect plots for all loci above a particular LOD score.
-No permutation tests are performed, i.e. a filtering for p-Values not supported.
+The default will hence be to have this page requested as an extension to the information shown on QTL with the locus directly specified.
+
+It is planned to allow the script to perform a complete rerun of the QTL
+and then show effect plots for all loci above a particular LOD score.
+No permutation tests are then performed, i.e. a filtering for p-Values
+not supported.
 
 The interface shall also be usable to rerun the QTL with another (most CPU-intensive, possibly) method.
 
@@ -63,8 +67,12 @@ University of LE<uuml>beck, Germany, 2010
 	$dataSelectionFieldsQTL = array(
 		"traits","traitlist",
 		"groups",
-		"Chromosome","ensemblversion",
+		"chromosome","cM",
+		"chromosome2","cM2",
+		"marker","marker2",
+		"ensemblversion",
 		"cM_within","LODmax","LODmin",
+	/*
 		"quantilemin","quantilemax",
 		"qtl_covariates",
 		"cqtl",
@@ -72,8 +80,9 @@ University of LE<uuml>beck, Germany, 2010
 		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
+	*/
 		"cistrans",
-		"locus","chrlist", "condition"
+		"condition"
 	);
 
 
@@ -116,8 +125,17 @@ University of LE<uuml>beck, Germany, 2010
 		#   S E T T I N G  O F  P A R A M E T E R S 
 		#
 
-		echo "<p>Use this form to perform a single QTL analysis on
-		a single trait. It uses those insights to then show all
+		echo "<p>Use this form to learn about strain differences for singular loci.
+		You specify the locus and see how strains differ in the degree that these
+		have the gene expressed. You can either specify the marker name or specify
+		the locus via its chr/cM pair.
+		</p>
+		<p>
+		Not yet implemented, but very soon, is the joint inspection of two loci for their
+		combined effect on the expression level.
+		</p>
+		At some later stage this page will offer to perform a single QTL
+		analysis on individual traits. It uses those insights to then show all
 		effect plots for the LOD scores above the <i>LODmin</i>
 		threshold.</p>";
 
@@ -193,9 +211,9 @@ University of LE<uuml>beck, Germany, 2010
 			$attributes=array();
 
 			$outputfilename = "tmp_images/effectplot_output";
-			if (empty($trait)) {
+			if (!empty($trait)) {
 				$outputfilename .= "_trait_$trait";
-				array_push($attributes,"--Ptrait",$trait);
+				array_push($attributes,"--trait",$trait);
 			}
 			if (!empty($LODmin))    {
 				$outputfilename .= "_LODmin_$LODmin";
@@ -205,6 +223,30 @@ University of LE<uuml>beck, Germany, 2010
 				$outputfilename .= "_LODmax_$LODmax";
 				array_push($attributes,"--LODmax",$LODmax);
 			}
+			if (!empty($chromosome)) {
+				$outputfilename .= "_chromosome_$chromosome";
+				array_push($attributes,"--chromosome1",$chromosome);
+			}
+			if (!empty($cM)) {
+				$outputfilename .= "_cM_$cM";
+				array_push($attributes,"--cM1",$cM);
+			}
+			if (!empty($marker)) {
+				$outputfilename .= "_marker_$marker";
+				array_push($attributes,"--marker1",$marker);
+			}
+			if (!empty($chromosome2)) {
+				$outputfilename .= "_chromosome2_$chromosome2";
+				array_push($attributes,"--chromosome2",$chromosome2);
+			}
+			if (!empty($cM2)) {
+				$outputfilename .= "_cM2_$cM2";
+				array_push($attributes,"--centiMorgan2",$cM2);
+			}
+			if (!empty($marker2)) {
+				$outputfilename .= "_marker2_$marker2";
+				array_push($attributes,"--marker2",$marker2);
+			}
 
 			$rscript = getcwd() . "/../../scripts/analyses/effectplot.R";
 			if (!file_exists($rscript)) {
@@ -213,13 +255,7 @@ University of LE<uuml>beck, Germany, 2010
 			$cmd = "$rscript";
 			$cmd .= " --format png";
 			array_push($attributes,"--format","png");
-			/*
-			if (!empty($qtl_covariates)) {
-			  $cmd .= " --covariates ".join(";",$qtl_covariates);
-			  array_push($attributes,"--covariates",'"'.join(";",$qtl_covariates).'"');
-			  $outputfilename .= "_cov_".join(";",$qtl_covariates);
-			}
-			*/
+
 			if (!empty($verbose)) {
 			  $cmd .= " --verbose";
 			  array_push($attributes,"--verbose",1);
@@ -235,8 +271,10 @@ University of LE<uuml>beck, Germany, 2010
 			$t =  shell_exec($cmd);
 
 			echo "<p>";
+			echo "<pre>";
 			#print_r($attributes);
 			echo "<small>$t</small>\n";
+			echo "</pre>";
 			echo "</p>\n";
 		}
 	}

@@ -155,6 +155,8 @@ function print_exclusive_selection($rname,$variablename,$entryarray,$default="")
 function print_selection_form($properties) {
 
 	global $LODmin,$LODmax,$quantilemin,$quantilemax,
+	       $chromosome,  $cM,  $marker, 
+	       $chromosome2, $cM2, $marker2, 
 	       $LODdiffmin, $LODdiffmax, $cM_Peak_Min, $cM_Peak_Max,
 	       $cM_within, $groups, $locus, $chrlist,
 	       $MeanMin, $MeanMax, 
@@ -210,7 +212,7 @@ function print_selection_form($properties) {
 			break;
 		 case "figure_effectplot":
 			$properties = array(
-						"trait","method","LOD", #"cistrans"
+						"trait","method","LOD","marker" #"cistrans"
 			);
 			break;
 
@@ -243,7 +245,7 @@ function print_selection_form($properties) {
 ?>
 			></td></tr>
 <?php
-			break;
+				break;
 
 			case "locus":
 ?>
@@ -262,7 +264,15 @@ function print_selection_form($properties) {
 ?>
 			></td></tr>
 <?php
-			break;
+				break;
+
+			case "marker":
+				echo '<tr><th class=r>Marker:</th><td colspan=1>Name: <input type=text name=marker size=10 maxsize=12> &nbsp;or </td><th>as Chr@cM:</th><td><input type=text name=chromosome size=2 maxsize=2>@<input type=text name=cM size=3 maxsize=4></td></tr>';
+				break;
+
+			case "marker2":
+				echo '<tr><th class=r>Marker:</th><td colspan=1>Name: <input type=text name=marker2 size=10 maxsize=12> &nbsp;or </td><th>as Chr@cM:</th><td><input type=text name=chromosome2 size=2 maxsize=2>@<input type=text name=cM2 size=3 maxsize=4></td></tr>';
+				break;
 
 			case "chrlist":
 			case "chromosome":
@@ -281,7 +291,7 @@ function print_selection_form($properties) {
 ?>
 			></td></tr>
 <?php
-			break;
+				break;
 
 			case "LOD":
 				if (empty($LODmin)) $LODmin=3.9;
