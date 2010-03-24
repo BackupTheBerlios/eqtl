@@ -182,6 +182,15 @@ University of LE<uuml>beck, Germany, 2010
 				    ."Fill out the <a href=\"effectplot.php\">effectPlot form</a>.");
 		}
 
+		if (empty($marker) and (empty($cM) or empty($chromosome))) {
+			errorMessage("1<sup>st</sup> locus not specified, neither by marker name nor by chr:cM pair (current value $chromosome:$cM).");
+		}
+		if (empty($marker2) and (empty($cM2) or empty($chromosome2))) {
+			if (!(empty($cM2) and empty($chromosome2))) {
+				errorMessage("Specification of 2<sup>nd</sup> locus incomplete, missing cM ($cM2) or chromosome ($chromosome2).");
+			}
+		}
+
 		$traitlist=preg_split("/,\s*/",$traits);
 
 		if (1<count($traitlist)) {
@@ -242,7 +251,7 @@ University of LE<uuml>beck, Germany, 2010
 			}
 			if (!empty($cM2)) {
 				$outputfilename .= "_cM2_$cM2";
-				array_push($attributes,"--centiMorgan2",$cM2);
+				array_push($attributes,"--cM2",$cM2);
 			}
 			if (!empty($marker2)) {
 				$outputfilename .= "_marker2_$marker2";

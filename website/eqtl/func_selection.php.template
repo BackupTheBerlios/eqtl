@@ -211,7 +211,7 @@ function print_selection_form($properties) {
 			break;
 		 case "figure_effectplot":
 			$properties = array(
-						"trait","method","LOD","marker" #"cistrans"
+						"trait","method","LOD","marker","marker2" #"cistrans"
 			);
 			break;
 
@@ -266,12 +266,11 @@ function print_selection_form($properties) {
 				break;
 
 			case "marker":
-				echo "<tr><th class=r>Marker:</th><td colspan=1>Name: ";
+				echo "<tr><th class=r>Locus:</th><td colspan=1>Marker Name: ";
 				print_input_text("marker",$marker,FALSE,10,12);
-				echo " &nbsp; or ";
 				echo "</td><th>";
-				echo "as Chr@cM:";
-				echo "</th><td>";
+				echo "or as";
+				echo "</th><td>Chr@cM: ";
 				print_input_text("chromosome",$chromosome,FALSE,2);
 				echo "@";
 				print_input_text("cM",$cM,FALSE,3,4);
@@ -279,7 +278,15 @@ function print_selection_form($properties) {
 				break;
 
 			case "marker2":
-				echo '<tr><th class=r>Marker:</th><td colspan=1>Name: <input type=text name=marker2 size=10 maxsize=12> &nbsp;or </td><th>as Chr@cM:</th><td><input type=text name=chromosome2 size=2 maxsize=2>@<input type=text name=cM2 size=3 maxsize=4></td></tr>';
+				echo "<tr><th class=r>2<sup>nd</sup>Locus:<br><small>optional</small></th><td colspan=1>Marker Name: ";
+				print_input_text("marker2",$marker2,FALSE,10,12);
+				echo "</td><th>";
+				echo "or as";
+				echo "</th><td>Chr@cM: ";
+				print_input_text("chromosome2",$chromosome2,FALSE,2);
+				echo "@";
+				print_input_text("cM2",$cM2,FALSE,3,4);
+				echo "</td></tr>";
 				break;
 
 			case "chrlist":
