@@ -240,6 +240,7 @@ ep<-function(marker1,chr1,cM1,marker2,chr2,cM2) {
 		q(status=1);
 	}
 	#	Effect Plots
+	r<-NULL
 	if (is.null(mname2)) {
 		if (opt$verbose) cat("ep: Could not determine 2nd marker.\n")
 		#f<-paste(opt$output,"_mn1_",mname1,"_trait",".",opt$format,sep="")
@@ -247,14 +248,16 @@ ep<-function(marker1,chr1,cM1,marker2,chr2,cM2) {
 		cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 		prepareOutput(f)
 		if (!is.null(opt$debug)) cat("ep:invocation of effectplot\n")
-		effectplot(my.cross,mname1=mname1)
+		main<-paste("Effect of",mname1,"on expression of",opt$trait)
+		r<-effectplot(my.cross,mname1=mname1,main=main)
 	} else {
 		#f<-paste(opt$output,"_mn1_",mname1,"_mn2_",mname2,"_trait",".",opt$format,sep="")
 		f<-paste(opt$output,".",opt$format,sep="")
 		cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 		prepareOutput(f)
 		if (!is.null(opt$debug)) cat("ep:invocation of effectplot\n")
-		effectplot(my.cross,mname1=mname1,mname2=mname2)
+		main<-paste("Effect of",mname1,"and",mname2,"on expression of",opt$trait)
+		r<-effectplot(my.cross,mname1=mname1,mname2=mname2,main=main)
 	}
 
 
@@ -262,6 +265,7 @@ ep<-function(marker1,chr1,cM1,marker2,chr2,cM2) {
 		dev.off()
 	}
 	if (!is.null(opt$debug)) cat("ep:end\n")
+	return(r)
 }
 
 m<-opt[["marker1"]]
@@ -284,5 +288,6 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	if (is.null(m2) & xor(is.null(cM2),is.null(chr2))) {
 		stop("If specifying a second locus then specify both cM ('",cM2,"') and chr ('",chr2,"').\n",sep="")
 	}
-	ep(m,chr,cM,m2,chr2,cM2)
+	r<-ep(m,chr,cM,m2,chr2,cM2)
+	print(r)
 }

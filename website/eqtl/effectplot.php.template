@@ -128,12 +128,10 @@ University of LE<uuml>beck, Germany, 2010
 		echo "<p>Use this form to learn about strain differences for singular loci.
 		You specify the locus and see how strains differ in the degree that these
 		have the gene expressed. You can either specify the marker name or specify
-		the locus via its chr/cM pair.
+		the locus via its chr/cM pair. For interacting effects, one can also display
+		the difference that a second locus has on the effect of the first.
 		</p>
 		<p>
-		Not yet implemented, but very soon, is the joint inspection of two loci for their
-		combined effect on the expression level.
-		</p>
 		At some later stage this page will offer to perform a single QTL
 		analysis on individual traits. It uses those insights to then show all
 		effect plots for the LOD scores above the <i>LODmin</i>
@@ -167,8 +165,6 @@ University of LE<uuml>beck, Germany, 2010
 		}
 		echo "</tr>";
 		echo "</table>";
-
-		echo "<p>Sorry, Maja, I am still at it.</p>\n";
 
 		echo "</form>\n";
 
@@ -281,10 +277,16 @@ University of LE<uuml>beck, Germany, 2010
 			$t =  shell_exec($cmd);
 
 			echo "<p>";
+			if ($verbose) {
 			echo "<pre>";
 			#print_r($attributes);
 			echo "<small>$t</small>\n";
 			echo "</pre>";
+			}
+			if (!empty($inlineImages)) {
+				echo "<IMG SRC=\"".$outputfilename.".png\" HEIGHT=\"100%\">\n";
+			}
+			echo "<br><a href=\"".$outputfilename.".png\">$outputfilename.png</a>";
 			echo "</p>\n";
 		}
 	}
