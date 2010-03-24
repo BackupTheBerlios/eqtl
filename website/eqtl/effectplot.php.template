@@ -152,7 +152,8 @@ University of LE<uuml>beck, Germany, 2010
 		//select_covariates_combinations(3);
 		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
 		echo "<tr><td align=right><input type=submit></td>";
-		echo "<td align=left><input type=reset>";
+		echo "<td align=left><input type=reset></td>";
+		echo "<td colspan=2>";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=inlineImages value=1 />Inline Images";
 		//echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=rerunAnalyses value=1 />Rerun previous analyses";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=verbose value=1 />verbose";
