@@ -38,12 +38,11 @@ require_once("func_dbconfig.php"); // errorMessage
 
 */
 
-function print_input_text($name,$val,$td=FALSE,$size=7) {
+function print_input_text($name,$val,$td=FALSE,$size=7,$maxsize=0) {
    if ($td) echo "<td>";
    echo "<input type=text name=$name size=$size";
-   if (!(""=="$val" or empty($val))) {
-   	echo " value=\"$val\"";
-   }
+   if (!empty($maxsize))             { echo " maxsize=\"$maxsize\""; }
+   if (!(""=="$val" or empty($val))) { echo " value=\"$val\""; }
    echo ">";
    if ($td) echo "</td>";
 }
@@ -267,7 +266,16 @@ function print_selection_form($properties) {
 				break;
 
 			case "marker":
-				echo '<tr><th class=r>Marker:</th><td colspan=1>Name: <input type=text name=marker size=10 maxsize=12> &nbsp;or </td><th>as Chr@cM:</th><td><input type=text name=chromosome size=2 maxsize=2>@<input type=text name=cM size=3 maxsize=4></td></tr>';
+				echo "<tr><th class=r>Marker:</th><td colspan=1>Name: ";
+				print_input_text("marker",$marker,FALSE,10,12);
+				echo " &nbsp; or ";
+				echo "</td><th>";
+				echo "as Chr@cM:";
+				echo "</th><td>";
+				print_input_text("chromosome",$chromosome,FALSE,2);
+				echo "@";
+				print_input_text("cM",$cM,FALSE,3,4);
+				echo "</td></tr>";
 				break;
 
 			case "marker2":
