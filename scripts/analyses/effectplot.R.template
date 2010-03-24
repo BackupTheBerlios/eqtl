@@ -139,7 +139,7 @@ if (!is.null(opt$help)) {
 }
 
 if (is.null(opt$trait)) {
-   cat("Please place trait  with -t option.\n")
+   cat("Please place trait  with the --trait option.\n")
    q(status=1);
 }
 
@@ -208,44 +208,68 @@ if (is.null(my.cross)) {
 	q("no")
 }
 
-ep<-function(marker,chr,cM) {
-	cat("ep:start\n")
-	mname1<-NULL
-	#if (is.null(marker))
-	if (T) {
+fm<-function(marker,chr,cM) {
+	cat("fm:start")
+	mname<-NULL
+	if (is.null(marker)) {
 		# Find marker closest to the Chr and cMorgan specified
-		cat("ep:find.marker")
-		mname1 <- find.marker(my.cross, chr, cM)
-		#mname1 <- find.marker(my.cross, 1, 30)
-		cat("Investigating marker '",mname1,
-			" as determined from coordinates ",chr,"@",cM,".\n")
-	}
-	else {
+		if (!is.null(opt$debug)) {
+			cat("ep:find.marker")
+		}
+		mname <- find.marker(my.cross,chr,cM)
+		if (!is.null(opt$verbose)) {
+			cat("Investigating marker '",mname,
+			    " as determined from coordinates ",chr,"@",cM,".\n")
+		}
+	} else {
 		# Use marker as specified
-		mname1 <- marker
-		cat("Investigating marker '",mname1," as specified\n")
+		mname <- marker1
+		if (!is.null(opt$verbose)) cat("Investigating marker '",mname," as specified\n")
 	}
+	cat("fm:end")
+	return(mname)
+}
+
+ep<-function(marker1,chr1,cM1,marker2,chr2,cM2) {
+	cat("ep:start\n")
+	mname1<-fm(marker1,chr1,cM1)
+	mname2<-fm(marker2,chr2,cM2)
 
 	if (is.null(mname1)) {
-		cat("ep: Could not determine marker.\n")
+		cat("ep: Could not determine 1st marker.\n")
+		q(status=1);
+	}
+	#	Effect Plots
+	if (is.null(mname2)) {
+		if (opt$verbose) cat("ep: Could not determine 2nd marker.\n")
+		#f<-paste(opt$output,"_mn1_",mname1,"_trait",".",opt$format,sep="")
+		f<-paste(opt$output,".",opt$format,sep="")
+		cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
+		prepareOutput(f)
+		if (!is.null(opt$debug)) cat("ep:invocation of effectplot\n")
+		effectplot(my.cross,mname1=mname1)
+	} else {
+		#f<-paste(opt$output,"_mn1_",mname1,"_mn2_",mname2,"_trait",".",opt$format,sep="")
+		f<-paste(opt$output,".",opt$format,sep="")
+		cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
+		prepareOutput(f)
+		if (!is.null(opt$debug)) cat("ep:invocation of effectplot\n")
+		effectplot(my.cross,mname1=mname1,mname2=mname2)
 	}
 
-	#	Effect Plots
 
-	f<-paste(opt$output,"_",mname1,"exact_trait",".",opt$format,sep="")
-	cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
-	prepareOutput(f)
-	cat("ep:invocation of effectplot\n")
-	effectplot(my.cross,mname1=mname1)
 	if(is.null(opt$interactive)) {
 		dev.off()
 	}
-	cat("ep:end\n")
+	if (!is.null(opt$debug)) cat("ep:end\n")
 }
 
 m<-opt[["marker1"]]
 chr<-opt[["chromosome1"]]
 cM<-opt[["cM1"]]
+m2<-opt[["marker2"]]
+chr2<-opt[["chromosome2"]]
+cM2<-opt[["cM2"]]
 
 if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	stop("The rerun of single QTL analysis is not yet implemented.\n")
@@ -256,5 +280,9 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	if (is.null(cM)|is.null(chr)) {
 		stop("Please specify both cM ('",cM,"') and chr ('",chr,"').\n",sep="")
 	}
-	ep(m,chr,cM)
+
+	if (is.null(m2) & xor(is.null(cM2),is.null(chr2))) {
+		stop("If specifying a second locus then specify both cM ('",cM2,"') and chr ('",chr2,"').\n",sep="")
+	}
+	ep(m,chr,cM,m2,chr2,cM2)
 }
