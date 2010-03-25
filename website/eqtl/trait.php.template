@@ -862,6 +862,10 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 						."<li><a href=\"interaction.php?traitlist=$l&type=X\">i</a>"
 						."<li><a href=\"interaction.php?traitlist=$l&type=Y\">j</a>"
 						."</ul>"
+						."<li>Plots"
+						."<ul>"
+						."<li><a href=\"effectplot.php?traitlist=$l\">Effectplot</a>"
+						."</ul>"
 						."</ul>";
 						echo "<br>";
 						echo "<a href=\""

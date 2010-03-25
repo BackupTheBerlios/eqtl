@@ -963,7 +963,7 @@ ENDOFDOCUMENTATION
 							echo "<small>";
 							echo "["
 							."<a href=\"qtl.php?direct=1&traitlist=$l\">qtls</a>,"
-							."<a href=\"effectplot.php?traitlist=$l\">eff</a>,"
+							."<a href=\"effectplot.php?direct=1&traitlist=$l&chromosome=$c&cM=$cMpeak&verbose=1\">eff</a>,"
 							."<a href=\"interaction.php?direct=1&traitlist=$l&type=X\">int</a>,"
 							."<a href=\"interaction.php?direct=1&traitlist=$l&type=Y\">jnt</a>"
 							."]";

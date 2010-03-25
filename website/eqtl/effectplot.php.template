@@ -183,10 +183,10 @@ University of LE<uuml>beck, Germany, 2010
 				    ."Fill out the <a href=\"effectplot.php\">effectPlot form</a>.";
 		}
 
-		if (empty($marker) and (empty($cM) or empty($chromosome))) {
+		if (empty($marker) and (!isset($cM) or empty($chromosome))) {
 			$err[]="1<sup>st</sup> locus not specified, neither by marker name nor by chr:cM pair (current value $chromosome:$cM).";
 		}
-		else if (empty($marker2) and (empty($cM2) or empty($chromosome2))) {
+		else if (empty($marker2) and (!isset($cM2) or empty($chromosome2))) {
 			if (!(empty($cM2) and empty($chromosome2))) {
 				$err[]="Specification of 2<sup>nd</sup> locus incomplete, missing cM ($cM2) or chromosome ($chromosome2).";
 			}
@@ -250,7 +250,7 @@ University of LE<uuml>beck, Germany, 2010
 				$outputfilename .= "_trait_$trait";
 				array_push($attributes,"--trait",$trait);
 			}
-			if (!empty($LODmin))    {
+			if (isset($LODmin))    {
 				$outputfilename .= "_LODmin_$LODmin";
 				array_push($attributes,"--LODmin",$LODmin);
 			}
@@ -262,7 +262,7 @@ University of LE<uuml>beck, Germany, 2010
 				$outputfilename .= "_chromosome_$chromosome";
 				array_push($attributes,"--chromosome1",$chromosome);
 			}
-			if (!empty($cM)) {
+			if (isset($cM)) {
 				$outputfilename .= "_cM_$cM";
 				array_push($attributes,"--cM1",$cM);
 			}
@@ -274,7 +274,7 @@ University of LE<uuml>beck, Germany, 2010
 				$outputfilename .= "_chromosome2_$chromosome2";
 				array_push($attributes,"--chromosome2",$chromosome2);
 			}
-			if (!empty($cM2)) {
+			if (isset($cM2)) {
 				$outputfilename .= "_cM2_$cM2";
 				array_push($attributes,"--cM2",$cM2);
 			}
