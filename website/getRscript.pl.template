@@ -449,13 +449,14 @@ perms.done<-0
 EOWRITETODISK
 
 if ($mode =~ /scanone/) {
+	# FIXME: test if this should not better be max(my.$mode.S)\$lod
 	$tryPermutations .= <<EOWRITETODISK;
 my.max<-max(my.$mode.S\$lod)
 EOWRITETODISK
 }
 elsif ($mode =~ /scantwo/) {
 	$tryPermutations .= <<EOWRITETODISK;
-my.max<-max(my.$mode.S\$lod.full)
+my.max<-max(my.$mode.S)\$lod.full
 EOWRITETODISK
 }
 else {
