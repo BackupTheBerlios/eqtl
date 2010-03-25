@@ -86,6 +86,8 @@ University of LE<uuml>beck, Germany, 2010
 		"condition"
 	);
 
+	print_r($_GET);
+
 
 
 	$accessible_fields_in_POST_or_GET = array_merge (

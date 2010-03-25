@@ -162,7 +162,7 @@ function print_selection_form($properties) {
 	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,
                $PvalueMax,$PvalueMin,
 	       $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax,
-	       $method, $unit, $cistrans
+	       $traitlist, $traits, $method, $unit, $cistrans
 	;
 
 
@@ -282,7 +282,7 @@ function print_selection_form($properties) {
 				print_input_text("marker2",$marker2,FALSE,10,12);
 				echo "</td><th>";
 				echo "or as";
-				echo "</th><td>Chr@cM: ";
+				echo "</th><td>Chr@cM/Mbp: ";
 				print_input_text("chromosome2",$chromosome2,FALSE,2);
 				echo "@";
 				print_input_text("cM2",$cM2,FALSE,3,4);
@@ -347,12 +347,16 @@ function print_selection_form($properties) {
 
 			case "traitlist":
 			case "trait":
-?>
-			<tr><th class=r>Trait names:</th>
-			    <td colspan=3>
-			      <input type=text name=traitlist size=30 maxsize=255
-<?php
-	if (!empty($traitlist)) {
+				echo "<tr><th class=r>Trait names:</th>\n";
+				echo "<td colspan=3>";
+				#echo "Traitlist: $traitlist, traits: $traits<br>\n";
+			        echo "<input type=text name=traitlist size=30 maxsize=255 ";
+	if (empty($traitlist)) {
+		if (!empty($traits)) {
+			echo "value=\"$traits\"";
+		}
+	}
+	else {
 		if (is_array($traitlist)) {
 			echo "value=\"".join(",",$traitlist)."\"";
 		}
