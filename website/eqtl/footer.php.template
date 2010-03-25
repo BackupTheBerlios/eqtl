@@ -42,6 +42,7 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2009
 		 ),
 		 array("Overview"=>"overview.php",
 			"Scatter"=>"scatter.php", "Venn"=>"venn.php",
+			"EffectPlot"=>"effectplot.php",
 			"Manual-Groups"=>"db_characterisation.php"),
 		 array("Home"=>"index.php", "Help"=>"help.php", "Contact"=>"mailto:MAINTAINEREMAIL")
 	   ) as $n => $block)
