@@ -126,6 +126,7 @@ opt = getopt(matrix(c(
     'cM2'        , 'n', 2, "double",
     'marker1'    , 'a', 2, "double",
     'marker2'    , 'b', 2, "double",
+    'findmarker' , 'z', 2, "character",
     'LODmin'     , 'l', 1, "double",
     'interactive', 'i', 0, "logical",
     'format'     , 'f', 1, "character",
@@ -143,12 +144,12 @@ if (is.null(opt$trait)) {
    q(status=1);
 }
 
-if (is.null(opt[["marker1"]])) {
-	if (is.null(opt$chromosome1) & is.null(opt$cM1)) {
-	   cat("Neither marker nor chr/cM pair specified.\n")
-	   q(status=1);
-	}
-}
+#if (is.null(opt[["marker1"]])) {
+#	if (is.null(opt$chromosome1) & is.null(opt$cM1)) {
+#	   cat("Neither marker nor chr/cM pair specified.\n")
+#	   q(status=1);
+#	}
+#}
 
 if (is.null(opt$LODmin)) {
 	opt[["LODmin"]] <- 3.5
@@ -203,20 +204,41 @@ my.cross <- read.cross(	format="csv", dir="",
 			alleles=RQTLREADCROSSALLELES ,
 			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )
 
+if (!is.null(opt$findmarker)) {
+	if ("pseudomarker" == opt$findmarker) {
+		if (!is.null(opt$verbose)) cat("I: pseudomarker requested, running sim.geno\n")
+		my.cross <- sim.geno(my.cross, step=STEPSSO, n.draws=DRAWS)
+	}
+}
+
 if (is.null(my.cross)) {
 	cat("Could no read data for trait '",trait,"'.\n")
 	q("no")
 }
 
 fm<-function(marker,chr,cM) {
-	cat("fm:start")
+	cat("fm:start\n")
 	mname<-NULL
 	if (is.null(marker)) {
 		# Find marker closest to the Chr and cMorgan specified
 		if (!is.null(opt$debug)) {
 			cat("ep:find.marker")
 		}
-		mname <- find.marker(my.cross,chr,cM)
+
+		if (is.null(chr)) return(NULL)
+		if (is.null(cM)) return(NULL)
+
+		if (is.null(opt$findmarker)) {
+			mname <- find.marker(my.cross,chr,cM)
+		} else if ("marker" == opt$findmarker) {
+			mname <- find.marker(my.cross,chr,cM)
+		} else if ("pseudomarker" == opt$findmarker) {
+			mname <- find.pseudomarker(my.cross,chr,cM)
+		} else {
+			stop(paste("Unknown cM -> marker mapping: '",opt$findmarker,"'\n"))
+		}
+
+
 		if (!is.null(opt$verbose)) {
 			cat("Investigating marker '",mname,
 			    " as determined from coordinates ",chr,"@",cM,".\n")
@@ -226,19 +248,22 @@ fm<-function(marker,chr,cM) {
 		mname <- marker1
 		if (!is.null(opt$verbose)) cat("Investigating marker '",mname," as specified\n")
 	}
-	cat("fm:end")
+	cat("fm:end\n")
 	return(mname)
 }
 
 ep<-function(marker1,chr1,cM1,marker2,chr2,cM2) {
 	cat("ep:start\n")
+	mname1<-NULL
 	mname1<-fm(marker1,chr1,cM1)
-	mname2<-fm(marker2,chr2,cM2)
 
 	if (is.null(mname1)) {
 		cat("ep: Could not determine 1st marker.\n")
 		q(status=1);
 	}
+
+	mname2<-NULL
+	mname2<-fm(marker2,chr2,cM2)
 	#	Effect Plots
 	r<-NULL
 	if (is.null(mname2)) {
@@ -276,10 +301,26 @@ chr2<-opt[["chromosome2"]]
 cM2<-opt[["cM2"]]
 
 if (is.null(m) & (is.null(cM) | is.null(chr))) {
-	stop("The rerun of single QTL analysis is not yet implemented.\n")
-	# no locus specified, go for them all
+	txtname<-paste(opt$output,".txt",sep="")
 	my.cross <- calc.genoprob( my.cross, step=1, error.prob=0.01 )
 	my.scanone.S <- scanone( my.cross, pheno.col=3, method="hk", verbose=FALSE )
+	m<-as.matrix(summary(my.scanone.S))
+	cat(file=txtname,"<h2>Scanone</h2>\n")
+	cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),"</th></tr>\n"),append=T)
+	apply(m,1,function(X){
+		cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
+		cat(file=txtname,paste("<td>",
+			"<a href='effectplot.php?chromosome=",X["chr"],"&cM=",X["pos"],
+			"&traitlist=",opt$trait,
+			# "&direct=1",
+			"'>effectplot</a>",
+			"</td>",sep=""),
+			append=T
+		)
+		cat(file=txtname,"</tr>\n",append=T)
+		
+	})
+	cat(file=txtname,paste("</table>\n"),append=T)
 } else {
 	if (is.null(cM)|is.null(chr)) {
 		stop("Please specify both cM ('",cM,"') and chr ('",chr,"').\n",sep="")

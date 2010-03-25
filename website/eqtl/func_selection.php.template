@@ -98,7 +98,7 @@ function print_row_one_text_single($rname,$name1,$val1,$size=7) {
 
 /*
 
-=item print_exclusive_selection($label,$variablename,$entryarray)
+=item print_exclusive_selection($label,$variablename,$entryarray,$default)
 
 A selection of radio buttons are prepared to allow an exclusive selection between the values.
 The first is selected by default. The entry is checked iff a value matches the default value.
@@ -162,7 +162,7 @@ function print_selection_form($properties) {
 	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,
                $PvalueMax,$PvalueMin,
 	       $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax,
-	       $traitlist, $traits, $method, $unit, $cistrans
+	       $traitlist, $traits, $method, $unit, $find_marker, $cistrans
 	;
 
 
@@ -211,7 +211,7 @@ function print_selection_form($properties) {
 			break;
 		 case "figure_effectplot":
 			$properties = array(
-						"trait","method","LOD","unit","marker","marker2" #"cistrans"
+						"trait","method","LOD","unit","marker","marker2","find_marker" #"cistrans"
 			);
 			break;
 
@@ -385,6 +385,14 @@ function print_selection_form($properties) {
 			case "unit":
 				print_exclusive_selection("Unit","unit",
 						array("Mbp"=>"Mbp","cM"=>"cM"),"Mbp");
+				break;
+
+			case "find_marker":
+				print_exclusive_selection("Find Marker","find_marker",
+						array("Marker Only (nearest wet-lab evidence)"=>"marker",
+						      "Pseudo-Marker (also presumed genotypes)"=>"pseudomarker"),
+						"marker");
+				#echo " <i>(still under development)</i>";
 				break;
 
 			case "mean":

@@ -82,11 +82,12 @@ University of LE<uuml>beck, Germany, 2010
 		"cM_Peak_Min","cM_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
 	*/
+		"find_marker",
 		"cistrans",
 		"condition"
 	);
 
-	print_r($_GET);
+	#print_r($_GET);
 
 
 
@@ -183,14 +184,15 @@ University of LE<uuml>beck, Germany, 2010
 				    ."Fill out the <a href=\"effectplot.php\">effectPlot form</a>.";
 		}
 
-		if (empty($marker) and (!isset($cM) or empty($chromosome))) {
-			$err[]="1<sup>st</sup> locus not specified, neither by marker name nor by chr:cM pair (current value $chromosome:$cM).";
-		}
-		else if (empty($marker2) and (!isset($cM2) or empty($chromosome2))) {
-			if (!(empty($cM2) and empty($chromosome2))) {
-				$err[]="Specification of 2<sup>nd</sup> locus incomplete, missing cM ($cM2) or chromosome ($chromosome2).";
-			}
-		}
+		# scanone was now implemented.
+		#if (empty($marker) and (!isset($cM) or empty($chromosome))) {
+		#	$err[]="1<sup>st</sup> locus not specified, neither by marker name nor by chr:cM pair (current value $chromosome:$cM).";
+		#}
+		#else if (empty($marker2) and (!isset($cM2) or empty($chromosome2))) {
+		#	if (!(empty($cM2) and empty($chromosome2))) {
+		#		$err[]="Specification of 2<sup>nd</sup> locus incomplete, missing cM ($cM2) or chromosome ($chromosome2).";
+		#	}
+		#}
 
 		if (0<count($err)) {
 			echo "<p>Please fix:\n<ul>";
@@ -262,7 +264,7 @@ University of LE<uuml>beck, Germany, 2010
 				$outputfilename .= "_chromosome_$chromosome";
 				array_push($attributes,"--chromosome1",$chromosome);
 			}
-			if (isset($cM)) {
+			if (isset($cM) and "" != "$cM") {
 				$outputfilename .= "_cM_$cM";
 				array_push($attributes,"--cM1",$cM);
 			}
@@ -274,13 +276,22 @@ University of LE<uuml>beck, Germany, 2010
 				$outputfilename .= "_chromosome2_$chromosome2";
 				array_push($attributes,"--chromosome2",$chromosome2);
 			}
-			if (isset($cM2)) {
+			if (isset($cM2) and "" != "$cM2") {
 				$outputfilename .= "_cM2_$cM2";
 				array_push($attributes,"--cM2",$cM2);
 			}
 			if (!empty($marker2)) {
 				$outputfilename .= "_marker2_$marker2";
 				array_push($attributes,"--marker2",$marker2);
+			}
+
+			if ("" != $cM or "" != "$cM2") {
+				# decision how to map from genetic location to nearest marker
+				if (empty($find_marker)) {
+					$find_marker="marker";
+				}
+				$outputfilename .= "_findmarker_$find_marker";
+				array_push($attributes,"--findmarker",$find_marker);
 			}
 
 			$rscript = getcwd() . "/../../scripts/analyses/effectplot.R";
@@ -299,6 +310,13 @@ University of LE<uuml>beck, Germany, 2010
 			array_push($attributes,"--output",'"'.$outputfilename.'"');
 			$cmd = "$rscript ".join(" ",$attributes);
 			
+			if (file_exists($outputfilename."txt")) {
+				if (!unlink($outputfilename."txt")) {
+					errorMessage("Could not remove file '$outputfilename.txt");
+					exit;
+				}
+			}
+
 			if ($verbose) {
 				echo "<p>executing '$cmd'</p><br />\n";
 			}
@@ -312,11 +330,23 @@ University of LE<uuml>beck, Germany, 2010
 			echo "<small>$t</small>\n";
 			echo "</pre>";
 			}
+			echo "</p>\n";
+
+			# show the output of the run
+			echo "output file expected at <a href=\"$outputfilename.txt\">$outputfilename.txt</a><br>\n";
+			if (file_exists("$outputfilename.txt")) {
+				$myFile = "$outputfilename.txt";
+				$fh = fopen($myFile, 'r');
+				$theData = fread($fh, 200000);
+				fclose($fh);
+				echo $theData;
+			}
+			else {
+				echo "<br><a href=\"".$outputfilename.".png\">$outputfilename.png</a>\n";
+			}
 			if (!empty($inlineImages)) {
 				echo "<IMG SRC=\"".$outputfilename.".png\" HEIGHT=\"100%\">\n";
 			}
-			echo "<br><a href=\"".$outputfilename.".png\">$outputfilename.png</a>";
-			echo "</p>\n";
 		}
 	}
 	include("footer.php");
