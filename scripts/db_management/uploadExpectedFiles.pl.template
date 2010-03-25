@@ -4,7 +4,7 @@ TEMPLATEWARNINGHASH
 
 =head1 NAME
 
-uploadExpectedFiles - prepare table 'computation' of workunits
+uploadExpectedFiles.pl - prepare table 'computation' of workunits
 
 =head1 SYNOPSIS
 
