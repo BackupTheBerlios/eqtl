@@ -162,7 +162,7 @@ function print_selection_form($properties) {
 	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,
                $PvalueMax,$PvalueMin,
 	       $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax,
-	       $method, $cistrans
+	       $method, $unit, $cistrans
 	;
 
 
@@ -211,7 +211,7 @@ function print_selection_form($properties) {
 			break;
 		 case "figure_effectplot":
 			$properties = array(
-						"trait","method","LOD","marker","marker2" #"cistrans"
+						"trait","method","LOD","unit","marker","marker2" #"cistrans"
 			);
 			break;
 
@@ -270,7 +270,7 @@ function print_selection_form($properties) {
 				print_input_text("marker",$marker,FALSE,10,12);
 				echo "</td><th>";
 				echo "or as";
-				echo "</th><td>Chr@cM: ";
+				echo "</th><td>Chr@cM/Mbp: ";
 				print_input_text("chromosome",$chromosome,FALSE,2);
 				echo "@";
 				print_input_text("cM",$cM,FALSE,3,4);
@@ -370,7 +370,17 @@ function print_selection_form($properties) {
 				break;
 
 			case "method":
-				print_exclusive_selection("Method (t.b.implemented)","method",array("hk"=>"hk"),"hk");
+				print_exclusive_selection("Method","method",
+					array("hk"=>"hk",
+					      # "em"=>"em","imp"=>"imp","hk"=>"hk",
+					      # "ehk"=>"ehk","mr"=>"mr","mr-imp"=>"mr-imp",
+					      # "mr-argmax"=>"mr-argmax"
+					      ),"hk");
+				break;
+
+			case "unit":
+				print_exclusive_selection("Unit","unit",
+						array("Mbp"=>"Mbp","cM"=>"cM"),"Mbp");
 				break;
 
 			case "mean":

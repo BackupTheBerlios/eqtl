@@ -70,6 +70,7 @@ University of LE<uuml>beck, Germany, 2010
 		"chromosome","cM",
 		"chromosome2","cM2",
 		"marker","marker2",
+		"unit",
 		"ensemblversion",
 		"cM_within","LODmax","LODmin",
 	/*
@@ -173,17 +174,43 @@ University of LE<uuml>beck, Germany, 2010
 
 		if (!empty($debug)) print_r($_POST);
 
+		$err=array();
+
 		if (empty($traits)) {
-			errorMessage("The traits for which to print effect plots have not been specified. "
-				    ."Fill out the <a href=\"effectplot.php\">effectPlot form</a>.");
+			$err[]="The traits for which to print effect plots have not been specified. "
+				    ."Fill out the <a href=\"effectplot.php\">effectPlot form</a>.";
 		}
 
 		if (empty($marker) and (empty($cM) or empty($chromosome))) {
-			errorMessage("1<sup>st</sup> locus not specified, neither by marker name nor by chr:cM pair (current value $chromosome:$cM).");
+			$err[]="1<sup>st</sup> locus not specified, neither by marker name nor by chr:cM pair (current value $chromosome:$cM).";
 		}
-		if (empty($marker2) and (empty($cM2) or empty($chromosome2))) {
+		else if (empty($marker2) and (empty($cM2) or empty($chromosome2))) {
 			if (!(empty($cM2) and empty($chromosome2))) {
-				errorMessage("Specification of 2<sup>nd</sup> locus incomplete, missing cM ($cM2) or chromosome ($chromosome2).");
+				$err[]="Specification of 2<sup>nd</sup> locus incomplete, missing cM ($cM2) or chromosome ($chromosome2).";
+			}
+		}
+
+		if (0<count($err)) {
+			echo "<p>Please fix:\n<ul>";
+			foreach ($err as $e) {
+				echo "<li>$e\n";
+			}
+			echo "</ul></p>";
+			exit;
+		}
+
+		if ("Mbp"=="$unit") {
+			include_once("func_conversion_ENSEMBLVERSION.php");
+			# Need to convert Mbp to cM
+			if (!empty($cM)) {
+				$Mbp=$cM;
+				$cM = bp2cM($chromosome,$Mbp*1000*1000);
+				echo "1: Converted Mbp $Mbp to cM $cM<br>\n";
+			}
+			if (!empty($cM2)) {
+				$Mbp2=$cM2;
+				$cM2 = bp2cM($chromosome2,$Mbp2*1000*1000);
+				echo "2: Converted Mbp $Mbp2 to cM $cM2<br>\n";
 			}
 		}
 
