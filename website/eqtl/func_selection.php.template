@@ -162,7 +162,7 @@ function print_selection_form($properties) {
 	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,
                $PvalueMax,$PvalueMin,
 	       $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax,
-	       $traitlist, $traits, $method, $unit, $find_marker, $cistrans
+	       $traitlist, $traits, $work, $method, $unit, $find_marker, $cistrans
 	;
 
 
@@ -211,7 +211,7 @@ function print_selection_form($properties) {
 			break;
 		 case "figure_effectplot":
 			$properties = array(
-						"trait","hr","method","LOD","hr","unit","marker","marker2","find_marker","hr" #"cistrans"
+						"trait","hr","work","method","LOD","hr","unit","marker","marker2","find_marker","hr" #"cistrans"
 			);
 			break;
 
@@ -373,12 +373,17 @@ function print_selection_form($properties) {
 <?php
 				break;
 
+			case "work":
+				print_exclusive_selection("Work","work",
+						array("scanone"=>"scanone","scantwo"=>"scantwo"),"scanone");
+				break;
+
 			case "method":
 				print_exclusive_selection("Method","method",
 					array("Harley-Knott (hk)"=>"hk",
 					      "Expectation Maximisation (em)"=>"em",
 					      "imputation (imp)"=>"imp",
-					      "extended Harley-Knott (hk)"=>"ehk",
+					      "extended Harley-Knott (ehk)"=>"ehk",
 					      "marker regression (mr)"=>"mr",
 					      "mr-imp"=>"mr-imp",
 					      "mr-argmax"=>"mr-argmax"

@@ -60,17 +60,6 @@ The width of the figure, defaults to width unless explicitly set.
 
 =back
 
-
-=head1 AUTHORS
-
-Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
-
-=head1 COPYRIGHT
-
-University of LE<uuml>beck, Germany, 2009
-
-=cut
-
 "
 
 ##
@@ -121,7 +110,7 @@ opt = getopt(matrix(c(
     'help'       , 'h', 0, "logical",
     'trait'      , 't', 1, "character",
     'chromosome1', 'e', 2, "character",
-    'chromosome2', 'w', 2, "character",
+    'chromosome2', 'q', 2, "character",
     'cM1'        , 'm', 2, "double",
     'cM2'        , 'n', 2, "double",
     'method'     , 'y', 2, "character",
@@ -132,6 +121,7 @@ opt = getopt(matrix(c(
     'interactive', 'i', 0, "logical",
     'format'     , 'f', 1, "character",
     'covariates' , 'c', 1, "character",
+    'work'       , 'w', 1, "character",
     'output'     , 'o', 1, "character"
    ),ncol=4,byrow=TRUE), debug=TRUE)
 
@@ -143,6 +133,10 @@ if (!is.null(opt$help)) {
 if (is.null(opt$trait)) {
    cat("Please place trait  with the --trait option.\n")
    q(status=1);
+}
+
+if (is.null(opt$work)) {
+   opt$work<-"scanone"
 }
 
 #if (is.null(opt[["marker1"]])) {
@@ -165,6 +159,10 @@ if (is.null(opt$LODmin)) {
 if (is.null(opt$format)) {
    opt[["format"]]<-"png";
    cat("Set format to default value '",opt$format,"'.\n",sep="")
+}
+
+if (is.null(opt$method)) {
+	opt$method<-"RQTL_METHOD"
 }
 
 if ("pdf" == opt$format) {
@@ -204,13 +202,6 @@ my.cross <- read.cross(	format="csv", dir="",
 		        genotypes=RQTLREADCROSSGENOTYPES,
 			alleles=RQTLREADCROSSALLELES ,
 			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )
-
-if (!is.null(opt$findmarker)) {
-	if ("pseudomarker" == opt$findmarker) {
-		if (!is.null(opt$verbose)) cat("I: pseudomarker requested, running sim.geno\n")
-		my.cross <- sim.geno(my.cross, step=STEPSSO, n.draws=DRAWS)
-	}
-}
 
 if (is.null(my.cross)) {
 	cat("Could no read data for trait '",trait,"'.\n")
@@ -304,67 +295,73 @@ cM2<-opt[["cM2"]]
 if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	txtname<-paste(opt$output,".txt",sep="")
 
-	my.cross <- calc.genoprob( my.cross, step=1, error.prob=0.01 )
+	my.work<-NULL
 
-	# scanone
+	if ("scanone" == opt$work) {
+		my.cross <- calc.genoprob( my.cross, step=STEPSSO, error.prob=0.01 )
+		my.work <- scanone( my.cross, pheno.col=3, method=opt$method, verbose=FALSE )
+		m<-as.matrix(summary(my.work,thr=opt$LODmin)) # LODmin is always set
+		cat(file=txtname,"<h2>Scanone</h2>\n")
+		cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
+			"<th>Links</th>",
+			"</th></tr>\n"),append=T)
+		apply(m,1,function(X){
+			cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
+			cat(file=txtname,paste("<td>",
+				"<a href='effectplot.php?chromosome=",X["chr"],"&cM=",X["pos"],
+				"&traitlist=",opt$trait,
+				# "&direct=1",
+				"&unit=cM",
+				"'>effectplot</a>",
+				"</td>",sep=""),
+				append=T
+			)
+			cat(file=txtname,"</tr>\n",append=T)
+			
+		})
+		cat(file=txtname,paste("</table>\n"),append=T)
+	} else if ("scantwo" == opt$work) {
 
-	my.scanone.S <- scanone( my.cross, pheno.col=3, method="RQTL_METHOD", verbose=FALSE )
-	m<-as.matrix(summary(my.scanone.S,thr=opt$LODmin)) # LODmin is always set
-	cat(file=txtname,"<h2>Scanone</h2>\n")
-	cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
-		"<th>Links</th>",
-		"</th></tr>\n"),append=T)
-	apply(m,1,function(X){
-		cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
-		cat(file=txtname,paste("<td>",
-			"<a href='effectplot.php?chromosome=",X["chr"],"&cM=",X["pos"],
-			"&traitlist=",opt$trait,
-			# "&direct=1",
-			"&unit=cM",
-			"'>effectplot</a>",
-			"</td>",sep=""),
-			append=T
-		)
-		cat(file=txtname,"</tr>\n",append=T)
-		
-	})
-	cat(file=txtname,paste("</table>\n"),append=T)
-
-	if (F) {
-	# scantwo
-
-	my.scanone.T <- scantwo( my.cross, pheno.col=3, method="hk", verbose=FALSE )
-	m<-as.matrix(summary(my.scanone.T,thr=opt$LODmin)) # LODmin is always set
-	cat(file=txtname,"<h2>Scantwo</h2>\n")
-	cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
-		"</th></tr>\n"),append=T)
-	apply(m,1,function(X){
-		cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
-		if (F) cat(file=txtname,paste("<td>",
-			"<a href='effectplot.php?chromosome=",X["chr"],"&cM=",X["pos"],
-			"&traitlist=",opt$trait,
-			# "&direct=1",
-			"'>effectplot</a>",
-			"</td>",sep=""),
-			append=T
-		)
-		cat(file=txtname,"</tr>\n",append=T)
-		
-	})
-	cat(file=txtname,paste("</table>\n"),append=T)
+		my.cross <- calc.genoprob( my.cross, step=STEPSST, error.prob=0.01 )
+		my.work <- scantwo( my.cross, pheno.col=3, method=opt$method, verbose=FALSE )
+		m<-as.matrix(summary(my.work,thr=c(opt$LODmin,0,0,0,0))) # LODmin is always set
+		cat(file=txtname,"<h2>Scantwo</h2>\n")
+		cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
+			"</th></tr>\n"),append=T)
+		apply(m,1,function(X){
+			cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
+			if (F) cat(file=txtname,paste("<td>",
+				"<a href='effectplot.php?chromosome=",X["chr"],"&cM=",X["pos"],
+				"&traitlist=",opt$trait,
+				# "&direct=1",
+				"'>effectplot</a>",
+				"</td>",sep=""),
+				append=T
+			)
+			cat(file=txtname,"</tr>\n",append=T)
+			
+		})
+		cat(file=txtname,paste("</table>\n"),append=T)
+	} else {
+		stop(paste("Don't know how to do '",opt$work,"'.\n"))
 	}
 
 	f<-paste(opt$output,".",opt$format,sep="")
 	cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
-	#par(mfrow=c(2,1))
 	prepareOutput(f)
-
-	plot(my.scanone.S)
-	#plot(my.scanone.T)
+	plot(my.work)
 	dev.off()
 	par(mfrow=c(1,1))
 
 } else {
+
+	if (!is.null(opt$findmarker)) {
+		if ("pseudomarker" == opt$findmarker) {
+			if (!is.null(opt$verbose)) cat("I: pseudomarker requested, running sim.geno\n")
+			my.cross <- sim.geno(my.cross, step=STEPSSO, n.draws=DRAWS)
+		}
+	}
+
 	if (is.null(cM)|is.null(chr)) {
 		stop("Please specify both cM ('",cM,"') and chr ('",chr,"').\n",sep="")
 	}
@@ -375,3 +372,19 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	r<-ep(m,chr,cM,m2,chr2,cM2)
 	print(r)
 }
+
+
+doc <- "
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2009-2010
+
+=cut
+
+"
+

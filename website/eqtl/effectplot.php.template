@@ -71,6 +71,7 @@ University of LE<uuml>beck, Germany, 2010
 		"chromosome2","cM2",
 		"marker","marker2",
 		"unit",
+		"work",
 		"ensemblversion",
 		"cM_within","LODmax","LODmin",
 	/*
@@ -284,6 +285,10 @@ University of LE<uuml>beck, Germany, 2010
 			if (!empty($marker2)) {
 				$outputfilename .= "_marker2_$marker2";
 				array_push($attributes,"--marker2",$marker2);
+			}
+			if (!empty($work)) {
+				$outputfilename .= "_work_$work";
+				array_push($attributes,"--work",$work);
 			}
 			if (!empty($method)
 			   and (empty($marker) and (empty($cM) or ""=="$cM" or empty($chromosome)))) {
