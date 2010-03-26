@@ -312,6 +312,7 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	m<-as.matrix(summary(my.scanone.S,thr=opt$LODmin)) # LODmin is always set
 	cat(file=txtname,"<h2>Scanone</h2>\n")
 	cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
+		"<th>Links</th>",
 		"</th></tr>\n"),append=T)
 	apply(m,1,function(X){
 		cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
@@ -319,6 +320,7 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 			"<a href='effectplot.php?chromosome=",X["chr"],"&cM=",X["pos"],
 			"&traitlist=",opt$trait,
 			# "&direct=1",
+			"&unit=cM",
 			"'>effectplot</a>",
 			"</td>",sep=""),
 			append=T

@@ -41,8 +41,8 @@ require_once("func_dbconfig.php"); // errorMessage
 function print_input_text($name,$val,$td=FALSE,$size=7,$maxsize=0) {
    if ($td) echo "<td>";
    echo "<input type=text name=$name size=$size";
-   if (!empty($maxsize))             { echo " maxsize=\"$maxsize\""; }
-   if (!(""=="$val" or empty($val))) { echo " value=\"$val\""; }
+   if (!empty($maxsize))           { echo " maxsize=\"$maxsize\""; }
+   if (""!="$val" and isset($val)) { echo " value=\"$val\""; }
    echo ">";
    if ($td) echo "</td>";
 }
@@ -211,7 +211,7 @@ function print_selection_form($properties) {
 			break;
 		 case "figure_effectplot":
 			$properties = array(
-						"trait","method","LOD","unit","marker","marker2","find_marker" #"cistrans"
+						"trait","hr","method","LOD","hr","unit","marker","marker2","find_marker","hr" #"cistrans"
 			);
 			break;
 
@@ -250,7 +250,7 @@ function print_selection_form($properties) {
 ?>
 			<tr><th class=r>Locus:</th><td colspan=3><input type=text name=locus size=40 maxsize=700
 <?php
-			if (!empty($locus)) {
+			if ("" != "$locus") {
 				echo "value=";
 				if (is_array($locus)) {
 					echo "\"".join(",",$locus)."\"";
@@ -430,6 +430,10 @@ function print_selection_form($properties) {
 			case "limit":
 				if (empty($limit)) $limit=10;
 				print_row_one_text_single("Limit","limit",$limit,4);
+				break;
+
+			case "hr":
+				echo "<tr><td colspan=200><hr></td></tr>\n";
 				break;
 
 			default:
