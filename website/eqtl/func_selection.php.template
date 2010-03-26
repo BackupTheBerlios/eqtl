@@ -375,10 +375,13 @@ function print_selection_form($properties) {
 
 			case "method":
 				print_exclusive_selection("Method","method",
-					array("hk"=>"hk",
-					      # "em"=>"em","imp"=>"imp","hk"=>"hk",
-					      # "ehk"=>"ehk","mr"=>"mr","mr-imp"=>"mr-imp",
-					      # "mr-argmax"=>"mr-argmax"
+					array("Harley-Knott (hk)"=>"hk",
+					      "Expectation Maximisation (em)"=>"em",
+					      "imputation (imp)"=>"imp",
+					      "extended Harley-Knott (hk)"=>"ehk",
+					      "marker regression (mr)"=>"mr",
+					      "mr-imp"=>"mr-imp",
+					      "mr-argmax"=>"mr-argmax"
 					      ),"hk");
 				break;
 

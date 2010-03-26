@@ -82,6 +82,7 @@ University of LE<uuml>beck, Germany, 2010
 		"cM_Peak_Min","cM_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
 	*/
+		"method",
 		"find_marker",
 		"cistrans",
 		"condition"
@@ -284,6 +285,11 @@ University of LE<uuml>beck, Germany, 2010
 				$outputfilename .= "_marker2_$marker2";
 				array_push($attributes,"--marker2",$marker2);
 			}
+			if (!empty($method)
+			   and (empty($marker) and (empty($cM) or ""=="$cM" or empty($chromosome)))) {
+				$outputfilename .= "_method_$method";
+				array_push($attributes,"--method",$method);
+			}
 
 			if ("" != $cM or "" != "$cM2") {
 				# decision how to map from genetic location to nearest marker
@@ -323,17 +329,21 @@ University of LE<uuml>beck, Germany, 2010
 		
 			$t =  shell_exec($cmd);
 
-			echo "<p>";
 			if ($verbose) {
-			echo "<pre>";
-			#print_r($attributes);
-			echo "<small>$t</small>\n";
-			echo "</pre>";
+				echo "<p>";
+				echo "<pre>";
+				#print_r($attributes);
+				echo "<small>$t</small>\n";
+				echo "</pre>";
+				echo "</p>\n";
 			}
-			echo "</p>\n";
 
 			# show the output of the run
-			echo "output file expected at <a href=\"$outputfilename.txt\">$outputfilename.txt</a><br>\n";
+			if ($verbose) {
+				echo "output file expected at "
+					. "<a href=\"$outputfilename.txt\">$outputfilename.txt</a><br>\n";
+			}
+
 			if (file_exists("$outputfilename.txt")) {
 				$myFile = "$outputfilename.txt";
 				$fh = fopen($myFile, 'r');
@@ -341,9 +351,9 @@ University of LE<uuml>beck, Germany, 2010
 				fclose($fh);
 				echo $theData;
 			}
-			else {
-				echo "<br><a href=\"".$outputfilename.".png\">$outputfilename.png</a>\n";
-			}
+
+			echo "<br><a href=\"".$outputfilename.".png\">$outputfilename.png</a>\n";
+
 			if (!empty($inlineImages)) {
 				echo "<IMG SRC=\"".$outputfilename.".png\" HEIGHT=\"100%\">\n";
 			}

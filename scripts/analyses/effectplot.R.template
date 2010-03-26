@@ -124,6 +124,7 @@ opt = getopt(matrix(c(
     'chromosome2', 'w', 2, "character",
     'cM1'        , 'm', 2, "double",
     'cM2'        , 'n', 2, "double",
+    'method'     , 'y', 2, "character",
     'marker1'    , 'a', 2, "double",
     'marker2'    , 'b', 2, "double",
     'findmarker' , 'z', 2, "character",
@@ -302,11 +303,16 @@ cM2<-opt[["cM2"]]
 
 if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	txtname<-paste(opt$output,".txt",sep="")
+
 	my.cross <- calc.genoprob( my.cross, step=1, error.prob=0.01 )
-	my.scanone.S <- scanone( my.cross, pheno.col=3, method="hk", verbose=FALSE )
-	m<-as.matrix(summary(my.scanone.S))
+
+	# scanone
+
+	my.scanone.S <- scanone( my.cross, pheno.col=3, method="RQTL_METHOD", verbose=FALSE )
+	m<-as.matrix(summary(my.scanone.S,thr=opt$LODmin)) # LODmin is always set
 	cat(file=txtname,"<h2>Scanone</h2>\n")
-	cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),"</th></tr>\n"),append=T)
+	cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
+		"</th></tr>\n"),append=T)
 	apply(m,1,function(X){
 		cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
 		cat(file=txtname,paste("<td>",
@@ -321,6 +327,41 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 		
 	})
 	cat(file=txtname,paste("</table>\n"),append=T)
+
+	if (F) {
+	# scantwo
+
+	my.scanone.T <- scantwo( my.cross, pheno.col=3, method="hk", verbose=FALSE )
+	m<-as.matrix(summary(my.scanone.T,thr=opt$LODmin)) # LODmin is always set
+	cat(file=txtname,"<h2>Scantwo</h2>\n")
+	cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
+		"</th></tr>\n"),append=T)
+	apply(m,1,function(X){
+		cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
+		if (F) cat(file=txtname,paste("<td>",
+			"<a href='effectplot.php?chromosome=",X["chr"],"&cM=",X["pos"],
+			"&traitlist=",opt$trait,
+			# "&direct=1",
+			"'>effectplot</a>",
+			"</td>",sep=""),
+			append=T
+		)
+		cat(file=txtname,"</tr>\n",append=T)
+		
+	})
+	cat(file=txtname,paste("</table>\n"),append=T)
+	}
+
+	f<-paste(opt$output,".",opt$format,sep="")
+	cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
+	#par(mfrow=c(2,1))
+	prepareOutput(f)
+
+	plot(my.scanone.S)
+	#plot(my.scanone.T)
+	dev.off()
+	par(mfrow=c(1,1))
+
 } else {
 	if (is.null(cM)|is.null(chr)) {
 		stop("Please specify both cM ('",cM,"') and chr ('",chr,"').\n",sep="")
