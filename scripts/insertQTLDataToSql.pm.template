@@ -625,13 +625,13 @@ sub perform {
 									$NULL, # type - was add/int, now obsolete
 									join(",",@covars_array), # covariates
 									# LOD scores
-									$remainder[1], $remainder[3], $remainder[5],
-									$remainder[9], $remainder[11],
+									$remainder[0], $remainder[2], $remainder[4],
+									$remainder[8], $remainder[10],
 									# Quantiles
 									$quant[1], $quant[2], $quant[3], $quant[4], $quant[5],
 									# p-Values
-									$remainder[2], $remainder[4], $remainder[6],
-									$remainder[10], $remainder[12],
+									$remainder[1], $remainder[3], $remainder[5],
+									$remainder[9], $remainder[11],
 								) or die "Could not write to locus interaction to database: ".$sth_qtl."\n";
 							}
 							else {
