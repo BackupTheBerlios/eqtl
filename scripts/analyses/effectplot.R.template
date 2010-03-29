@@ -347,6 +347,7 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 		m<-as.matrix(summary(my.work,thr=c(opt$LODmin,0,0,0,0))) # LODmin is always set
 		cat(file=txtname,"<h2>Scantwo</h2>\n")
 		cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
+			"<th>Effectplot</th>",
 			"</th></tr>\n"),append=T)
 		apply(m,1,function(X){
 			cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
