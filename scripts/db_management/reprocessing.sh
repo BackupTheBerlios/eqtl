@@ -24,7 +24,8 @@ reprocessing.sh - resets a job to reprocessing state
 
 =head1 SYNOPSIS
 
-(calculate|recalculate|processing|reprocessing).sh <jobnames, expected to be file- or directory names>
+(calculate|recalculate|processing|reprocessing).sh I<jobnames, expected to be file- or directory names>
+(calculate|recalculate|processing|reprocessing).sh I<method>
 
 =head1 DESCRIPTION
 
@@ -35,6 +36,10 @@ an update of the status to '$operation'.
 
 These scripts cannot create new entries to the computation table, but
 change the instructions on how to deal with the data.
+
+=head1 OPTIONS
+
+Expected is the specification of individual jobs or all of a particular method.
 
 =head1 EXAMPLE
 
@@ -63,7 +68,7 @@ University of LE<uuml>beck, 2009
 
 fi
 
-function doit {
+doit () {
 	for f in $*
 	do
 		probesetid=`zcat $f | head -n 1 | cut -f1 -d\) | cut -f2 -d\(`
@@ -75,18 +80,26 @@ function doit {
 	done
 }
 
-for i in $*
-do
-	if [ -d "$i" ]; then
-		doit `find "$i" -name "*.csv.gz"`
-	else
-		if ! echo "$i" | egrep -q '.csv.gz$'; then
-			echo "# Skipped since filename did not match *.csv.gz"
-			continue
-		else
-			doit "$i"
-		fi
+if [ "scanone" = "$1"  -o "scantwo" = "$1" ]; then
 
-	fi
-done
+	echo "--  Resetting all pending jobs for method '$1'."
+	echo "update computation set status='$operation' where status='PROCESSING' and jobname like '%$1%';"
+
+else
+
+	for i in $*
+	do
+		if [ -d "$i" ]; then
+			doit `find "$i" -name "*.csv.gz"`
+		else
+			if ! echo "$i" | egrep -q '.csv.gz$'; then
+				echo "# Skipped since filename did not match *.csv.gz"
+				continue
+			else
+				doit "$i"
+			fi
+
+		fi
+	done
+fi
 
