@@ -46,11 +46,11 @@ set in the configuration.
 	);
 
 	$a=array(
-		"LocusOfGene"=>1, "Trait"=>1, "li_type" => 1, "Name_A"=>1, "Chr_A"=>1, "cMorgan_A"=>1, "Name_B"=>1, "Chr_B"=>1, "cMorgan_B"=>1,
+		"LocusOfGene"=>1, "Trait"=>1, "li_type" => 0, "Name_A"=>1, "Chr_A"=>1, "cMorgan_A"=>1, "Name_B"=>1, "Chr_B"=>1, "cMorgan_B"=>1,
 		"gene_name"=>1, "Covariates"=>1,
 		"lod_full"=>1,"lod_fv1"=>0,"lod_fv1"=>0,"lod_int"=>0,"lod_add"=>0,"lod_av1"=>0,
 		"pvalue_full"=>1,"pvalue_fv1"=>0,"pvalue_int"=>0,"pvalue_add"=>0,"pvalue_av1"=>0,
-		"qlod_full"=>1,"qlod_fv1"=>0,"qlod_int"=>0,"qlod_add"=>0,"qlod_av1"=>0,
+		"lod_full"=>1,"lod_fv1"=>0,"lod_int"=>0,"lod_add"=>0,"lod_av1"=>0,
 		"cis"=>1
 	);
 
@@ -298,7 +298,7 @@ set in the configuration.
 			 .", trait.start AS Trait_start"
 			 .", trait.gene_name ";
 
-		$query .= ",li.qlod_full, li.qlod_fv1, li.qlod_int, li.qlod_add, li.qlod_av1, cis" .  $from;
+		$query .= ",li.lod_full, li.lod_fv1, li.lod_int, li.lod_add, li.lod_av1, cis" .  $from;
 
 		$needingMart=!empty($show_LocusOfGene);
 		if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
@@ -432,15 +432,15 @@ set in the configuration.
 		}
 		if (!empty($quantilemin)) {
 			if ("WHERE " != $where) $where .= " AND ";
-			$where .= " qlod_full >= ".$quantilemin." ";
+			$where .= " lod_full >= ".$quantilemin." ";
 		}
 		if (!empty($quantilemax)) {
 			if ("WHERE " != $where) $where .= " AND ";
-			$where .= " qlod_full <= ".$quantilemax." ";
+			$where .= " lod_full <= ".$quantilemax." ";
 		}
 		if (!empty($LODdiffmin)) {
 			if ("WHERE " != $where) $where .= " AND ";
-			$where .= " qlod_full >= ".$LODdiffmin." ";					#!!!!!!!!!!!!!!!!!!!
+			$where .= " lod_full >= ".$LODdiffmin." ";					#!!!!!!!!!!!!!!!!!!!
 		}
 		if (!empty($condition) && is_array($condition)) foreach($condition as $c) {
 			if ("WHERE " != $where) $where .= " AND ";
@@ -545,7 +545,7 @@ set in the configuration.
 					if (!isset($l)||""==$l) echo "<td>&nbsp;</td>";
 					else switch($n) {
 						case "li_type":
-							echo "<td><a href=\"interaction_collapsed?submitted=1&locComb=".$l."&type=&limit=150&show_LocusInteraction=on&show_LocusInteractionTrait=on&show_Affected_genes=on&show_Covariates=on&show_lod_full_span=on&show_qlod_full_span=on&show_LOD_Diff=on&show_seqname=on\">".$l."</a></td>";
+							echo "<td><a href=\"interaction_collapsed?submitted=1&locComb=".$l."&type=&limit=150&show_LocusInteraction=on&show_LocusInteractionTrait=on&show_Affected_genes=on&show_Covariates=on&show_lod_full_span=on&show_lod_full_span=on&show_LOD_Diff=on&show_seqname=on\">".$l."</a></td>";
 							break;
 						case "No":
 						case "Name_A":
