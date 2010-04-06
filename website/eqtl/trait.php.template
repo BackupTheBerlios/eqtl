@@ -154,85 +154,6 @@ ENDOFDOCUMENTATION
 		<input type=hidden name=submitted value=1>
 		<table><tr><td valign=top>
 			<table cellspacing=5>
-			<tr><th align=right class=r>Trait ID:</th>
-			    <td><input type=text name=traits lenth=70<?php if (!empty($traits)) echo " value=$traits"; ?>>
-			    </td>
-			</tr>
-<!--			<tr><th align=right>Description:</th>
-			    <td><input type=text name=description lenth=70>
-			    </td>
-			</tr>-->
-			<tr><th rowspan=3 align=left>Correlation and Loci</th>
-
-			  <td valign=top><b>Expression correlation</b><br>
-					<code>&nbsp;0</code> &lt; <input type=text name=expr_pos_cor_min size=7> &lt; <code>+ cor</code> &lt; <input type=text name=expr_pos_cor_max size=7> &lt; <code>1</code>   (show max <input type=text name="maxNumCorrGenesToShow" size=5 value=50>)
-					<br>
-					<code>-1</code> &lt; <input type=text name=expr_neg_cor_min size=7> &lt; <code>- cor</code> &lt; <input type=text name=expr_neg_cor_max size=7> &lt; <code>0</code> 
-				</td></tr>
-
-			  <tr><td valign=top><b>Phen covariates correlation</b><br>
-					<code>&nbsp;0</code> &lt; <input type=text name=phen_pos_cor_min size=7> &lt; <code>+ cor</code> &lt; <input type=text name=phen_pos_cor_max size=7> &lt; <code>1</code>
-					<br>
-					<code>-1</code> &lt; <input type=text name=phen_neg_cor_min size=7> &lt; <code>- cor</code> &lt; <input type=text name=phen_neg_cor_max size=7> &lt; <code>0</code>
-				</td></tr>
-			  <tr><td valign=top>
-<?php
-				$query = "select distinct phen from trait_phen_cor";
-				$result = mysql_query($query) or die("Query '$query' failed: " . mysql_error());
-				echo "<b>Show only data for the following phen(s):</b><br />";
-				/*
-				echo "<select name=phen multiple size=8>\n";
-				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
-					echo "<option value=\"".$line["phen"]."\">"
-						.$line{"phen"}."</option>\n";
-				}
-				echo "</select>\n";
-				*/
-
-				$lno=0;
-				echo "<table><tr>";
-				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
-					$lno++;
-					echo "<td>";
-					echo "<input name=\"phen\" type=\"checkbox\" "
-						. "value=\"".$line["phen"]."\">"
-						. $line["phen"];
-					echo "</td>";
-					if (0 == $lno % 5) {
-						echo "</tr><tr>";
-						#echo "<br />\n";
-					}
-				}
-				echo "</tr></table>\n";
-
-				mysql_free_result($result);
-?>
-			</td>
-		     </tr>
-		     <tr>
-		    	<th>Phen Analyses:</th>
-			<td>
-<?php
-				$query = "select trait_phen_analysis_id, analysis, "
-					."description from trait_phen_analysis";
-				$result = mysql_query($query) or die("Query '$query' failed: " . mysql_error());
-				echo "<b>Select analysis to constrain traits for:</b><br />";
-				echo "<select name=\"trait_phen_analysis_id\">\n";
-				echo "<option value=\"\">select test of concern</option>\n";
-				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
-					echo "<option value=\"".$line["trait_phen_analysis_id"]."\">"
-						.$line["description"]."</option>\n";
-				}
-				mysql_free_result($result);
-				
-				echo "</select><br />\n";
-				print_two_input_text("trait_phen_analysis_value_min",
-						     "trait_phen_analysis_value_max",
-				                     "0.000","0.001",FALSE,$size=7,$interspace=" &le; p value &le; "
-				); 
-?>
-			</td>
-		     </tr>
 <?php
 			print_selection_form("all_qtl_trait");
 ?>
@@ -857,11 +778,15 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 						."<li><a href=\"qtl.php?traitlist=$l\">QTL form - show all</a>"
 						."<li><a href=\"trait_summary.php?traitlist=$l\">Tabular overview</a>"
 						."</ul>"
+						."<li><a href=\"interaction.php?traitlist=$l&direct=1&LODmin=0\">Interactions</a>"
+					/*
 						."<li>Interactions"
 						."<ul>"
 						."<li><a href=\"interaction.php?traitlist=$l&type=X\">i</a>"
 						."<li><a href=\"interaction.php?traitlist=$l&type=Y\">j</a>"
 						."</ul>"
+					*/
+
 						."<li>Plots"
 						."<ul>"
 						."<li><a href=\"effectplot.php?traitlist=$l\">Effectplot</a>"
