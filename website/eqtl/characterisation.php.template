@@ -128,7 +128,7 @@ while(!feof($fh) && strpos($fields[0],'#')!==0) {
 
 #mysql_query("update groups set term_id='$term_id' where name='$name';");
 echo "</table>\n";
-echo "<p><a href="db_characterisation.php">Show overview on characteristics.</a><p>\n";
+echo "<p><a href=db_characterisation.php>Show overview on characteristics.</a><p>\n";
 include("footer.php");
 ?>
 </body>
