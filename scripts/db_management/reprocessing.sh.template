@@ -85,7 +85,7 @@ if [ "scanone" = "$1"  -o "scantwo" = "$1" ]; then
 	echo "--  Resetting all pending jobs for method '$1'."
 	echo "--  To commit the changes, perform"
 	echo "--    $0 $1 | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME"
-	echo "update computation set status='$operation' where status='PROCESSING' and jobname like '%$1%';"
+	echo "update computation set status='$operation' where status in ('PROCESSING','REPROCESSING') and jobname like '%$1%';"
 
 else
 
