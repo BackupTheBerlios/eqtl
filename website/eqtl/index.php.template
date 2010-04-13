@@ -24,7 +24,7 @@ Universities of Rostock and LE<uuml>beck, Germany, 2003-2009
 */
 
 	require_once("header.php");
-	show_large_header("Investigation of complex traits of a mouse model of Multiple Sclerosis",true,'INTROPREFIX');
+	show_large_header("PROJECTLONGTITLE",true,'INTROPREFIX');
 ?>
 <br>
 <table border=0 summary="separation of an introduction to the background of the analysis to the left and the results to the right" cellpadding=15>
