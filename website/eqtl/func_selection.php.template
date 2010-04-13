@@ -191,7 +191,10 @@ function print_selection_form($properties) {
 			break;
 		 
 		 case "all_qtl_trait":
-			$properties = array("mean", "sd", "median", "variance" , "LOD", "pvalue", "number_of_chromosomes_per_trait"
+			$properties = array(	"trait",
+						"correlation and loci", "phen_analysis",
+						"mean", "sd", "median", "variance" , "LOD", "pvalue",
+						"number_of_chromosomes_per_trait"
 			);
 			break;
 
@@ -221,6 +224,7 @@ function print_selection_form($properties) {
 		}
 	}
 
+	# properties are now redefined as an array
 	
 	foreach ($properties as $p) {
 
@@ -348,7 +352,7 @@ function print_selection_form($properties) {
 			case "traitlist":
 			case "trait":
 				echo "<tr><th class=r>Trait names:</th>\n";
-				echo "<td colspan=3>";
+				echo "<td colspan=3 nowrap>";
 				#echo "Traitlist: $traitlist, traits: $traits<br>\n";
 			        echo "<input type=text name=traitlist size=30 maxsize=255 ";
 	if (empty($traitlist)) {
@@ -367,7 +371,7 @@ function print_selection_form($properties) {
 ?>
 			>
 			<?php
-	if (empty($traitlist)) { echo ", e.g. EXAMPLE_TRAITS"; } 
+	if (empty($traitlist)) { echo "<small>, e.g. EXAMPLE_TRAITS</small>"; } 
 			?>
 			</td></tr>
 <?php
@@ -430,6 +434,78 @@ function print_selection_form($properties) {
 				print_row_two_text_single("#Chromosomes/Trait",
 					"NumberChromosomesPerTraitMin","NumberChromosomesPerTraitMax",
 					$NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax);
+				break;
+
+			case "correlation and loci":
+				echo "<tr><th rowspan=3 align=left>Correlation and Loci</th>\n";
+			  	echo "<td valign=top><b>Expression correlation</b><br>\n";
+				echo "<code>&nbsp;0</code> &lt; "
+				    ."<input type=text name=expr_pos_cor_min size=7> &lt; <code>+ cor</code> &lt; "
+				    ."<input type=text name=expr_pos_cor_max size=7> &lt; <code>1</code>  "
+				    ."(show max <input type=text name=\"maxNumCorrGenesToShow\" size=5 value=50>)";
+				echo "<br>\n";
+				echo "<code>-1</code> &lt; <input type=text name=expr_neg_cor_min size=7> &lt; <code>- cor</code> &lt; <input type=text name=expr_neg_cor_max size=7> &lt; <code>0</code>\n";
+				echo "</td></tr>\n";
+
+				echo "<tr><td valign=top><b>Phen covariates correlation</b><br>\n";
+				echo  "<code>&nbsp;0</code> &lt; <input type=text name=phen_pos_cor_min size=7> &lt; "
+				     ."<code>+ cor</code> &lt; <input type=text name=phen_pos_cor_max size=7> &lt; <code>1</code>\n";
+				echo "<br>\n";
+				echo "<code>-1</code> &lt; <input type=text name=phen_neg_cor_min size=7> &lt; "
+				    ."<code>- cor</code> &lt; <input type=text name=phen_neg_cor_max size=7> &lt; <code>0</code>";
+				echo "</td></tr>";
+				echo "<tr><td valign=top>";
+				$query = "select distinct phen from trait_phen_cor";
+				$result = mysql_query($query) or die("Query '$query' failed: " . mysql_error());
+				echo "<b>Show only data for the following phen(s):</b><br />\n";
+				/*
+				echo "<select name=phen multiple size=8>\n";
+				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+					echo "<option value=\"".$line["phen"]."\">"
+						.$line{"phen"}."</option>\n";
+				}
+				echo "</select>\n";
+				*/
+
+				$lno=0;
+				echo "<table><tr>";
+				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+					$lno++;
+					echo "<td>";
+					echo "<input name=\"phen\" type=\"checkbox\" "
+						. "value=\"".$line["phen"]."\">"
+						. $line["phen"];
+					echo "</td>";
+					if (0 == $lno % 5) {
+						echo "</tr><tr>";
+						#echo "<br />\n";
+					}
+				}
+				echo "</tr></table>\n";
+				mysql_free_result($result);
+				echo "</td></tr>";
+				break;
+
+			case "phen_analysis":
+		     		echo "<tr><th>Phen Analyses:</th><td>";
+				$query = "select trait_phen_analysis_id, analysis, "
+					."description from trait_phen_analysis";
+				$result = mysql_query($query) or die("Query '$query' failed: " . mysql_error());
+				echo "<b>Select analysis to constrain traits for:</b><br />";
+				echo "<select name=\"trait_phen_analysis_id\">\n";
+				echo "<option value=\"\">select test of concern</option>\n";
+				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+					echo "<option value=\"".$line["trait_phen_analysis_id"]."\">"
+						.$line["description"]."</option>\n";
+				}
+				mysql_free_result($result);
+				
+				echo "</select><br />\n";
+				print_two_input_text("trait_phen_analysis_value_min",
+						     "trait_phen_analysis_value_max",
+				                     "0.000","0.001",FALSE,$size=7,$interspace=" &le; p value &le; "
+				); 
+				echo "</td></tr>\n";
 				break;
 
 			case "limit":

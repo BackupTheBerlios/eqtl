@@ -497,8 +497,9 @@ set in the configuration.
 					}
 				}
 				echo "<th colspan=2 class=c>Public QTLs</th>";
-				if ($show_Plots) echo "<th rowspan=2 class=c>Plots</th>\n";
-				#echo "<th rowspan=2 class=c>Images</th>\n";
+				//if ($show_Plots)
+				echo "<th rowspan=2 colspan=1 class=c>Plots</th>";
+				echo "</tr>\n";
 				echo "<tr><th bgcolor=orange>A</th><th bgcolor=orange>B</th></tr>";
 				echo "</tr></thead>\n<tbody>\n";
 			}
@@ -687,18 +688,30 @@ set in the configuration.
 				}
 				echo "</td>";
 			}
+			// if ($show_Plots) {
 			echo "<td class=small><small>";
-			foreach (array("none","EAE","MAX","SUM") as $cov) {
-				echo "<a href=\"interaction_dynamic.php?"
-				    ."traitlist=".$line["Trait"]
-				    ."&analysis=$cov\">$cov</a> ";
-			}
+			echo "<a href=\"effectplot.php?traitlist=".$line["Trait"]."&cM=".$line["cMorgan_A"]."&cM2=".$line["cMorgan_B"]
+							."&chromosome=".$line["Chr_A"]."&chromosome2=".$line["Chr_B"]
+							."&work=scantwo&unit=cM&inlineImages=1"
+							."&direct=1\">effectplot</a>";
+			echo " (<a href=\"effectplot.php?traitlist=".$line["Trait"]."&cM=".$line["cMorgan_A"]
+							."&chromosome=".$line["Chr_A"]
+							//."&work=scanone"
+							."&unit=cM&inlineImages=1"
+							."&direct=1\">locus A</a>";
+			echo ", <a href=\"effectplot.php?traitlist=".$line["Trait"]."&cM=".$line["cMorgan_B"]
+							."&chromosome=".$line["Chr_B"]
+							//."&work=scanone"
+							."&unit=cM&inlineImages=1"
+							."&direct=1\">locus B</a>)";
+			echo ", <a href=\"effectplot.php?traitlist=".$line["Trait"]
+							."&work=scantwo&unit=cM&inlineImages=1"
+							."&direct=1\">scantwo</a>";
+			echo ", <a href=\"effectplot.php?traitlist=".$line["Trait"]
+							."&work=scanone&unit=cM&inlineImages=1"
+							."&direct=1\">scanone</a>";
 			echo "</small></td>";
-			if (FALSE) echo "<td>"
-			 . "<a href=\"images/".$line["Trait"]."_onescan.pdf\">one</a>"
-			 ." <a href=\"images/".$line["Trait"]."_nosex_twoscan.pdf\">two</a>"
-			 ." <a href=\"images/".$line["Trait"]."_sex_twoscan.pdf\">two-sex</a>"
-			 ."</td>\n";
+			// }
 			echo "</tr>\n";
 		}
 		echo "</tbody></table>";

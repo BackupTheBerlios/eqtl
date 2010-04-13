@@ -33,7 +33,7 @@ the documentation does not end here but is dispersed throught the document.
 =head2 displayCovariates
 
 substitutes indicators '_int' and '_add' for 'interacting'
-and 'additive' with '<sup>(i)</sup>' and '<sup>(a)</sup>'.
+and 'additive' with '<sup>i</sup>' and '<sup>a</sup>'.
 
 =cut
 
@@ -43,8 +43,8 @@ function displayCovariates($cc,$separator=","){
 	if (","!=$separator) {
 		$cc=preg_replace("/,/",", ",$cc);
 	}
-	return(preg_replace("/_add/","<sup>(a)</sup>",
-		  preg_replace("/_int/","<sup>(i)</sup>",$cc)));
+	return(preg_replace("/_add/","<sup>a</sup>",
+		  preg_replace("/_int/","<sup>i</sup>",$cc)));
 }
 
 
