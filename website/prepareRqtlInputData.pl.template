@@ -18,20 +18,28 @@ For debugging:
 
 =head1 DESCRIPTION
 
-Except for a change in the interpretation of covariates, i.e. from interacting to additive,
-every computation needs a different input. This input is prepared by this script, which
-involves the reading of all input data by a web server, to subsequently generate the
-right combinations upon request.
+Except for a change in the interpretation of covariates, i.e. from
+interacting to additive, every computation needs a different input. This
+input is prepared by this script, which involves the reading of all input
+data by a web server, to subsequently generate the right combinations
+upon request.
 
-The script does not perform any selection of workunits, or reports on the submission,
-it only prepares the data.
+The script does not perform any selection of workunits, or reports on
+the submission, it only prepares the data.
 
-It should be mentioned that (although preferred) the data of genotypes and phenotypes
-are not required to be in the same order. There should however be a way to match the
-names from the genotype file to the names of the phenotype file.
+It should be mentioned that (although preferred) the data of genotypes
+and phenotypes are not required to be in the same order. There should
+however be a way to match the names from the genotype file to the names
+of the phenotype file.
 
-The term phenotypes here refers to the molecular phenotypes. The classical/clinical
-phenotypes are expected together with the genotypes.
+The term phenotypes here refers to the molecular phenotypes. The
+classical/clinical phenotypes are expected together with the genotypes.
+
+Since every experiment has a similar structure, also the data will be
+very similar in its schema. The raw data that is worked with in this file,
+however may differ in various ways.  This script has a slight dependency
+on the column names and one needs to perform some further abstractions
+on the code here in order to help with future cross-project compatibility.
 
 =head1 OPTIONS
 
@@ -113,8 +121,9 @@ The molecular phenotype data is expected to be organised in rows for
 every probeset and columns for the individuals. While initialising
 this script, all the rows are read, the name of every row (or whatever
 identifies the probe) are mapped to the line number of that row.
+There is consequently no dependency on sorting of the probsets.
 
-Also, the names of all individuals are read. Analgously, a mapping of
+Also, the names of all individuals are read. Analogously, a mapping of
 the individual's ID to the position in the row is performed.
 
 =cut
@@ -274,6 +283,8 @@ while (FCGI::accept >= 0) {
 	if( !defined( $probeID) ){
 		print "Usage when accessed via web address :\t<url>?probesetid=<probesetid>\n",
 		      "      When accessed via command line:\tprepareRqtlInputData.pl gene-file pheno-file probesetid\n";
+		print "\n";
+		print "      Valid probesets are for instance EXAMPLE_TRAITS."
 		exit(-1);
 	}
 
