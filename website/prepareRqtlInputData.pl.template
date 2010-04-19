@@ -171,7 +171,15 @@ while( <getFrom> ){
 close(getFrom);
 
 # some insights on the number of individuals
-print STDERR "$individualsString\n" if $verbose;
+if ($verbose) {
+	if (defined($individualsString)) {
+		print STDERR "$individualsString\n";
+	}
+	else {
+		print "E: Individuals string is not defined. Check why the header was not read.\n";
+		exit(1);
+	}
+}
 
 my %individualIDtoProbePosition;
 for(my $i=0; $i<=$#individualsArray; $i++) {
