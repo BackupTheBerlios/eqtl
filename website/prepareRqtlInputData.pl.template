@@ -284,7 +284,7 @@ while (FCGI::accept >= 0) {
 		print "Usage when accessed via web address :\t<url>?probesetid=<probesetid>\n",
 		      "      When accessed via command line:\tprepareRqtlInputData.pl gene-file pheno-file probesetid\n";
 		print "\n";
-		print "      Valid probesets are for instance EXAMPLE_TRAITS."
+		print "      Valid probesets are for instance EXAMPLE_TRAITS.";
 		exit(-1);
 	}
 
