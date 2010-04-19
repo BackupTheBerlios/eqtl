@@ -40,15 +40,17 @@ performing changes to the configuration files.
 
 use strict;
 use Getopt::Long;
-use Pod::Usage;
 my ($projectname,$help,$man,$force) = (undef,undef,undef,undef);
 
-GetOptions(
+unless (GetOptions(
 		"projectname=s"=>\$projectname,
 		"help"=>\$help,
 		"man"=>\$man,
 		"force"=>\$force
-) or pod2usage(2);
+)) {
+	require Pod::Usage;
+	pod2usage(2);
+}
 
 if (defined($projectname)) {
 	if  ( ! -d "conf_$projectname" ) {
@@ -62,11 +64,18 @@ elsif ( -d "conf" ) {
 else {
 	print STDERR "Projectname is not defined and no 'conf' folder available.\n";
 	print "\n";
+	require Pod::Usage;
 	pod2usage(1);
 }
 
-pod2usage(1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
+if ($help) {
+	require Pod::Usage;
+	pod2usage(1);
+}
+if ($man) {
+	require Pod::Usage;
+	pod2usage(-exitstatus => 0, -verbose => 2);
+}
 
 my $configdir="conf";
 if ("" ne "$projectname") {
