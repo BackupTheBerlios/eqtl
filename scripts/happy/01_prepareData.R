@@ -28,6 +28,7 @@ read.table.snps<-read.delim("G3+genotype+final+table+16+nov.tsv",sep="\t",
 	header=TRUE,row.names=1,stringsAsFactors=F,na.strings=c("-","x","NA"),
 	skip=2,fill=F)
 
+
 parental.strains<-c("BxD2","NZM","MRL","CAST")
 
 read.table.snps.parentals<-as.matrix(read.table.snps[parental.strains,])
@@ -142,11 +143,14 @@ for(chr in unique(sort(snps.selected.chromosomes))) {
 
 # The first ten lines should be skipped
 read.table.phenotypes<-read.table("G3-first-phenotypes-2.tsv",sep="\t",na.strings="x",skip=10, row.names=1,header=T)
+phenotypes<-colnames(read.table.phenotypes)
+
 phenotypes.not.parental<- !is.na(read.table.phenotypes[,"sex"])
 phenotypes.victimised.6m<- as.integer(rownames(read.table.phenotypes)) >= 333
 phenotypes.victimised.6m[is.na(phenotypes.victimised.6m)]<-F
 phenotypes.victimised.3m<- as.integer(rownames(read.table.phenotypes)) < 333
 phenotypes.victimised.3m[is.na(phenotypes.victimised.3m)]<-F
+# The phenotypes.*.* are binary vectors, all of the very same length
 
 
 # C H E C K   F O R   C O N S I S T E N C Y
@@ -160,21 +164,24 @@ if (!all(rownames(read.table.phenotypes) %in% rownames(read.table.snps))) {
 individuals.3m <-rownames(read.table.phenotypes)[phenotypes.victimised.3m]
 individuals.6m <-rownames(read.table.phenotypes)[phenotypes.victimised.6m]
 individuals.all<-rownames(read.table.phenotypes)[phenotypes.not.parental]
+# the individuals.* are names of columns, so one needs now to think about 
+# sets, not about binary vectors any more. This has advantages when
+# using the vectors on data of varying dimensions.
 
-# need to change SNPs to happy format, i.e. substitute NA with "NA,NA" as
+# routine to change SNPs to happy format, i.e. substitute NA with "NA,NA" as
 # two consecutive entries and have "a/b" to "a,b"
-merged2happy<-function(x=NULL,selected.rows=NULL) {
+merged2happy<-function(x=NULL,selected.rows=NULL,na.string="NA",verbose=FALSE) {
 	snps.local<-NULL
 	if (is.null(selected.rows)) selected.rows<-rownames(x)
 	if (is.null(selected.rows)) selected.rows<-1:nrow(x)
 	for(rname in selected.rows) { 
 		X<-x[rname,]
-		cat(rname,"\n")
+		if (verbose) cat(rname," ")
 		r<-NULL
 		for(Y in X) {
 			if (is.na(Y)) {
 				#cat("Attaching NA,NA\n")
-				r<-c(r,c("NA","NA"))
+				r<-c(r,c(na.string,na.string))
 			} else {
 				#cat("Splitting",Y,"\n",sep=" ")
 				v<-unlist(strsplit(split="",x=as.character(Y)))
@@ -189,6 +196,7 @@ merged2happy<-function(x=NULL,selected.rows=NULL) {
 			snps.local<-rbind(snps.local,r)
 		}
 	}
+	if (verbose) cat("\n")
 
 	if (! (dim(x)[2])*2==(dim(snps.local)[2])) {
 		stop("E: ! (dim(x)[2])*2==(dim(snps.local)[2])\n")
@@ -198,24 +206,24 @@ merged2happy<-function(x=NULL,selected.rows=NULL) {
 	return(snps.local)
 }
 
-# Testing the dimensions
-snps<-merged2happy(read.table.snps.selected,selected.rows=individuals.all)
-if (! (dim(read.table.snps.selected)[2])*2==(dim(snps)[2])) {
-	stop("E: ! (dim(read.table.snps.selected)[2])*2==(dim(snps)[2])")
-}
-
-
-
-
-# Write genptype data files
-
-snps.3m <-snps[individuals.3m, ]
-snps.6m <-snps[individuals.6m, ]
-snps.all<-snps[individuals.all,]
-
 if (F) {
+	# C H R O M O S O M E -- I N D E P E N D E N T   A N A L Y S I S
+
+	# preparing a happy-formatted variant of all the genotypes, except for the parents
+	snps<-merged2happy(read.table.snps.selected,selected.rows=individuals.all)
+	# Testing the dimensions
+	if (! (dim(read.table.snps.selected)[2])*2==(dim(snps)[2])) {
+		stop("E: ! (dim(read.table.snps.selected)[2])*2==(dim(snps)[2])")
+	}
+
+	# Write genptype data files
+
+	snps.3m <-snps[individuals.3m, ]
+	snps.6m <-snps[individuals.6m, ]
+	snps.all<-snps[individuals.all,]
+
 	# Writing a genotype data file for the whole genome
-	for(phen in colnames(read.table.phenotypes)) {
+	for(phen in phenotypes) {
 		cat("Working on phen",phen,"\n")
 		phens.3m <-read.table.phenotypes[individuals.3m,  phen]
 		phens.6m <-read.table.phenotypes[individuals.6m,  phen]
@@ -246,10 +254,12 @@ interesting.individuals<-function(M,thresh=0.99) {
 	return(interesting)
 }
 
+## P R E P A R E  I N P U T  F I L E S  FOR   E V E R Y  P H E N   AND  C H R O M O S O M E
+
 # The markers and the genotype files are prepared individually for
 # every phenotype and every chromosome. The dependency on the phenotype
 # still needs to be implemented.
-for(phen in colnames(read.table.phenotypes)) {
+for(phen in phenotypes) {
 	# Writing a genotype data file for every phenotype
 	cat("Working on phen",phen,"\n")
 
@@ -260,9 +270,9 @@ for(phen in colnames(read.table.phenotypes)) {
 		cat("... chr ",chr,"\n")
 		columns.selected= (snps.selected.chromosomes==chr)
 		# Caveat! snps.x.chr have 2*columns.selected columns!!!! Happy format!!!!
-		snps.3m.chr <-merged2happy(read.table.snps.selected[,columns.selected],individuals.3m)
-		snps.6m.chr <-merged2happy(read.table.snps.selected[,columns.selected],individuals.6m)
-		snps.all.chr<-merged2happy(read.table.snps.selected[,columns.selected],individuals.all)
+		cat("\n3m: "); snps.3m.chr <-merged2happy(read.table.snps.selected[,columns.selected],individuals.3m)
+		cat("\n6m: "); snps.6m.chr <-merged2happy(read.table.snps.selected[,columns.selected],individuals.6m)
+		cat("\nall:"); snps.all.chr<-merged2happy(read.table.snps.selected[,columns.selected],individuals.all)
 		i.3m <-interesting.individuals(snps.3m.chr)
 		i.6m <-interesting.individuals(snps.6m.chr)
 		i.all<-interesting.individuals(snps.all.chr)
@@ -337,7 +347,7 @@ if (!file.exists(outputdir)) {
 	dir.create(outputdir)
 }
 
-for(phen in colnames(read.table.phenotypes)) {
+for(phen in phenotypes) {
 
 	cat("\n**************\n")
 	cat("      ",phen,"\n",sep="")
@@ -367,7 +377,12 @@ for(phen in colnames(read.table.phenotypes)) {
 			#print(which(columns.selected))
 			h<-happy(datafile=fname,allelesfile=markers.filename.chr,generations=4,phase="unknown",
 				file.format="happy",missing.code="NA")
+			if(0 == var(h$phenotypes)) {
+				cat("W: 0 == var(h$phenotypes) for phen '",phen," on chr ",chr,".  Skipping.\n")
+				next
+			}
 			fit<-hfit(h)
+			cat("fit$mapx: ",fit$maxp,"\n")
 			#labels=snps.selected.names[columns.selected],
 			l<-list(POSITION=snps.selected.cM[columns.selected],
 				text=snps.selected.names[columns.selected])
