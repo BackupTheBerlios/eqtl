@@ -8,6 +8,18 @@
 
 markers.filename<-"markers.txt"
 
+inputdir<-"inputs"
+if (!file.exists(inputdir)) {
+	dir.create(inputdir)
+}
+
+outputdir<-"outputs"
+if (!file.exists(outputdir)) {
+	dir.create(outputdir)
+}
+
+
+
 #  G E N O T Y P E S
 
 # When opening Andreia's file in OpenOffice:
@@ -39,6 +51,7 @@ read.table.snps.parentals.distribution<-apply(read.table.snps.parentals,2,functi
 	alleles_table<-table(unlist(strsplit(split="",x=alleles_concatenated)))
 	#print(alleles_table)
 })
+
 read.table.snps.parentals.informative<-sapply(read.table.snps.parentals.distribution,function(X){
 	1<length(X)
 })
@@ -103,11 +116,6 @@ happy.prepare.marker.file <- function(file="", genotype.matrix=NULL) {
 	}
 }
 
-inputdir<-"inputs"
-if (!file.exists(inputdir)) {
-	dir.create(inputdir)
-}
-
 if (F) {
 	# A single file for everything
 	happy.prepare.marker.file(file=paste(inputdir,"/",markers.filename,sep=""),
@@ -159,7 +167,7 @@ if (!all(rownames(read.table.phenotypes) %in% rownames(read.table.snps))) {
 	stop("Found some individuals of the phenotypes not to be available in genotypes table.\n")
 }
 
-# A N A L Y S I S
+# P R E P A R A T I O N   O F   H A P P Y   I N P U T  F I L E S
 
 individuals.3m <-rownames(read.table.phenotypes)[phenotypes.victimised.3m]
 individuals.6m <-rownames(read.table.phenotypes)[phenotypes.victimised.6m]
@@ -341,12 +349,6 @@ if (F) {
 }
 
 # Perform analysis for every chromosome
-
-outputdir<-"outputs"
-if (!file.exists(outputdir)) {
-	dir.create(outputdir)
-}
-
 for(phen in phenotypes) {
 
 	cat("\n**************\n")
