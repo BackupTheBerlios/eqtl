@@ -6,6 +6,8 @@
 
 #  P A R A M E T E R S
 
+library(happy.hbrem)
+
 markers.filename<-"markers.txt"
 
 inputdir<-"inputs"
@@ -17,6 +19,8 @@ outputdir<-"outputs"
 if (!file.exists(outputdir)) {
 	dir.create(outputdir)
 }
+
+permute<-1000
 
 
 
@@ -324,7 +328,6 @@ for(phen in phenotypes) {
 	}
 }
 
-library(happy.hbrem)
 
 
 if (F) {
@@ -371,19 +374,16 @@ for(phen in phenotypes) {
 			}
 
 			cat("\n\nWorking on '",fname,"'\n\n",sep="")
-			columns.selected= (snps.selected.chromosomes==chr)
-
 			a<-grep(pattern="^(h|fit)$",x=ls(),value=TRUE)
 			if(!is.null(a)) rm(a)
 
-			#print(which(columns.selected))
 			h<-happy(datafile=fname,allelesfile=markers.filename.chr,generations=4,phase="unknown",
 				file.format="happy",missing.code="NA")
 			if(0 == var(h$phenotypes)) {
 				cat("W: 0 == var(h$phenotypes) for phen '",phen," on chr ",chr,".  Skipping.\n")
 				next
 			}
-			fit<-hfit(h)
+			fit<-hfit(h, permute=permute)
 			cat("fit$mapx: ",fit$maxp,"\n")
 			#labels=snps.selected.names[columns.selected],
 			l<-list(POSITION=snps.selected.cM[columns.selected],
@@ -396,7 +396,11 @@ for(phen in phenotypes) {
 			write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen,
 						"_chr_",chr,"_maxLodP_",fit$maxp,".csv",sep=""),
 				  x=fit$table)
-				
+			if(permute>0) {
+				write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen,
+							"_chr_",chr,"_maxLodP_",fit$maxp,".csv",sep=""),
+					  x=fit$permdata$permutation.pval)
+			}
 		}
 	}
 	dev.off()
