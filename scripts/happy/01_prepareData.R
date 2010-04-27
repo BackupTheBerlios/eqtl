@@ -4,6 +4,11 @@
 # to derive the tab-separated files and then the subsequent commands
 # to prepare the input for happy.
 
+#  C O N T R O L
+
+# set to TRUE if data needs to be prepared, too
+data.prepare<-FALSE
+
 #  P A R A M E T E R S
 
 library(happy.hbrem)
@@ -75,7 +80,9 @@ snps.selected.cM<-bp2cM(as.integer(snps.selected.bp))
 # Happy needs marker files to work. Here a function to prepare it from
 # the observed frequencies of alleles in the parental strains
 
-happy.prepare.marker.file <- function(file="", genotype.matrix=NULL) {
+if (data.prepare) {
+
+    happy.prepare.marker.file <- function(file="", genotype.matrix=NULL) {
 
 	genotype.matrix.parentals<-as.matrix(genotype.matrix[parental.strains,])
 
@@ -118,22 +125,23 @@ happy.prepare.marker.file <- function(file="", genotype.matrix=NULL) {
 			cat(file=file,"\n",append=T)
 		}
 	}
-}
+    }
 
-if (F) {
+    if (F) {
 	# A single file for everything
 	happy.prepare.marker.file(file=paste(inputdir,"/",markers.filename,sep=""),
 				genotype.matrix=read.table.snps.selected)
-}
+    }
 
-# A file for every chromosome
-for(chr in unique(sort(snps.selected.chromosomes))) {
+    # A file for every chromosome
+    for(chr in unique(sort(snps.selected.chromosomes))) {
 	fname<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
 	cat("\n\nWorking on '",fname,"'\n\n",sep="")
 	columns.selected= (snps.selected.chromosomes==chr)
 	print(which(columns.selected))
 	s<-read.table.snps.selected[,columns.selected]
 	happy.prepare.marker.file(file=fname, genotype.matrix=s)
+    }
 }
 
 
@@ -176,13 +184,15 @@ if (!all(rownames(read.table.phenotypes) %in% rownames(read.table.snps))) {
 individuals.3m <-rownames(read.table.phenotypes)[phenotypes.victimised.3m]
 individuals.6m <-rownames(read.table.phenotypes)[phenotypes.victimised.6m]
 individuals.all<-rownames(read.table.phenotypes)[phenotypes.not.parental]
-# the individuals.* are names of columns, so one needs now to think about 
-# sets, not about binary vectors any more. This has advantages when
-# using the vectors on data of varying dimensions.
 
-# routine to change SNPs to happy format, i.e. substitute NA with "NA,NA" as
-# two consecutive entries and have "a/b" to "a,b"
-merged2happy<-function(x=NULL,selected.rows=NULL,na.string="NA",verbose=FALSE) {
+if (data.prepare) {
+    # the individuals.* are names of columns, so one needs now to think about 
+    # sets, not about binary vectors any more. This has advantages when
+    # using the vectors on data of varying dimensions.
+
+    # routine to change SNPs to happy format, i.e. substitute NA with "NA,NA" as
+    # two consecutive entries and have "a/b" to "a,b"
+    merged2happy<-function(x=NULL,selected.rows=NULL,na.string="NA",verbose=FALSE) {
 	snps.local<-NULL
 	if (is.null(selected.rows)) selected.rows<-rownames(x)
 	if (is.null(selected.rows)) selected.rows<-1:nrow(x)
@@ -218,7 +228,7 @@ merged2happy<-function(x=NULL,selected.rows=NULL,na.string="NA",verbose=FALSE) {
 	return(snps.local)
 }
 
-if (F) {
+    if (F) {
 	# C H R O M O S O M E -- I N D E P E N D E N T   A N A L Y S I S
 
 	# preparing a happy-formatted variant of all the genotypes, except for the parents
@@ -254,24 +264,27 @@ if (F) {
 			write.table(file=paste("happy_all_",phen,".input",sep=""),input.all, col.names=F, row.names=F, quote=F, sep="\t")
 		} else cat("Skipping ",phen," series, missing data.\n",sep="")
 	}
+    }
 }
 
-# Determine which individuals are interesting to investigate
-interesting.individuals<-function(M,thresh=0.99) {
+
+if (data.prepare) {
+    # Determine which individuals are interesting to investigate
+    interesting.individuals<-function(M,thresh=0.99) {
 	interesting<-apply(M,1,function(X){
 		r<-(sum(!(is.na(X)|"ND"==X|"NA"==X))/length(X))>thresh
 	})
 	#print(interesting)
 	#print(dim(interesting))
 	return(interesting)
-}
+    }
 
-## P R E P A R E  I N P U T  F I L E S  FOR   E V E R Y  P H E N   AND  C H R O M O S O M E
+    ## P R E P A R E  I N P U T  F I L E S  FOR   E V E R Y  P H E N   AND  C H R O M O S O M E
 
-# The markers and the genotype files are prepared individually for
-# every phenotype and every chromosome. The dependency on the phenotype
-# still needs to be implemented.
-for(phen in phenotypes) {
+    # The markers and the genotype files are prepared individually for
+    # every phenotype and every chromosome. The dependency on the phenotype
+    # still needs to be implemented.
+    for(phen in phenotypes) {
 	# Writing a genotype data file for every phenotype
 	cat("Working on phen",phen,"\n")
 
@@ -326,12 +339,12 @@ for(phen in phenotypes) {
 				input.all, col.names=F, row.names=F, quote=F, sep="\t")
 		} else cat("Skipping ",phen," all series, missing data.\n",sep="")
 	}
+    }
 }
 
 
 
 if (F) {
-
 	# Perform analysis over all chromosomes
 
 	if (!file.exists(markers.filename)) stop("Cannot find markers file expected at '",markers.filename,"\n")
@@ -361,6 +374,7 @@ for(phen in phenotypes) {
 	pdf(paste(outputdir,"/","analysis_happy_phen_",phen,"_chr_all.pdf",sep=""))
 	for(chr in unique(sort(as.character(snps.selected.chromosomes)))) {
 
+
 		markers.filename.chr<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
 		if (!file.exists(markers.filename.chr)) {
 			stop(paste("Cannot find marker file for chromosome",chr,"\n",sep=""))
@@ -383,9 +397,10 @@ for(phen in phenotypes) {
 				cat("W: 0 == var(h$phenotypes) for phen '",phen," on chr ",chr,".  Skipping.\n")
 				next
 			}
-			fit<-hfit(h, permute=permute)
+			fit<-hfit(h, permute=permute,verbose=TRUE)
 			cat("fit$mapx: ",fit$maxp,"\n")
-			#labels=snps.selected.names[columns.selected],
+
+			columns.selected= (snps.selected.chromosomes==chr)
 			l<-list(POSITION=snps.selected.cM[columns.selected],
 				text=snps.selected.names[columns.selected])
 			happyplot(fit,
