@@ -9,6 +9,7 @@
 # set to TRUE if data needs to be prepared, too
 data.prepare<-FALSE
 data.binary<-F
+model<-"additive"
 
 #  P A R A M E T E R S
 
@@ -227,7 +228,7 @@ if (data.prepare) {
 
 	rownames(snps.local)<-selected.rows
 	return(snps.local)
-}
+    }
 
     if (F) {
 	# C H R O M O S O M E -- I N D E P E N D E N T   A N A L Y S I S
@@ -285,8 +286,8 @@ if (data.prepare) {
     # The markers and the genotype files are prepared individually for
     # every phenotype and every chromosome. The dependency on the phenotype
     # still needs to be implemented.
-    name.suffix<-if(data.binary){".binary"}else{""}
     for(phen in phenotypes) {
+	name.suffix<-ifelse(data.binary,".binary","")
 	# Writing a genotype data file for every phenotype
 	cat("Working on phen",phen,name.suffix,"\n"i,sep="")
 
@@ -334,14 +335,14 @@ if (data.prepare) {
 			write.table(file=paste(inputdir,"/","happy_6m_", phen,name.suffix,"_chr_",chr,".input",sep=""),
 					input.6m,  col.names=F, row.names=F, quote=F, sep="\t")
 		} else cat("Skipping ",phen,name.suffix," 6m series, missing data.\n",sep="")
-		if (F && sum(!is.na(phens.all))>100) {
+		if (F&sum(!is.na(phens.all))>100) {
 			i<-i.all & !is.na(phens.all)
 			#i<-i.all
 			if (any(!i)) {
 				cat("...",phen,name.suffix," all ... omitting ",sum(!i)," of ",length(i)," individuals",
 					paste(which(!i),collapse=",",sep=""),"\n")
 			}
-			input.all<-cbind(individuals.all[i],phens.all[i],snps.all[i,columns.selected])
+			input.all<-cbind(rownames(i)[i],phens.all[i],snps.all.chr[i,])
 			write.table(file=paste(inputdir,"/","happy_all_",phen,name.suffix,"_chr_",chr,".input",sep=""),
 				input.all, col.names=F, row.names=F, quote=F, sep="\t")
 		} else cat("Skipping ",phen,name.suffix," all series, missing data.\n",sep="")
@@ -376,15 +377,15 @@ if (F) {
 # Perform analysis for every chromosome
 for(phen in phenotypes) {
 
-	name.suffix<-if(data.binary){".binary"}else{""}
+	name.suffix<-ifelse(data.binary,".binary","")
 
 	cat("\n**************\n")
 	cat("      ",phen,name.suffix,"\n",sep="")
 	cat("\n**************\n\n")
 
 	pdf(paste(outputdir,"/","analysis_happy_phen_",phen,name.suffix,"_chr_all.pdf",sep=""))
-	for(chr in unique(sort(as.character(snps.selected.chromosomes)))) {
-
+	chromosomes<-unique(sort(as.character(snps.selected.chromosomes)))
+	for(chr in chromosomes) {
 
 		markers.filename.chr<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
 		if (!file.exists(markers.filename.chr)) {
@@ -399,8 +400,9 @@ for(phen in phenotypes) {
 			}
 
 			cat("\n\nWorking on '",fname,"'\n\n",sep="")
-			a<-grep(pattern="^(h|fit)$",x=ls(),value=TRUE)
-			if(!is.null(a)) rm(a)
+			a<-grep(pattern="^h$",x=ls(),value=TRUE)
+			b<-grep(pattern="^fit",x=ls(),value=TRUE)
+			if(!is.null(a)) rm(list=c(a,b))
 
 			h<-happy(datafile=fname,allelesfile=markers.filename.chr,generations=4,phase="unknown",
 				file.format="happy",missing.code="NA")
@@ -408,24 +410,43 @@ for(phen in phenotypes) {
 				cat("W: 0 == var(h$phenotypes) for phen '",phen,name.suffix," on chr ",chr,".  Skipping.\n")
 				next
 			}
-			fit<-hfit(h, permute=permute,verbose=TRUE)
-			cat("fit$mapx: ",fit$maxp,"\n")
+			#fit.additive<-hfit(h, permute=permute,model='additive',verbose=TRUE)
+			fit.0<-hfit(h, permute=0,verbose=TRUE,model=model)
+			cat("\n",phen,name.suffix,"@",chr," fit.0$mapx: ",fit.0$maxp,"\n",sep="")
+			fit.permute<-hfit(h, permute=permute,verbose=TRUE,model=model)
+			cat("\n",phen,name.suffix,"@",chr," fit.permute$permdata$p01: ",fit.permute$permdata$p01,"\n",sep="")
+			cat("\n",phen,name.suffix,"@",chr," fit.permute$permdata$p05: ",fit.permute$permdata$p05,"\n",sep="")
 
 			columns.selected= (snps.selected.chromosomes==chr)
 			l<-list(POSITION=snps.selected.cM[columns.selected],
 				text=snps.selected.names[columns.selected])
-			happyplot(fit,
+
+			# Plot of F statistics
+
+			happyplot(fit.0,
+				main=paste(individuals.subset,": ",phen,name.suffix,"@chr",chr,sep=""),
+				sub=paste("p01:",round(fit.permute$permdata$p01,2)," ",
+				          "p05:",round(fit.permute$permdata$p05,2)," ",
+						date(),
+				     sep=""), pch=3
+			)
+			abline(fit.permute$permdata$p05,0,col="green",lty=3)
+			abline(fit.permute$permdata$p01,0,col="green",lty=2)
+
+			# Empirical significance
+
+			happyplot(fit.permute,
 				labels=l,
-				main=paste(individuals.subset,":",phen,name.suffix,"@chr",chr),
-				cex=0.3
+				sub=paste(individuals.subset,":",phen,name.suffix,"@chr",chr),
+				pch=3
 			)
 			write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen,
-						name.suffix,"_chr_",chr,"_maxLodP_",fit$maxp,".csv",sep=""),
-				  x=fit$table)
+						name.suffix,"_chr_",chr,"_maxLodP_",fit.0$maxp,".csv",sep=""),
+				  x=fit.0$table)
 			if(permute>0) {
 				write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen,
-							name.suffix,"_chr_",chr,"_maxLodP_",fit$maxp,".csv",sep=""),
-					  x=fit$permdata$permutation.pval)
+							name.suffix,"_chr_",chr,"_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
+					  x=fit.permute$permdata$permutation.pval)
 			}
 		}
 	}
