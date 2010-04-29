@@ -9,6 +9,7 @@
 # set to TRUE if data needs to be prepared, too
 data.prepare<-FALSE
 data.binary<-F
+data.covariates<-c("sex,weight.6m")
 model<-"additive"
 
 #  P A R A M E T E R S
@@ -27,7 +28,7 @@ if (!file.exists(outputdir)) {
 	dir.create(outputdir)
 }
 
-permute<-1000
+permute<-150
 
 
 
@@ -165,6 +166,9 @@ if (data.prepare) {
 
 # The first ten lines should be skipped
 read.table.phenotypes<-read.table("G3-first-phenotypes-2.tsv",sep="\t",na.strings="x",skip=10, row.names=1,header=T)
+w<-read.table.phenotypes[,"weight.3m"]
+w[is.na(w)]<-read.table.phenotypes[is.na(w),"weight.6m"]
+read.table.phenotypes<-cbind(read.table.phenotypes,weight=w); rm(w)
 phenotypes<-colnames(read.table.phenotypes)
 
 phenotypes.not.parental<- !is.na(read.table.phenotypes[,"sex"])
@@ -374,83 +378,88 @@ if (F) {
 	}
 }
 
+
+analyse<-function(phen,chr) {
+	markers.filename.chr<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
+	if (!file.exists(markers.filename.chr)) stop(paste("Cannot find marker file for chromosome",chr,"\n",sep=""))
+
+	for (individuals.subset in c("3m","6m","all")) {
+							# covariates do not influence parameters stored
+		fname<-paste(inputdir,"/","happy_",individuals.subset,"_",phen,name.suffix,"_chr_",chr,".input",sep="")
+		if (!file.exists(fname)) {
+			cat("  cannot find input file expected at '",fname,"\n") ; next
+		}
+
+		cat("\n\nWorking on '",fname,"'\n\n",sep="")
+		a<-grep(pattern="^h$",x=ls(),value=TRUE) ; b<-grep(pattern="^fit",x=ls(),value=TRUE)
+		if(!is.null(a)) rm(list=c(a,b))
+
+		h<-happy(datafile=fname,allelesfile=markers.filename.chr,generations=4,phase="unknown",
+			file.format="happy",missing.code="NA")
+		if(0 == var(h$phenotypes)) {
+			cat("W: 0 == var(h$phenotypes) for phen '",phen,name.suffix,covariates.suffix," on chr ",chr,".  Skipping.\n")
+			next
+		}
+
+		# Every chromosome may have a different set of individuals
+		covariatematrix<-NULL
+		if(!is.null(data.covariates)) {
+			covariatematrix<-as.matrix(read.table.phenotypes[h$subjects,data.covariates,drop=FALSE])
+		}
+
+		fit.0<-hfit(h, permute=0,verbose=TRUE,model=model,covariatematrix=covariatematrix)
+		cat("\n",phen,name.suffix,covariates.suffix,"@",chr," fit.0$mapx: ",fit.0$maxp,"\n",sep="")
+		fit.permute<-hfit(h, permute=permute,verbose=TRUE,model=model,covariatematrix=covariatematrix)
+		cat("\n",phen,name.suffix,covariates.suffix,"@",chr," fit.permute$permdata$p01: ",fit.permute$permdata$p01,"\n",sep="")
+		cat(     phen,name.suffix,covariates.suffix,"@",chr," fit.permute$permdata$p05: ",fit.permute$permdata$p05,"\n",sep="")
+
+		columns.selected= (snps.selected.chromosomes==chr)
+		l<-list(POSITION=snps.selected.cM[columns.selected],
+			text=snps.selected.names[columns.selected])
+
+		# Plot of F statistics
+		happyplot(fit.0,
+			main=paste(individuals.subset,": ",phen,name.suffix,covariates.suffix,"@chr",chr,sep=""),
+			sub=paste("p01:",round(fit.permute$permdata$p01,2)," ",
+				  "p05:",round(fit.permute$permdata$p05,2)," ",
+					date(),
+			     sep=""), pch=3
+		)
+		abline(fit.permute$permdata$p05,0,col="green",lty=3)
+		abline(fit.permute$permdata$p01,0,col="green",lty=2)
+
+		# Empirical significance
+		happyplot(fit.permute, labels=l, pch=3,
+			sub=paste(individuals.subset,":",phen,name.suffix,covariates.suffix,"@chr",chr))
+		write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen, name.suffix,
+			covariates.suffix,"_chr_",chr,"_maxLodP_",fit.0$maxp,".csv",sep=""), x=fit.0$table)
+		if(permute>0) {
+			write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen,
+						name.suffix,covariates.suffix,"_chr_",chr,"_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
+				  x=fit.permute$permdata$permutation.pval)
+		}
+	}
+}
+
+
 # Perform analysis for every chromosome
 for(phen in phenotypes) {
 
 	name.suffix<-ifelse(data.binary,".binary","")
-
+	covariates.suffix<-ifelse(is.null(data.covariates),"",paste("_covars_",paste(data.covariates,collapse=",",sep=""),sep=""))
 	cat("\n**************\n")
-	cat("      ",phen,name.suffix,"\n",sep="")
+	cat("      ",phen,name.suffix,covariates.suffix,"\n",sep="")
 	cat("\n**************\n\n")
 
-	pdf(paste(outputdir,"/","analysis_happy_phen_",phen,name.suffix,"_chr_all.pdf",sep=""))
+	if (phen %in% data.covariates) {
+		cat("W: phen ",phen," also appears in data.covariates, ... skipping.\n")
+		next
+	}
+
+	pdf(paste(outputdir,"/","analysis_happy_phen_",phen,name.suffix,covariates.suffix,"_chr_all.pdf",sep=""))
 	chromosomes<-unique(sort(as.character(snps.selected.chromosomes)))
 	for(chr in chromosomes) {
-
-		markers.filename.chr<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
-		if (!file.exists(markers.filename.chr)) {
-			stop(paste("Cannot find marker file for chromosome",chr,"\n",sep=""))
-		}
-
-		for (individuals.subset in c("3m","6m","all")) {
-			fname<-paste(inputdir,"/","happy_",individuals.subset,"_",phen,name.suffix,"_chr_",chr,".input",sep="")
-			if (!file.exists(fname)) {
-				cat("  cannot find input file expected at '",fname,"\n")
-				next
-			}
-
-			cat("\n\nWorking on '",fname,"'\n\n",sep="")
-			a<-grep(pattern="^h$",x=ls(),value=TRUE)
-			b<-grep(pattern="^fit",x=ls(),value=TRUE)
-			if(!is.null(a)) rm(list=c(a,b))
-
-			h<-happy(datafile=fname,allelesfile=markers.filename.chr,generations=4,phase="unknown",
-				file.format="happy",missing.code="NA")
-			if(0 == var(h$phenotypes)) {
-				cat("W: 0 == var(h$phenotypes) for phen '",phen,name.suffix," on chr ",chr,".  Skipping.\n")
-				next
-			}
-			#fit.additive<-hfit(h, permute=permute,model='additive',verbose=TRUE)
-			fit.0<-hfit(h, permute=0,verbose=TRUE,model=model)
-			cat("\n",phen,name.suffix,"@",chr," fit.0$mapx: ",fit.0$maxp,"\n",sep="")
-			fit.permute<-hfit(h, permute=permute,verbose=TRUE,model=model)
-			cat("\n",phen,name.suffix,"@",chr," fit.permute$permdata$p01: ",fit.permute$permdata$p01,"\n",sep="")
-			cat("\n",phen,name.suffix,"@",chr," fit.permute$permdata$p05: ",fit.permute$permdata$p05,"\n",sep="")
-
-			columns.selected= (snps.selected.chromosomes==chr)
-			l<-list(POSITION=snps.selected.cM[columns.selected],
-				text=snps.selected.names[columns.selected])
-
-			# Plot of F statistics
-
-			happyplot(fit.0,
-				main=paste(individuals.subset,": ",phen,name.suffix,"@chr",chr,sep=""),
-				sub=paste("p01:",round(fit.permute$permdata$p01,2)," ",
-				          "p05:",round(fit.permute$permdata$p05,2)," ",
-						date(),
-				     sep=""), pch=3
-			)
-			abline(fit.permute$permdata$p05,0,col="green",lty=3)
-			abline(fit.permute$permdata$p01,0,col="green",lty=2)
-
-			# Empirical significance
-
-			happyplot(fit.permute,
-				labels=l,
-				sub=paste(individuals.subset,":",phen,name.suffix,"@chr",chr),
-				pch=3
-			)
-			write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen,
-						name.suffix,"_chr_",chr,"_maxLodP_",fit.0$maxp,".csv",sep=""),
-				  x=fit.0$table)
-			if(permute>0) {
-				write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen,
-							name.suffix,"_chr_",chr,"_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
-					  x=fit.permute$permdata$permutation.pval)
-			}
-		}
+		analyse(phen,chr)
 	}
 	dev.off()
 }
-
-
