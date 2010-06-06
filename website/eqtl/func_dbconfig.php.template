@@ -131,7 +131,27 @@ function transcript2ensemblSearchUrl($id,$species="Rattus_norvegicus"){
 		.$species.";idx=;q=".$id;
 }
 
+$databaseLocal=$database;
 
+global $hostname,$username,$database,$ensemblversion,$ensemblversionLocal;
+
+global $urlLogoLeft2,$urlLogoLeft, $urlLogoRight, $urlLogoRightLarge;
+$urlLogoLeft2="PATHLOGOLEFT2";
+$urlLogoLeft="PATHLOGOLEFTNORMAL";
+$urlLogoRight="PATHLOGORIGHTNORMAL";
+$urlLogoRightLarge="PATHLOGORIGHTLARGE";
+
+$hostname=`hostname --long`;
+$htmlroot="URLEQTL";
+$hostname="DATABASEHOSTLOCAL";
+$username="DATABASEEQTLUSER";
+$databaseqtl="DATABASEQTLNAME";
+$databaseeqtl="DATABASEEQTLNAME";
+$database="DATABASEEQTLNAME";
+$hostnameeqtl="DATABASEHOSTLOCAL";
+$usernameeqtl="DATABASEEQTLUSER";
+$hostnameqtl="DATABASEHOSTLOCAL";
+$usernameqtl="DATABASEQTLUSER";
 
 $hostnameEnsembl=martdbhost($ensemblversionEnsembl);
 $databaseEnsembl=martdbname($ensemblversionEnsembl);
@@ -191,28 +211,6 @@ else {
 if (empty($ensemblversionLocal)) {
 	$ensemblversionLocal=$ensemblversionLocal;
 }
-
-$databaseLocal=$database;
-
-global $hostname,$username,$database,$ensemblversion,$ensemblversionLocal;
-
-global $urlLogoLeft2,$urlLogoLeft, $urlLogoRight, $urlLogoRightLarge;
-$urlLogoLeft2="PATHLOGOLEFT2";
-$urlLogoLeft="PATHLOGOLEFTNORMAL";
-$urlLogoRight="PATHLOGORIGHTNORMAL";
-$urlLogoRightLarge="PATHLOGORIGHTLARGE";
-
-$hostname=`hostname --long`;
-$htmlroot="URLEQTL";
-$hostname="DATABASEHOSTLOCAL";
-$username="DATABASEEQTLUSER";
-$databaseqtl="DATABASEQTLNAME";
-$databaseeqtl="DATABASEEQTLNAME";
-$database="DATABASEEQTLNAME";
-$hostnameeqtl="DATABASEHOSTLOCAL";
-$usernameeqtl="DATABASEEQTLUSER";
-$hostnameqtl="DATABASEHOSTLOCAL";
-$usernameqtl="DATABASEQTLUSER";
 
 $markerhost=$hostnameeqtl;
 $markeruser=$usernameeqtl;
