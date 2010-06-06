@@ -232,10 +232,10 @@ University of LE<uuml>beck, Germany, 2010
 		foreach ($traitlist as $trait) {
 
 			if (1<count($traitlist)) {
-				echo "<h2>Trait <i>$trait</$i></h2>\n";
+				echo "<h2>Trait <i>$trait</i></h2>\n";
 			}
 			else {
-				echo "<h1>Effect Plot on trait <i>$trait</$i></h1>\n";
+				echo "<h1>Effect Plot on trait <i>$trait</i></h1>\n";
 			}
 		
 			#
