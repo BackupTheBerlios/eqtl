@@ -134,7 +134,7 @@ while (FCGI::accept >= 0) {
 		# retrieve covariates and probeset ID from jobname
 		# 
 		#       example jobname to match:
-		#       "scanone_10700001_3.5_1000_(EAE).csv.gz"
+		#       "scanone_10700001_3.5_1000_(EAE).csv"
 		#
 
 		my @fields;
