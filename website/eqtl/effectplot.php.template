@@ -9,10 +9,10 @@
 Display of strain differences on the expression levels. This can be shown only for individual marker (or QTL).
 The default will hence be to have this page requested as an extension to the information shown on QTL with the locus directly specified.
 
-It is planned to allow the script to perform a complete rerun of the QTL
+The script can rerun individual expression QTL analyses
 and then show effect plots for all loci above a particular LOD score.
 No permutation tests are then performed, i.e. a filtering for p-Values
-not supported.
+is not supported.
 
 The interface shall also be usable to rerun the QTL with another (most CPU-intensive, possibly) method.
 
