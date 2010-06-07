@@ -123,8 +123,8 @@ TARCMD="tar cf ../evaluatedQueries.tar ."
 
 if $TARCMD; then
 	echo "Taring in directory RECALCDIR/* was successful."
-	rm -f scanone_*.gz
-	rm -f scantwo_*.gz
+	rm -f scanone_*
+	rm -f scantwo_*
 else
 	echo "Could not files in directory RECALCDIR, leaving everything as it was."
 	echo "Please use results directly from RECALCDIR folder.!"
