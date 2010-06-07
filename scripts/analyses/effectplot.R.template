@@ -260,14 +260,14 @@ ep<-function(marker1,chr1,cM1,marker2,chr2,cM2) {
 	#	Effect Plots
 	r<-NULL
 	if (is.null(mname2)) {
-		if (opt$verbose) cat("ep: Could not determine 2nd marker.\n")
+		if (!is.null(opt$verbose)) cat("ep: Could not determine 2nd marker.\n")
 		#f<-paste(opt$output,"_mn1_",mname1,"_trait",".",opt$format,sep="")
 		f<-paste(opt$output,".",opt$format,sep="")
 		cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 		prepareOutput(f)
 		if (!is.null(opt$debug)) cat("ep:invocation of effectplot\n")
 		main<-paste("Effect of",mname1,"on expression of",opt$trait)
-		r<-effectplot(my.cross,mname1=mname1,main=main)
+		r<-effectplot(my.cross,pheno.col=PHENOCOL,mname1=mname1,main=main)
 	} else {
 		#f<-paste(opt$output,"_mn1_",mname1,"_mn2_",mname2,"_trait",".",opt$format,sep="")
 		f<-paste(opt$output,".",opt$format,sep="")
@@ -275,7 +275,7 @@ ep<-function(marker1,chr1,cM1,marker2,chr2,cM2) {
 		prepareOutput(f)
 		if (!is.null(opt$debug)) cat("ep:invocation of effectplot\n")
 		main<-paste("Effect of",mname1,"and",mname2,"on expression of",opt$trait)
-		r<-effectplot(my.cross,mname1=mname1,mname2=mname2,main=main)
+		r<-effectplot(my.cross,pheno.col=PHENOCOL,mname1=mname1,mname2=mname2,main=main)
 	}
 
 
