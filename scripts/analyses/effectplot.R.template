@@ -192,7 +192,8 @@ if ("pdf" == opt$format) {
 #
 
 fname.input<-paste(
-	"http://grid64inb.inb.uni-luebeck.de:80/~moeller/stockholm/prepareRqtlInputData.pl?probesetid=",
+	"URLGETDATA",
+	"?probesetid=",
 	opt$trait,
 	"&applyLog2=TRUE&score=",sep="")
 
