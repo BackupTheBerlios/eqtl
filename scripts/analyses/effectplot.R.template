@@ -326,7 +326,7 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 
 	if ("scanone" == opt$work) {
 		my.cross <- calc.genoprob( my.cross, step=STEPSSO, error.prob=0.01 )
-		my.work <- scanone( my.cross, pheno.col=3, method=opt$method, verbose=FALSE )
+		my.work <- scanone( my.cross, pheno.col=PHENOCOL, method=opt$method, verbose=FALSE )
 		m<-as.matrix(summary(my.work,thr=opt$LODmin)) # LODmin is always set
 		cat(file=txtname,"<h2>Scanone</h2>\n")
 		cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
@@ -344,7 +344,7 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	} else if ("scantwo" == opt$work) {
 
 		my.cross <- calc.genoprob( my.cross, step=STEPSST, error.prob=0.01 )
-		my.work <- scantwo( my.cross, pheno.col=3, method=opt$method, verbose=FALSE )
+		my.work <- scantwo( my.cross, pheno.col=PHENOCOL, method=opt$method, verbose=FALSE )
 		m<-as.matrix(summary(my.work,thr=c(opt$LODmin,0,0,0,0))) # LODmin is always set
 		cat(file=txtname,"<h2>Scantwo</h2>\n")
 		cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
