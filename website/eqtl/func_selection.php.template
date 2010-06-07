@@ -122,7 +122,6 @@ function print_exclusive_selection($rname,$variablename,$entryarray,$default="")
 
   foreach($entryarray as $presentation=>$value) {
   	echo "<input type=radio name=\"$variablename\" value=\"$value\"".("$value"=="$preset"?" checked":"")." />$presentation<br>\n";
-  	$no++;
   }
   echo "</td>";
   echo "</tr>\n";
