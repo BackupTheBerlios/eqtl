@@ -122,10 +122,11 @@ fi
 TARCMD="tar cf ../evaluatedQueries.tar ."
 
 if $TARCMD; then
-	echo "Taring RECALCDIR/*.gz was successful."
-	rm -f *.gz
+	echo "Taring in directory RECALCDIR/* was successful."
+	rm -f scanone_*.gz
+	rm -f scantwo_*.gz
 else
-	echo "Could not tar *.gz files, leaving everything as it was."
+	echo "Could not files in directory RECALCDIR, leaving everything as it was."
 	echo "Please use results directly from RECALCDIR folder.!"
 fi
 
