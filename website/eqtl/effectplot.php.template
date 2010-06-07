@@ -229,7 +229,7 @@ University of LE<uuml>beck, Germany, 2010
 			}
 		}
 
-		foreach ($traitlist as $trait) {
+		foreach ($traitlist as $n=>$trait) {
 
 			if (1<count($traitlist)) {
 				echo "<h2>Trait <i>$trait</i></h2>\n";
@@ -352,9 +352,14 @@ University of LE<uuml>beck, Germany, 2010
 			if (file_exists("$outputfilename.txt")) {
 				$myFile = "$outputfilename.txt";
 				$fh = fopen($myFile, 'r');
-				$theData = fread($fh, 200000);
-				fclose($fh);
-				echo $theData;
+				if (! $fh) {
+					errorMessage("Could not open file '$outputfilename.txt' for reading.");
+				}
+				else {
+					$theData = fread($fh, 200000);
+					fclose($fh);
+					echo $theData;
+				}
 			}
 
 			echo "<br><a href=\"".$outputfilename.".png\">$outputfilename.png</a>\n";
