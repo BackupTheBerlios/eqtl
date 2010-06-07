@@ -133,8 +133,8 @@ the individual's ID to the position in the row is performed.
 
 =cut
 
-printf STDERR "opening phenotype file\n" if $verbose;
-my @filenames=($base.$database.$data{'phenofile'},$database.$data{'phenofile'},$database.$data{'phenofile'}, $data{'phenofile'});
+printf STDERR "opening molecular phenotype file\n" if $verbose;
+my @filenames=("$base/$database/".$data{'phenofile'},"$database/".$data{'phenofile'},"$database/".$data{'phenofile'}, $data{'phenofile'});
 my $opened=0;
 foreach my $f (@filenames) {
 	if (open(getFrom, '<', $f)) {
@@ -151,10 +151,11 @@ unless ($opened) {
 	die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";
 }
 
-printf STDERR "reading phenotype file into hash table\n" if $verbose;
+printf STDERR "reading molecular phenotype file into hash table\n" if $verbose;
 my %probe2line;
 my $individualsString = undef;
 my @individualsArray = undef;
+my $numLinesSkipped=0;
 while( <getFrom> ){
         my $l = $_;
 	# don't expect quotes
@@ -162,14 +163,21 @@ while( <getFrom> ){
 	my ($p,$_) = split( /PHENOFIELDSEP/,$l);
 	if (!defined($individualsString)) {
 		# skip comments
-		next if $l =~ /^\s*#/;
+		if ($l =~ /^\s*#/) {
+			$numLinesSkipped++;
+			next;
+		}
 		print STDERR "Undefined individualsString and p='$p'.\n" if $verbose;
 		# accepting a range of keywords, also the empty first field as produced by R
-		if ($p =~ /^(|id|rat|mouse|name|ind|probeset)$/i) {
+		if ($p =~ /^(|id|rat|mouse|name|ind|probeset|probeset_id)$/i) {
 			$individualsString = $l;
 			@individualsArray=split(/PHENOFIELDSEP/,$individualsString);
 			print STDERR  "individualsString now set to '$individualsString'\n" if $verbose;
 		}
+		elsif ($numLinesSkipped >30) {
+			die "Could not find header line within first 30 lines. Exit.\n";
+		}
+		$numLinesSkipped++;
 		next;
 	}
 	$probe2line{$p}=$l;
