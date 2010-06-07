@@ -352,7 +352,7 @@ quantile.scantwoperm<-function(perms,quantiles) {
 
 # name of file that collects results of this workunit
 
-my.file.name <- paste("$execParams{'d'}/$keyData.csv.gz",sep="")
+my.file.name <- paste("$execParams{'d'}/$keyData.csv",sep="")
 
 # check if file exists and rename it if so
 if (file.exists(my.file.name)) {
@@ -362,8 +362,9 @@ if (file.exists(my.file.name)) {
 # function to store results
 writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 
-	my.file <- gzfile(description=my.file.name, open = "a",
-	                  encoding = getOption("encoding"), compression = 6)
+        if (file.exists(my.file.name)) open.mode<-"a"
+	my.file <- file(description=my.file.name, open = open.mode,
+	                  encoding = getOption("encoding"))
 
 	if ( is.list(toWrite) ) {
 		#cat("*** DEBUG START*** Now I am printing a list.\\n")
