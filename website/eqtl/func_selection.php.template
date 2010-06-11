@@ -161,7 +161,8 @@ function print_selection_form($properties) {
 	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,
                $PvalueMax,$PvalueMin,
 	       $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax,
-	       $traitlist, $traits, $work, $method, $unit, $find_marker, $cistrans
+	       $traitlist, $traits, $work, $method, $unit, $find_marker, $cistrans,
+	       $split_chromosomes
 	;
 
 
@@ -198,6 +199,12 @@ function print_selection_form($properties) {
 			break;
 
 		 case "table_overview_scanone":
+			$properties = array(
+						"LOD", "pvalue", "mean", "sd", "median", "variance" ,"split_chromosomes"
+						#, "number_of_chromosomes_per_trait"
+			);
+			break;
+
 		 case "figure_scatter":
 			$properties = array(
 						"LOD", "pvalue", "mean", "sd", "median", "variance" ,
@@ -483,6 +490,15 @@ function print_selection_form($properties) {
 				echo "</tr></table>\n";
 				mysql_free_result($result);
 				echo "</td></tr>";
+				break;
+
+			case "split_chromosomes":
+				echo "<tr><th>Split Chromosomes</th><td>";
+				echo "<select name=\"split_chromosomes\">\n";
+				echo "<option value=\"separated\">Show results for every chromosome separately</option>\n";
+				echo "<option value=\"aggregated\">Show aggregated chromsomal results per covariates</option>\n";
+				echo "</select>";
+				echo "</td></tr>\n";
 				break;
 
 			case "phen_analysis":
