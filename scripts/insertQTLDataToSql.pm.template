@@ -153,9 +153,9 @@ sub perform {
 		my $sql_loc_insert = qq{INSERT INTO locus (Name, Chr, cMorgan, Organism, Marker) VALUES (?,?,?,"NCBITAXONOMYSPECIESNAME",?)};
 		my $sql_loc_update = qq{UPDATE locus set cMorgan =? where Name=?};
 		my $sql_loc_select = qq{select Name, cMorgan from locus where Name=?};
-		my $query_jobexists = "select computation_id, status, version from computation where jobname = ?;";
-		my $reset_query_recalculate = "UPDATE computation SET status=\"RECALCULATE\" where jobname = ? ";
-		my $reset_query_queued = "UPDATE computation SET status=\"QUEUED\" where jobname = ? ";			
+		my $query_jobexists = "select computation_id, status, version from computation where jobname = lcase(?);";
+		my $reset_query_recalculate = "UPDATE computation SET status=\"RECALCULATE\" where jobname = lcase(?) ";
+		my $reset_query_queued = "UPDATE computation SET status=\"QUEUED\" where jobname = lcase(?) ";			
 		my $sql_getloc = qq{SELECT Name FROM locus WHERE Chr = ? AND ((cMorgan-?)>=-0.2) AND ((cMorgan-?)<=0.2)};
 		my $sql_delete_interaction = "DELETE from locusInteraction where computation_id = ?";
 		my $sql_delete_qtl = "DELETE from qtl where computation_id = ?";
@@ -281,7 +281,7 @@ sub perform {
 	my $status = undef;
 	my $version;
 
-	if ( ! $sth_jobexists->execute("$filename")) {
+	if ( ! $sth_jobexists->execute(lc("$filename"))) {
 		harmless($DBI::errstr,-1);
 		return($exitcode);
 	}
@@ -623,7 +623,7 @@ sub perform {
 							if ($hasPvalues) {
 								$sth_qtl->execute($compute_id, $trait, $loc1, $loc2,
 									$NULL, # type - was add/int, now obsolete
-									join(",",@covars_array), # covariates
+									lc(join(",",@covars_array)), # covariates only as lower case
 									# LOD scores
 									$remainder[0], $remainder[2], $remainder[4],
 									$remainder[8], $remainder[10],
@@ -694,7 +694,7 @@ sub perform {
 										 $lineFields[1], # Chromosome
 										 $lineFields[2], # cMorgan
 										 $quant[0],
-										 join(",",@covars_array), $phenocol))
+										 lc(join(",",@covars_array)), $phenocol))
 							{
 								print STDERR "** Problem writing single effect into QTL table: scanoneline:$scanoneline:\n"
 									 . "\t"."lineFields[0]: ". $lineFields[0]. "# Locus/Marker " ."\n"
@@ -704,7 +704,7 @@ sub perform {
 									 . "\t"."lineFields[1]: ". $lineFields[1]. "# Chromosome " ."\n"
 									 . "\t"."lineFields[2]: ". $lineFields[2]. "# cMorgan " ."\n"
 									 . "\t"."quant[0]: ",$quant[0], ."\n"
-									 . "\t"."covariates: ". join(",",@covars_array)."\n"
+									 . "\t"."covariates: ". lc(join(",",@covars_array))."\n"
 									 . "\t"."phenocol: ". $phenocol ."\n"
 								;
 							}
