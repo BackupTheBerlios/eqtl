@@ -70,7 +70,7 @@ width of lines separating the chromosomes
 
 =item --linetype 0-5
 
-specification of the type of lines tha shall be separating the chromosomes
+specification of the type of lines tha shall be separating the chromosomes, defaults to 3 (dotted)
 
 =item --axescolour I<string>
 
@@ -184,7 +184,7 @@ if (is.null(opt$linewidth)) {
 }
 
 if (is.null(opt$linetype)) {
-   opt[["linetype"]]<-1
+   opt[["linetype"]]<-3
    cat("Changing to default type for lines : ",opt$linetype,"\n")
 }
 
@@ -379,11 +379,13 @@ for(cov in covariates) {
   abline(v=cM.offset, col=opt$linecolour, lty=opt$linetype, lwd=opt$linewidth)
   abline(h=bp.offset, col=opt$linecolour, lty=opt$linetype, lwd=opt$linewidth)
 
-  in.red<-selected.qtl[,"LOD"]>=6
-  points(pos.linear.cM[in.red],  pos.linear.bp[in.red],  col="red")
+  YlOrBr <- c("#FFFFD4", "#FED98E", "#FE9929", "#D95F0E", "#993404")
+  color.palette = colorRampPalette(YlOrBr, space = "Lab",bias = 0.5)
+  selected.qtl.quantiles=sapply(selected.qtl[,"LOD"],function(X){sum(X>selected.qtl[,"LOD"])})
+  points(pos.linear.cM,  pos.linear.bp,  col=color.palette(length(selected.qtl.quantiles))[selected.qtl.quantiles])
  
-  in.green<-selected.qtl[,"LOD"]>=8
-  points(pos.linear.cM[in.green],pos.linear.bp[in.green],col="green")
+  #in.green<-selected.qtl[,"LOD"]>=8
+  #points(pos.linear.cM[in.green],pos.linear.bp[in.green],col="green")
 
   axis(1, at=(cM.offset[1:length(cM.offset)-1]+cM.offset[2:length(cM.offset)])/2,
         labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"),lwd=opt$axeswidth)
