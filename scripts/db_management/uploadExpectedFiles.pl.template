@@ -26,6 +26,10 @@ cannot change the parameters for a job once it was computed, i.e. for
 such changes one would need to create a new entry showing the same set
 of covariates but a different job name.
 
+Covariates are transformed into an all lowercase spelling, which was
+found to reduce various forms of irritation in the communication 
+with the wet-lab partners while updating the data.
+
 =over 4
 
 =item --analysis 
@@ -215,7 +219,8 @@ if( !defined($analysis) or $analysis ne 'scanone' and $analysis ne 'scantwo' and
 }
 
 # presume the remaining attributes to be all covariates - unchecked
-my @covar = @A;
+# All data is converted to lowercase.
+my @covar = map(lc,@A);
 
 my $test_query = "SELECT computation_id FROM computation WHERE jobname=?;";
 my ($sth_test, $sth_update, $sth_insert, $sth_traits);
@@ -308,6 +313,9 @@ foreach my $cov (@covar) {
 			# checking for existance of that job
 			if ( ! $sth_test->execute($jobname)) {
 				print STDERR $DBI::errstr;
+				$sth_test->finish();
+				$sth_update->finish();
+				$sth_insert->finish();
 				$dbh->disconnect;
 				exit(-1);
 			}
@@ -317,6 +325,9 @@ foreach my $cov (@covar) {
 			if(@a){
 				if ( ! $sth_update->execute($jobname)) {
 					print STDERR $DBI::errstr;
+					$sth_test->finish();
+					$sth_update->finish();
+					$sth_insert->finish();
 					$dbh->disconnect;
 					exit(-1);
 				}
@@ -324,6 +335,9 @@ foreach my $cov (@covar) {
 			else{
 				if ( ! $sth_insert->execute('SCANTWO',$line,$jobname,$jobname)) {
 					print STDERR $DBI::errstr;
+					$sth_test->finish();
+					$sth_update->finish();
+					$sth_insert->finish();
 					$dbh->disconnect;
 					exit(-1);
 				}
@@ -332,6 +346,10 @@ foreach my $cov (@covar) {
 	}
 }
 print "\t[DONE]\n";
+
+$sth_test->finish();
+$sth_update->finish();
+$sth_insert->finish();
 
 $dbh->disconnect;
 

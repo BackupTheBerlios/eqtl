@@ -352,7 +352,7 @@ quantile.scantwoperm<-function(perms,quantiles) {
 
 # name of file that collects results of this workunit
 
-my.file.name <- paste("$execParams{'d'}/$keyData.csv.gz",sep="")
+my.file.name <- paste("$execParams{'d'}/$keyData.csv",sep="")
 
 # check if file exists and rename it if so
 if (file.exists(my.file.name)) {
@@ -362,8 +362,10 @@ if (file.exists(my.file.name)) {
 # function to store results
 writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 
-	my.file <- gzfile(description=my.file.name, open = "a",
-	                  encoding = getOption("encoding"), compression = 6)
+	open.mode<-"w"
+        if (file.exists(my.file.name)) open.mode<-"a"
+	my.file <- file(description=my.file.name, open = open.mode,
+	                  encoding = getOption("encoding"))
 
 	if ( is.list(toWrite) ) {
 		#cat("*** DEBUG START*** Now I am printing a list.\\n")
@@ -484,17 +486,18 @@ EOWRITETODISK
 # if still acceptable, perform permutation tests
 if (acceptable) {
 	# list of pairs identifying the number of permutations and the quantils that is to be reached
-	perm.checks<-list(c(  10,                1-0.5),
-	                  c(  25,                1-$execParams{'alpha'}-0.2),
-			  c( 100,                1-$execParams{'alpha'}-0.02),
-			  c($execParams{perms}/4,1-$execParams{'alpha'}),
-			  c($execParams{perms}/2,1-$execParams{'alpha'}),
-			  c($execParams{perms}  ,1-$execParams{'alpha'}))
+	perm.checks<-list(c(  15,                  1-0.5),
+	                  c(  25,                  1-$execParams{'alpha'}-0.2),
+			  c($execParams{perms}/10, 1-$execParams{'alpha'}-0.1),
+			  c($execParams{perms}/4 , 1-$execParams{'alpha'}-0.05),
+			  c($execParams{perms}/2 , 1-$execParams{'alpha'}-0.02),
+			  c($execParams{perms}   , 1-$execParams{'alpha'}))
 
 	# iteration over partial permutations, the permutation results are stored in perm.collection
 	#print(perm.checks)
 	perm.collection<-NULL
 	perm.no.prev.round<-0
+	max.assigned.to.quantile.in.permutations<-1
 	for(X in perm.checks) {
 		cat( paste("\\n",date(),": Performing ",X[1]," permutations, checking against quantile 1-",X[2],"\\n",sep="") )
 		my.$mode.P <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, n.perm=X[1]-perm.no.prev.round, verbose=FALSE )
@@ -529,6 +532,8 @@ EOWRITETODISK
 			break;
 		}
 		perm.no.prev.round<-X[1]
+		max.assigned.to.quantile.in.permutations<-sum(perm.collection>my.max)/length(perm.collection)
+		cat(paste("The value ",my.max," was assigned the quantile ",max.assigned.to.quantile.in.permutations," after ",length(perm.collection)," permutations.\\n",sep=""))
 	}
 
 	if (acceptable) {

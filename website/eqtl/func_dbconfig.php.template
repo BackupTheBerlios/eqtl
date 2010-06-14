@@ -25,6 +25,8 @@ The documentation does not end here but is dispersed throughout the file.
 */
 
 
+global $verbose;
+$verbose=VERBOSEPHP;
 
 global $ensemblversion;
 global $ensemblversionLocal;
