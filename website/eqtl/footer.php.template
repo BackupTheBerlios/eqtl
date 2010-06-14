@@ -55,6 +55,22 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2009
 		$m++;
 	}
   }
+  echo '</td>';
+  $a="PROJECTRELATED";
+  if (!empty($a)) {
+	echo '<td align=center>';
+	echo "This page in other projects:\n";
+	echo "<ul>";
+	$projects=preg_split('/(\]|\[)([[ \t])*/',"$a");
+	foreach ($projects as $p) {
+		#echo "<li>p='$p'";
+		if (!empty($p)) {
+			$projectdetails=preg_split("/,/",$p);
+			echo "<li><a href=\"".$projectdetails[1]."\">".$projectdetails[0]."</a>";
+		}
+	}
+	echo "</ul>";
+  }
   echo '</td><td align=center>';
   echo FOOTERLOGORIGHT;
   echo "</td></tr></table>\n";
