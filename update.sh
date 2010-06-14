@@ -89,6 +89,7 @@ do
 done
 
 if [ -z "$nopull" ]; then
+	echo "Preparing update of local repository, add --no-pull to skip."
 	if ! git pull; then
 		echo "Could not properly pull from the archive - exiting. Call with '--no-pull' to circumvent the problem."
 		exit -1
