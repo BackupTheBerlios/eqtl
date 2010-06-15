@@ -29,7 +29,12 @@ University of LE<uuml>beck, Germany, 2010
 			#echo "<li>p='$p'";
 			if (!empty($p)) {
 				$projectdetails=preg_split("/,/",$p);
-				echo "<li><a href=\"".$projectdetails[1]."/eqtl/$bn\">".$projectdetails[0]."</a>";
+				if ("" == "$relDir") {
+					echo "<li><a href=\"".$projectdetails[1]."\">".$projectdetails[0]."</a>";
+				}
+				else {
+					echo "<li><a href=\"".$projectdetails[1]."/eqtl/$bn\">".$projectdetails[0]."</a>";
+				}
 			}
 		}
 		echo "</ul>";
