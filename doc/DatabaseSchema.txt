@@ -175,3 +175,15 @@ CREATE TABLE trait_phen_analysis_value (
   primary key (trait_id,trait_phen_analysis_id)
 ) COMMENT 'Linking the analyses with traits and the results.';
 
+
+The specification of dependencies between tables has yet made it barely into the
+database but is taken care of manually in the PHP/Perl code. We have now started
+using triggers, though, like the following:
+
+DROP TRIGGER removeQtlWithComputation;
+CREATE TRIGGER removeQtlWithComputation
+AFTER DELETE ON computation 
+FOR EACH ROW DELETE FROM qtl where computation_id=OLD.computation_id;
+
+
+
