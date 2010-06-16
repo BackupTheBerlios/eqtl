@@ -4,7 +4,7 @@ TEMPLATEWARNINGXML
 <title>PROJECTTITLE</title>
         <link href="http://www.ihop-net.org/UniPub/html/css/general.css" rel="stylesheet" media="screen"/>
 	<link href="http://www.ihop-net.org/UniPub/html/css/unipub_hop.css" rel="stylesheet" media="screen"/>
-	<link href="URLPORTALROOT/stylesheets/eqtl.css" rel="stylesheet" media="screen"/>
+	<link href="COMMONPUBLICPORTAL/stylesheets/eqtl.css" rel="stylesheet" media="screen"/>
 </head>
 <body>
 <table width="100%">
@@ -114,7 +114,7 @@ data only via this project's <a href="URLPORTALROOT/index.php" target="_blank">e
 The analysis is performed in a series of partially independent events. Each is performed with a set of scripts. Those sections and associated scripts are explained below.
 </p>
 <h2>Preparation of input data</h2>
-<div class=floatRight><a href="URLPORTALROOT/graphics/controllingloci.png"><img src="URLPORTALROOT/graphics/controllingloci.png" width=150 border=0/></a></div>
+<div class=floatRight><a href="COMMONPUBLICPORTAL/images/controllingloci.png"><img src="COMMONPUBLICPORTAL/images/controllingloci.png" width=150 border=0/></a></div>
 <p class=block>
 Input to the analysis are expression data across all mice, the genotype of all these individuals and their
 disease scores. For each of these kinds of inputs, a script was prepared to read out the data. To understand
@@ -206,7 +206,7 @@ The following scripts contributed directly to the QTL analysis:
 </ul>
 
 <h2><a name="TwoScan">Calculation of interacting QTL</a></h2>
-<div class=floatRight><a href="URLPORTALROOT/graphics/densityqtls.png"><img src="URLPORTALROOT/graphics/densityqtls.png" width=150 border=0/></a></div>
+<div class=floatRight><a href="COMMONPUBLICPORTAL/images/densityqtls.png"><img src="COMMONPUBLICPORTAL/images/densityqtls.png" width=150 border=0/></a></div>
 
 <?php
 if (0<count($vals_interacting)) {
@@ -296,7 +296,7 @@ or pre-defined queries:
 
 
 <h3>Automated Analyses</h3>
-<div class=floatRight><a href="URLPORTALROOT/graphics/3dviewinteraction.png"><img src="URLPORTALROOT/graphics/3dviewinteraction.png" width=150 border=0/></a></div>
+<div class=floatRight><a href="COMMONPUBLICPORTAL/images/3dviewinteraction.png"><img src="COMMONPUBLICPORTAL/images/3dviewinteraction.png" width=150 border=0/></a></div>
 
 <p class="block">
 Any data that is tapped into for the analysis that is not
