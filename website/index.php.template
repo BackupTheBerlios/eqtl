@@ -360,5 +360,10 @@ final aims of this project:
 <hr>
 Contact <a href="mailto:MAINTAINEREMAIL">MAINTAINEREMAIL</a> for any arising issue or concern.
 The latest source code is (or will be) managed at <a href="URLSCMPROJECT">URLSCMPROJECT</a>.
+<hr>
+<?php
+require_once("eqtl/func_relatedProjects.php");
+relatedProjects("");
+?>
 </body>
 <html>
