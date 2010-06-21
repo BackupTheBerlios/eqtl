@@ -154,53 +154,53 @@ if ( !is.null(opt$help) ) {
 }
 
 if (is.null(opt$output)) {
-   cat("Setting ouput to default value.\n")
+   cat("Set ouput to default value.\n")
    opt[["output"]]<-"/tmp/default_output_scatter_all.pdf"
 }
 if (is.null(opt$MeanMin)) {
-   cat("Setting MeanMin to default value.\n")
+   cat("Set MeanMin to default value.\n")
    opt[["MeanMin"]]<- -1
 }
 if (is.null(opt$LODmin)) {
-   cat("Setting LODmin to default value.\n")
+   cat("Set LODmin to default value.\n")
    opt[["LODmin"]]<- -1
 }
 if (is.null(opt$Pmax)) {
-   cat("Setting Pmax to default value.\n")
+   cat("Set Pmax to default value.\n")
    opt[["Pmax"]]<- -1
 }
 if (is.null(opt$format)) {
    opt[["format"]]<-"png";
-   cat("Setting format to default value '",opt$format,"'.\n")
+   cat("Set format to default value '",opt$format,"'.\n")
 }
 if (is.null(opt$display)) {
    opt[["display"]]<-"lod";
-   cat("Setting display value to default value '",opt$display,"'.\n")
+   cat("Set variable to display to '",opt$display,"'.\n")
 }
 
 if (is.null(opt$linecolour)) {
    opt[["linecolour"]]<-"lightgray"
-   cat("Changing to default colour for lines : ",opt$linecolour,"\n")
+   cat("Set colour for lines : ",opt$linecolour,"\n")
 }
 
 if (is.null(opt$linewidth)) {
    opt[["linewidth"]]<-1
-   cat("Changing to default width for lines : ",opt$linewidth,"\n")
+   cat("Set width for lines : ",opt$linewidth,"\n")
 }
 
 if (is.null(opt$linetype)) {
    opt[["linetype"]]<-3
-   cat("Changing to default type for lines : ",opt$linetype,"\n")
+   cat("Set type for lines : ",opt$linetype,"\n")
 }
 
 if (is.null(opt$axeswidth)) {
    opt[["axeswidth"]]<-3
-   cat("Changing to default width for axes : ",opt$axeswidth,"\n")
+   cat("Set width for axes : ",opt$axeswidth,"\n")
 }
 
 if (is.null(opt$axescolour)) {
    opt[["axescolour"]]<-3
-   cat("Changing to default colour for axes : ",opt$axescolour,"\n")
+   cat("Set colour for axes : ",opt$axescolour,"\n")
 }
 
 if (is.null(opt$imagewidth)) {
@@ -372,7 +372,7 @@ for(cov in covariates) {
   }
 
   if (is.null(opt$sub)) {
-  	opt[["sub"]]<-paste("LODs>4,6,8, mean>=",opt$MeanMin)
+  	opt[["sub"]]<-paste("Showing ",opt$display," of eQTL with LOD>=",opt$LODmin" and P-value<=",opt$Pmax," and mean expression>=",opt$MeanMin)
 	cat("Set sub title to ",opt$sub,"\n")
   }
 
