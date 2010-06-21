@@ -131,6 +131,7 @@ opt = getopt(matrix(c(
    'covariates' , 'c', 1, "character","covariates the plot shall be run for",
    'output'     , 'o', 1, "character","name of output file",
    'qtls'       , 'q', 2, "character","list of QTLs (their IDs in the database) that shall be represented on the plot",
+   'display'    , 'd', 2, "character","defaults to lod, alternatives are rank and p.value",
    'main'       , 'M', 1, "character","main title of the plot",
    'sub'        , 'S', 1, "character","sub title of the plot",
    'imagewidth' , 'W', 1, "integer",  "width of image, represented in dependency on the format",
@@ -170,7 +171,11 @@ if (is.null(opt$Pmax)) {
 }
 if (is.null(opt$format)) {
    opt[["format"]]<-"png";
-   cat("Set format to default value '",opt$format,"'.\n")
+   cat("Setting format to default value '",opt$format,"'.\n")
+}
+if (is.null(opt$display)) {
+   opt[["display"]]<-"lod";
+   cat("Setting display value to default value '",opt$display,"'.\n")
 }
 
 if (is.null(opt$linecolour)) {
