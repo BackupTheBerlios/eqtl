@@ -125,7 +125,9 @@ opt = getopt(matrix(c(
    'help'       , 'h', 0, "logical",  "gives instructions on how to retrieve information on how to use the program",
    'MeanMin'    , 'm', 1, "double",   "the threshold for a minimal expression level that the trait should have to be selected for display (as a dot on the plot)",
    'LODmin'     , 'l', 1, "double",   "the minimal LOD score the expression QTL should have reached",
+   'LODmax'     , 'L', 1, "double",   "the maximal LOD score the expression QTL allowed in (defaults to THRESHOLD)",
    'Pmax'       , 'p', 1, "double",   "the maximal P value the expression QTL may have reached to be considered significant",
+   'Pmin'       , 'P', 1, "double",   "the minimal P value the expression QTL may have reached to leave out the most significant eQTL",
    'interactive', 'i', 0, "logical",  "indication that this script is run from the UNIX shell",
    'format'     , 'f', 1, "character","the format of the image that should present the plot",
    'covariates' , 'c', 1, "character","covariates the plot shall be run for",
@@ -141,7 +143,8 @@ opt = getopt(matrix(c(
    'linetype'   , 't', 1, "integer",  "type of lines separating the chromosomes",
    'axescolour' , 'b', 1, "character","colour of axes",
    'axeswidth'  , 'x', 1, "double",   "width of axes",
-   'axestype'   , 'y', 1, "integer",  "line type of axes"
+   'axestype'   , 'y', 1, "integer",  "line type of axes",
+   'legend'     , 'e', 2, "logical",  "set to add a legend"
    ),ncol=5,byrow=TRUE),
    debug=TRUE)
 
@@ -154,53 +157,57 @@ if ( !is.null(opt$help) ) {
 }
 
 if (is.null(opt$output)) {
-   cat("Set ouput to default value.\n")
+   if (!is.null(opt$verbose)) cat("Set ouput to default value.\n")
    opt[["output"]]<-"/tmp/default_output_scatter_all.pdf"
 }
 if (is.null(opt$MeanMin)) {
-   cat("Set MeanMin to default value.\n")
+   if (!is.null(opt$verbose)) cat("Set MeanMin to default value.\n")
    opt[["MeanMin"]]<- -1
 }
 if (is.null(opt$LODmin)) {
-   cat("Set LODmin to default value.\n")
-   opt[["LODmin"]]<- -1
+   if (!is.null(opt$verbose)) cat("Set LODmin to default value: THRESHOLD (minimal requested for db storage)\n")
+   opt[["LODmin"]]<- THRESHOLD 
 }
 if (is.null(opt$Pmax)) {
-   cat("Set Pmax to default value.\n")
-   opt[["Pmax"]]<- -1
+   if (!is.null(opt$verbose)) cat("Set Pmax to default value: 1.\n")
+   opt[["Pmax"]]<- 1
+}
+if (is.null(opt$Pmin)) {
+   if (!is.null(opt$verbose)) cat("Set Pmin to default value.\n")
+   opt[["Pmin"]]<- 0
 }
 if (is.null(opt$format)) {
    opt[["format"]]<-"png";
-   cat("Set format to default value '",opt$format,"'.\n")
+   if (!is.null(opt$verbose)) cat("Set format to default value '",opt$format,"'.\n")
 }
 if (is.null(opt$display)) {
    opt[["display"]]<-"lod";
-   cat("Set variable to display to '",opt$display,"'.\n")
+   if (!is.null(opt$verbose)) cat("Set variable to display to '",opt$display,"'.\n")
 }
 
 if (is.null(opt$linecolour)) {
    opt[["linecolour"]]<-"lightgray"
-   cat("Set colour for lines : ",opt$linecolour,"\n")
+   if (!is.null(opt$verbose)) cat("Set colour for lines : ",opt$linecolour,"\n")
 }
 
 if (is.null(opt$linewidth)) {
    opt[["linewidth"]]<-1
-   cat("Set width for lines : ",opt$linewidth,"\n")
+   if (!is.null(opt$verbose)) cat("Set width for lines : ",opt$linewidth,"\n")
 }
 
 if (is.null(opt$linetype)) {
    opt[["linetype"]]<-3
-   cat("Set type for lines : ",opt$linetype,"\n")
+   if (!is.null(opt$verbose)) cat("Set type for lines : ",opt$linetype,"\n")
 }
 
 if (is.null(opt$axeswidth)) {
    opt[["axeswidth"]]<-3
-   cat("Set width for axes : ",opt$axeswidth,"\n")
+   if (!is.null(opt$verbose)) cat("Set width for axes : ",opt$axeswidth,"\n")
 }
 
 if (is.null(opt$axescolour)) {
    opt[["axescolour"]]<-3
-   cat("Set colour for axes : ",opt$axescolour,"\n")
+   if (!is.null(opt$verbose)) cat("Set colour for axes : ",opt$axescolour,"\n")
 }
 
 if (is.null(opt$imagewidth)) {
@@ -229,11 +236,11 @@ if (is.null(opt$imageheight)) {
    }
 }
 
-if (!is.null(opt$verbose)) cat("I was here 2.\n")
+#if (!is.null(opt$verbose)) cat("I was here 2.\n")
 
 con <- dbConnect(MySQL(),host="DATABASEHOSTLOCAL",db="DATABASEEQTLNAME",user="DATABASEEQTLUSER")
 
-if (!is.null(opt$verbose)) cat("I was here 3.\n")
+#if (!is.null(opt$verbose)) cat("I was here 3.\n")
 
 # find maximal cM for every chromosome
 
@@ -244,7 +251,7 @@ cM.offset<-c(0,cumsum(chromosomal.length.cM[c(1:(POSITIONOFXCHROMOSOME-1),"X"),"
 names(cM.offset)<-c(1:(POSITIONOFXCHROMOSOME-1),"X" #,"Y"
 )
 
-if (!is.null(opt$verbose)) cat("I was here 4.\n")
+#if (!is.null(opt$verbose)) cat("I was here 4.\n")
 
 # find maximal bp for every chromosome
 
@@ -255,7 +262,7 @@ bp.offset<-c(0,cumsum(chromosomal.length.bp[c(1:(POSITIONOFXCHROMOSOME-1),"X"),"
 names(bp.offset)<-c(1:(POSITIONOFXCHROMOSOME-1),"X" #,"Y"
 )
 
-if (!is.null(opt$verbose)) cat("I was here 5.\n")
+#if (!is.null(opt$verbose)) cat("I was here 5.\n")
 
 # Find covariates to work on
 
@@ -264,7 +271,7 @@ covariates.queried<-c("none",dbGetQuery(con,q)[,"covariates"])
 cat(paste("Found the following covariates in the database: '",
           paste(covariates.queried,collapse="';'",sep=""),"'\n",sep=""))
 
-if (!is.null(opt$verbose)) cat("I was here 6.\n")
+#if (!is.null(opt$verbose)) cat("I was here 6.\n")
 
 covariates.filter.string<-opt$covariates
 if(is.null(covariates.filter.string)) {
@@ -273,7 +280,7 @@ if(is.null(covariates.filter.string)) {
 }
 covariates.filter.list<-strsplit(covariates.filter.string,";")[[1]]
 
-if (!is.null(opt$verbose)) cat("I was here 7.\n")
+#if (!is.null(opt$verbose)) cat("I was here 7.\n")
 
 
 covariates<-covariates.queried[covariates.queried %in% covariates.filter.list]
@@ -289,6 +296,10 @@ if (is.null(opt$interactive)) {
 	if (file.exists(opt$output)) {
 		cat(paste("Removing file '",opt$output,"'\n",sep=""))
 		file.remove(opt$output);
+		if (file.exists(opt$output)) {
+			cat("Could not remove file",opt$output,".\n")
+			q(status=1)
+		}
 	}
 	if (is.null(opt$format) || "png" == opt$format) {
 		png(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
@@ -304,13 +315,13 @@ if (is.null(opt$interactive)) {
 	}
 	else {
 		cat("Unknown format ",opt$format,"\n")
-		q(status=1);
+		q(status=1)
 	}
 }
 
 for(cov in covariates) {
 
-  cat("Working on covariate '",cov,"', used internally as '",if("none" != cov) cov else "","'\n")
+  cat(paste("Working on covariate '",cov,"', used internally as '",if("none" != cov) cov else "","'\n",sep=""))
 
   # Input for plot
 
@@ -325,13 +336,13 @@ for(cov in covariates) {
            "WHERE ",
               "covariates='",if("none" != cov) cov else "","'",sep="")
   if (!is.null(opt$LODmin) && -1 < opt$LODmin) {
-	q <- paste(q," AND LOD>=",opt$LODmin,sep="")
+	q <- paste(q," AND LOD >= ",opt$LODmin,sep="")
   }
-  if (!is.null(opt$Pmax) && -1 < opt$Pmax) {
-	 q <- paste(" AND pvalue<=",opt$Pmax,sep="")
+  if (!is.null(opt$Pmax) && -1 < opt$Pmax && 1>opt$Pmax) {
+	 q <- paste(q," AND pvalue <= ",opt$Pmax,sep="")
   }
   if (!is.null(opt$MeanMin) && -1 < opt$MeanMin) {
-	 q <- paste(" AND mean>=",opt$MeanMin,sep="")
+	 q <- paste(q," AND mean >= ",opt$MeanMin,sep="")
   }
   q <- paste(q,";",sep="")
 
@@ -345,6 +356,11 @@ for(cov in covariates) {
 # FROM qtl left join BEARatChip as c on Trait=c.probeset_id join trait on qtl.Trait=trait.trait_id WHERE Chromosome in ('2') AND mean >= 100 AND covariates='bd_int' AND LOD >= 4 ORDER BY LOD DESC
 #
 #
+
+
+  if (!is.null(opt$verbose)) {
+      cat("Query: ",q,"\n")
+  }
 
   selected.qtl<-dbGetQuery(con,q)
 
@@ -368,26 +384,73 @@ for(cov in covariates) {
 
   if (is.null(opt$main)) {
   	opt[["main"]]<-cov
-	cat("Set main title to ",opt$main,"\n")
+	if (!is.null(opt$verbose)) cat("Set main title to ",opt$main,"\n")
   }
 
   if (is.null(opt$sub)) {
-  	opt[["sub"]]<-paste("Showing ",opt$display," of eQTL with LOD>=",opt$LODmin" and P-value<=",opt$Pmax," and mean expression>=",opt$MeanMin)
-	cat("Set sub title to ",opt$sub,"\n")
+  	opt[["sub"]]<-paste("Showing ",opt$display," of eQTL with LOD>=",opt$LODmin," and P-value<=",opt$Pmax," and mean expression>=",opt$MeanMin)
+	if (!is.null(opt$verbose)) cat("Set sub title to ",opt$sub,"\n")
   }
 
-  #plot.new()
+  if (!is.null(opt$legend)) {
+     if (!is.null(opt$verbose)) cat("Prepared split for legend.\n")
+     nf <- layout(matrix(c(1,2), 1, 2, byrow=TRUE), width=c(6,lcm(4)),heights=c(1),respect=FALSE)
+     #nf <- layout(matrix(c(2,0,1,3),2,2,byrow=TRUE), c(3,1), c(1,3), TRUE)
+     #layout.show(nf)
+  }
+
   plot(bp.offset.extra + pos.linear.cM,
        cM.offset.extra + pos.linear.bp,
      xlim=c(0,max(cM.offset)),ylim=c(0,max(bp.offset)),
      axes=FALSE,main=opt$main,sub=opt$sub)
-  abline(v=cM.offset, col=opt$linecolour, lty=opt$linetype, lwd=opt$linewidth)
-  abline(h=bp.offset, col=opt$linecolour, lty=opt$linetype, lwd=opt$linewidth)
+  abline(v=cM.offset, col=opt$linecolour, lty=opt$linetype, lwd=opt$linewidth,add=TRUE)
+  abline(h=bp.offset, col=opt$linecolour, lty=opt$linetype, lwd=opt$linewidth,add=TRUE)
+
+  if (!is.null(opt$verbose)) {
+    cat("Colnames(selected.qtl) : " , paste(colnames(selected.qtl),collapse=",",sep=""),"\n")
+    cat("Dim(selected.qtl) : "); print(dim(selected.qtl))
+  }
+
+  # keeping values visible for legend
+  selected.qtl.values<-NULL
+  selected.qtl.max<-NULL
+  selected.qtl.min<-NULL
 
   YlOrBr <- c("#FFFFD4", "#FED98E", "#FE9929", "#D95F0E", "#993404")
   color.palette = colorRampPalette(YlOrBr, space = "Lab",bias = 0.5)
-  selected.qtl.quantiles=sapply(selected.qtl[,"LOD"],function(X){sum(X>selected.qtl[,"LOD"])})
-  points(pos.linear.cM,  pos.linear.bp,  col=color.palette(length(selected.qtl.quantiles))[selected.qtl.quantiles])
+  #FIXME: the ranking should be separated from the value selected
+  if ("rank"==opt$display) {
+          if (!is.null(opt$verbose)) cat("displaying rank-based data.\n")
+	  #selected.qtl.values<-selected.qtl[,"pvalue"]
+	  selected.qtl.values<-selected.qtl[,"LOD"]
+	  selected.qtl.max=max(selected.qtl.values)
+	  selected.qtl.min=min(selected.qtl.values)
+	  selected.qtl.quantiles=sapply(selected.qtl.values,function(X){sum(X>selected.qtl.values)})
+	  plot(1:10)
+	  points(pos.linear.cM,  pos.linear.bp,  col=color.palette(length(selected.qtl.quantiles))[selected.qtl.quantiles])
+	 
+  } else if (opt$display %in% c("p.value","P value","P-value","p value","p-value","pvalue","Pvalue")) {
+          if (!is.null(opt$verbose)) cat("displaying pvalue data.\n")
+	  selected.qtl.values<-selected.qtl[,"pvalue"]
+	  selected.qtl.max=max(selected.qtl.values)
+	  selected.qtl.min=min(selected.qtl.values)
+	  points(pos.linear.cM,  pos.linear.bp,  col=color.palette(length(selected.qtl.values))[
+			# 0 is best, thus substracting from max
+			round((selected.qtl.max-selected.qtl.values)/(selected.qtl.max-selected.qtl.min)*length(selected.qtl.values),0)
+		])
+  } else if (opt$display %in% c("LOD","lod")) {
+          if (!is.null(opt$verbose)) cat("displaying LOD data.\n")
+	  selected.qtl.values<-selected.qtl[,"LOD"]
+	  selected.qtl.max=max(selected.qtl.values)
+	  selected.qtl.min=min(selected.qtl.values)
+	  points(pos.linear.cM,  pos.linear.bp,  col=color.palette(length(selected.qtl.values))[
+			# the higher the better
+			round((selected.qtl.values-selected.qtl.min)/(selected.qtl.max-selected.qtl.min)*length(selected.qtl.values),0)
+		])
+  } else {
+	stop(paste("Unknown display attribute value: '",opt$display,"'.",sep=""))
+  }
+  
  
   #in.green<-selected.qtl[,"LOD"]>=8
   #points(pos.linear.cM[in.green],pos.linear.bp[in.green],col="green")
@@ -396,6 +459,26 @@ for(cov in covariates) {
         labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"),lwd=opt$axeswidth)
   axis(2, at=(bp.offset[1:length(bp.offset)-1]+bp.offset[2:length(bp.offset)])/2,
         labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"),lwd=opt$axeswidth)
+
+  if (!is.null(opt$legend)) {
+     if (!is.null(opt$verbose)) cat("displaying legend.\n")
+     steps<-45
+     p<-par("mar")
+     p[2]<-0;p[4]<-0
+     if (!is.null(opt$verbose)) cat("-a.\n")
+     cols<-color.palette(steps)
+     if (opt$display %in% c("p.value","P value","P-value","p value","p-value","pvalue","Pvalue")) {
+	cols<-rev(cols)
+     }
+     by=(selected.qtl.max-selected.qtl.min)/(steps-1)
+     if (!is.null(opt$verbose)) {
+	cat("a.\n")
+	cat("min=",selected.qtl.min,"  max=",selected.qtl.max,"  by=",by,"\n")
+     }
+     y<-seq(from=selected.qtl.min,to=selected.qtl.max,by=by)
+     if (!is.null(opt$verbose)) cat("b.\n")
+     image(x=1:1,y=y,z=matrix(1:steps,1,steps),ylab="",xlab="",col=cols,add=FALSE)
+  }
 
 }
 
