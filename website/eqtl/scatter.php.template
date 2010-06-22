@@ -65,7 +65,7 @@ University of LE<uuml>beck, Germany, 2009
 	# fields that are likely to appear and have a special interpretation
 	# later as attributes passed to the wrapped application
 	$presentationAttributes = array("main","sub",
-					"display",
+					"display","format",
 					"LODmax","LODmin","PvalueMax","PvalueMin",
 					"imagewidth","imageheight",
 					"linewidth","linecolour","linetype",
@@ -142,9 +142,9 @@ University of LE<uuml>beck, Germany, 2009
 		echo "Output format:";
 		echo "</td>";
 		echo "<td>";
-		if (empty($format)) $display="png";
+		if (empty($format)) $format="png";
 		foreach (array("pdf"=>"PDF","png"=>"PNG","jpg"=>"JPG") as $v=>$vv) {
-			echo "<input type=\"radio\" name=\"display\" value=\"$v\"  " . (($v==$display)?"checked":"")  .">$vv<br/>";
+			echo "<input type=\"radio\" name=\"format\" value=\"$v\"  " . (($v==$format)?"checked":"")  .">$vv<br/>";
 		}
 		echo "</td></tr>\n";
 
@@ -229,6 +229,7 @@ University of LE<uuml>beck, Germany, 2009
 			if (!empty($legend)) {
 			  $cmd .= " --legend";
 			  array_push($attributes,"--legend",1);
+			  $outputfilename .= "_lengend";
 			}
 
 			# the names of the html fields are the same as the ones 
