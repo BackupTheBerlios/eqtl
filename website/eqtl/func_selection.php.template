@@ -319,7 +319,7 @@ function print_selection_form($properties) {
 				break;
 
 			case "LOD":
-				if (empty($LODmin)) $LODmin=3.9;
+				if (empty($LODmin)) $LODmin=THRESHOLD; # from conf/*
 				print_row_two_text_single("LOD-score span","LODmin","LODmax",$LODmin,$LODmax,5);
 				break;
 

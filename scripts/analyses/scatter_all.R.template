@@ -432,15 +432,15 @@ for(cov in covariates) {
           if (!is.null(opt$verbose)) cat("displaying rank-based data.\n")
 	  #selected.qtl.values<-selected.qtl[,"pvalue"]
 	  selected.qtl.values<-selected.qtl[,"LOD"]
-	  selected.qtl.max=max(selected.qtl.values)
-	  selected.qtl.min=min(selected.qtl.values)
+	  selected.qtl.max=max(selected.qtl.values,na.rm=T)
+	  selected.qtl.min=min(selected.qtl.values,na.rm=T)
 	  selected.qtl.quantiles=sapply(selected.qtl.values,function(X){sum(X>selected.qtl.values)})
 	  points(pos.linear.cM,  pos.linear.bp,  col=color.palette(length(selected.qtl.quantiles))[selected.qtl.quantiles])
   } else if (opt$display %in% c("p.value","P value","P-value","p value","p-value","pvalue","Pvalue")) {
           if (!is.null(opt$verbose)) cat("displaying pvalue data.\n")
 	  selected.qtl.values<-selected.qtl[,"pvalue"]
-	  selected.qtl.max=max(selected.qtl.values)
-	  selected.qtl.min=min(selected.qtl.values)
+	  selected.qtl.max=max(selected.qtl.values,na.rm=T)
+	  selected.qtl.min=min(selected.qtl.values,na.rm=T)
 	  points(pos.linear.cM,  pos.linear.bp,  col=color.palette(length(selected.qtl.values))[
 			# 0 is best, thus substracting from max
 			round((selected.qtl.max-selected.qtl.values)/(selected.qtl.max-selected.qtl.min)*length(selected.qtl.values),0)
@@ -448,8 +448,8 @@ for(cov in covariates) {
   } else if (opt$display %in% c("LOD","lod")) {
           if (!is.null(opt$verbose)) cat("displaying LOD data.\n")
 	  selected.qtl.values<-selected.qtl[,"LOD"]
-	  selected.qtl.max=max(selected.qtl.values)
-	  selected.qtl.min=min(selected.qtl.values)
+	  selected.qtl.max=max(selected.qtl.values,na.rm=T)
+	  selected.qtl.min=min(selected.qtl.values,na.rm=T)
 	  points(pos.linear.cM,  pos.linear.bp,  col=color.palette(length(selected.qtl.values))[
 			# the higher the better
 			round((selected.qtl.values-selected.qtl.min)/(selected.qtl.max-selected.qtl.min)*length(selected.qtl.values),0)
@@ -458,20 +458,32 @@ for(cov in covariates) {
 	stop(paste("Unknown display attribute value: '",opt$display,"'.",sep=""))
   }
 
+  axis(1, at=(cM.offset[1:length(cM.offset)-1]+cM.offset[2:length(cM.offset)])/2,
+        labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"),lwd=opt$axeswidth)
+  axis(2, at=(bp.offset[1:length(bp.offset)-1]+bp.offset[2:length(bp.offset)])/2,
+        labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"),lwd=opt$axeswidth)
+
+
   # No top margins, need it for the bottom
   p<-par.mar.orig
   #p[1]<-0
   p[3]<-0
   par("mar"=p)
-  plot(density(pos.linear.cM,kernel="gaussian",from=min(pos.linear.cM),to=max(pos.linear.cM),bw=0.2),ann=FALSE,xaxt="n",sub="Density")
+  if (!is.null(opt$verbose)) {
+	cat("The following bp are NULL/NA:\n")
+	cat("NA:"); print(which(is.na(pos.linear.bp)))
+	cat("NULL:"); print(which(is.null(pos.linear.bp)))
+  }
+  plot(density(pos.linear.cM,kernel="gaussian",from=min(pos.linear.cM,na.rm=T),to=max(pos.linear.cM,na.rm=T),bw=0.2,na.rm=T),ann=FALSE,xaxt="n",sub="Density",col="black")
+  #lines(density(pos.linear.bp,kernel="gaussian",from=min(pos.linear.bp,na.rm=T),to=max(pos.linear.bp,na.rm=T),bw=0.2,na.rm=T),col="red")
+  lines(density((pos.linear.bp-min(pos.linear.bp,na.rm=T))*(max(pos.linear.cM,na.rm=T)-min(pos.linear.cM,na.rm=T))/(max(pos.linear.bp,na.rm=T)-min(pos.linear.bp,na.rm=T)),
+  		kernel="gaussian",from=min(pos.linear.cM,na.rm=T),to=max(pos.linear.cM,na.rm=T),bw=0.2,na.rm=T),col="red")
+  legend(x="topright", legend = c("cause","effect"), col = c("black","red"), lty = 1)
+  axis(1, at=(cM.offset[1:length(cM.offset)-1]+cM.offset[2:length(cM.offset)])/2,
+        labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"),lwd=opt$axeswidth)
  
   #in.green<-selected.qtl[,"LOD"]>=8
   #points(pos.linear.cM[in.green],pos.linear.bp[in.green],col="green")
-
-  axis(1, at=(cM.offset[1:length(cM.offset)-1]+cM.offset[2:length(cM.offset)])/2,
-        labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"),lwd=opt$axeswidth)
-  axis(2, at=(bp.offset[1:length(bp.offset)-1]+bp.offset[2:length(bp.offset)])/2,
-        labels=c(1:(POSITIONOFXCHROMOSOME-1),"X"),lwd=opt$axeswidth)
 
   if (!is.null(opt$legend)) {
      if (!is.null(opt$verbose)) cat("displaying legend.\n")
