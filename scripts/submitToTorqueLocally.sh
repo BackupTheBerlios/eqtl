@@ -90,7 +90,7 @@ for i in `seq 1 $NUMBEROFJOBS`
 do
 	cmd="R CMD BATCH $RSCRIPTTOEXECUTE"
 	echo "Submitting job: $cmd"
-	intern_nodesspec=",nodes=$NODES"
+	if [ -n "$NODES" ]; then intern_nodesspec=",nodes=$NODES"; fi
 	if [ -z "$NODES" -o "any" = "$NODES" -o "all" = "$NODES" -o "ALL" = "$NODES" -o "ANY" = "$NODES" ]; then
 		intern_nodesspec=""
 	fi
@@ -98,6 +98,7 @@ do
 #PBS -r y
 #PBS -N eQTL_${NAME}_$i
 #PBS -l cput=$TIMEOUT:59:00$intern_nodesspec
+#PBS -l walltime=$(($TIMEOUT+1)):30:00$intern_nodesspec
 export TIMEOUT=$TIMEOUT
 export JOBNOMAX=$CALCULATIONS
 R CMD BATCH `pwd`/$RSCRIPTTOEXECUTE
