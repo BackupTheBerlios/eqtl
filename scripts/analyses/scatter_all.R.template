@@ -491,7 +491,7 @@ for(cov in covariates) {
      }
      y<-seq(from=selected.qtl.min,to=selected.qtl.max,by=by)
      if (!is.null(opt$verbose)) cat("b.\n")
-     image(x=1:1,y=y,z=matrix(1:steps,1,steps),ylab="",xlab="",col=cols,add=FALSE)
+     image(x=1:1,y=y,z=matrix(1:steps,1,steps),ylab="",xlab="",col=cols,add=FALSE,xaxt="n")
   }
 
 }
