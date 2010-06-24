@@ -47,6 +47,8 @@ University of LE<uuml>beck, Germany, 2010
 
 	show_small_header("Summary for single eTrait",TRUE);
 
+	$traits="";
+
 	foreach(array("direct", "submitted",
 			"debug",
 			"qtl_covariates",
@@ -65,166 +67,227 @@ University of LE<uuml>beck, Germany, 2010
 
 
 	if (!empty($traitlist)) {
+		$t = $traitlist;
 		if (is_array($traitlist)) {
-			$traits=join(",",$traitlist);
+			$t=join(",",$traitlist);
 		}
 		else {
-			$traits=$traitlist;
-			$traitlist="";
+			$t=$traitlist;
+		}
+		if (empty($traits)) {
+			$traits=$t;
+		} else {
+			$traits="$traits,$t";
 		}
 	}
 
+	if (FALSE) {
+		echo "Traitlist: "; print_r($traitlist); ; echo "<br />\n";
+		echo "Traits: "; print_r($traits); ; echo "<br />\n";
+	}
 
 	if (empty($traits)) {
-		$url="http://".$_SERVER["HTTP_HOST"].":".$_SERVER["HTTP_PORT"].$_SERVER["SCRIPT_NAME"]."?traits=10700825";
-		# print_r($_SERVER);
-		echo "Try this URL <a href=\"$url\">$url</a> as an example.";
-		errorMessage("No trait specified.");
-		exit;
+		#$url="http://".$_SERVER["HTTP_HOST"].":".$_SERVER["HTTP_PORT"].$_SERVER["SCRIPT_NAME"]."?traits=10700825";
+		## print_r($_SERVER);
+		#echo "Try this URL <a href=\"$url\">$url</a> as an example.";
+		#errorMessage("No trait specified.");
+		echo "<form action=\"trait_summary.php\">\n";
+		require_once("func_selection.php");
+		echo "<table border=0>\n";
+		print_selection_form("trait");
+		print_selection_form("hr");
+		print_selection_form("submit");
+		echo "</table>\n";
+		echo "</form>\n";
 	}
-
-	$traitlist=preg_split("/,/",$traits);
-
-	if ($debug) {
-		#echo "Traitlist: "; 
-		#print_r($traitlist);
-		#print "Debug=$debug";
-	}
-
-	foreach ($traitlist as $trait_id) {
-
-		$qtls = array();
-
-		$qtls_query = mysql_query("SELECT * FROM qtl WHERE Trait='$trait_id';")
-				or die("Query '$query' failed: " . mysql_error());
-
-		$chromosome_info = array();
-		$covars_seen = array();
-		$covars_seen_short = array();
-
-		# There is only a single QTL for a covariate set on one chromosome
-		# The chromosomes need to be treated separately
- 
-		echo "Reading in data from database.";
-
-		while ($qtls_result = mysql_fetch_array($qtls_query,MYSQL_ASSOC)) {
-			#print_r($qtls_result);
-
-			$covariates=$qtls_result["covariates"];
-			$chromosome=$qtls_result["Chromosome"];
-
-			#if (!empty($debug)) {
-			#	echo "Chromosome: $chromosome, covariates: $covariates<br>\n";
-			#}
-
-			if (!array_key_exists($chromosome,$chromosome_info)) {
-				$chromosome_info[$chromosome]=array();
-				$covars_seen[$chromosome]=array();
-				$covars_seen_short[$chromosome]=array();
-			}
-
-			if (empty($covariates)) $covariates="none";
-			$chromosome_info[$chromosome][$covariates]=$qtls_result;
-
-			$covs = preg_split("/,/",$covariates);
-			foreach ($covs as $c) {
-				if (!array_key_exists($c,$covars_seen[$chromosome])) {
-					$covars_seen[$chromosome][$c]=array();
-				}
-				$covars_seen[$chromosome][$c][$covariates]=$qtls_result;
-
-				$cc = preg_split("/_/",$c);
-				if (!array_key_exists($cc[0],$covars_seen_short[$chromosome])) {
-					$covars_seen_short[$chromosome][$cc[0]]=array();
-				}
-				$covars_seen_short[$chromosome][$cc[0]][$covariates]=$qtls_result;
-
-			}
+	else {
+		if (FALSE or $debug) {
+			echo "Traitlist: "; 
+			print_r($traitlist);
+			print "<br>Debug=$debug<br>\n";
 		}
 
-		echo "<h1>Details on trait '<a href=\"trait.php?traits=$trait_id\">$trait_id</a>'</h1>\n";
-
-		function displayQtlEntry($q) {
+		function displayQtlEntry($q,$minLod,$noneLod,$maxLod) {
+			$lodPercent=100;
+			if (!empty($noneLod)) $minLod=$noneLod;
+			if ($minLod!=$maxLod) {
+				$lodPercent=($q["LOD"]-$minLod)/($maxLod-$minLod)*100;
+			}
+			$col="black";
+			if ($lodPercent>=95) $col="green";
+			if ($lodPercent<0) $col="gray";
+			echo "<font color=\"$col\">";
+			if ($lodPercent>=95) echo "<b>";
+			if ($lodPercent<0) echo "<i>";
 			echo empty($q["covariates"])?"none":displayCovariates($q["covariates"]);
-			echo "<br>\n";
+			echo "<br><small>\n";
 			#print_r($q);
-			echo "&nbsp;&nbsp; LOD: ".round($q["LOD"],2)."<br>\n";
-			echo "&nbsp;&nbsp; P-Value: ".$q["pvalue"]."<br>\n";
+			echo "&nbsp; LOD: ".round($q["LOD"],2)." (".round($lodPercent,0)."%)<br>\n";
+			echo "&nbsp; P-Value: ".$q["pvalue"]."<br>\n";
 			#print_r($q);
+			if ($lodPercent>=95) echo "</b></font>";
+			if ($lodPercent<0) echo "</i></font>";
+			echo "</small>";
 		}
 
-		foreach ($chromosome_info as $chr => $info) {
 
-			echo "<h2>Chromosome $chr</h2>\n";
+		$traitlist = preg_split("/,/",$traits);
 
-			if (!empty($debug)) {
-				#echo "<dl>";
-				#$qtls = $chromosome_info[$chr];
-				#foreach ($qtls as $covariates=>$qtl) {
-				#	displayQtlEntry($qtl);
+		foreach ($traitlist as $trait_id) {
+
+			#echo "<h1>$trait_id</h1>\n";
+
+			$qtls = array();
+			$minLod=array(); $maxLod=array(); $minP=array(); $maxP=array();
+			$LodForNone=array();
+
+			$query = "SELECT chromosome,lod "
+				  ."FROM qtl WHERE Trait='$trait_id' and (covariates IS NULL or covariates='');";
+			$qtls_query_none = mysql_query($query) or die("Query '$query' failed: ".mysql_error());
+			while ($qtls_none_result = mysql_fetch_array($qtls_query_none,MYSQL_ASSOC)) {
+				$LodForNone["".$qtls_none_result["chromosome"]] = $qtls_none_result["lod"];
+			}
+			echo "LodForNone: "; print_r($LodForNone);
+
+			$query = "SELECT chromosome,"
+				       ."min(LOD) as minLod, max(LOD) as maxLod, "
+				       ."min(pvalue) as minP, max(pvalue) as maxP "
+				  ."FROM qtl WHERE Trait='$trait_id' GROUP BY trait,chromosome;";
+
+			$qtls_query_min_max = mysql_query($query); # or die("Query '$query' failed: ".mysql_error());
+			while ($qtls_min_max_result = mysql_fetch_array($qtls_query_min_max,MYSQL_ASSOC)) {
+				$minLod["".$qtls_min_max_result["chromosome"]] = $qtls_min_max_result["minLod"];
+				$maxLod["".$qtls_min_max_result["chromosome"]] = $qtls_min_max_result["maxLod"];
+				$minP["".$qtls_min_max_result["chromosome"]]   = $qtls_min_max_result["minP"];
+				$maxP["".$qtls_min_max_result["chromosome"]]   = $qtls_min_max_result["maxP"];
+			}
+
+			echo("minLOD:");print_r($minLod);echo("maxLOD:");print_r($maxLod);
+			echo("minP=");print_r($minP);echo("maxP=");print_r($maxP);
+
+			$query="SELECT * FROM qtl WHERE Trait='$trait_id';";
+			$qtls_query = mysql_query($query) or die("Query '$query' failed: " . mysql_error());
+
+			$chromosome_info = array();
+			$covars_seen = array();
+			$covars_seen_short = array();
+
+			# There is only a single QTL for a covariate set on one chromosome
+			# The chromosomes need to be treated separately
+	 
+			echo "Reading in data from database.";
+
+			while ($qtls_result = mysql_fetch_array($qtls_query,MYSQL_ASSOC)) {
+				#print_r($qtls_result);
+
+				$covariates=$qtls_result["covariates"];
+				$chromosome=$qtls_result["Chromosome"];
+
+				#if (!empty($debug)) {
+				#	echo "Chromosome: $chromosome, covariates: $covariates<br>\n";
 				#}
-				#echo "</dl>";
+
+				if (!array_key_exists($chromosome,$chromosome_info)) {
+					$chromosome_info[$chromosome]=array();
+					$covars_seen[$chromosome]=array();
+					$covars_seen_short[$chromosome]=array();
+				}
+
+				if (empty($covariates)) $covariates="none";
+				$chromosome_info[$chromosome][$covariates]=$qtls_result;
+
+				$covs = preg_split("/,/",$covariates);
+				foreach ($covs as $c) {
+					if (!array_key_exists($c,$covars_seen[$chromosome])) {
+						$covars_seen[$chromosome][$c]=array();
+					}
+					$covars_seen[$chromosome][$c][$covariates]=$qtls_result;
+
+					$cc = preg_split("/_/",$c);
+					if (!array_key_exists($cc[0],$covars_seen_short[$chromosome])) {
+						$covars_seen_short[$chromosome][$cc[0]]=array();
+					}
+					$covars_seen_short[$chromosome][$cc[0]][$covariates]=$qtls_result;
+
+				}
 			}
 
-			echo "<table border=1>\n";
-			/* header */
-			echo "<thead><tr><th></th>";
-			foreach ($covars_seen_short[$chr] as $n=>$covsFrom) {
-				echo "<th>$n</th>";
-			}
-			echo "</tr></thead>\n";
-			/* body */
-			echo "<tbody>\n";
-			foreach ($covars_seen_short[$chr] as $nFrom=>$qtlsFrom) {
-				echo "<tr><th>"
-					#."From: "
-					."$nFrom</th>";
-				foreach ($covars_seen_short[$chr] as $nTo=>$qtlsTo) {
-					echo "<td nowrap>";
-					echo "<dl>\n";
+			echo "<h1>Details on trait '<a href=\"trait.php?traits=$trait_id\">$trait_id</a>'</h1>\n";
 
-					if ("none" == $nFrom) {
-						foreach ($qtlsFrom as $qFrom) {
-							#if (preg_match("/^${nTo}_(int|add)\$/",$qFrom["covariates"])) {
-								displayQtlEntry($qFrom);
-							#}
-						}
-					}
-					else if ("none" == $nTo) {
-						foreach ($qtlsTo as $qTo) {
-							#if (preg_match("/^${nFrom}_(int|add)\$/",$qFrom["covariates"])) {
-								displayQtlEntry($qTo);
-							#}
-						}
-					}
-					else {
-						foreach ($qtlsTo as $covariates=>$q) {
-							#if (empty($q["covariates"]) and "none"="$) {
-							#	#displayQtlEntry($q);
-							#}
-							#else
-							if (!preg_match("/${nFrom}_(int|add)/",$q["covariates"])) {
-								#print_r($q);
-								continue;
+			foreach ($chromosome_info as $chr => $info) {
+
+				echo "<h2>Chromosome $chr</h2>\n";
+
+				if (!empty($debug)) {
+					#echo "<dl>";
+					#$qtls = $chromosome_info[$chr];
+					#foreach ($qtls as $covariates=>$qtl) {
+					#	displayQtlEntry($qtl);
+					#}
+					#echo "</dl>";
+				}
+
+				echo "<table border=1>\n";
+				/* header */
+				echo "<thead><tr><th></th>";
+				foreach ($covars_seen_short[$chr] as $n=>$covsFrom) {
+					echo "<th>$n</th>";
+				}
+				echo "</tr></thead>\n";
+				/* body */
+				echo "<tbody>\n";
+				foreach ($covars_seen_short[$chr] as $nFrom=>$qtlsFrom) {
+					echo "<tr><th>"
+						#."From: "
+						."$nFrom</th>";
+					foreach ($covars_seen_short[$chr] as $nTo=>$qtlsTo) {
+						echo "<td nowrap>";
+						echo "<dl>\n";
+
+						if ("none" == $nFrom) {
+							foreach ($qtlsFrom as $qFrom) {
+								#if (preg_match("/^${nTo}_(int|add)\$/",$qFrom["covariates"])) {
+									displayQtlEntry($qFrom, $minLod["".$chr], $LodForNone["".$chr], $maxLod["".$chr]);
+								#}
 							}
-							if ("$nFrom" == "$nTo") {
-								if (!preg_match("/^${nFrom}_(int|add)\$/",$q["covariates"])) {
+						}
+						else if ("none" == $nTo) {
+							foreach ($qtlsTo as $qTo) {
+								#if (preg_match("/^${nFrom}_(int|add)\$/",$qFrom["covariates"])) {
+									displayQtlEntry($qTo, $minLod["".$chr], $LodForNone["".$chr], $maxLod["".$chr]);
+								#}
+							}
+						}
+						else {
+							foreach ($qtlsTo as $covariates=>$q) {
+								#if (empty($q["covariates"]) and "none"="$) {
+								#	#displayQtlEntry($q);
+								#}
+								#else
+								if (!preg_match("/${nFrom}_(int|add)/",$q["covariates"])) {
+									#print_r($q);
 									continue;
 								}
+								if ("$nFrom" == "$nTo") {
+									if (!preg_match("/^${nFrom}_(int|add)\$/",$q["covariates"])) {
+										continue;
+									}
+								}
+								displayQtlEntry($q, $minLod["".$chr], $LodForNone["".$chr], $maxLod["".$chr]);
 							}
-							displayQtlEntry($q);
 						}
-
+						echo "</dl>\n";
+						echo "</td>";
 					}
-					echo "</dl>\n";
-					echo "</td>";
+					echo "</tr>\n";
 				}
-				echo "</tr>\n";
-			}
-			echo "</tbody>\n";
-			echo "</table>";
-		} # for each chromosome
-	} # for each trait
+				echo "</tbody>\n";
+				echo "</table>";
+			} # for each chromosome
+		} # for each trait
+		echo "<p><b>Tabular overview on scores for expression QTL on individual chromsomes with all yet identified covariates:</b> ";
+		echo "Columns and rows filter all statistically significant QTLs for particular covariates. The LOD scores and P values are shown directly underneath every indication of the covariates. The fraction of the maximal distance to the value achieved with no covariate is indicated as a percentage. QTLs with a value higher than 95% are indicated in green. Those with a percentage below 0 are are shown in grey.";
+	}
 
 	include("footer.php");
 ?>

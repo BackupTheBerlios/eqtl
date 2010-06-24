@@ -532,6 +532,10 @@ function print_selection_form($properties) {
 				echo "<tr><td colspan=200><hr></td></tr>\n";
 				break;
 
+			case "submit": case "cancel": case "cancle": case "reset":
+				echo "<tr><td colspan=4><input type=\"submit\"> &nbsp; <input type=\"reset\"></td><tr>\n";
+				break;
+
 			default:
 				errorMessage("print_selection_form: Unknown parameter '$p'\n");
 				exit;
