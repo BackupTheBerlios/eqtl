@@ -77,6 +77,7 @@ $analyses[]=array(href=>"scatter.php", title=>"Cause-vs-Effect Location Scatter 
 $analyses[]=array(href=>"venn.php", title=>"Venn diagrams for Covariates");
 $analyses[]=array(href=>"effectplot.php", title=>"R/qtl Effect plot, Scanone and Scantwo for individual traits");
 $analyses[]=array(href=>"overview.php", title=>"Tabular presentation of QTL density");
+$analyses[]=array(href=>"trait_summary.php", title=>"Differential analysis of covariates for single trait");
 echo "<table>\n";
 foreach($analyses as $a) {
 	echo "<tr><td><a href=\"".$a["href"]."\">".$a["title"]."</a></td>".$a["description"]."<td></td></tr>\n";
