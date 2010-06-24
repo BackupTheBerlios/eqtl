@@ -75,11 +75,6 @@ University of LE<uuml>beck, Germany, 2010
 	}
 
 
-	require_once("func_connect.php");
-	require_once("func_covariates.php");
-	//require_once("func_species.php");
-	//require_once("func_conversion_ENSEMBLVERSION.php");
-
 	if (empty($traits)) {
 		$url="http://".$_SERVER["HTTP_HOST"].":".$_SERVER["HTTP_PORT"].$_SERVER["SCRIPT_NAME"]."?traits=10700825";
 		# print_r($_SERVER);
