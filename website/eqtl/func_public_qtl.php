@@ -208,7 +208,7 @@ Prepares the table to collect QTLs from in the various input forms to specify fi
 		echo "<table>";
 		$orderOfChromosomes = list_chromosomes();
 		foreach ($orderOfChromosomes as $c) {
-			$qtls = $qtlsByC[$c];
+			$qtls = $qtlsByC["$c"];
 			if (empty($qtls)) continue;
 			# echo "<p>qtls:"; print_r($qtls); echo "</p>";
 			foreach ($qtls as $q) {
