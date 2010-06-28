@@ -151,7 +151,7 @@ ENDOFDOCUMENTATION
 		return($m);
 	};
 	$aKeys = array_keys($a);
-	$aPrepend = array_map(prependShow,$aKeys);
+	$aPrepend = array_map("prependShow",$aKeys);
 	#echo "Mapping: " . join(",",$aPrepend)."\n";
 
 	$accessible_fields_in_POST_or_GET = array_merge(
