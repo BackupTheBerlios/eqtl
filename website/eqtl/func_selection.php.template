@@ -155,7 +155,7 @@ function print_selection_form($properties) {
 	global $LODmin,$LODmax,$quantilemin,$quantilemax,
 	       $chromosome,  $cM,  $marker, 
 	       $chromosome2, $cM2, $marker2, 
-	       $LODdiffmin, $LODdiffmax, $cM_Peak_Min, $cM_Peak_Max,
+	       $LODdiffmin, $LODdiffmax, $cM_Peak_Min, $cM_Peak_Max, $Mbp_Peak_Min, $Mbp_Peak_Max,
 	       $cM_within, $groups, $locus, $chrlist,
 	       $MeanMin, $MeanMax, 
 	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,

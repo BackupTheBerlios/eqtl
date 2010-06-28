@@ -56,6 +56,7 @@ an index by chromosome, "name" otherise (default).
 
 		global $databaseqtl;
 		global $species_name_ensembl_core;
+		global $qtlsCache,$qtlsCacheByChromosome;
 
 		if ("" != $qtlsCache) {
 			echo "<p>get_public_qtls: Returning cached value.</p>";

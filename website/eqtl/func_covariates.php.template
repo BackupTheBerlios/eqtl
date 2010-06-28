@@ -216,11 +216,11 @@ function select_covariates($dbh,$cov,$maxPerLine=6) {
 
 	global $_POST, $_GET; // still to be used.
 	global $covariates; // the covariates selected on the web site
-	if (empty($covariates)) {
+	if (empty($covariates) and !empty($_POST["covariates"])) {
 		$covariates=$_POST["covariates"];
-		if (empty($covariates)) {
-			$covariates=$_GET["covariates"];
-		}
+	}
+	if (empty($covariates) and !empty($_GET["covariates"])) {
+		$covariates=$_GET["covariates"];
 	}
 
 	#print_r($covariates);
