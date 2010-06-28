@@ -59,7 +59,7 @@ University of LE<uuml>beck, Germany, 2009
 		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
-		"locus","chrlist", "condition"
+		"locus","chrlist"
 	);
 
 	# fields that are likely to appear and have a special interpretation
