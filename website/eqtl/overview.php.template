@@ -357,9 +357,9 @@ University of LE<uuml>beck, Germany, 2009
 
 					# all traits are cis
 
-					if (1 == $dataFromTableDiseaseLoci[$cov]["numTransDiseaseLoci"]) {
+					if (1 == $dataFromTableDiseaseLoci[$cov][$chr]["numTransDiseaseLoci"]) {
 						# Exception, the number shown for 'trans' is correct, don't change it later
-						$dataFromTableDiseaseLoci[$cov]["numCisDiseaseLoci"]++ ;
+						$dataFromTableDiseaseLoci[$cov][$chr]["numCisDiseaseLoci"]++ ;
 					}
 				}
 
@@ -428,23 +428,32 @@ University of LE<uuml>beck, Germany, 2009
 				echo "<td align=right>$c&nbsp;&nbsp;&nbsp;&nbsp;</td>";
 				foreach ($qtl_covariates as $cov) {
 					if ("" == "$cov") { $cov="none"; }
-					$d=$dataFromTable["$cov"]["$c"];
-					if (empty($d)) {
+					if (empty($dataFromTable["$cov"])) {
+						echo "<td colspan=3>";
+						echo "<small>";
+						echo "empty(\$dataFromTable[\"$cov\"]), the following keys are available: '"
+							.join("','",array_keys($dataFromTable))."'<br>\n";
+						echo "</small>";
+						echo "</td>";
+					} else if (empty($dataFromTable["$cov"]["$c"])) {
 						echo "<td colspan=3>";
 						if (!empty($dDiseaseLoci)) {
-							echo "<small>Problem!</small>";
+							echo "<small>";
+							echo "empty(\$dataFromTable[\"$cov\"]), the following keys are available: '"
+								.join("','",array_keys($dataFromTable))."'<br>\n";
+							echo "</small>";
 						}
 						echo "</td>";
 					}
 					else {
+						$d=$dataFromTable["$cov"]["$c"];
 						if (empty($dataFromTableDiseaseLoci["$cov"])) {
 							errorMessage("Programming Error: Unknown cov '$cov' in \$dataFromTableDiseaseLoci.");
 							echo "array_keys(dataFromTableDiseaseLoci) : '".join("','",array_keys($dataFromTableDiseaseLoci))."'\n";
 							#print_r($dataFromTableDiseaseLoci);
 							break;
 						}
-						$dDiseaseLoci=$dataFromTableDiseaseLoci["$cov"]["$c"];
-						if (empty($dDiseaseLoci)) {
+						if (empty($dataFromTableDiseaseLoci["$cov"]["$c"])) {
 							if (FALSE) {
 								# not an error, just no disease loci
 								errorMessage("Programming Error: Unknown c [$c] in \$dataFromTableDiseaseLoci[$cov].");
@@ -455,8 +464,9 @@ University of LE<uuml>beck, Germany, 2009
 								echo "</tr>\n";
 								break;
 							}
-							$dDiseaseLoci=array("numCisDiseaseLoci"=>0,"numTransDiseaseLoci"=>0);
+							$dataFromTableDiseaseLoci["$cov"]["$c"]=array("numCisDiseaseLoci"=>0,"numTransDiseaseLoci"=>0);
 						}
+						$dDiseaseLoci=$dataFromTableDiseaseLoci["$cov"]["$c"];
 						echo "<td></td>";
 						echo "<td align=right>".$d["numCis"]
 							.($dDiseaseLoci["numCisDiseaseLoci"]?(" (".$dDiseaseLoci["numCisDiseaseLoci"].")"):"")."</td>";
