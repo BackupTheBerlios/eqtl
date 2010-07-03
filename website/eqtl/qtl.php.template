@@ -371,7 +371,11 @@ ENDOFDOCUMENTATION
 		else {
 			#$query .= "DISTINCT ";
 			$query .= "Trait, Locus, LOD";
-			
+
+			if (!empty($show_pvalue)) {
+				$query .= ", pvalue";
+			}
+
 			$query .= ", covariates"; # we always need to know the covariates
 
 			if (!empty($show_Groups)) {
@@ -388,10 +392,6 @@ ENDOFDOCUMENTATION
 			
 			if (!empty($show_gene_name)) {
 				$query .= ", gene_name";
-			}
-
-			if (!empty($show_pvalue)) {
-				$query .= ", pvalue";
 			}
 
 			if (!empty($show_ensembl_stable_gene_id)) {
