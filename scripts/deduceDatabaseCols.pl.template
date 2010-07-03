@@ -53,6 +53,14 @@ Transforms information on centiMorgan into Megabasepairs.
 
 =item all
 
+=item --help
+
+shows usage information
+
+=item --man
+
+shows long description
+
 =back
 
 
@@ -65,6 +73,7 @@ Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
 =head1 COPYRIGHT
 
 University of LE<uuml>beck, Germany, 2009
+University Clinics Schleswig-Holstein, Germany, 2010
 
 =cut
 
@@ -79,6 +88,8 @@ BEGIN {
 #updates cis information.
 use DBI;
 use LWP::Simple;
+use Pod::Usage;
+
 
 use func_conversion_55;
 
@@ -99,6 +110,8 @@ my %toDo = 	(
 
 if( @ARGV ) {
 	foreach my $com (@ARGV){
+		pod2usage(-verbose => 1) if "help" eq "$com" or "--help" eq "$com" or "-h" eq "$com" or "-help" eq "$com";
+		pod2usage(-verbose => 2) if "man" eq "$com" or "--man" eq "$com" or "-man" eq "$com";
 		if( defined( $toDo{$com} ) ){
 			$toDo{$com} = 1;
 		}
