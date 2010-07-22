@@ -39,6 +39,7 @@ website/eqtl/effectplot.php
 website/eqtl/filehandler.php
 website/eqtl/footer.php
 website/eqtl/func_covariates.php
+website/eqtl/func_conversion_*.php
 website/eqtl/func_dbconfig.php
 website/eqtl/func_gprofiler.php
 website/eqtl/func_relatedProjects.php
@@ -58,6 +59,7 @@ website/eqtl/tmp_images/
 website/eqtl/trait.php
 website/eqtl/trait_summary.php
 website/eqtl/venn.php
+website/eqtl/xyplot.php
 website/evaluateQuery.R
 website/executeQuery.sh
 website/getRscript.pl
@@ -70,3 +72,4 @@ website/recalc.pl
 website/resources.txt
 website/showSRC.pl
 website/status.txt
+*.swp
