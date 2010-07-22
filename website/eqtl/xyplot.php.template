@@ -4,33 +4,23 @@
 
 /*
 
-=head1 scatter
+=head1 xyplot
 
-This script prepares a graphical "dot-plot" like presentation bringing
-the locations of the controlling region and those of the traits together.
+This script is similar to the regular scatter plots at first sight, but it is about the phenotypes of individuals, not about their loci. One can think about it as an abstraction of the effectplot, in that it allows to have arbitrary values shown on either axis, and eventually the colour and the form for a third and fourth parameter..
 
 =over 4
 
-=item covariates
-
-=item chromosomes
-
-not yet implemented
-
-=item location in classical disease qtl
-
-not yet implemented
+=item to be done
 
 =back
 
 =head1 AUTHORS
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
-ME<acute>lanie ThessE<eacute>n-Hedreul
 
 =head1 COPYRIGHT
 
-University of LE<uuml>beck, Germany, 2009
+University Clinics Schleswig-Holstein, Germany, 2010
 
 =cut
 
@@ -40,16 +30,18 @@ University of LE<uuml>beck, Germany, 2009
 	require_once("func_covariates.php");
 	require_once("func_selection.php"); // prints part of the HTML for forms
 
-	show_small_header("Scatter plot overview of Expression QTL",TRUE);
+	show_small_header("XY plot of arbitrary phenotypic and genotypic data",TRUE);
 
 	$database="DATABASEEQTLNAME";
 	include_once("func_connect.php");
 	require_once("func_public_qtl.php");
+	require_once("func_phenotypes.php");
+	require_once("func_markers.php");
 
 	# fields that should appear
 	$dataSelectionFieldsQTL = array(
 		"groups",
-		"Chromosome","ensemblversion",
+		"ensemblversion",
 		"cM_within","LODmax","LODmin",
 		"quantilemin","quantilemax",
 		"qtl_covariates",
@@ -79,6 +71,9 @@ University of LE<uuml>beck, Germany, 2009
 		$presentationAttributes
 	);
 
+	$phenotypes=list_phenotypes();
+	$markers=list_markers();
+
 	foreach($accessible_fields_in_POST_or_GET as $vname)
 	{
 		if (isset($_POST[$vname])) {
@@ -96,24 +91,68 @@ University of LE<uuml>beck, Germany, 2009
 	}
 
 
+	// these are the four dimensions the system offers to show
+	$dimensions=array("xaxis"=>"X-axis",
+			  "yaxis"=>"Y-axis",
+			  "colour"=>"Colouring of individuals",
+			  "symbol"=>"Symbol for presentation");
+	$dimension_types=array("trait"=>"Trait","phen"=>"Phen","marker"=>"Marker");
 
 	if (empty($submitted)) {
 
 		#
 		#   S E T T I N G  O F  P A R A M E T E R S 
 		#
-
-		echo "<form action=scatter.php method=post>\n";
+		echo "<form action=xyplot.php method=post>\n";
 		echo "<input type=hidden name=submitted value=1>\n";
 
-		echo "<table><tr>"; # the table has only a single row
-
-		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
-
+		echo "<p>Please specify the data to be presented for each dimension:</p>\n";
 		echo "<table>\n";
-		print_selection_form("figure_scatter");
-		echo "<tr><th>Covariates of stored QTL<br><small>implicit 'none'</small></th><td>";
-		select_covariates_combinations(3);
+		foreach ($dimensions as $parameter=>$parameter_text) {
+			echo "<hr>\n";
+			echo "<h3>";
+			echo "$parameter_text</h3>";
+			#echo "<hr>\n";
+			echo "<table width='100%'>";
+			echo "<tr>";
+			echo "<td><h4>Selection</h4></td><td><h4>".join("</h4></td><td><h4>",$dimension_types)."</h4></td></tr>\n";
+			echo "<tr>";
+			echo "<td>On this Axis show:<br/>\n";
+			echo "<select name=selection_$parameter>\n";
+			echo "<option value=ignore>don't show</option>\n";
+			foreach ($dimension_types as $d=>$dd) {
+				echo "<option value=$d";
+				if ("trait"==$d and ($parameter=="xaxis" or $parameter=="yaxis")) echo " selected";
+				if ("phen"==$d and $parameter=="colour") echo " selected";
+				if ("marker"==$d and $parameter=="symbol") echo " selected";
+				echo ">$dd</option>\n";
+			}
+			echo "</select></td>\n";
+			echo "<td>";
+			echo "<p>Specification of Trait:</p>\n";
+			echo "<input type=field name=".$parameter."_trait><br>\n";
+			echo "Examples: EXAMPLE_TRAITS";
+			echo "</td>\n";
+			echo "<td>";
+			echo "<p>Specification of Phenotype (\"Covariate\"):</p>\n";
+			echo "<select name=".$parameter."_phen>\n";
+			foreach ($phenotypes as $p) {
+				echo "<option value=\"".$p."\">$p</option>\n";
+			}
+			echo "</select>\n";
+			echo "</td>\n";
+			echo "<td>";
+			echo "<p>Specification of Marker:</p>\n";
+			echo "<select name=".$parameter."_phen>\n";
+			foreach ($markers as $m) {
+				echo "<option value=\"".$m."\">$m</option>\n";
+			}
+			echo "</select>\n";
+			echo "</td>\n";
+			echo "</tr>";
+			echo "</table>\n";
+		}
+
 		echo "<tr><th>Presentation</th><td>";
 		echo "<table><tr>";
 		echo "<td>Main title</td><td colspan=5><input type=text name=main size=80></td></tr>\n";
@@ -158,16 +197,7 @@ University of LE<uuml>beck, Germany, 2009
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=verbose value=1 />verbose";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=legend value=1 />legend";
 		echo "</td></tr>\n";
-		echo "</table></td>\n";
-
-		#if ("" == "this is not yet implemented") {
-		  echo "</td>\n<td valign=top>";
-		  echo "Work in progress:<br>\n";
-		  select_from_public_qtls($linkLocal,TRUE);
-		  echo "</td>";
-		#}
-		echo "</tr>";
-		echo "</table>";
+		echo "</table>\n";
 
 		echo "</form>\n";
 
@@ -186,7 +216,7 @@ University of LE<uuml>beck, Germany, 2009
 			$qtl_covariates=array("none");
 		}
 
-		$rscript = getcwd() . "/../../scripts/analyses/scatter_all.R";
+		$rscript = getcwd() . "/../../scripts/analyses/xyplot.R";
 		if (!file_exists($rscript)) {
 		  errorMessage("R script '$rscript' not found.");
 	          exit();
@@ -199,7 +229,7 @@ University of LE<uuml>beck, Germany, 2009
 
 			if ($n>0) echo "<hr>";
 
-			$outputfilename = "tmp_images/scatter_output";
+			$outputfilename = "tmp_images/xyplot_output";
 			if (!empty($cov)) {
 			    $outputfilename .= "_cov_$cov";
 			}
