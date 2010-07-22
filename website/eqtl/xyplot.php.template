@@ -1,0 +1,290 @@
+<?php
+
+	TEMPLATEWARNINGHASH
+
+/*
+
+=head1 scatter
+
+This script prepares a graphical "dot-plot" like presentation bringing
+the locations of the controlling region and those of the traits together.
+
+=over 4
+
+=item covariates
+
+=item chromosomes
+
+not yet implemented
+
+=item location in classical disease qtl
+
+not yet implemented
+
+=back
+
+=head1 AUTHORS
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+ME<acute>lanie ThessE<eacute>n-Hedreul
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2009
+
+=cut
+
+*/
+
+	require_once("header.php");
+	require_once("func_covariates.php");
+	require_once("func_selection.php"); // prints part of the HTML for forms
+
+	show_small_header("Scatter plot overview of Expression QTL",TRUE);
+
+	$database="DATABASEEQTLNAME";
+	include_once("func_connect.php");
+	require_once("func_public_qtl.php");
+
+	# fields that should appear
+	$dataSelectionFieldsQTL = array(
+		"groups",
+		"Chromosome","ensemblversion",
+		"cM_within","LODmax","LODmin",
+		"quantilemin","quantilemax",
+		"qtl_covariates",
+		"cqtl",
+		"legend",
+		"LODdiffmin","LODdiffmax",
+		"PvalueMin","PvalueMax",
+		"cM_Peak_Min","cM_Peak_Max",
+		"MeanMin","MeanMax","SdMin","SdMax",
+		"locus","chrlist"
+	);
+
+	# fields that are likely to appear and have a special interpretation
+	# later as attributes passed to the wrapped application
+	$presentationAttributes = array("main","sub",
+					"display","format",
+					"LODmax","LODmin","PvalueMax","PvalueMin",
+					"imagewidth","imageheight",
+					"linewidth","linecolour","linetype",
+					"axeswidth","axescolour","axestype");
+
+
+
+	$accessible_fields_in_POST_or_GET = array_merge (
+		array("submitted","inlineImages","rerunAnalyses","verbose"),
+		$dataSelectionFieldsQTL,
+		$presentationAttributes
+	);
+
+	foreach($accessible_fields_in_POST_or_GET as $vname)
+	{
+		if (isset($_POST[$vname])) {
+			$$vname = $_POST[$vname];
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+		elseif(isset($_GET[$vname])) {
+			$$vname = $_GET[$vname];
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+	}
+
+
+
+	if (empty($submitted)) {
+
+		#
+		#   S E T T I N G  O F  P A R A M E T E R S 
+		#
+
+		echo "<form action=scatter.php method=post>\n";
+		echo "<input type=hidden name=submitted value=1>\n";
+
+		echo "<table><tr>"; # the table has only a single row
+
+		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
+
+		echo "<table>\n";
+		print_selection_form("figure_scatter");
+		echo "<tr><th>Covariates of stored QTL<br><small>implicit 'none'</small></th><td>";
+		select_covariates_combinations(3);
+		echo "<tr><th>Presentation</th><td>";
+		echo "<table><tr>";
+		echo "<td>Main title</td><td colspan=5><input type=text name=main size=80></td></tr>\n";
+		echo "<td>Sub title</td><td colspan=5><input type=text name=sub size=80></td></tr>\n";
+		echo "<th colspan=2>Image</th>";
+		echo "<th colspan=2>Field</th>";
+		echo "<th colspan=2>Axes</th></tr>\n";
+		echo "<td>image width:</td>  <td><input type=text size=4 name=imagewidth  value=\"".    (empty($imagewidth)?"":$imagewidth)."\"></td>\n";
+		echo "<td>line width:</td>   <td><input type=text size=4 name=linewidth   value=\"".    (empty($linewidth)?1:$linewidth).   "\"></td>\n";
+		echo "<td>axes width:</td>   <td><input type=text size=4 name=axeswidth   value=\"".    (empty($axeswidth)?3:$axeswidth).   "\"></td></tr>\n";
+		echo "<td>image height:</td> <td><input type=text size=4 name=imageheight value=\"".    (empty($imageheight)?"":$imageheight)."\"></td>\n";
+		echo "<td>line type:</td>    <td><input type=text size=4 name=linetype    value=\"".    (empty($linetype)?3:$linetype).     "\"></td>\n";
+		echo "<td>axes type:</td>    <td><input type=text size=4 name=axestype    value=\"".    (empty($axestype)?"":$axestype).    "\"></td></tr>\n";
+		echo "<td colspan=2></td>";
+		echo "<td>line colour:</td>  <td><input type=text size=4 name=linecolour  value=\""  .(empty($linecolour)?"red":$linecolour)."\"></td>\n";
+		echo "<td>axes colour:</td>  <td><input type=text size=4 name=axescolour  value=\"".(empty($axescolour)?"black":$axescolour)."\"></td></tr>\n";
+
+		echo "<tr><td valign=top>Display variable:</td>  <td>";
+		if (empty($display)) $display="pvalue";
+		foreach (array("rank"=>"LOD score by rank","pvalue"=>"P-value","lod"=>"LOD") as $v=>$vv) {
+			echo "<input type=\"radio\" name=\"display\" value=\"$v\"  " . (($v==$display)?"checked":"")  .">$vv<br/>";
+		}
+		echo "</td>";
+
+		echo "<td>";
+		echo "Output format:";
+		echo "</td>";
+		echo "<td>";
+		if (empty($format)) $format="png";
+		foreach (array("pdf"=>"PDF","png"=>"PNG","jpg"=>"JPG") as $v=>$vv) {
+			echo "<input type=\"radio\" name=\"format\" value=\"$v\"  " . (($v==$format)?"checked":"")  .">$vv<br/>";
+		}
+		echo "</td></tr>\n";
+
+		echo "</table>\n";
+		echo "</td></tr>\n";
+		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
+		echo "<tr><td align=right><input type=submit></td>";
+		echo "<td align=left><input type=reset>";
+		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=inlineImages value=1 />Inline Images";
+		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=rerunAnalyses value=1 />Rerun previous analyses";
+		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=verbose value=1 />verbose";
+		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=legend value=1 />legend";
+		echo "</td></tr>\n";
+		echo "</table></td>\n";
+
+		#if ("" == "this is not yet implemented") {
+		  echo "</td>\n<td valign=top>";
+		  echo "Work in progress:<br>\n";
+		  select_from_public_qtls($linkLocal,TRUE);
+		  echo "</td>";
+		#}
+		echo "</tr>";
+		echo "</table>";
+
+		echo "</form>\n";
+
+	}
+	else {
+
+		#
+		# invocation of external R script
+		#
+
+		echo "cwd: " . getcwd() . "<br>\n";
+		#print_r($_SERVER);
+
+		if (empty($qtl_covariates)) {
+			echo "No covariate set, assuming 'none'.";
+			$qtl_covariates=array("none");
+		}
+
+		$rscript = getcwd() . "/../../scripts/analyses/scatter_all.R";
+		if (!file_exists($rscript)) {
+		  errorMessage("R script '$rscript' not found.");
+	          exit();
+		}
+
+		if (empty($format)) $format="png";
+
+		# perform individually for every covariate
+		foreach ($qtl_covariates as $n=>$cov) {
+
+			if ($n>0) echo "<hr>";
+
+			$outputfilename = "tmp_images/scatter_output";
+			if (!empty($cov)) {
+			    $outputfilename .= "_cov_$cov";
+			}
+			if (!empty($PvalueMin)) {
+			    $outputfilename .= "_PvalueMin_$PvalueMin";
+			}
+			if (!empty($LODmin)) {
+			    $outputfilename .= "_LODmin_$LODmin";
+			}
+			if (!empty($MeanMin)) {
+			    $outputfilename .= "_MeanMin_$MeanMin";
+			}
+
+			$attributes=array();
+			$cmd = "$rscript";
+			$cmd .= " --format $format";
+			array_push($attributes,"--format","png");
+			if (!empty($qtl_covariates)) {
+			  $cmd .= " --covariates $cov";
+			  array_push($attributes,"--covariates",$cov);
+			}
+			if (!empty($verbose)) {
+			  $cmd .= " --verbose";
+			  array_push($attributes,"--verbose",1);
+			}
+
+			if (!empty($legend)) {
+			  $cmd .= " --legend";
+			  array_push($attributes,"--legend",1);
+			  $outputfilename .= "_lengend";
+			}
+
+			# the names of the html fields are the same as the ones 
+			# that the application expects as attributes
+			foreach($presentationAttributes as $pa) {
+				if ($verbose) echo "  checking if attribute '--$pa' is set";
+				if (empty($$pa)) {
+					if ($verbose) echo " ... it is not - skipping<br>\n";
+				}
+				else {
+					if ($verbose) echo " ... setting to " . $$pa . "<br>\n";
+						array_push($attributes,"--$pa",'"'.$$pa.'"');
+					$cmd .= " --$pa \"".$$pa."\"";
+					$outputfilename .= "_".$pa."_".$$pa;
+				}
+			}
+
+			$outputfilename .= ".$format";
+
+			$cmd .= " --output $outputfilename";
+			array_push($attributes,"--output",$outputfilename);
+
+			$cmd = "$rscript ".join(" ",$attributes);
+
+
+			if (!file_exists($outputfilename) or !empty($rerunAnalyses)) {
+				if (file_exists("$outputfilename")) {
+				    echo "<p>Removing filename to update: '$outputfilename'.";
+				    if (!unlink("$outputfilename")) {
+				    	echo "<br><font color=red>Attention:</font>: File '$outputfilename' could not be removed.\n";;
+				    }
+				    echo "</p>";
+				}
+				elseif ($verbose) {
+				    echo "<p>Could not find any prior existing file '$outputfilename'.</p?\n";
+				}
+				if ($verbose) echo "executing '$cmd'<br>\n";
+				#print_r($attributes);
+				echo "<small><pre>";
+				echo shell_exec($cmd);
+				echo "</pre></small>\n";
+			}
+			else {
+				echo "Found image '$outputfilename' to already exist, not rerunning analysis.";
+			}
+
+			$imagePath=dirname($_SERVER["PHP_SELF"])."/$outputfilename";
+
+			if ("pdf" != $format) {
+				if (!empty($inlineImages)) {
+					echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n";
+				}
+			}
+			echo "<a href=\"http:$imagePath\">$outputfilename</a><br/>\n";
+		}
+	}
+	include("footer.php");
+?>
