@@ -251,97 +251,100 @@ University Clinics Schleswig-Holstein, Germany, 2010
 
 		if (empty($format)) $format="png";
 
-		# perform individually for every covariate
-		foreach ($qtl_covariates as $n=>$cov) {
+		$outputfilename = "tmp_images/xyplot_output";
 
-			if ($n>0) echo "<hr>";
+		$errors=array();
+		$attributes=array();
 
-			$outputfilename = "tmp_images/xyplot_output";
-			if (!empty($cov)) {
-			    $outputfilename .= "_cov_$cov";
+		$cmd = "$rscript";
+		$cmd .= " --format $format";
+		array_push($attributes,"--format","png");
+
+		if (!empty($verbose)) {
+		  $cmd .= " --verbose";
+		  array_push($attributes,"--verbose",1);
+		}
+
+		if (!empty($legend)) {
+		  $cmd .= " --legend";
+		  array_push($attributes,"--legend",1);
+		  $outputfilename .= "_lengend";
+		}
+
+
+		foreach ($dimensions as $d => $dd) {
+			$select_varname="selection_$d";
+			$value_varname=$d."_".$$select_varname;
+			if (empty($value_varname)) {
+				if ("xaxis"=="$d") $errors[]="Missing display variable for X-axis";
+				if ("yaxis"=="$d") $errors[]="Missing display variable for Y-axis";
+			} else {
+				$outputfilename .= "_$d_".$$value_varname;
+				array_push($attributes,"--${d}_select",$$select_varname);
+				$cmd .= " --${d}_select ".$$select_varname;
+				array_push($attributes,"--${d}_value",$$value_varname);
+				$cmd .= " --${d}_value ".$$value_varname;
 			}
-			if (!empty($PvalueMin)) {
-			    $outputfilename .= "_PvalueMin_$PvalueMin";
-			}
-			if (!empty($LODmin)) {
-			    $outputfilename .= "_LODmin_$LODmin";
-			}
-			if (!empty($MeanMin)) {
-			    $outputfilename .= "_MeanMin_$MeanMin";
-			}
+		}
 
-			$attributes=array();
-			$cmd = "$rscript";
-			$cmd .= " --format $format";
-			array_push($attributes,"--format","png");
-			if (!empty($qtl_covariates)) {
-			  $cmd .= " --covariates $cov";
-			  array_push($attributes,"--covariates",$cov);
-			}
-			if (!empty($verbose)) {
-			  $cmd .= " --verbose";
-			  array_push($attributes,"--verbose",1);
-			}
-
-			if (!empty($legend)) {
-			  $cmd .= " --legend";
-			  array_push($attributes,"--legend",1);
-			  $outputfilename .= "_lengend";
-			}
-
-			# the names of the html fields are the same as the ones 
-			# that the application expects as attributes
-			foreach($presentationAttributes as $pa) {
-				if ($verbose) echo "  checking if attribute '--$pa' is set";
-				if (empty($$pa)) {
-					if ($verbose) echo " ... it is not - skipping<br>\n";
-				}
-				else {
-					if ($verbose) echo " ... setting to " . $$pa . "<br>\n";
-						array_push($attributes,"--$pa",'"'.$$pa.'"');
-					$cmd .= " --$pa \"".$$pa."\"";
-					$outputfilename .= "_".$pa."_".$$pa;
-				}
-			}
-
-			$outputfilename .= ".$format";
-
-			$cmd .= " --output $outputfilename";
-			array_push($attributes,"--output",$outputfilename);
-
-			$cmd = "$rscript ".join(" ",$attributes);
+		if (0<count($errors)) {
+			errorMessage("Spotted the following issues: <ul><li>".join("<li>",$errors)."</ul>");
+			exit;
+		}
 
 
-			if (!file_exists($outputfilename) or !empty($rerunAnalyses)) {
-				if (file_exists("$outputfilename")) {
-				    echo "<p>Removing filename to update: '$outputfilename'.";
-				    if (!unlink("$outputfilename")) {
-				    	echo "<br><font color=red>Attention:</font>: File '$outputfilename' could not be removed.\n";;
-				    }
-				    echo "</p>";
-				}
-				elseif ($verbose) {
-				    echo "<p>Could not find any prior existing file '$outputfilename'.</p?\n";
-				}
-				if ($verbose) echo "executing '$cmd'<br>\n";
-				#print_r($attributes);
-				echo "<small><pre>";
-				echo shell_exec($cmd);
-				echo "</pre></small>\n";
+		# the names of the html fields are the same as the ones 
+		# that the application expects as attributes
+		foreach($presentationAttributes as $pa) {
+			if ($verbose) echo "  checking if attribute '--$pa' is set";
+			if (empty($$pa)) {
+				if ($verbose) echo " ... it is not - skipping<br>\n";
 			}
 			else {
-				echo "Found image '$outputfilename' to already exist, not rerunning analysis.";
+				if ($verbose) echo " ... setting to " . $$pa . "<br>\n";
+					array_push($attributes,"--$pa",'"'.$$pa.'"');
+				$cmd .= " --$pa \"".$$pa."\"";
+				$outputfilename .= "_".$pa."_".$$pa;
 			}
-
-			$imagePath=dirname($_SERVER["PHP_SELF"])."/$outputfilename";
-
-			if ("pdf" != $format) {
-				if (!empty($inlineImages)) {
-					echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n";
-				}
-			}
-			echo "<a href=\"http:$imagePath\">$outputfilename</a><br/>\n";
 		}
+
+		$outputfilename .= ".$format";
+
+		$cmd .= " --output $outputfilename";
+		array_push($attributes,"--output",$outputfilename);
+
+		$cmd = "$rscript ".join(" ",$attributes);
+
+
+		if (!file_exists($outputfilename) or !empty($rerunAnalyses)) {
+			if (file_exists("$outputfilename")) {
+			    echo "<p>Removing filename to update: '$outputfilename'.";
+			    if (!unlink("$outputfilename")) {
+				echo "<br><font color=red>Attention:</font>: File '$outputfilename' could not be removed.\n";;
+			    }
+			    echo "</p>";
+			}
+			elseif ($verbose) {
+			    echo "<p>Could not find any prior existing file '$outputfilename'.</p?\n";
+			}
+			if ($verbose) echo "executing '$cmd'<br>\n";
+			#print_r($attributes);
+			echo "<small><pre>";
+			echo shell_exec($cmd);
+			echo "</pre></small>\n";
+		}
+		else {
+			echo "Found image '$outputfilename' to already exist, not rerunning analysis.";
+		}
+
+		$imagePath=dirname($_SERVER["PHP_SELF"])."/$outputfilename";
+
+		if ("pdf" != $format) {
+			if (!empty($inlineImages)) {
+				echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n";
+			}
+		}
+		echo "<a href=\"http:$imagePath\">$outputfilename</a><br/>\n";
 	}
 	include("footer.php");
 ?>
