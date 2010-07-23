@@ -238,11 +238,6 @@ University Clinics Schleswig-Holstein, Germany, 2010
 		echo "cwd: " . getcwd() . "<br>\n";
 		#print_r($_SERVER);
 
-		if (empty($qtl_covariates)) {
-			echo "No covariate set, assuming 'none'.";
-			$qtl_covariates=array("none");
-		}
-
 		$rscript = getcwd() . "/../../scripts/analyses/xyplot.R";
 		if (!file_exists($rscript)) {
 		  errorMessage("R script '$rscript' not found.");
