@@ -420,6 +420,7 @@ my.cross <- sim.geno(my.cross, step=$steps, n.draws=$execParams{'draws'})
 EOWRITETODISK
 	}
 
+	# Transform the Perl-array of additive covariates into R lingo
 	my $printCov_add ="";
 	if( @covars_add ){
 		my $concat = "\"".join("\",\"",@covars_add)."\"";
@@ -429,6 +430,8 @@ EOWRITETODISK
 cov_add <- my.cross\$pheno[,c($concat)]
 EOWRITETODISK
 	}
+
+	# ditto for interacting covariates
 	my $printCov_int ="";
 	if( @covars_int ){
 		my $concat_int = "\"".join("\",\"",@covars_int)."\"";
@@ -439,7 +442,7 @@ cov_int <- my.cross\$pheno[,c($concat_int)]
 EOWRITETODISK
 	}
 
-	my $writePermutations;
+	# The first line does the regular scanone or scantwo
 	my $tryPermutations = <<EOWRITETODISK;
 
 my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, verbose=FALSE )
@@ -487,7 +490,7 @@ EOWRITETODISK
 if (acceptable) {
 	# list of pairs identifying the number of permutations and the quantils that is to be reached
 	perm.checks<-list(c(  15,                  1-0.5),
-	                  c(  25,                  1-$execParams{'alpha'}-0.2),
+	                  c(  25,                  1-$execParams{'alpha'}-0.25),
 			  c($execParams{perms}/10, 1-$execParams{'alpha'}-0.1),
 			  c($execParams{perms}/4 , 1-$execParams{'alpha'}-0.05),
 			  c($execParams{perms}/2 , 1-$execParams{'alpha'}-0.02),
@@ -546,7 +549,8 @@ EOWRITETODISK
 EOWRITETODISK
 
 
-		$writePermutations = <<EOWRITETODISK;
+	my $writePermutations;
+	$writePermutations = <<EOWRITETODISK;
 
 if (acceptable) {
 
@@ -616,9 +620,10 @@ EOWRITETODISK
 
 
 	#
-	# PRINTING OF FILE STARTS HERE
+	# PRINTING OF FILE THAT IS AN R SCRIPT TO DO eQTL ANALYSIS STARTS HERE
 	#
 
+	# Write header of result file
 	print "cat( \"<eqtl mode=\\\"$mode\\\" probe=\\\"$probeID\\\""
 		." covars=\\\""    .join(",",@covars)."\\\""
 		." covars_add=\\\"".join(",",@covars_add)."\\\""
@@ -639,6 +644,7 @@ cat( paste("!-",date(),"\\n",sep="") )
 cat( "\\n" )
 EOWRITETODISK
 
+	# tell file to tell R to read the data
 	print $getData;
 
 	if( @covars_add ){
@@ -648,18 +654,22 @@ EOWRITETODISK
 		print $printCov_int;
 	}
 
+	# tell file to tell R to do the permutations
 	print $tryPermutations;
 
 	print $status;
 
 	print $toDisk;
 
+	# tell file to tell R to show us the permutation data
 	print $writePermutations;
 
 	print $toEnd;
 
+	# tell file to tell R to end the file
 	print "cat(\"</eqtl>\\n\\n\")\n";
 
+	# tell file to have a neat return value for the source() executing the file
 	print "\n".'"completed"'."\n"; 
 
 	if (!exists($ENV{'QUERY_STRING'})) {
