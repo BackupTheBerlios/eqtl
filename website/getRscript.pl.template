@@ -4,7 +4,7 @@ TEMPLATEWARNINGHASH
 
 =head1 NAME
 
-getRscript.pl - should better be named 'prepare R/qtl input data'
+getRscript.pl - prepares an R script to execute the expression QTL analysis
 
 =head1 SYNOPSIS
 
