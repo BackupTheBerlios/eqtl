@@ -197,6 +197,10 @@ fname.input<-paste(
 	opt$trait,
 	"&applyLog2=TRUE&score=",sep="")
 
+if (!is.null(opt$verbose)) {
+	cat("fname.input",":",fname.input,"\n");
+}
+
 my.cross <- NULL
 my.cross <- read.cross(	format="csv", dir="",
                        	file=fname.input,
