@@ -220,7 +220,7 @@ for(my $i=0; $i<=$#individualsArray; $i++) {
 	if (!defined($id)) {
 		die "Was pointed to undefined individualsArray ID entry at position $i.\n";
 	}
-	elsif ($id =~ /^MT(\d+)/) {
+	elsif ($id =~ /^INDIVIDUALIDPREFIX(\d+)/) {
 		my $realId=$1;
 		#print STDERR "\$1=$1\n";
 		$individualIDtoProbePosition{"$realId"}=$i; 
@@ -237,7 +237,7 @@ for(my $i=0; $i<=$#individualsArray; $i++) {
 
 #if ($verbose) {
 #	foreach my $k (keys %individualIDtoProbePosition) {
-#		print STDERR "$k -> ".$individualIDtoProbePosition{$k}."\n";
+#		print STDERR "$k -> ".$individualIDtoProbePosition{"$k"}."\n";
 #	}
 #}
 
@@ -257,8 +257,8 @@ and fill it with the expression data from the molecular phenotype file.
 printf STDERR "opening genotype file\n" if $verbose;
 my @genotypeLines;
 my @genotypeFilenames=(
-		$base.$database.$data{'genofile'},
-		$database.$data{'genofile'},
+		$base."/".$database."/".$data{'genofile'},
+		$database."/".$data{'genofile'},
 		$data{'genofile'}
 );
 my $gfsuccess=0;
@@ -352,21 +352,26 @@ while (FCGI::accept >= 0) {
 		my $lastIndex = $#genotypeLines;			
 		for (my $i=0; $i<=$lastIndex; $i++) {	# iteration over column positions, 0 is first, 
 			my @iline = split(/GENOFIELDSEP/, $genotypeLines[$i]);
-								# always take the first two fields
-			my $id  = shift @iline;			# ID of sample, pairs with ID of individual of phenotype data
-			my $name = shift @iline;		# ID of individual
-			my $ret = $id.$sep.$name;		# start of line to make up from this information and return
-			
-								# here the later returned file is splitted up to insert the information on
-								# the phenotype, i.e. the expression level.
+							# always take the first field
+			my $id  = shift @iline;		# ID of sample, pairs with ID of individual of phenotype data
+			my $ret = $id;			# start of line to make up from this information and return
+			for (my $RColumnNo=2; $RColumnNo<PHENOCOL; $RColumnNo++) {
+				my $name = shift @iline;	# name,sex or whatever of individual
+								# the is preferred to appear prior to 
+								# expression data.
+				$ret = $sep.$name;		# start of line to make up from this information
+			}
+					#  the later returned file is splitted up at this position to insert
+					# the information on the phenotype, i.e. the expression level.
+
 			if( $i==0) 	# column names
 			{ 					# as some lines have to be omitted, some indexshifting is required
-				$ret .= $sep . $phenofields[$i];	# addition of the first (at positio 0) element of the phenotypes, i.e. the probeset ID
+				$ret .= $sep . $phenofields[$i];	# addition of the first (at position 0) element of the phenotypes, i.e. the probeset ID
 			}
 			elsif( $i > 2 ){
 				# Marker data
-				if (exists($individualIDtoProbePosition{$id})) {
-					my $positionOfPhenotypeInfo=$individualIDtoProbePosition{$id};
+				if (exists($individualIDtoProbePosition{"$id"})) {
+					my $positionOfPhenotypeInfo=$individualIDtoProbePosition{"$id"};
 					print STDERR "Directed query on '$id' to field position '$positionOfPhenotypeInfo' "
 						    ."with value $phenofields[$positionOfPhenotypeInfo] for probe '$probeID'.\n" if $verbose;
 					$ret .= $sep;
@@ -385,7 +390,7 @@ while (FCGI::accept >= 0) {
 					}
 				}
 				else {
-					die "Cannot find phenotype data for probe '$probeID' and individual '$id'.\n";
+					die "Cannot find phenotype data for probe '$probeID' and individual '$id'. The only values we have in the hash individualIDtoProbePosition are: " . join(",",sort keys %individualIDtoProbePosition)."\n";
 				}
 			}
 			elsif( 1==$i # Chromosomes
