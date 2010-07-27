@@ -193,7 +193,12 @@ while(<>) {
 				}
 			}
 			if ($quoteme) {
-				push @valsToPlot,"'$c'";
+				if ($c =~ /'/) {
+					push @valsToPlot,"\"$c\"";
+				}
+				else {
+					push @valsToPlot,"'$c'";
+				}
 			}
 			else {
 				push @valsToPlot,"$c";
