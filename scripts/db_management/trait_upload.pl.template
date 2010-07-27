@@ -44,9 +44,9 @@ my $mouseids=undef;
 my $extended=0;
 
 while(<>) {
+	chomp;
 	my @cols=split(/\t/,$_);
 	if (!defined($mouseids)) {
-		chomp;
 		my $n=shift(@cols);
 		die "The file is not in Eisen format, expected UNIQID to be first element (was $n).\n"
 			unless $n=~/^UNIQID/i;
@@ -77,11 +77,11 @@ while(<>) {
 		my $vals=join(",",@cols);
 
 		print "insert into `trait` set ";
-		print "`trait_id`='$u'";
-		print ", `name`='$n'" if defined($n);
-		print ", `mean`=$mean, `sd`=$sd";
-		print ", `vals`='$vals'";
-		print ", `individuals`='$mouseids'";
+		print "trait_id='$u'";
+		print ", name='$n'" if defined($n);
+		print ", mean=$mean, sd=$sd";
+		print ", vals='$vals'";
+		print ", individuals='$mouseids'";
 		print ";\n";
 		
 	}
