@@ -178,8 +178,10 @@ University of LE<uuml>beck, Germany, 2009
 		# invocation of external R script
 		#
 
-		echo "cwd: " . getcwd() . "<br>\n";
-		#print_r($_SERVER);
+		if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+			echo "cwd: " . getcwd() . "<br>\n";
+			#print_r($_SERVER);
+		}
 
 		if (empty($qtl_covariates)) {
 			echo "No covariate set, assuming 'none'.";

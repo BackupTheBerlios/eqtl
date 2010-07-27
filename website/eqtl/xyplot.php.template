@@ -235,12 +235,9 @@ University Clinics Schleswig-Holstein, Germany, 2010
 		# invocation of external R script
 		#
 
-		echo "cwd: " . getcwd() . "<br>\n";
-		#print_r($_SERVER);
-
-		if (empty($qtl_covariates)) {
-			echo "No covariate set, assuming 'none'.";
-			$qtl_covariates=array("none");
+		if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+			echo "cwd: " . getcwd() . "<br>\n";
+			#print_r($_SERVER);
 		}
 
 		$rscript = getcwd() . "/../../scripts/analyses/xyplot.R";
