@@ -188,7 +188,7 @@ while( <getFrom> ){
 		}
 		print STDERR "Undefined individualsString and p='$p'.\n" if $verbose;
 		# accepting a range of keywords, also the empty first field as produced by R
-		if ($p =~ /^(|id|rat|mouse|name|ind|probeset|probeset_id)$/i) {
+		if ($p =~ /^(|id|rat|mouse|name|ind|probeset|probeset_id|probesetid)$/i) {
 			$individualsString = $l;
 			@individualsArray=split(/PHENOFIELDSEP/,$individualsString);
 			print STDERR  "individualsString now set to '$individualsString'\n" if $verbose;
