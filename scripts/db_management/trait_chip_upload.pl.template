@@ -6,13 +6,20 @@ trait_chip_upload.pl - transform chip details into SQL statements
 
 =head1 SYNOPSIS
 
-trait_upload.pl filename | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+trait_chip_upload.pl filename | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
 
 =head1 DESCRIPTION
 
 This script prepares a completely new table, based on the headers
 of a tab separated file. The name of the table is set to
-"TRAITSDETAILSCHIPDATA".
+"TRAITSDETAILSCHIPDATA". To transform a comma separated file
+into a tab separated file, one may be lucky with the UNIX tool
+'tr', but preferably one should use R or another tool that
+knows how to interpret quoted values or escaped characters. In
+R, do for instance
+
+  df<-read.csv("Mouse430_2.na30.annot.csv",header=T,skip=24)
+  write.table(df,file="Mouse430_2.na30.annot.tsv",sep="\t",quote=F,col.names=T,row.names=F)
 
 The script dumps SQL statements that can be change manually to adjust
 the defaults settings or be directly forwarded into a MySQL shell.
@@ -63,13 +70,26 @@ Comma separated list of positions (first==1) of numerical values that should not
 
 =back
 
+=head1 SEE ALSO
+
+=over 4
+
+=item Affymetrix annotation files
+
+http://www.affymetrix.com/support/technical/annotationfilesmain.affx?hightlight=true&rootCategoryId=
+
+=back
+
 =head1 AUTHORS
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+Rudi Alberts <rudi.alberts@helmholtz-hzi.de>
 
 =head1 COPYRIGHT
 
 University of LE<uuml>beck, Germany, 2009
+University Clinics Schleswig-Holstein, LE<uuml>beck, Germany, 2010
+Helmholtz Center for Infection Research, Braunschweig, Germany, 2010
 
 =cut
 
@@ -123,6 +143,7 @@ while(<>) {
 	if (-1 == $#header) {
 		foreach my $c (@cols) {
 			$c =~ s/\s//g;
+			$c =~ s/\./_/g;
 			push @header,$c;
 		}
 		print "CREATE TABLE TRAITSDETAILSCHIPDATA (\n" unless $update;
