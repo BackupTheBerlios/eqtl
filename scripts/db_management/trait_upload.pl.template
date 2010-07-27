@@ -28,6 +28,10 @@ With names of genes/transcripts or the assignment of probesets to
 such being continously updated, one should consider the trait table
 to be of a transient nature.
 
+If you get an error like the following:
+  ERROR 1062 (23000) at line 45039: Duplicate entry 'AFFX-18SRNAMur/X0068' for key 'PRIMARY'
+then investigate the number of characters reserved for the trait_id.
+
 =head1 AUTHORS
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
