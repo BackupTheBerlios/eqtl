@@ -364,9 +364,9 @@ while (FCGI::accept >= 0) {
 					#  the later returned file is splitted up at this position to insert
 					# the information on the phenotype, i.e. the expression level.
 
-			if( $i==0) 	# column names
-			{ 					# as some lines have to be omitted, some indexshifting is required
-				$ret .= $sep . $phenofields[$i];	# addition of the first (at position 0) element of the phenotypes, i.e. the probeset ID
+			if( $i==0) 	# column headers
+			{ 				 	# as some lines have to be omitted, some indexshifting is required
+				$ret .= $sep . $phenofields[$i];# addition of the first (at position 0) element of the phenotypes, i.e. the probeset ID
 			}
 			elsif( $i > 2 ){
 				# Marker data
@@ -397,12 +397,17 @@ while (FCGI::accept >= 0) {
 				or
 			       2==$i # Centimorgan
 			){
-				$ret .= $sep;
+				$ret .= $sep; # no expression data to add
 			}
 
 			$ret .= $sep;
 			$ret .= join($sep,@iline);		# add remaining genotype data
-			$ret .= "\n";
+			$ret .= "\n";	
+
+			if ($verbose) {
+				my @s=split(/$sep/,$ret);
+				print STDERR "Row ",($i+1)," has ".(1+1+$#s)." fields.\n";
+			}
 
 			print $ret;
 		}
