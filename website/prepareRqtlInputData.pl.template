@@ -51,6 +51,25 @@ useful only while developing and invoking the script from the command line
 
 =back
 
+=head1 DETAILS
+
+It is preferable for the
+intput files to have the same IDs for the individuals for the
+marker files and the phenotypic data. If not, then the values
+obviously need to be in the same order, but to have some
+option to test the consistency - just be as strict as possible.
+
+To reorder a matrix, this is how it can be done in R
+
+  df<-read.delim("PHENOFILE",row.names=1)
+  cnames<-colnames(df)
+  cnames.order<-order(cnames)
+  df.sorted<df[,cnames.order]
+  df.sorted<-df[,cnames.order]
+  write.table(x=df.sorted,
+              file="PHENOFILE_ordered.txt",col.names=T,sep="\t",row.names=T)
+
+
 =head1 AUTHORS
 
 Jan Kolbaum,
