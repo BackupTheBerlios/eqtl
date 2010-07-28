@@ -368,7 +368,7 @@ sub perform {
 =cut
 
 	my @fields;
-	if (@fields=$filename=~/^([^_]+)_([^_]+)_([^_]+)_([^_]+)_\(([^)]+)\)/) {
+	if (@fields=$filename=~/^([^_]+)_(.+)_([^_]+)_([^_]+)_\(([^)]+)\)/) {
 		$covars = $fields[4];
 	}
 
