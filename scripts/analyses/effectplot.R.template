@@ -195,7 +195,7 @@ fname.input<-paste(
 	"URLGETDATA",
 	"?probesetid=",
 	opt$trait,
-	"&applyLog2=TRUE&score=",sep="")
+	"&applyLog2=APPLYLOG2&score=",sep="")
 
 if (!is.null(opt$verbose)) {
 	cat("fname.input",":",fname.input,"\n");
