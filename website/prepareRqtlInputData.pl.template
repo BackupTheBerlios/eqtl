@@ -176,6 +176,7 @@ my $individualsString = undef;
 my @individualsArray = undef;
 my $numLinesSkipped=0;
 while( <getFrom> ){
+	chomp;
         my $l = $_;
 	# don't expect quotes
 	$l =~ s/"//g;
@@ -188,7 +189,7 @@ while( <getFrom> ){
 		}
 		print STDERR "Undefined individualsString and p='$p'.\n" if $verbose;
 		# accepting a range of keywords, also the empty first field as produced by R
-		if ($p =~ /^(|id|rat|mouse|name|ind|probeset|probeset_id|probesetid)$/i) {
+		if ($p =~ /^(|id|rat|mouse|name|ind|probeset|probeset_id|probesetid|uniqid)$/i) {
 			$individualsString = $l;
 			@individualsArray=split(/PHENOFIELDSEP/,$individualsString);
 			print STDERR  "individualsString now set to '$individualsString'\n" if $verbose;
@@ -377,16 +378,24 @@ while (FCGI::accept >= 0) {
 					$ret .= $sep;
 					my $expressionValue=$phenofields[$positionOfPhenotypeInfo];
 					if ("TRUE" eq "$applyLog2") {
-						my $expressionValueOffset = 50;
+						my $expressionValueOffset = EXPRESIONVALUEOFFSET;
+						my $v="NA";
 						if (-$expressionValueOffset < $expressionValue) {
-							$ret .= log($expressionValue+$expressionValueOffset)/$logOf2;
+							$v = log($expressionValue+$expressionValueOffset)/$logOf2;
+							if ($verbose) {
+								print STDERR "Adding log value '$v' for value '$expressionValue'.\n";
+							}
 						}
 						else {
-							$ret .= "NA";
+							print STDERR "Line $i has value below negative value for offset.\n";
 						}
+						$ret .= $v;
 					}
 					else {
 						$ret .= $expressionValue;
+						if ($verbose) {
+							print STDERR "Adding value '$expressionValue' in untransformed manner..\n";
+						}
 					}
 				}
 				else {
