@@ -208,6 +208,10 @@ my.cross <- read.cross(	format="csv", dir="",
 			alleles=RQTLREADCROSSALLELES ,
 			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )
 
+if (USEJITTERMAP) {
+	my.cross<-jittermap(my.cross)
+}
+
 if (is.null(my.cross)) {
 	cat("Could no read data for trait '",trait,"'.\n")
 	q("no")
