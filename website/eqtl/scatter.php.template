@@ -178,7 +178,8 @@ University of LE<uuml>beck, Germany, 2009
 		# invocation of external R script
 		#
 
-		if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+		if ( isset($_POST["debug"]) or isset($_GET["debug"])
+		  or isset($_POST["verbose"]) or isset($_GET["verbose"])) {
 			echo "cwd: " . getcwd() . "<br>\n";
 			#print_r($_SERVER);
 		}
@@ -268,7 +269,13 @@ University of LE<uuml>beck, Germany, 2009
 				elseif ($verbose) {
 				    echo "<p>Could not find any prior existing file '$outputfilename'.</p?\n";
 				}
-				if ($verbose) echo "executing '$cmd'<br>\n";
+				if ( isset($_POST["debug"]) or isset($_GET["debug"])) {
+					echo "\$_POST: "; print_r($_POST);
+				}
+				if ( isset($_POST["debug"]) or isset($_GET["debug"])
+				  or isset($_POST["verbose"]) or isset($_GET["verbose"])) {
+					echo "<br>executing '$cmd'<br>\n";
+				}
 				#print_r($attributes);
 				echo "<small><pre>";
 				echo shell_exec($cmd);

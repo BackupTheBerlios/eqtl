@@ -248,9 +248,13 @@ if (!is.null(opt$verbose)) cat("I was here 3.\n")
 
 # find maximal cM for every chromosome
 
-q <- "SELECT locus.chr, MAX(cMorgan_Peak) as max FROM qtl JOIN locus on qtl.Locus=locus.Name GROUP BY locus.chr;"
+q <- "SELECT locus.chr, MAX(cMorgan_Peak) as max FROM qtl JOIN locus on qtl.Locus=locus.Name GROUP BY locus.chr HAVING max IS NOT NULL;"
 chromosomal.length.cM<-dbGetQuery(con,q)
 rownames(chromosomal.length.cM)<-chromosomal.length.cM[,1]
+if (!is.null(opt$verbose)) {
+	cat("chromosomal.length.cM:\n")
+	print(chromosomal.length.cM)
+}
 cM.offset<-c(0,cumsum(chromosomal.length.cM[c(1:(POSITIONOFXCHROMOSOME-1),"X"),"max"]+cM.offset.extra))
 names(cM.offset)<-c(1:(POSITIONOFXCHROMOSOME-1),"X" #,"Y"
 )
@@ -259,9 +263,9 @@ if (!is.null(opt$verbose)) cat("I was here 4.\n")
 
 # find maximal bp for every chromosome
 
-q <- "SELECT chromosome, MAX((start+stop)/2) as max FROM trait GROUP BY chromosome;"
+q <- "SELECT chromosome, MAX((start+stop)/2) as max FROM trait GROUP BY chromosome HAVING chromosome IS NOT NULL and max IS NOT NULL;"
 chromosomal.length.bp<-dbGetQuery(con,q)
-if (any(is.na(chromosomal.length.bp))) {
+if (any(is.na(chromosomal.length.bp)) && nrow(chromosomal.length.bp)<4) {
 	cat("Found NA values in search for maximal chromosomal positions:\n")
 	print(chromosomal.length.bp)
 	cat("This may mean that you have not completely set up your trait table, yet.\n")
@@ -418,9 +422,17 @@ for(cov in covariates) {
      nf <- layout(matrix(c(1,2), 2, 1, byrow=TRUE), heights=c(6,lcm(6)),widths=c(1),respect=FALSE)
   }
 
+  xlim.value<-c(0,max(cM.offset,na.rm=T))
+  if (!is.null(opt$verbose)) {
+	cat("xlim: "); print(xlim.value)
+  }
+  ylim.value<-c(0,max(bp.offset,na.rm=T))
+  if (!is.null(opt$verbose)) {
+	cat("ylim: "); print(ylim.value)
+  }
   plot(bp.offset.extra + pos.linear.cM,
        cM.offset.extra + pos.linear.bp,
-     xlim=c(0,max(cM.offset)),ylim=c(0,max(bp.offset)),
+     xlim=xlim.value,ylim=ylim.value,
      axes=FALSE,main=opt$main,sub=opt$sub)
   abline(v=cM.offset, col=opt$linecolour, lty=opt$linetype, lwd=opt$linewidth)
   abline(h=bp.offset, col=opt$linecolour, lty=opt$linetype, lwd=opt$linewidth)
