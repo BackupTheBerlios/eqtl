@@ -42,6 +42,22 @@ redundancy and copy over the values as follows:
 with LIMIT 1 not being required, in theory, since trait_id should be a primary
 key both in TRAITSDETAILSCHIPDATA and in trait.
 
+There are other scripts to complete information by comparisons with Ensembl
+on the basis of the data provided this way. If Ensembl is not available,
+you may prefer to import such information directly from the Affymetrix
+(or whoever designed your chip) annotation files, e.g. by a collection
+of more or less ugly shell scripts. One example of such is put below:
+
+   $ cut -f1,13 TRAITSDETAILSCHIPDATA | \
+     cut -f1,2 -d\ | tr -d "()" | \
+     grep -v Alignment | \
+     tr -- "- :" "\t" | \
+     sed -e 's/chr//' | \
+     awk '{printf("update trait set chromosome=\"%s\",start=%d,stop=%d where trait_id=\"%s\";\n",$2,$3,$4,$1)}' | \
+     mysql -u DATABASEEQTLUSER -h DATABASEHOSTLOCAL DATABASEEQTLNAME
+
+
+
 =head1 OPTIONS
 
 =over 4
