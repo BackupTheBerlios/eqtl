@@ -417,6 +417,8 @@ if (USECALCGENOPROB) {
 
 EOWRITETODISK
 
+	my $writePermutations; # don't move this too far down because of non-obvious control/data flow 
+
 	if( $mode eq 'scantwo' ){
 		$getData .= <<EOWRITETODISK;
 my.cross <- sim.geno(my.cross, step=$steps, n.draws=$execParams{'draws'})
@@ -552,7 +554,6 @@ EOWRITETODISK
 EOWRITETODISK
 
 
-	my $writePermutations;
 	$writePermutations = <<EOWRITETODISK;
 
 if (acceptable) {
