@@ -98,7 +98,11 @@ Maja Jagodic E<#263>
 
 =head1 COPYRIGHT
 
-University of LE<uuml>beck, Germany, and Karolinska Institute, Stockholm, Sweden
+2009 University of LE<uuml>beck, Germany
+
+2009 Karolinska Institute, Stockholm, Sweden
+
+2010 University Clinics Schleswig-Holstein, LE<uuml>beck, Germany
 
 =cut
 
@@ -236,11 +240,11 @@ if (is.null(opt$imageheight)) {
    }
 }
 
-#if (!is.null(opt$verbose)) cat("I was here 2.\n")
+if (!is.null(opt$verbose)) cat("I was here 2.\n")
 
 con <- dbConnect(MySQL(),host="DATABASEHOSTLOCAL",db="DATABASEEQTLNAME",user="DATABASEEQTLUSER")
 
-#if (!is.null(opt$verbose)) cat("I was here 3.\n")
+if (!is.null(opt$verbose)) cat("I was here 3.\n")
 
 # find maximal cM for every chromosome
 
@@ -251,18 +255,24 @@ cM.offset<-c(0,cumsum(chromosomal.length.cM[c(1:(POSITIONOFXCHROMOSOME-1),"X"),"
 names(cM.offset)<-c(1:(POSITIONOFXCHROMOSOME-1),"X" #,"Y"
 )
 
-#if (!is.null(opt$verbose)) cat("I was here 4.\n")
+if (!is.null(opt$verbose)) cat("I was here 4.\n")
 
 # find maximal bp for every chromosome
 
 q <- "SELECT chromosome, MAX((start+stop)/2) as max FROM trait GROUP BY chromosome;"
 chromosomal.length.bp<-dbGetQuery(con,q)
+if (any(is.na(chromosomal.length.bp))) {
+	cat("Found NA values in search for maximal chromosomal positions:\n")
+	print(chromosomal.length.bp)
+	cat("This may mean that you have not completely set up your trait table, yet.\n")
+	q(save="no")
+}
 rownames(chromosomal.length.bp)<-chromosomal.length.bp[,1]
 bp.offset<-c(0,cumsum(chromosomal.length.bp[c(1:(POSITIONOFXCHROMOSOME-1),"X"),"max"]+bp.offset.extra))
 names(bp.offset)<-c(1:(POSITIONOFXCHROMOSOME-1),"X" #,"Y"
 )
 
-#if (!is.null(opt$verbose)) cat("I was here 5.\n")
+if (!is.null(opt$verbose)) cat("I was here 5.\n")
 
 # Find covariates to work on
 
@@ -271,7 +281,7 @@ covariates.queried<-c("none",dbGetQuery(con,q)[,"covariates"])
 cat(paste("Found the following covariates in the database: '",
           paste(covariates.queried,collapse="';'",sep=""),"'\n",sep=""))
 
-#if (!is.null(opt$verbose)) cat("I was here 6.\n")
+if (!is.null(opt$verbose)) cat("I was here 6.\n")
 
 covariates.filter.string<-opt$covariates
 if(is.null(covariates.filter.string)) {
@@ -280,7 +290,7 @@ if(is.null(covariates.filter.string)) {
 }
 covariates.filter.list<-strsplit(covariates.filter.string,";")[[1]]
 
-#if (!is.null(opt$verbose)) cat("I was here 7.\n")
+if (!is.null(opt$verbose)) cat("I was here 7.\n")
 
 
 covariates<-covariates.queried[covariates.queried %in% covariates.filter.list]
