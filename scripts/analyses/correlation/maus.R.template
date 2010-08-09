@@ -35,7 +35,7 @@ minc <- function(v, c = 1) {
   return(sort(res));
 }
 
-##### Daten laden
+##### Loading data
 #rootdir <- "D:\\EQTL\\";
 rootdir <- "~/Documents/EQTL/";
 loadexpr <- function() {
@@ -43,11 +43,11 @@ loadexpr <- function() {
   return(read.table(filename, header=T, sep="\t", row.names=1));
 }
 loadquan <- function() {
-  filename <- paste(rootdir, "DABC_091222_update.csv", sep="");
+  filename <- paste(rootdir, "GENOFILE", sep="");
   return(t(read.table(filename, header=T, sep=",")));
 }
 
-##### Werte extrahieren
+##### Extrating values
 if (T) {
   expr <- loadexpr();
   exprrownames <- rownames(expr);
