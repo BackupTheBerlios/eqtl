@@ -2,26 +2,30 @@
 TEMPLATEWARNINGHASH
 
 ##### Find most max values, return up to count values
-maxc <- function(v, c = 1) {
-  if (c > length(v))
-    stop(paste("Maxc tried to extract ",c," elements from a list of ",length(v)," elements!"));
-  res <- rep(0, times=c);
-  maxind <- 0;
-  for (i in 1:c) {
-    maxind <- which.max(v);
-    res[i] <- maxind;
-    v[maxind] = NA;
+maxc <- function(v, num=1) {
+  if (num > length(v)) {
+    warn(paste("Maxc tried to extract ",c," elements from a list of ",length(v)," elements!"))
+    return(sort(v,decreasing = TRUE))
   }
-  return(sort(res));
+  res <- rep(0, times=num)
+  maxind <- 0
+  for (i in 1:num) {
+    maxind <- which.max(v)
+    res[i] <- maxind
+    v[maxind] = NA
+  }
+  return(sort(res))
 }
 
 ##### Find most min values, return up to count values
-minc <- function(v, c = 1) {
-  if (c > length(v))
-    stop(paste("Minc tried to extract ",c," elements from a list of ",length(v)," elements!"));
-  res <- rep(0, times=c);
+minc <- function(v, num=1) {
+  if (num > length(v)) {
+    warn(paste("Minc tried to extract ",c," elements from a list of ",length(v)," elements!"));
+    return(sort(v,decreasing = FALSE))
+  }
+  res <- rep(0, times=num)
   minind <- 0;
-  for (i in 1:c) {
+  for (i in 1:num) {
     minind <- which.min(v);
     res[i] <- minind;
     v[minind] = NA;
