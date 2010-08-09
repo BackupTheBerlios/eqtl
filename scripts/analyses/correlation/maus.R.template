@@ -20,21 +20,21 @@ maxc <- function(v, num=1) {
 ##### Find most min values, return up to count values
 minc <- function(v, num=1) {
   if (num > length(v)) {
-    warn(paste("Minc tried to extract ",c," elements from a list of ",length(v)," elements!"));
+    warn(paste("Minc tried to extract ",c," elements from a list of ",length(v)," elements!"))
     return(sort(v,decreasing = FALSE))
   }
   res <- rep(0, times=num)
-  minind <- 0;
+  minind <- 0
   for (i in 1:num) {
-    minind <- which.min(v);
-    res[i] <- minind;
-    v[minind] = NA;
+    minind <- which.min(v)
+    res[i] <- minind
+    v[minind] = NA
   }
-  return(sort(res));
+  return(sort(res))
 }
 
 ##### Loading data
-#rootdir <- "D:\\EQTL\\";
+#rootdir <- "D:\\EQTL\\"
 load.data <- function(type) {
   rootdir <- paste("BASEDIR","CSVDATABASE",sep="/")
   if ("expression" == type) {
@@ -47,7 +47,7 @@ load.data <- function(type) {
   if (!file.exists(filename)) {
     stop(paste("Failed to find file '".filename,"' to read ",type," data.\n",sep=""))
   }
-  d<-NULL;
+  d<-NULL
   if ("expression" == type) {
     d<-read.table(filename, header=T, sep="PHENOFIELDSEP", row.names=1))
   } else if ("genotypes" == type) {
@@ -63,243 +63,243 @@ quan<-NULL
 
 ##### Extrating values
 if (T) {
-  expr <- load.data("expression");
-  exprrownames <- rownames(expr);
-  cat("Loaded expression data\n");
-  cat(dim(expr)); cat("\n");
-  quandata <- load.data("genotypes");
-  chromos <- quandata[,1];
-  cmorgan <- quandata[,2];
-  quan <- quandata[,3:dim(quandata)[2]];
-  cat("Loaded quantitative data\n");
-  cat(dim(quan)); cat("\n");
+  expr <- load.data("expression")
+  exprrownames <- rownames(expr)
+  cat("Loaded expression data\n")
+  cat(dim(expr)); cat("\n")
+  quandata <- load.data("genotypes")
+  chromos <- quandata[,1]
+  cmorgan <- quandata[,2]
+  quan <- quandata[,3:dim(quandata)[2]]
+  cat("Loaded quantitative data\n")
+  cat(dim(quan)); cat("\n")
 }
 
 ##### Plot some expression samples
 plotExpr <- function(expr, ch) {
-#  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlim=c(0, 15), xlab=ch[1], ylim=c(0, 15), ylab=ch[2]);
-  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlab=ch[1], ylab=ch[2]);
+#  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlim=c(0, 15), xlab=ch[1], ylim=c(0, 15), ylab=ch[2])
+  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlab=ch[1], ylab=ch[2])
 }
 plotExprSamples <- function(expr, n = 100) {
   p<-par(ask)
-  par(ask=T);
+  par(ask=T)
   for (i in 1:n) {
-    ch <- sample(1:dim(expr)[1], 2, replace=F);
-    cat(ch); cat("\n");
-    plotExpr(expr, ch);
+    ch <- sample(1:dim(expr)[1], 2, replace=F)
+    cat(ch); cat("\n")
+    plotExpr(expr, ch)
   }
   par(ask=p)
 }
-# plotExprSamples(expr);
+# plotExprSamples(expr)
 plotExprPairs <- function(expr, n = 100, p = 3) {
   for (i in 1:n) {
-    ch <- sample(1:dim(expr)[1], p, replace=F);
-    cat(ch); cat("\n");
-    pairs(t(expr[ch,]));
-    par(ask=T);
+    ch <- sample(1:dim(expr)[1], p, replace=F)
+    cat(ch); cat("\n")
+    pairs(t(expr[ch,]))
+    par(ask=T)
   }
 }
-# plotExprPairs(expr);
+# plotExprPairs(expr)
 
 ##### Extract the EAE values and corresponding cols
 getEAE <- function(quan) {
-  eae <- as.numeric(quan['eae',]);
-  ms <- which(!is.na(eae));
-  val <- eae[ms];
-  val[val == 0] <- -1;
-  return(list(val, ms));
+  eae <- as.numeric(quan['eae',])
+  ms <- which(!is.na(eae))
+  val <- eae[ms]
+  val[val == 0] <- -1
+  return(list(val, ms))
 }
-eae <- getEAE(quan);
+eae <- getEAE(quan)
 
 ##### Extract the marker values
 getMarker <- function(quan) {
   # Extract raw marker data
-  marker <- apply(quan[43:180,], c(1, 2), as.numeric);
+  marker <- apply(quan[43:180,], c(1, 2), as.numeric)
   # Extract marker names
-  mnames <- rownames(marker);
+  mnames <- rownames(marker)
   # List of chromosomes from (first) to (last-1) index
   chromList <- list(1:12, 14:21, 23:27, 29:39, 41:47,
     49:54, 56:61, 63:68, 70:77, 79:86, 88:90, 92:95,
     97:99, 101:107, 109:112, 114:118, 120:123, 125:127,
-    129:131, 133:134, 136:137);
+    129:131, 133:134, 136:137)
   # Resulting data
-  res <- c();
+  res <- c()
   # For each chromosome
   for (k in 1:length(chromList)) {
     # Get chromosome indices
-    chrom <- chromList[[k]];
+    chrom <- chromList[[k]]
     # Add first marker
-    res <- rbind(res, marker[chrom[1],]);
-    name <- mnames[chrom[1]];
-    rownames(res)[dim(res)[1]] <- name;
+    res <- rbind(res, marker[chrom[1],])
+    name <- mnames[chrom[1]]
+    rownames(res)[dim(res)[1]] <- name
     # For each pair of markers
     for (i in chrom) {
-      ri <- marker[i,];
-      rw <- which(ri != marker[i+1,]);
-      ri[rw] <- NA;
-      res <- rbind(res, ri);
-      names <- mnames[c(i,i+1)];
-      rownames(res)[dim(res)[1]] <- paste(names, collapse="");
+      ri <- marker[i,]
+      rw <- which(ri != marker[i+1,])
+      ri[rw] <- NA
+      res <- rbind(res, ri)
+      names <- mnames[c(i,i+1)]
+      rownames(res)[dim(res)[1]] <- paste(names, collapse="")
     }
     # Add last marker
-    res <- rbind(res, marker[chrom[length(chrom)]+1,]);
-    name <- mnames[chrom[length(chrom)]+1];
-    rownames(res)[dim(res)[1]] <- name;
+    res <- rbind(res, marker[chrom[length(chrom)]+1,])
+    name <- mnames[chrom[length(chrom)]+1]
+    rownames(res)[dim(res)[1]] <- name
   }
-  return(res);
+  return(res)
 }
-marker <- getMarker(quan);
-markerrownames <- rownames(marker);
+marker <- getMarker(quan)
+markerrownames <- rownames(marker)
 
 ##### Analyze clusters on pairs of expressions by marker values
 analyzeclusters <- function(e1, e2, m, draw) {
-  d <- t(expr[c(e1, e2), ]);
-  c <- marker[m, ] + 1;
-  p <- which(c == 2);
-  n <- which(c == 3);
+  d <- t(expr[c(e1, e2), ])
+  c <- marker[m, ] + 1
+  p <- which(c == 2)
+  n <- which(c == 3)
   if (length(p) == 0 || length(n) == 0)
-    return(0);
-  posm <- colMeans(d[p,]);
-  negm <- colMeans(d[n,]);
-  c[is.na(c)] <- 1;
+    return(0)
+  posm <- colMeans(d[p,])
+  negm <- colMeans(d[n,])
+  c[is.na(c)] <- 1
   if (draw) {
-    xlab <- paste("Probeset", exprrownames[e1], sep=" ");
-    ylab <- paste("Probeset", exprrownames[e2], sep=" ");
-    sub <- paste("Marker ", markerrownames[m], sep="");
-    plot(d[,1], d[,2], col=c, xlab=xlab, ylab=ylab, sub=sub);
-    points(t(posm), col = 2, pch = 8, cex = 2);
-    points(t(negm), col = 3, pch = 8, cex = 2);
+    xlab <- paste("Probeset", exprrownames[e1], sep=" ")
+    ylab <- paste("Probeset", exprrownames[e2], sep=" ")
+    sub <- paste("Marker ", markerrownames[m], sep="")
+    plot(d[,1], d[,2], col=c, xlab=xlab, ylab=ylab, sub=sub)
+    points(t(posm), col = 2, pch = 8, cex = 2)
+    points(t(negm), col = 3, pch = 8, cex = 2)
   }
-  res <- list(posm = posm, negm = negm);
-  return(res);
+  res <- list(posm = posm, negm = negm)
+  return(res)
 }
 
 # Berechnung der Mittelwertabstaende von einem Paar von Probeset Zeilennummern
 evalresiduals <- function(e1, e2) {
-  rp <- c();
-  rn <- c();
+  rp <- c()
+  rn <- c()
   for (m in 1:dim(marker)[1]) {
-    res <- analyzeclusters(e1, e2, m, F);
+    res <- analyzeclusters(e1, e2, m, F)
     if (!is.double(res)) {
-      rp <- cbind(rp, res$posm);
-      rn <- cbind(rn, res$negm);
+      rp <- cbind(rp, res$posm)
+      rn <- cbind(rn, res$negm)
     } else {
-      rp <- cbind(rp, c(0, 0));
-      rn <- cbind(rn, c(0, 0));
+      rp <- cbind(rp, c(0, 0))
+      rn <- cbind(rn, c(0, 0))
     }
   }
-  r <- sqrt(colSums((rp - rn)^2));
-  return(r);
+  r <- sqrt(colSums((rp - rn)^2))
+  return(r)
 }
 
 
-e1 <- 1444;
-e2 <- 3821;
-analyzeclusters(e1, e2, 134, T);
+e1 <- 1444
+e2 <- 3821
+analyzeclusters(e1, e2, 134, T)
 
 
-e1 <- 1444;
-e2 <- 7199;
-analyzeclusters(e1, e2, 99, T);
+e1 <- 1444
+e2 <- 7199
+analyzeclusters(e1, e2, 99, T)
 
 
 ##### Liste berechnen
-e1 <- 1444;
-fname <- paste(c("test1", e1, ".csv"), collapse="");
+e1 <- 1444
+fname <- paste(c("test1", e1, ".csv"), collapse="")
 for (e2 in (e1+1):dim(expr)[1]) {
-  r <- evalresiduals(e1, e2);
-  m <- maxc(r);
-  analyzeclusters(e1, e2, 134, F);
-  v <- max(r) / sqrt(var(r));
-  data <- paste(c(paste(c(e1, e2, m, v), collapse=", "), "\n"), collapse="");
-  cat(data, file=fname, append=T);
+  r <- evalresiduals(e1, e2)
+  m <- maxc(r)
+  analyzeclusters(e1, e2, 134, F)
+  v <- max(r) / sqrt(var(r))
+  data <- paste(c(paste(c(e1, e2, m, v), collapse=", "), "\n"), collapse="")
+  cat(data, file=fname, append=T)
 }
 
 ##### Analyse one interesting pair (1444, 3821)
-cp <- c(1444, 3821);
-kmeansres <- kmeans(t(expr[cp,]), 2);
-plot(t(expr[cp,]), col=kmeansres$cluster);
-points(kmeansres$centers, col=1:2, pch=8, cex=2);
+cp <- c(1444, 3821)
+kmeansres <- kmeans(t(expr[cp,]), 2)
+plot(t(expr[cp,]), col=kmeansres$cluster)
+points(kmeansres$centers, col=1:2, pch=8, cex=2)
 
 # Evaluate k-means clusters
-  c1 <- which(kmeansres$cluster==1);
-  c2 <- which(kmeansres$cluster==2);
-  ce <- kmeansres$centers;
-  d <- ce[2,] - ce[1,];
-  dis <- sqrt(d[1]^2 + d[2]^2);
+  c1 <- which(kmeansres$cluster==1)
+  c2 <- which(kmeansres$cluster==2)
+  ce <- kmeansres$centers
+  d <- ce[2,] - ce[1,]
+  dis <- sqrt(d[1]^2 + d[2]^2)
   p1 <- sqrt(var(colSums(d * expr[cp, c1])))
   p2 <- sqrt(var(colSums(d * expr[cp, c2])))
 
 evalPair <- function(expr, pair, show) {
-  kmeansres <- kmeans(t(expr[pair,]), 2);
+  kmeansres <- kmeans(t(expr[pair,]), 2)
    if (show) {
-    plot(t(expr[pair,]), col=kmeansres$cluster);
-    points(kmeansres$centers, col=1:2, pch=8, cex=2);
+    plot(t(expr[pair,]), col=kmeansres$cluster)
+    points(kmeansres$centers, col=1:2, pch=8, cex=2)
   }
-  c1 <- which(kmeansres$cluster==1);
-  c2 <- which(kmeansres$cluster==2);
-  ce <- kmeansres$centers;
-  d <- ce[2,] - ce[1,];
-  dis <- sqrt(d[1]^2 + d[2]^2);
-  p1 <- sqrt(var(colSums(d * expr[pair, c1])));
-  p2 <- sqrt(var(colSums(d * expr[pair, c2])));
-  return((p1 + p2) / dis);
+  c1 <- which(kmeansres$cluster==1)
+  c2 <- which(kmeansres$cluster==2)
+  ce <- kmeansres$centers
+  d <- ce[2,] - ce[1,]
+  dis <- sqrt(d[1]^2 + d[2]^2)
+  p1 <- sqrt(var(colSums(d * expr[pair, c1])))
+  p2 <- sqrt(var(colSums(d * expr[pair, c2])))
+  return((p1 + p2) / dis)
 }
 
 # sieht ganz gut aus:
-maxi <- maxc(abs(cor(kmeansres$cluster, t(expr[-cp,]))), 10);
-plot(t(expr[cp[1],]), col=kmeansres$cluster);
-plot(t(expr[cp[2],]), col=kmeansres$cluster);
+maxi <- maxc(abs(cor(kmeansres$cluster, t(expr[-cp,]))), 10)
+plot(t(expr[cp[1],]), col=kmeansres$cluster)
+plot(t(expr[cp[2],]), col=kmeansres$cluster)
 for (i in 1:10) {
-  plot(t(expr[c(cp[2],maxi[i]),]), col=kmeansres$cluster);
-  par(ask=T);
+  plot(t(expr[c(cp[2],maxi[i]),]), col=kmeansres$cluster)
+  par(ask=T)
 }
 
 # Decision tree for clusters of cp on markers
-library(rpart);
-dtdata <- as.data.frame(kmeansres$cluster);
-colnames(dtdata)[1] <- "cluster";
-dtdata <- cbind(dtdata, t(marker));
-dtdataframe <- data.frame(dtdata);
-mnames <- rownames(marker);
+library(rpart)
+dtdata <- as.data.frame(kmeansres$cluster)
+colnames(dtdata)[1] <- "cluster"
+dtdata <- cbind(dtdata, t(marker))
+dtdataframe <- data.frame(dtdata)
+mnames <- rownames(marker)
 # Create formula
-f <- paste(c("cluster~", paste(mnames, collapse="+")), collapse="");
-dtc <- rpart.control(xval=1, minbucket=2, minsplit=4, cp=0.02);
+f <- paste(c("cluster~", paste(mnames, collapse="+")), collapse="")
+dtc <- rpart.control(xval=1, minbucket=2, minsplit=4, cp=0.02)
 # Build tree
-r <- rpart(formula = f, data = dtdataframe, method="class", control=dtc);
+r <- rpart(formula = f, data = dtdataframe, method="class", control=dtc)
 # Draw tree
-plot(r, branch=.3, compress=T);
-text(r);
+plot(r, branch=.3, compress=T)
+text(r)
 
 ##### 3D-Scatterplot example
 scatterexample <- function() {
-  c1 = rep(5:10, times=6);
-  c2 = rep(5:10, each=6);
-  c3 = 3 - 5*c1 - 5*c2 + c1 * c2 + rnorm(6*6);
+  c1 = rep(5:10, times=6)
+  c2 = rep(5:10, each=6)
+  c3 = 3 - 5*c1 - 5*c2 + c1 * c2 + rnorm(6*6)
   c <- data.frame(c1 = c1, c2 = c2, c3 = c3)
   s3d <- scatterplot3d(c, type="h", highlight.3d=TRUE, 
          angle=75, scale.y=0.7, pch=16, main="scatterplot3d - 5")
-  my.lm <- lm(c3 ~ c1 + c2 + c1:c2)$coefficients;
-  c3p <- my.lm[1]+my.lm[2]*c1+my.lm[3]*c2+my.lm[4]*c1*c2;
-  s3d$points3d(data.frame(c1, c2, c3p));
+  my.lm <- lm(c3 ~ c1 + c2 + c1:c2)$coefficients
+  c3p <- my.lm[1]+my.lm[2]*c1+my.lm[3]*c2+my.lm[4]*c1*c2
+  s3d$points3d(data.frame(c1, c2, c3p))
 }
 
 ##### Search for expression values corresponding to EAE
-c <- cor(eae[[1]], t(expr[,eae[[2]]]));
-numcand <- 15;
-cand <- minc(abs(c), numcand);
+c <- cor(eae[[1]], t(expr[,eae[[2]]]))
+numcand <- 15
+cand <- minc(abs(c), numcand)
 ##### Search for linear model for AEA
-lmdata <- data.frame(t(rbind(eae = eae[[1]] , expr[cand, eae[[2]]])));
-cn <- colnames(lmdata);
-res <- c();
+lmdata <- data.frame(t(rbind(eae = eae[[1]] , expr[cand, eae[[2]]])))
+cn <- colnames(lmdata)
+res <- c()
 for (fac1 in 2:(length(cn)-1)) {
   for (fac2 in (fac1+1):length(cn)) {
-    f <- as.formula(paste("eae ~ ", cn[fac1], "+", cn[fac2], "+", cn[fac1], ":", cn[fac2], collapse=""));
-    mylm <- lm(f, data = lmdata);
-    res <- rbind(res, c(fac1, fac2, mean(abs(mylm$residuals))));
+    f <- as.formula(paste("eae ~ ", cn[fac1], "+", cn[fac2], "+", cn[fac1], ":", cn[fac2], collapse=""))
+    mylm <- lm(f, data = lmdata)
+    res <- rbind(res, c(fac1, fac2, mean(abs(mylm$residuals))))
   }
 }
-print(res);
+print(res)
 
 x <- rnorm(15)
 y <- 10*x + rnorm(15)
@@ -307,41 +307,41 @@ predict(lm(y ~ x))
 
 
 ##### Build decision tree directly from markers
-library(rpart);
-dtdata <- matrix(eae[[1]]);
-colnames(dtdata)[1] <- "eae";
-dtdata <- cbind(dtdata, t(marker[, eae[[2]]]));
-dtdataframe <- data.frame(dtdata);
-mnames <- rownames(marker);
+library(rpart)
+dtdata <- matrix(eae[[1]])
+colnames(dtdata)[1] <- "eae"
+dtdata <- cbind(dtdata, t(marker[, eae[[2]]]))
+dtdataframe <- data.frame(dtdata)
+mnames <- rownames(marker)
 # Create formula
-f <- paste(c("eae~", paste(mnames, collapse="+")), collapse="");
-dtc <- rpart.control(xval=1, minbucket=2, minsplit=4, cp=0.02);
+f <- paste(c("eae~", paste(mnames, collapse="+")), collapse="")
+dtc <- rpart.control(xval=1, minbucket=2, minsplit=4, cp=0.02)
 # Build tree
-r <- rpart(formula = f, data = dtdataframe, method="class", control=dtc);
+r <- rpart(formula = f, data = dtdataframe, method="class", control=dtc)
 # Draw tree
-plot(r, branch=.3, compress=T);
-text(r);
+plot(r, branch=.3, compress=T)
+text(r)
 
 
 ##### ...
-#correl <- cor(eae, t(expr[,ms]));
+#correl <- cor(eae, t(expr[,ms]))
 
-testexpr <- abs(cor(t(expr[1:100,])));
-testexpr[testexpr == 1] <- 0;
+testexpr <- abs(cor(t(expr[1:100,])))
+testexpr[testexpr == 1] <- 0
 which(testexpr > 0.992, arr.ind=T)
 
 
 ##### Calculate entropy of probabilities p
 entropy <- function(p) {
-  p.sum <- sum(p);
+  p.sum <- sum(p)
   if (min(p) < 0 || p.sum <= 0)
-    return(NA);
-  p.norm <- p[p > 0] / p.sum;
-  return(-sum(log2(p.norm) * p.norm));
+    return(NA)
+  p.norm <- p[p > 0] / p.sum
+  return(-sum(log2(p.norm) * p.norm))
 }
 
 
-#entropy(c(sum(eae>0),sum(eae<0)));
+#entropy(c(sum(eae>0),sum(eae<0)))
 
 # eae = sign(f1 * gen1 + f2 * gen2 + f3 * gen1 * gen2)
 
