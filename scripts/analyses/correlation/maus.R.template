@@ -1,15 +1,6 @@
 
 TEMPLATEWARNINGHASH
 
-##### Calculate entropy of probabilities p
-entropy <- function(p) {
-  p.sum <- sum(p);
-  if (min(p) < 0 || p.sum <= 0)
-    return(NA);
-  p.norm <- p[p > 0] / p.sum;
-  return(-sum(log2(p.norm) * p.norm));
-}
-
 ##### Find most max values, return up to count values
 maxc <- function(v, c = 1) {
   if (c > length(v))
@@ -323,6 +314,17 @@ text(r);
 testexpr <- abs(cor(t(expr[1:100,])));
 testexpr[testexpr == 1] <- 0;
 which(testexpr > 0.992, arr.ind=T)
+
+
+##### Calculate entropy of probabilities p
+entropy <- function(p) {
+  p.sum <- sum(p);
+  if (min(p) < 0 || p.sum <= 0)
+    return(NA);
+  p.norm <- p[p > 0] / p.sum;
+  return(-sum(log2(p.norm) * p.norm));
+}
+
 
 #entropy(c(sum(eae>0),sum(eae<0)));
 
