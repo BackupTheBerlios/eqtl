@@ -1,3 +1,6 @@
+
+TEMPLATEWARNINGHASH
+
 ##### Calculate entropy of probabilities p
 entropy <- function(p) {
   p.sum <- sum(p);
@@ -37,15 +40,20 @@ minc <- function(v, c = 1) {
 
 ##### Loading data
 #rootdir <- "D:\\EQTL\\";
-rootdir <- "~/Documents/EQTL/";
+rootdir <- paste("BASEDIR","CSVDATABASE",sep="/");
 loadexpr <- function() {
-  filename <- paste(rootdir, "rma-gene_ordered.tsv", sep="");
-  return(read.table(filename, header=T, sep="\t", row.names=1));
+  filename <- paste(rootdir, "PHENOFILE", sep="/");
+  return(read.table(filename, header=T, sep="PHENOFIELDSEP", row.names=1));
 }
 loadquan <- function() {
-  filename <- paste(rootdir, "GENOFILE", sep="");
-  return(t(read.table(filename, header=T, sep=",")));
+  filename <- paste(rootdir, "GENOFILE", sep="/");
+  return(t(read.table(filename, header=T, sep="GENOFIELDSEP")));
 }
+
+# Initialisation of chromosomes, cMorgan distances and the expression values
+chromos<-NULL
+cmorgan<-NULL
+quan<-NULL
 
 ##### Extrating values
 if (T) {
@@ -67,12 +75,14 @@ plotExpr <- function(expr, ch) {
   plot(t(expr[ch[1],]), t(expr[ch[2],]), xlab=ch[1], ylab=ch[2]);
 }
 plotExprSamples <- function(expr, n = 100) {
+  p<-par(ask)
+  par(ask=T);
   for (i in 1:n) {
     ch <- sample(1:dim(expr)[1], 2, replace=F);
     cat(ch); cat("\n");
     plotExpr(expr, ch);
-    par(ask=T);
   }
+  par(ask=p)
 }
 # plotExprSamples(expr);
 plotExprPairs <- function(expr, n = 100, p = 3) {
@@ -157,6 +167,8 @@ analyzeclusters <- function(e1, e2, m, draw) {
   res <- list(posm = posm, negm = negm);
   return(res);
 }
+
+# Berechnung der Mittelwertabstaende von einem Paar von Probeset Zeilennummern
 evalresiduals <- function(e1, e2) {
   rp <- c();
   rn <- c();
@@ -187,7 +199,6 @@ analyzeclusters(e1, e2, 99, T);
 
 ##### Liste berechnen
 e1 <- 1444;
-e2 <- 3821;
 fname <- paste(c("test1", e1, ".csv"), collapse="");
 for (e2 in (e1+1):dim(expr)[1]) {
   r <- evalresiduals(e1, e2);
