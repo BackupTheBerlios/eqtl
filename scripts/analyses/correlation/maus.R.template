@@ -35,14 +35,25 @@ minc <- function(v, num=1) {
 
 ##### Loading data
 #rootdir <- "D:\\EQTL\\";
-rootdir <- paste("BASEDIR","CSVDATABASE",sep="/");
-loadexpr <- function() {
-  filename <- paste(rootdir, "PHENOFILE", sep="/");
-  return(read.table(filename, header=T, sep="PHENOFIELDSEP", row.names=1));
-}
-loadquan <- function() {
-  filename <- paste(rootdir, "GENOFILE", sep="/");
-  return(t(read.table(filename, header=T, sep="GENOFIELDSEP")));
+load.data <- function(type) {
+  rootdir <- paste("BASEDIR","CSVDATABASE",sep="/")
+  if ("expression" == type) {
+    filename <- paste(rootdir, "PHENOFILE", sep="/")
+  } else if ("genotypes" == type) {
+    filename <- paste(rootdir, "GENOFILE", sep="/")
+  } else {
+    stop(paste("Don't know how to read data of type '",type,"'.\n",sep=""))
+  }
+  if (!file.exists(filename)) {
+    stop(paste("Failed to find file '".filename,"' to read ",type," data.\n",sep=""))
+  }
+  d<-NULL;
+  if ("expression" == type) {
+    d<-read.table(filename, header=T, sep="PHENOFIELDSEP", row.names=1))
+  } else if ("genotypes" == type) {
+    d <- t(read.table(filename, header=T, sep="GENOFIELDSEP"))
+  }
+  return(d)
 }
 
 # Initialisation of chromosomes, cMorgan distances and the expression values
@@ -52,11 +63,11 @@ quan<-NULL
 
 ##### Extrating values
 if (T) {
-  expr <- loadexpr();
+  expr <- load.data("expression");
   exprrownames <- rownames(expr);
   cat("Loaded expression data\n");
   cat(dim(expr)); cat("\n");
-  quandata <- loadquan();
+  quandata <- load.data("genotypes");
   chromos <- quandata[,1];
   cmorgan <- quandata[,2];
   quan <- quandata[,3:dim(quandata)[2]];
