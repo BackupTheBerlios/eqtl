@@ -39,17 +39,18 @@ minc <- function(v, c = 1) {
 #rootdir <- "D:\\EQTL\\";
 rootdir <- "~/Documents/EQTL/";
 loadexpr <- function() {
-  filename <- paste(c(rootdir, "rma-gene_ordered.tsv"), collapse="");
+  filename <- paste(rootdir, "rma-gene_ordered.tsv", sep="");
   return(read.table(filename, header=T, sep="\t", row.names=1));
 }
 loadquan <- function() {
-  filename <- paste(c(rootdir, "DABC_091222_update.csv"), collapse="");
+  filename <- paste(rootdir, "DABC_091222_update.csv", sep="");
   return(t(read.table(filename, header=T, sep=",")));
 }
 
 ##### Werte extrahieren
 if (T) {
   expr <- loadexpr();
+  exprrownames <- rownames(expr);
   cat("Loaded expression data\n");
   cat(dim(expr)); cat("\n");
   quandata <- loadquan();
@@ -132,24 +133,26 @@ getMarker <- function(quan) {
   return(res);
 }
 marker <- getMarker(quan);
+markerrownames <- rownames(marker);
 
 ##### Analyze clusters on pairs of expressions by marker values
 analyzeclusters <- function(e1, e2, m, draw) {
   d <- t(expr[c(e1, e2), ]);
-  c <- marker[m, ];
-  p <- which(c == 1);
-  n <- which(c == 2);
+  c <- marker[m, ] + 1;
+  p <- which(c == 2);
+  n <- which(c == 3);
   if (length(p) == 0 || length(n) == 0)
     return(0);
   posm <- colMeans(d[p,]);
   negm <- colMeans(d[n,]);
+  c[is.na(c)] <- 1;
   if (draw) {
-    xlab <- paste("Probeset", e1, sep=" ");
-    ylab <- paste("Probeset", e2, sep=" ");
-    sub <- paste("Marker ", m, sep="");
+    xlab <- paste("Probeset", exprrownames[e1], sep=" ");
+    ylab <- paste("Probeset", exprrownames[e2], sep=" ");
+    sub <- paste("Marker ", markerrownames[m], sep="");
     plot(d[,1], d[,2], col=c, xlab=xlab, ylab=ylab, sub=sub);
-    points(t(posm), col = 1, pch = 8, cex = 2);
-    points(t(negm), col = 2, pch = 8, cex = 2);
+    points(t(posm), col = 2, pch = 8, cex = 2);
+    points(t(negm), col = 3, pch = 8, cex = 2);
   }
   res <- list(posm = posm, negm = negm);
   return(res);
@@ -170,29 +173,30 @@ evalresiduals <- function(e1, e2) {
   r <- sqrt(colSums((rp - rn)^2));
   return(r);
 }
+
+
+e1 <- 1444;
+e2 <- 3821;
+analyzeclusters(e1, e2, 134, T);
+
+
+e1 <- 1444;
+e2 <- 7199;
+analyzeclusters(e1, e2, 99, T);
+
+
+##### Liste berechnen
 e1 <- 1444;
 e2 <- 3821;
 fname <- paste(c("test1", e1, ".csv"), collapse="");
 for (e2 in (e1+1):dim(expr)[1]) {
   r <- evalresiduals(e1, e2);
-r
   m <- maxc(r);
-m
-  analyzeclusters(e1, e2, 134, T);
-  analyzeclusters(1444, 7199, 99, T);
+  analyzeclusters(e1, e2, 134, F);
   v <- max(r) / sqrt(var(r));
   data <- paste(c(paste(c(e1, e2, m, v), collapse=", "), "\n"), collapse="");
   cat(data, file=fname, append=T);
 }
-
-
-c <- 5;
-rmax <- maxc(r, c);
-for (i in 1:c) {
-  analyzeclusters(1444, 3821, rmax[i], T);
-  par(ask=T);
-}
-
 
 ##### Analyse one interesting pair (1444, 3821)
 cp <- c(1444, 3821);
