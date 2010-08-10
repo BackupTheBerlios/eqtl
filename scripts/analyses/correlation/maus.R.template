@@ -84,6 +84,9 @@ plotExpr <- function(expr, ch) {
 #  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlim=c(0, 15), xlab=ch[1], ylim=c(0, 15), ylab=ch[2])
   plot(t(expr[ch[1],]), t(expr[ch[2],]), xlab=ch[1], ylab=ch[2])
 }
+
+if (F) {
+# a routine of some value for interim evaluation while developing
 plotExprSamples <- function(expr, n = 100) {
   p<-par(ask)
   par(ask=T)
@@ -94,6 +97,10 @@ plotExprSamples <- function(expr, n = 100) {
   }
   par(ask=p)
 }
+
+if (F) {
+# a routine of some value for interim evaluation while developing
+
 # plotExprSamples(expr)
 plotExprPairs <- function(expr, n = 100, p = 3) {
   for (i in 1:n) {
@@ -104,6 +111,7 @@ plotExprPairs <- function(expr, n = 100, p = 3) {
   }
 }
 # plotExprPairs(expr)
+}
 
 ##### Extract the EAE values and corresponding cols
 getEAE <- function(quan) {
