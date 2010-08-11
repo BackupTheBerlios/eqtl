@@ -38,7 +38,7 @@ minc <- function(v, num=1) {
 
 
 ##### Loading data
-#rootdir <- "D:\\EQTL\\"
+
 load.data <- function(type) {
   cat("Reading ",type," data\t",sep="")
   rootdir <- paste("BASEDIR","CSVDATABASE",sep="/")
@@ -68,31 +68,25 @@ load.data <- function(type) {
 
 ##### Extracting values
 # Initialisation of chromosomes, cMorgan distances and the expression values
-chromos<-NULL
-cmorgan<-NULL
-quan<-NULL
-if (T) {
-  expr <- load.data("expression")
-  exprrownames <- rownames(expr)
-  cat("Loaded expression data\n")
-  cat(dim(expr)); cat("\n")
-  quandata <- load.data("genotypes")
-  # Look for marker data on chromosomes
-  chromos <- as.vector(quandata[,1])
-  # Remove NA values and normalise numbers
-  chromos[is.na(chromos)] <- "";
-  tmp <- !is.na(as.numeric(chromos))
-  chromos[tmp] <- as.numeric(chromos[tmp])
-  # Look for cMorgan distances on markers
-  cmorgan <- as.vector(quandata[,2])
-  cmorgan[is.na(cmorgan)] <- "";
-  cmorgan <- as.numeric(cmorgan);
-  # Remove the first two lines (chromos and cmorgan)
-  quan <- apply(quandata[,3:dim(quandata)[2]], c(1, 2), as.numeric)
-  cat("Loaded quantitative data\n")
-  cat(dim(quan)); cat("\n")
-}
-
+expr <- load.data("expression")
+exprrownames <- rownames(expr)
+cat("Loaded expression data\n")
+cat(dim(expr)); cat("\n")
+quandata <- load.data("genotypes")
+# Look for marker data on chromosomes
+chromos <- as.vector(quandata[,1])
+# Remove NA values and normalise numbers
+chromos[is.na(chromos)] <- "";
+tmp <- !is.na(as.numeric(chromos))
+chromos[tmp] <- as.numeric(chromos[tmp])
+# Look for cMorgan distances on markers
+cmorgan <- as.vector(quandata[,2])
+cmorgan[is.na(cmorgan)] <- "";
+cmorgan <- as.numeric(cmorgan);
+# Remove the first two lines (chromos and cmorgan)
+quan <- apply(quandata[,3:dim(quandata)[2]], c(1, 2), as.numeric)
+cat("Loaded quantitative data\n")
+cat(dim(quan)); cat("\n")
 
 
 ##### Plot some expression samples
