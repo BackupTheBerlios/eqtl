@@ -237,10 +237,13 @@ eae <- getEAE(quan)
 ##### Analyze clusters on pairs of expressions by marker values
 # e1 and e2 are indices of expression data rows, m is the marker index
 # draw is a boolean and activates the graphical output
-analyzeclusters <- function(e1, e2, m, draw = F) {
+analyzeclusters <- function(e1, e2, m=NULL, draw = F) {
   # get expression data (and make them columns)
   ed <- t(expr[c(e1, e2), ])
   # get marker data
+  if (is.null(m)) {
+  	m<-find.best.markers(e1,e2)
+  }
   md <- marker[m,];
   pindices <- which(md == 1)
   nindices <- which(md == 2)
@@ -278,14 +281,16 @@ evalresiduals <- function(e1, e2) {
                negm=res$negm[1],
 	       negm=res$negm[2]))
   })
-  geom.diff <- sqrt(colSums(sa[1:2,] - sa[3:4,])^2))
+  geom.diff <- sqrt(colSums(sa[1:2,] - sa[3:4,])^2)
+  names(geom.diff)<-colnames(sa)
   return(geom.diff)
 }
 
 # 
 find.best.markers <- function(e1, e2,n=1) {
-	evalresiduals(e1,e2)
-
+  m<-evalresiduals(e1,e2)
+  m.best<-maxc(m)
+  return(names(m)[m.best])
 }
 
 
