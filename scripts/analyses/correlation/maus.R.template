@@ -22,7 +22,7 @@ return the num highest values in vector v
 maxc <- function(v, num=1) {
   if (num > length(v)) {
     warn(paste("Maxc tried to extract ",c," elements from a list of ",length(v)," elements!"))
-    return(sort(v,decreasing = TRUE))
+    num<-length(v)
   }
   res <- rep(0, times=num)
   maxind <- 0
@@ -31,7 +31,7 @@ maxc <- function(v, num=1) {
     res[i] <- maxind
     v[maxind] = NA
   }
-  return(sort(res))
+  return(res)
 }
 
 doc<-"
@@ -46,7 +46,7 @@ return the num lowest values in vector v
 minc <- function(v, num=1) {
   if (num > length(v)) {
     warn(paste("Minc tried to extract ",c," elements from a list of ",length(v)," elements!"))
-    return(sort(v,decreasing = FALSE))
+    num<-length(v)
   }
   res <- rep(0, times=num)
   minind <- 0
@@ -55,7 +55,7 @@ minc <- function(v, num=1) {
     res[i] <- minind
     v[minind] = NA
   }
-  return(sort(res))
+  return(res)
 }
 
 doc<-"
@@ -234,41 +234,6 @@ getEAE <- function(quan) {
 eae <- getEAE(quan)
 
 
-
-###### Extract the marker values
-#getMarker <- function(quan) {
-#  # Resulting data
-#  res <- c()
-#  # For each chromosome
-#  for (k in 1:length(chromnames)) {
-#    # Get chromosome indices
-#    chrom <- which(chromos == chromnames[k])
-#    # Add first marker
-#    res <- rbind(res, quan[chrom[1],])
-#    rownames(res)[dim(res)[1]] <- markernames[chrom[1]]
-#    # For each pair of markers (remember to exclude the last value,
-#    # because it does not have a successor)
-#    for (i in chrom[-length(chrom)]) {
-#      # Get marker data
-#      ri <- quan[i,]
-#      # Find indices, where values are different to next marker data
-#      rw <- which(ri != quan[i+1,])
-#      # Set those to NA because we dont know which genotyp a gene is here
-#      ri[rw] <- NA
-#      # Add this pair
-#      res <- rbind(res, ri)
-#      names <- markernames[c(i,i+1)]
-#      rownames(res)[dim(res)[1]] <- paste(names, collapse="")
-#    }
-#    # Add last marker
-#    res <- rbind(res, quan[chrom[length(chrom)],])
-#    rownames(res)[dim(res)[1]] <- markernames[chrom[length(chrom)]]
-#  }
-#  return(res)
-#}
-
-
-
 ##### Analyze clusters on pairs of expressions by marker values
 # e1 and e2 are indices of expression data rows, m is the marker index
 # draw is a boolean and activates the graphical output
@@ -306,21 +271,23 @@ analyzeclusters <- function(e1, e2, m, draw = F) {
 
 # Evaluate the differences of the means for each markerpair
 evalresiduals <- function(e1, e2) {
-  rp <- c()
-  rn <- c()
-  for (m in 1:dim(marker)[1]) {
-    res <- analyzeclusters(e1, e2, m, F)
-    if (!is.double(res)) {
-      rp <- cbind(rp, res$posm)
-      rn <- cbind(rn, res$negm)
-    } else {
-      rp <- cbind(rp, c(0, 0))
-      rn <- cbind(rn, c(0, 0))
-    }
-  }
-  r <- sqrt(colSums((rp - rn)^2))
-  return(r)
+  sa<-sapply(markerrownames,function(m) {
+      res <- analyzeclusters(e1, e2, m, F)
+      return(c(posm=res$posm[1],
+      	       posm=res$posm[2],
+               negm=res$negm[1],
+	       negm=res$negm[2]))
+  })
+  geom.diff <- sqrt(colSums(sa[1:2,] - sa[3:4,])^2))
+  return(geom.diff)
 }
+
+# 
+find.best.markers <- function(e1, e2,n=1) {
+	evalresiduals(e1,e2)
+
+}
+
 
 
 e1 <- 1444
