@@ -69,12 +69,31 @@ respective files. Type may be
 
 =item 'expression'
 
-which reads the file 'PHENOFILE'.
+which reads the file 'PHENOFILE', as probes x individuals.
 
 =item 'genotypes'
 
-which reads the file 'GENOFILE'. The genotypes file is returned
-in a transposed form.
+which reads the file 'GENOFILE'. The results are returned as a list with the following attributes
+
+=over 12
+
+=item chromosome
+
+the chromosomes as they appear for every column with genotyping data
+
+=item cMorgan
+
+the cMorgan position for every marker
+
+=item clinical
+
+the clinical data, returned as individuals x clinical phenotype table
+
+=item genotypes
+
+the genotypes for all the individuals, returned as individualsxmarker table
+
+=back
 
 =back
 
@@ -99,37 +118,67 @@ load.data <- function(type) {
   }
   d<-NULL
   if ("expression" == type) {
-    d<-read.table(filename, header=T, sep="PHENOFIELDSEP", row.names=1)
+    d.prime<-read.table(filename, header=T, sep="PHENOFIELDSEP", row.names=1, skip=PHENOLINESSKIPNO,nrows=5)
+    col.numeric<-apply(d.prime,2,function(X){return(sum(!is.na(as.numeric(X)))>=4)})
+    colClasses=rep("character",times=ncol(d.prime))
+    colClasses[col.numeric]<-"numeric"
+    if (any(!col.numeric)) {
+	col.char.min<-min(which(!col.numeric))
+	colClasses[col.char.min:ncol(d.prime)]<-"character"
+    }
+    colClasses<-c("character",colClasses)
+    d<-read.table(filename, header=T, sep=",", row.names=1, skip=1, stringsAsFactors=F,colClasses=colClasses)
+    if (any(!col.numeric)) {
+        d<-d[,1:col.char.min]
+    }
+    # This needs to be helped, somehow
+    d<-d[,1:150]
+    cat(paste(" [ok]  dimension is [",paste(dim(d),collapse=",",sep=""),"]\n",sep=""),sep="")
+    return(d)
   } else if ("genotypes" == type) {
-    d <- t(read.table(filename, header=T, sep="GENOFIELDSEP"))
+    d <- read.table(filename, header=T, sep=",", skip=0, stringsAsFactors=F)
+    d.chr<-d[1,]
+    d.chr.first<-min(which(!is.na(as.numeric(d.chr))))
+    d.chr<-as.character(d[1,d.chr.first:ncol(d)])
+    d.morgan<-as.numeric(d[2,d.chr.first:ncol(d)])
+    d.clinical<-d[3:nrow(d),1:(d.chr.first-1)]
+    d.genotypes<-d[3:nrow(d),d.chr.first:ncol(d)]
+    cat(paste(" [ok]  Read ",ncol(d.clinical)," classical phenotypes ",
+              "and ", ncol(d.genotypes)," genotypes for ",
+	      nrow(d.genotypes), " individuals.\n",sep=""),sep="")
+    l<-list()
+    l[["chromosomes"]]<-d.chr
+    l[["cMorgan"]]<-d.morgan
+    l[["clinical"]]<-d.clinical
+    l[["genotypes"]]<-d.genotypes
+    return(l)
+  } else {
+    stop(paste("Don't know how to read data of type '",type,"'.\n",sep=""))
   }
-  cat(paste(" [ok] dimension is [",paste(dim(d),collapse=",",sep=""),"]\n",sep=""),sep="")
-  return(d)
+
 }
 
 
 
 ##### Extracting values
 # Initialisation of chromosomes, cMorgan distances and the expression values
-expr <- load.data("expression")
+expr <- load.data("expression") # probes x individuals
 exprrownames <- rownames(expr)
-cat("Loaded expression data\n")
-cat(dim(expr)); cat("\n")
+
 quandata <- load.data("genotypes")
 # Look for marker data on chromosomes
-chromos <- as.vector(quandata[,1])
-# Remove NA values and normalise numbers
-chromos[is.na(chromos)] <- "";
-tmp <- !is.na(as.numeric(chromos))
-chromos[tmp] <- as.numeric(chromos[tmp])
+chromos <- quandata$chromosomes
 # Look for cMorgan distances on markers
-cmorgan <- as.vector(quandata[,2])
-cmorgan[is.na(cmorgan)] <- "";
-cmorgan <- as.numeric(cmorgan);
+cmorgan <- quandata$cMorgan
+# get genotypes in same orientation
+genotypes <- t(quandata$genotypes)
+# and analogously for clinical phenotypes
+clinical <- t(quandata$clinical)
+
 # Remove the first two lines (chromos and cmorgan)
-quan <- apply(quandata[,3:dim(quandata)[2]], c(1, 2), as.numeric)
-cat("Loaded quantitative data\n")
-cat(dim(quan)); cat("\n")
+#quan <- apply(quandata[,3:dim(quandata)[2]], c(1, 2), as.numeric)
+#cat("Loaded quantitative data\n")
+#cat(dim(quan)); cat("\n")
 
 
 ##### Plot some expression samples
