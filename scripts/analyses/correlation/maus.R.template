@@ -1,7 +1,7 @@
 
 TEMPLATEWARNINGHASH
 
-##### Find most max values, return up to count values
+##### Find most max values, return up to num values
 maxc <- function(v, num=1) {
   if (num > length(v)) {
     warn(paste("Maxc tried to extract ",c," elements from a list of ",length(v)," elements!"))
@@ -17,7 +17,9 @@ maxc <- function(v, num=1) {
   return(sort(res))
 }
 
-##### Find most min values, return up to count values
+
+
+##### Find most min values, return up to num values
 minc <- function(v, num=1) {
   if (num > length(v)) {
     warn(paste("Minc tried to extract ",c," elements from a list of ",length(v)," elements!"))
@@ -32,6 +34,8 @@ minc <- function(v, num=1) {
   }
   return(sort(res))
 }
+
+
 
 ##### Loading data
 #rootdir <- "D:\\EQTL\\"
@@ -60,33 +64,48 @@ load.data <- function(type) {
   return(d)
 }
 
+
+
+##### Extracting values
 # Initialisation of chromosomes, cMorgan distances and the expression values
 chromos<-NULL
 cmorgan<-NULL
 quan<-NULL
-
-##### Extrating values
 if (T) {
   expr <- load.data("expression")
   exprrownames <- rownames(expr)
   cat("Loaded expression data\n")
   cat(dim(expr)); cat("\n")
   quandata <- load.data("genotypes")
-  chromos <- quandata[,1]
-  cmorgan <- quandata[,2]
-  quan <- quandata[,3:dim(quandata)[2]]
+  # Look for marker data on chromosomes
+  chromos <- as.vector(quandata[,1])
+  # Remove NA values and normalise numbers
+  chromos[is.na(chromos)] <- "";
+  tmp <- !is.na(as.numeric(chromos))
+  chromos[tmp] <- as.numeric(chromos[tmp])
+  # Look for cMorgan distances on markers
+  cmorgan <- as.vector(quandata[,2])
+  cmorgan[is.na(cmorgan)] <- "";
+  cmorgan <- as.numeric(cmorgan);
+  # Remove the first two lines (chromos and cmorgan)
+  quan <- apply(quandata[,3:dim(quandata)[2]], c(1, 2), as.numeric)
   cat("Loaded quantitative data\n")
   cat(dim(quan)); cat("\n")
 }
 
+
+
 ##### Plot some expression samples
 plotExpr <- function(expr, ch) {
+# plot with fixed axis limits
 #  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlim=c(0, 15), xlab=ch[1], ylim=c(0, 15), ylab=ch[2])
+# plot with variable axis limits
   plot(t(expr[ch[1],]), t(expr[ch[2],]), xlab=ch[1], ylab=ch[2])
 }
 
 if (F) {
 # a routine of some value for interim evaluation while developing
+# Randomly take n samples of expression pairs and plot them one after another
 plotExprSamples <- function(expr, n = 100) {
   p<-par(ask)
   par(ask=T)
@@ -100,93 +119,111 @@ plotExprSamples <- function(expr, n = 100) {
 
 if (F) {
 # a routine of some value for interim evaluation while developing
-
-# plotExprSamples(expr)
+# Randomly take n samples of expression pairs (with p elements) and plot them one after another
 plotExprPairs <- function(expr, n = 100, p = 3) {
+  p<-par(ask)
+  par(ask=T)
   for (i in 1:n) {
     ch <- sample(1:dim(expr)[1], p, replace=F)
     cat(ch); cat("\n")
     pairs(t(expr[ch,]))
-    par(ask=T)
   }
+  par(ask=p)
 }
-# plotExprPairs(expr)
 }
 
 ##### Extract the EAE values and corresponding cols
 getEAE <- function(quan) {
-  eae <- as.numeric(quan['eae',])
-  ms <- which(!is.na(eae))
-  val <- eae[ms]
+  eaev <- as.numeric(quan['eae',])
+  notna <- which(!is.na(eaev))
+  val <- eaev[notna]
   val[val == 0] <- -1
-  return(list(val, ms))
+  return(list(val, notna))
 }
 eae <- getEAE(quan)
 
+
+
 ##### Extract the marker values
 getMarker <- function(quan) {
-  # Extract raw marker data
-  marker <- apply(quan[43:180,], c(1, 2), as.numeric)
+  # Marker indices
+  chromnames <- unique(chromos[chromos != ""])
   # Extract marker names
-  mnames <- rownames(marker)
-  # List of chromosomes from (first) to (last-1) index
-  chromList <- list(1:12, 14:21, 23:27, 29:39, 41:47,
-    49:54, 56:61, 63:68, 70:77, 79:86, 88:90, 92:95,
-    97:99, 101:107, 109:112, 114:118, 120:123, 125:127,
-    129:131, 133:134, 136:137)
+  markernames <- rownames(quan)
   # Resulting data
   res <- c()
   # For each chromosome
-  for (k in 1:length(chromList)) {
+  for (k in 1:length(chromnames)) {
     # Get chromosome indices
-    chrom <- chromList[[k]]
+    chrom <- which(chromos == chromnames[k])
     # Add first marker
-    res <- rbind(res, marker[chrom[1],])
-    name <- mnames[chrom[1]]
-    rownames(res)[dim(res)[1]] <- name
-    # For each pair of markers
-    for (i in chrom) {
-      ri <- marker[i,]
-      rw <- which(ri != marker[i+1,])
+    res <- rbind(res, quan[chrom[1],])
+    rownames(res)[dim(res)[1]] <- markernames[chrom[1]]
+    # For each pair of markers (remember to exclude the last value,
+    # because it does not have a successor)
+    for (i in chrom[-length(chrom)]) {
+      # Get marker data
+      ri <- quan[i,]
+      # Find indices, where values are different to next marker data
+      rw <- which(ri != quan[i+1,])
+      # Set those to NA because we dont know which genotyp a gene is here
       ri[rw] <- NA
+      # Add this pair
       res <- rbind(res, ri)
-      names <- mnames[c(i,i+1)]
+      names <- markernames[c(i,i+1)]
       rownames(res)[dim(res)[1]] <- paste(names, collapse="")
     }
     # Add last marker
-    res <- rbind(res, marker[chrom[length(chrom)]+1,])
-    name <- mnames[chrom[length(chrom)]+1]
-    rownames(res)[dim(res)[1]] <- name
+    res <- rbind(res, quan[chrom[length(chrom)],])
+    rownames(res)[dim(res)[1]] <- markernames[chrom[length(chrom)]]
   }
   return(res)
 }
-marker <- getMarker(quan)
+# get marker values
+marker <- getMarker(quan);
+# on X chromosomes we have values 1 and 3, but for further use we want values 1 and 2
+marker[marker==3] <- 2
+# get the names of the markers
 markerrownames <- rownames(marker)
 
+
+
 ##### Analyze clusters on pairs of expressions by marker values
-analyzeclusters <- function(e1, e2, m, draw) {
-  d <- t(expr[c(e1, e2), ])
-  c <- marker[m, ] + 1
-  p <- which(c == 2)
-  n <- which(c == 3)
-  if (length(p) == 0 || length(n) == 0)
+# e1 and e2 are indices of expression data rows, m is the marker index
+# draw is a boolean and activates the graphical output
+analyzeclusters <- function(e1, e2, m, draw = F) {
+  # get expression data (and make them columns)
+  ed <- t(expr[c(e1, e2), ])
+  # get marker data
+  md <- marker[m,];
+  pindices <- which(md == 1)
+  nindices <- which(md == 2)
+  naindices <- which(is.na(md))
+  if (length(pindices) == 0 || length(nindices) == 0)
     return(0)
-  posm <- colMeans(d[p,])
-  negm <- colMeans(d[n,])
-  c[is.na(c)] <- 1
+  # set color vector
+  col <- rep("gray", length(md))
+  col[pindices] <- "green"
+  col[nindices] <- "red"
+  # evaluate the markerwise (classwise) means
+  posm <- colMeans(ed[pindices,])
+  negm <- colMeans(ed[nindices,])
+  # if drawing is activated
   if (draw) {
     xlab <- paste("Probeset", exprrownames[e1], sep=" ")
     ylab <- paste("Probeset", exprrownames[e2], sep=" ")
     sub <- paste("Marker ", markerrownames[m], sep="")
-    plot(d[,1], d[,2], col=c, xlab=xlab, ylab=ylab, sub=sub)
-    points(t(posm), col = 2, pch = 8, cex = 2)
-    points(t(negm), col = 3, pch = 8, cex = 2)
+    pch <- rep(21, length(col))
+    pch[naindices] <- 20
+    plot(ed[,1], ed[,2], col=col, pch=pch, xlab=xlab, ylab=ylab, sub=sub)
+    points(t(posm), col = "green", pch = 8, cex = 2)
+    points(t(negm), col = "red", pch = 8, cex = 2)
   }
   res <- list(posm = posm, negm = negm)
   return(res)
 }
 
-# Berechnung der Mittelwertabstaende von einem Paar von Probeset Zeilennummern
+# Evaluate the differences of the means for each markerpair
 evalresiduals <- function(e1, e2) {
   rp <- c()
   rn <- c()
@@ -207,41 +244,51 @@ evalresiduals <- function(e1, e2) {
 
 e1 <- 1444
 e2 <- 3821
-analyzeclusters(e1, e2, 134, T)
+m <- 134
+analyzeclusters(e1, e2, m, T)
 
 
 e1 <- 1444
 e2 <- 7199
-analyzeclusters(e1, e2, 99, T)
+m <- 99
+analyzeclusters(e1, e2, m, T)
 
 
-##### Liste berechnen
+
+##### Analyze the difference of means for markers for different expression pairs
+# the results are complex, thus the will be saved to file such that intermediate
+# results can be recovered after crash
 e1 <- 1444
-fname <- paste(c("test1", e1, ".csv"), collapse="")
+fname <- paste(c("test", e1, "csv"), collapse=".")
 for (e2 in (e1+1):dim(expr)[1]) {
   r <- evalresiduals(e1, e2)
   m <- maxc(r)
   analyzeclusters(e1, e2, 134, F)
+  # This value function is for comparing, higher values are better
   v <- max(r) / sqrt(var(r))
   data <- paste(c(paste(c(e1, e2, m, v), collapse=", "), "\n"), collapse="")
+  # Save to file
   cat(data, file=fname, append=T)
 }
 
+
+
 ##### Analyse one interesting pair (1444, 3821)
+# Do a k-means analysis on given pair
 cp <- c(1444, 3821)
 kmeansres <- kmeans(t(expr[cp,]), 2)
+# Draw the results
 plot(t(expr[cp,]), col=kmeansres$cluster)
 points(kmeansres$centers, col=1:2, pch=8, cex=2)
 
-# Evaluate k-means clusters
-  c1 <- which(kmeansres$cluster==1)
-  c2 <- which(kmeansres$cluster==2)
-  ce <- kmeansres$centers
-  d <- ce[2,] - ce[1,]
-  dis <- sqrt(d[1]^2 + d[2]^2)
-  p1 <- sqrt(var(colSums(d * expr[cp, c1])))
-  p2 <- sqrt(var(colSums(d * expr[cp, c2])))
-
+# Evaluate k-means clusters (this was just for testing and can be deleted in my opinion)
+c1 <- which(kmeansres$cluster==1)
+c2 <- which(kmeansres$cluster==2)
+ce <- kmeansres$centers
+d <- ce[2,] - ce[1,]
+dis <- sqrt(d[1]^2 + d[2]^2)
+p1 <- sqrt(var(colSums(d * expr[cp, c1])))
+p2 <- sqrt(var(colSums(d * expr[cp, c2])))
 evalPair <- function(expr, pair, show) {
   kmeansres <- kmeans(t(expr[pair,]), 2)
    if (show) {
@@ -258,14 +305,15 @@ evalPair <- function(expr, pair, show) {
   return((p1 + p2) / dis)
 }
 
-# sieht ganz gut aus:
+# Find a high correleation of clusters to other expression values (10 examples)
 maxi <- maxc(abs(cor(kmeansres$cluster, t(expr[-cp,]))), 10)
-plot(t(expr[cp[1],]), col=kmeansres$cluster)
-plot(t(expr[cp[2],]), col=kmeansres$cluster)
+plot(t(expr[c(cp[1], cp[2]),]), col=kmeansres$cluster)
+p<-par(ask)
+par(ask=T)
 for (i in 1:10) {
   plot(t(expr[c(cp[2],maxi[i]),]), col=kmeansres$cluster)
-  par(ask=T)
 }
+par(ask=p)
 
 # Decision tree for clusters of cp on markers
 library(rpart)
@@ -283,6 +331,8 @@ r <- rpart(formula = f, data = dtdataframe, method="class", control=dtc)
 plot(r, branch=.3, compress=T)
 text(r)
 
+
+
 ##### 3D-Scatterplot example
 scatterexample <- function() {
   c1 = rep(5:10, times=6)
@@ -296,11 +346,13 @@ scatterexample <- function() {
   s3d$points3d(data.frame(c1, c2, c3p))
 }
 
+
+
 ##### Search for expression values corresponding to EAE
 c <- cor(eae[[1]], t(expr[,eae[[2]]]))
 numcand <- 15
 cand <- minc(abs(c), numcand)
-##### Search for linear model for AEA
+# Search for linear model for AEA
 lmdata <- data.frame(t(rbind(eae = eae[[1]] , expr[cand, eae[[2]]])))
 cn <- colnames(lmdata)
 res <- c()
@@ -316,6 +368,9 @@ print(res)
 x <- rnorm(15)
 y <- 10*x + rnorm(15)
 predict(lm(y ~ x))
+# this is not finished yet, one could further used the linear model for a predictor
+# and evaluate the quality of such a classification.
+
 
 
 ##### Build decision tree directly from markers
@@ -335,7 +390,10 @@ plot(r, branch=.3, compress=T)
 text(r)
 
 
-##### ...
+
+
+
+##### This stuff is old and not used anymore
 #correl <- cor(eae, t(expr[,ms]))
 
 testexpr <- abs(cor(t(expr[1:100,])))
@@ -343,7 +401,7 @@ testexpr[testexpr == 1] <- 0
 which(testexpr > 0.992, arr.ind=T)
 
 
-##### Calculate entropy of probabilities p
+# Calculate entropy of probabilities p
 entropy <- function(p) {
   p.sum <- sum(p)
   if (min(p) < 0 || p.sum <= 0)
