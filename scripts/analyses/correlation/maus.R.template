@@ -168,10 +168,13 @@ exprrownames <- rownames(expr)
 quandata <- load.data("genotypes")
 # Look for marker data on chromosomes
 chromos <- quandata$chromosomes
+chromnames <- unique(chromos)
 # Look for cMorgan distances on markers
 cmorgan <- quandata$cMorgan
 # get genotypes in same orientation
-genotypes <- t(quandata$genotypes)
+marker <- t(quandata$genotypes)
+# Extract marker names
+markerrownames <- rownames(marker)
 # and analogously for clinical phenotypes
 clinical <- t(quandata$clinical)
 
@@ -182,17 +185,17 @@ clinical <- t(quandata$clinical)
 
 
 ##### Plot some expression samples
-plotExpr <- function(expr, ch,...) {
-# plot with fixed axis limits
-#  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlim=c(0, 15), xlab=ch[1], ylim=c(0, 15), ylab=ch[2])
-# plot with variable axis limits
-  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlab=ch[1], ylab=ch[2], ...)
+plotExpr <- function(expr, ch=c(1,2),...) {
+  xlab=paste("Probeset",rownames(expr)[ch[1]],sep=": ")
+  ylab=paste("Probeset",rownames(expr)[ch[2]],sep=": ")
+  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlab=xlab, ylab=ylab)
 }
+
 
 if (F) {
 # a routine of some value for interim evaluation while developing
 # Randomly take n samples of expression pairs and plot them one after another
-plotExprSamples <- function(expr=expr, n = 10) {
+plotExprSamples <- function(expr, n = 20) {
   p<-par("ask")
   par("ask"=T)
   for (i in 1:n) {
@@ -206,17 +209,19 @@ plotExprSamples <- function(expr=expr, n = 10) {
 if (F) {
 # a routine of some value for interim evaluation while developing
 # Randomly take n samples of expression pairs (with p elements) and plot them one after another
-plotExprPairs <- function(expr=expr, n = 10, p = 3) {
-  p<-par("ask")
+plotExprPairs <- function(expr, n = 20, p = 3) {
+  a<-par("ask")
   par("ask"=T)
+  cat("Selecting ",p," probes to compare all against all.\n")
   for (i in 1:n) {
     ch <- sample(1:dim(expr)[1], p, replace=F)
     cat(ch); cat("\n")
     pairs(t(expr[ch,]))
   }
-  par("ask"=p)
+  par("ask"=a)
 }
 }
+
 
 ##### Extract the EAE values and corresponding cols
 getEAE <- function(quan) {
@@ -230,47 +235,37 @@ eae <- getEAE(quan)
 
 
 
-##### Extract the marker values
-getMarker <- function(quan) {
-  # Marker indices
-  chromnames <- unique(chromos[chromos != ""])
-  # Extract marker names
-  markernames <- rownames(quan)
-  # Resulting data
-  res <- c()
-  # For each chromosome
-  for (k in 1:length(chromnames)) {
-    # Get chromosome indices
-    chrom <- which(chromos == chromnames[k])
-    # Add first marker
-    res <- rbind(res, quan[chrom[1],])
-    rownames(res)[dim(res)[1]] <- markernames[chrom[1]]
-    # For each pair of markers (remember to exclude the last value,
-    # because it does not have a successor)
-    for (i in chrom[-length(chrom)]) {
-      # Get marker data
-      ri <- quan[i,]
-      # Find indices, where values are different to next marker data
-      rw <- which(ri != quan[i+1,])
-      # Set those to NA because we dont know which genotyp a gene is here
-      ri[rw] <- NA
-      # Add this pair
-      res <- rbind(res, ri)
-      names <- markernames[c(i,i+1)]
-      rownames(res)[dim(res)[1]] <- paste(names, collapse="")
-    }
-    # Add last marker
-    res <- rbind(res, quan[chrom[length(chrom)],])
-    rownames(res)[dim(res)[1]] <- markernames[chrom[length(chrom)]]
-  }
-  return(res)
-}
-# get marker values
-marker <- getMarker(quan);
-# on X chromosomes we have values 1 and 3, but for further use we want values 1 and 2
-marker[marker==3] <- 2
-# get the names of the markers
-markerrownames <- rownames(marker)
+###### Extract the marker values
+#getMarker <- function(quan) {
+#  # Resulting data
+#  res <- c()
+#  # For each chromosome
+#  for (k in 1:length(chromnames)) {
+#    # Get chromosome indices
+#    chrom <- which(chromos == chromnames[k])
+#    # Add first marker
+#    res <- rbind(res, quan[chrom[1],])
+#    rownames(res)[dim(res)[1]] <- markernames[chrom[1]]
+#    # For each pair of markers (remember to exclude the last value,
+#    # because it does not have a successor)
+#    for (i in chrom[-length(chrom)]) {
+#      # Get marker data
+#      ri <- quan[i,]
+#      # Find indices, where values are different to next marker data
+#      rw <- which(ri != quan[i+1,])
+#      # Set those to NA because we dont know which genotyp a gene is here
+#      ri[rw] <- NA
+#      # Add this pair
+#      res <- rbind(res, ri)
+#      names <- markernames[c(i,i+1)]
+#      rownames(res)[dim(res)[1]] <- paste(names, collapse="")
+#    }
+#    # Add last marker
+#    res <- rbind(res, quan[chrom[length(chrom)],])
+#    rownames(res)[dim(res)[1]] <- markernames[chrom[length(chrom)]]
+#  }
+#  return(res)
+#}
 
 
 
