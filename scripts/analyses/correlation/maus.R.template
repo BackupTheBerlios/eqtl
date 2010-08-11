@@ -1,7 +1,21 @@
 
 TEMPLATEWARNINGHASH
 
-##### Find most max values, return up to num values
+=head2 FUNCTIONS
+
+The following internal functions have been prepared for the 
+correlation analysis. Some of those should be of general
+interest. Some possibly even for a general interest for
+R, in principle.
+
+=over 4
+
+=item maxc(v,num)
+
+return the num highest values in vector v
+
+=cut
+
 maxc <- function(v, num=1) {
   if (num > length(v)) {
     warn(paste("Maxc tried to extract ",c," elements from a list of ",length(v)," elements!"))
@@ -18,8 +32,12 @@ maxc <- function(v, num=1) {
 }
 
 
+=item maxc(v,num)
 
-##### Find most min values, return up to num values
+return the num lowest values in vector v
+
+=cut
+
 minc <- function(v, num=1) {
   if (num > length(v)) {
     warn(paste("Minc tried to extract ",c," elements from a list of ",length(v)," elements!"))
@@ -37,7 +55,25 @@ minc <- function(v, num=1) {
 
 
 
-##### Loading data
+=item load.datac(type)
+
+The function knows how to read all kinds of data and returns the
+respective files. Type may be
+
+=over 8
+
+=item "expression"
+
+which reads the file 'PHENOFILE'.
+
+=item "genotypes"
+
+which reads the file 'GENOFILE'. The genotypes file is returned
+in a transposed form.
+
+=back
+
+=cut
 
 load.data <- function(type) {
   cat("Reading ",type," data\t",sep="")
@@ -60,7 +96,7 @@ load.data <- function(type) {
   } else if ("genotypes" == type) {
     d <- t(read.table(filename, header=T, sep="GENOFIELDSEP"))
   }
-  cat(" [ok]\n",sep="")
+  cat(paste(" [ok] dimension is [",paste(dim(d),collapse=",",sep=""),"]\n",sep=""),sep="")
   return(d)
 }
 
