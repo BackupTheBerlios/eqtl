@@ -1,6 +1,8 @@
 
 TEMPLATEWARNINGHASH
 
+doc<-"
+
 =head2 FUNCTIONS
 
 The following internal functions have been prepared for the 
@@ -16,6 +18,7 @@ return the num highest values in vector v
 
 =cut
 
+"
 maxc <- function(v, num=1) {
   if (num > length(v)) {
     warn(paste("Maxc tried to extract ",c," elements from a list of ",length(v)," elements!"))
@@ -31,6 +34,7 @@ maxc <- function(v, num=1) {
   return(sort(res))
 }
 
+doc<-"
 
 =item maxc(v,num)
 
@@ -38,6 +42,7 @@ return the num lowest values in vector v
 
 =cut
 
+"
 minc <- function(v, num=1) {
   if (num > length(v)) {
     warn(paste("Minc tried to extract ",c," elements from a list of ",length(v)," elements!"))
@@ -53,7 +58,7 @@ minc <- function(v, num=1) {
   return(sort(res))
 }
 
-
+doc<-"
 
 =item load.datac(type)
 
@@ -62,11 +67,11 @@ respective files. Type may be
 
 =over 8
 
-=item "expression"
+=item 'expression'
 
 which reads the file 'PHENOFILE'.
 
-=item "genotypes"
+=item 'genotypes'
 
 which reads the file 'GENOFILE'. The genotypes file is returned
 in a transposed form.
@@ -74,6 +79,8 @@ in a transposed form.
 =back
 
 =cut
+
+"
 
 load.data <- function(type) {
   cat("Reading ",type," data\t",sep="")
@@ -126,39 +133,39 @@ cat(dim(quan)); cat("\n")
 
 
 ##### Plot some expression samples
-plotExpr <- function(expr, ch) {
+plotExpr <- function(expr, ch,...) {
 # plot with fixed axis limits
 #  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlim=c(0, 15), xlab=ch[1], ylim=c(0, 15), ylab=ch[2])
 # plot with variable axis limits
-  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlab=ch[1], ylab=ch[2])
+  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlab=ch[1], ylab=ch[2], ...)
 }
 
 if (F) {
 # a routine of some value for interim evaluation while developing
 # Randomly take n samples of expression pairs and plot them one after another
-plotExprSamples <- function(expr, n = 100) {
-  p<-par(ask)
-  par(ask=T)
+plotExprSamples <- function(expr=expr, n = 10) {
+  p<-par("ask")
+  par("ask"=T)
   for (i in 1:n) {
     ch <- sample(1:dim(expr)[1], 2, replace=F)
     cat(ch); cat("\n")
     plotExpr(expr, ch)
   }
-  par(ask=p)
+  par("ask"=p)
 }
 
 if (F) {
 # a routine of some value for interim evaluation while developing
 # Randomly take n samples of expression pairs (with p elements) and plot them one after another
-plotExprPairs <- function(expr, n = 100, p = 3) {
-  p<-par(ask)
-  par(ask=T)
+plotExprPairs <- function(expr=expr, n = 10, p = 3) {
+  p<-par("ask")
+  par("ask"=T)
   for (i in 1:n) {
     ch <- sample(1:dim(expr)[1], p, replace=F)
     cat(ch); cat("\n")
     pairs(t(expr[ch,]))
   }
-  par(ask=p)
+  par("ask"=p)
 }
 }
 
