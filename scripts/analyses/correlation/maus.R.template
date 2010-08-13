@@ -244,7 +244,7 @@ analyzeclusters <- function(e1, e2, m=NULL, draw = F) {
   if (is.null(m)) {
   	m<-find.best.markers(e1,e2)
   }
-  md <- marker[m,];
+  md <- marker[m,]
   pindices <- which(md == 1)
   nindices <- which(md == 2)
   naindices <- which(is.na(md))
