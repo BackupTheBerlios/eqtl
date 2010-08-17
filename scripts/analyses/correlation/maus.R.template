@@ -184,7 +184,19 @@ clinical <- t(quandata$clinical)
 #cat(dim(quan)); cat("\n")
 
 
-##### Plot some expression samples
+doc <- "
+
+=head2 Functions of interest for this script only
+
+=over 4
+
+=item plotExpr
+
+Plot some expression samples
+
+=cut
+
+"
 plotExpr <- function(expr, ch=c(1,2),...) {
   xlab=paste("Probeset",rownames(expr)[ch[1]],sep=": ")
   ylab=paste("Probeset",rownames(expr)[ch[2]],sep=": ")
@@ -192,9 +204,20 @@ plotExpr <- function(expr, ch=c(1,2),...) {
 }
 
 
-if (F) {
-# a routine of some value for interim evaluation while developing
-# Randomly take n samples of expression pairs and plot them one after another
+doc <- "
+
+=item plotExprSamples
+
+a routine of some value for interim evaluation while developing
+Randomly take n samples of expression pairs and plot them one after another
+
+To invoke it, try
+ plotExprSamples(expr)
+
+=cut
+
+"
+
 plotExprSamples <- function(expr, n = 20) {
   p<-par("ask")
   par("ask"=T)
@@ -206,9 +229,17 @@ plotExprSamples <- function(expr, n = 20) {
   par("ask"=p)
 }
 
-if (F) {
-# a routine of some value for interim evaluation while developing
-# Randomly take n samples of expression pairs (with p elements) and plot them one after another
+doc <- "
+
+=item plotExprPairs
+
+a routine of some value for interim evaluation while developing
+Randomly take n samples of expression pairs (with p elements) and plot them one after another
+
+=cut
+
+"
+
 plotExprPairs <- function(expr, n = 20, p = 3) {
   a<-par("ask")
   par("ask"=T)
@@ -219,7 +250,6 @@ plotExprPairs <- function(expr, n = 20, p = 3) {
     pairs(t(expr[ch,]))
   }
   par("ask"=a)
-}
 }
 
 
@@ -273,13 +303,18 @@ analyzeclusters <- function(e1, e2, m=NULL, draw = F) {
 }
 
 # Evaluate the differences of the means for each markerpair
-evalresiduals <- function(e1, e2) {
+evalresiduals <- function(e1, e2, verbose=T) {
   sa<-sapply(markerrownames,function(m) {
       res <- analyzeclusters(e1, e2, m, F)
-      return(c(posm=res$posm[1],
+      if (verbose) {
+      	cat("evalresiduals: evaluation of ",m,"\n")
+      }
+      r<-list(posm=res$posm[1],
       	       posm=res$posm[2],
                negm=res$negm[1],
-	       negm=res$negm[2]))
+	       negm=res$negm[2])
+      if (verbose) print(r)
+      return(r)
   })
   geom.diff <- sqrt(colSums(sa[1:2,] - sa[3:4,])^2)
   names(geom.diff)<-colnames(sa)
@@ -294,7 +329,21 @@ find.best.markers <- function(e1, e2,n=1) {
 }
 
 
-
+# For the stockholm dataset
+# Interesting pairs
+#	analyzeclusters(21504,105,draw=T)
+#	analyzeclusters(6816,28400,draw=T)
+#	analyzeclusters(2543,5908,draw=T)
+#	analyzeclusters(23118,10615,draw=T)
+#	analyzeclusters(8578,3725,draw=T)
+#	analyzeclusters(10759,7348,draw=T)
+#	analyzeclusters(22454,5680,draw=T)
+# boring one
+#	3558 17756
+# mostly linear
+#	21816 20956
+#	2709 27492
+#	23081 24478
 e1 <- 1444
 e2 <- 3821
 m <- 134
