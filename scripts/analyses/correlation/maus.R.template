@@ -285,7 +285,7 @@ draw is a boolean and activates the graphical output
 
 "
 
-analyzeclusters <- function(e1, e2, m=NULL, draw = F, phen=NULL) {
+analyzeclusters <- function(e1, e2, m=NULL, draw = F, phen=NULL,label.individuals=T) {
   # get expression data (and make them columns)
   ed <- t(expr[c(e1, e2), ])
   # get marker data
@@ -304,9 +304,11 @@ analyzeclusters <- function(e1, e2, m=NULL, draw = F, phen=NULL) {
   col <- rep("gray", length(md))
   col[pindices] <- "green"
   col[nindices] <- "red"
+
   # evaluate the markerwise (classwise) means
   posm <- colMeans(ed[pindices,])
   negm <- colMeans(ed[nindices,])
+
   # if drawing is activated
   if (draw) {
     xlab <- paste("Probeset", exprrownames[e1], sep=" ")
@@ -320,13 +322,19 @@ analyzeclusters <- function(e1, e2, m=NULL, draw = F, phen=NULL) {
     }
     #pch[naindices] <- 20
     plot(x=ed, col=col, pch=pch, xlab=xlab, ylab=ylab, sub=sub)
-    ed.pindices<-ed[pindices,]; chu.pindices<-chull(ed.pindices); lines(ed.pindices[c(chu.pindices,chu.pindices[1]),],lty="dotted",col="green")
-    ed.nindices<-ed[nindices,]; chu.nindices<-chull(ed.nindices); lines(ed.nindices[c(chu.nindices,chu.nindices[1]),],lty="dotted",col="red")
-    chu.all<-chull(ed); chu.all<-c(chu.all,chu.all[1]); lines(ed[chu.all,],lty="dotted",col="gray")
+
+    hulls<-list(list("indices"=pindices,"col"="green","lty"="dotted"),
+                list("indices"=nindices,"col"="red","lty"="dotted"),
+                list("indices"=1:nrow(ed),"col"="gray","lty"="dotted"))
+
+    to.print<-NULL
+    for (l in hulls) {
+    	ed.sub<-ed[l$indices,]; chu.indices<-chull(ed.sub); lines(ed.sub[c(chu.indices,chu.indices[1]),],lty=l$lty,col=l$col)
+	to.print<-c(to.print,l$indices[chu.indices])
+    }
     points(t(posm), col = "green", pch = 8, cex = 2)
     points(t(negm), col = "red", pch = 8, cex = 2)
-    to.print<-c(pindices[chu.pindices],nindices[chu.nindices])
-    text(x=ed[to.print,],labels=rownames(ed)[to.print],cex=0.7)
+    if (label.individuals) text(x=ed[to.print,],labels=rownames(ed)[to.print],cex=0.5,pos=0)
   }
   res <- list(posm = posm, negm = negm)
   return(res)
