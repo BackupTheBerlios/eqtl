@@ -243,7 +243,7 @@ if (is.null(opt$interactive)) {
 
 
 
-##### CLOSING THE GRAPHICS         #####
+####n CLOSIN GRAPHICS         #####
 
 if(is.null(opt$interactive)) {
 	dev.off()
