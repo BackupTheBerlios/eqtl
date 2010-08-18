@@ -264,9 +264,20 @@ getEAE <- function(quan) {
 eae <- getEAE(quan)
 
 
-##### Analyze clusters on pairs of expressions by marker values
-# e1 and e2 are indices of expression data rows, m is the marker index
-# draw is a boolean and activates the graphical output
+library(grDevices) # qhull
+
+doc <- "
+
+=item analyzeclusters
+
+Analyze clusters on pairs of expressions by marker values
+e1 and e2 are indices of expression data rows, m is the marker index
+draw is a boolean and activates the graphical output
+
+=cut
+
+"
+
 analyzeclusters <- function(e1, e2, m=NULL, draw = F) {
   # get expression data (and make them columns)
   ed <- t(expr[c(e1, e2), ])
@@ -275,11 +286,13 @@ analyzeclusters <- function(e1, e2, m=NULL, draw = F) {
   	m<-find.best.markers(e1,e2)
   }
   md <- marker[m,]
-  pindices <- which(md == 1)
-  nindices <- which(md == 2)
+  pindices <- which(md %in% c(1,"1"))
+  nindices <- which(md %in% c(2,"2",3,"3"))
   naindices <- which(is.na(md))
-  if (length(pindices) == 0 || length(nindices) == 0)
+  if (length(pindices) == 0 || length(nindices) == 0) {
+    message("analyzeclusters(",e1,",",e2,",",m,") :  problem with length(pindices)==",length(pindices)," and length(nindices)==",length(nindices),".\n")
     return(0)
+  }
   # set color vector
   col <- rep("gray", length(md))
   col[pindices] <- "green"
@@ -291,28 +304,33 @@ analyzeclusters <- function(e1, e2, m=NULL, draw = F) {
   if (draw) {
     xlab <- paste("Probeset", exprrownames[e1], sep=" ")
     ylab <- paste("Probeset", exprrownames[e2], sep=" ")
-    sub <- paste("Marker ", markerrownames[m], sep="")
+    sub <- paste("Marker ", if(is.character(m)) {m} else {markerrownames[m]}, sep="")
     pch <- rep(21, length(col))
     pch[naindices] <- 20
-    plot(ed[,1], ed[,2], col=col, pch=pch, xlab=xlab, ylab=ylab, sub=sub)
+    plot(x=ed, col=col, pch=pch, xlab=xlab, ylab=ylab, sub=sub)
+    ed.pindices<-ed[pindices,]; chu.pindices<-chull(ed.pindices); lines(ed.pindices[c(chu.pindices,chu.pindices[1]),],lty="dotted",col="green")
+    ed.nindices<-ed[nindices,]; chu.nindices<-chull(ed.nindices); lines(ed.nindices[c(chu.nindices,chu.nindices[1]),],lty="dotted",col="red")
+    chu.all<-chull(ed); chu.all<-c(chu.all,chu.all[1]); lines(ed[chu.all,],lty="dotted",col="gray")
     points(t(posm), col = "green", pch = 8, cex = 2)
     points(t(negm), col = "red", pch = 8, cex = 2)
+    to.print<-c(pindices[chu.pindices],nindices[chu.nindices])
+    text(x=ed[to.print,],labels=rownames(ed)[to.print],cex=0.7)
   }
   res <- list(posm = posm, negm = negm)
   return(res)
 }
 
 # Evaluate the differences of the means for each markerpair
-evalresiduals <- function(e1, e2, verbose=T) {
+evalresiduals <- function(e1, e2, verbose=F) {
   sa<-sapply(markerrownames,function(m) {
       res <- analyzeclusters(e1, e2, m, F)
       if (verbose) {
       	cat("evalresiduals: evaluation of ",m,"\n")
       }
-      r<-list(posm=res$posm[1],
-      	       posm=res$posm[2],
-               negm=res$negm[1],
-	       negm=res$negm[2])
+      r<-c(posm=res$posm[1],
+      	   posm=res$posm[2],
+           negm=res$negm[1],
+	   negm=res$negm[2])
       if (verbose) print(r)
       return(r)
   })
