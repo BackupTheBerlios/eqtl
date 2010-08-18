@@ -21,7 +21,7 @@ return the num highest values in vector v
 "
 maxc <- function(v, num=1) {
   if (num > length(v)) {
-    warn(paste("Maxc tried to extract ",c," elements from a list of ",length(v)," elements!"))
+    message(paste("Maxc tried to extract ",c," elements from a list of ",length(v)," elements!"))
     num<-length(v)
   }
   res <- rep(0, times=num)
@@ -45,7 +45,7 @@ return the num lowest values in vector v
 "
 minc <- function(v, num=1) {
   if (num > length(v)) {
-    warn(paste("Minc tried to extract ",c," elements from a list of ",length(v)," elements!"))
+    message(paste("Minc tried to extract ",c," elements from a list of ",length(v)," elements!"))
     num<-length(v)
   }
   res <- rep(0, times=num)
@@ -253,15 +253,22 @@ plotExprPairs <- function(expr, n = 20, p = 3) {
 }
 
 
-##### Extract the EAE values and corresponding cols
-getEAE <- function(quan) {
-  eaev <- as.numeric(quan['eae',])
-  notna <- which(!is.na(eaev))
-  val <- eaev[notna]
+doc<- "
+
+=item getClinical(covar)
+
+Extract the EAE values and corresponding cols
+
+"
+
+getClinical <- function(covar="eae") {
+  phenv <- as.numeric(clinical[covar,])
+  notna <- which(!is.na(phenv))
+  val <- phenv[notna]
   val[val == 0] <- -1
-  return(list(val, notna))
+  return(list(values=val, notna=notna, covar=covar))
 }
-eae <- getEAE(quan)
+eae <- getClinical("eae")
 
 
 library(grDevices) # qhull
@@ -278,7 +285,7 @@ draw is a boolean and activates the graphical output
 
 "
 
-analyzeclusters <- function(e1, e2, m=NULL, draw = F) {
+analyzeclusters <- function(e1, e2, m=NULL, draw = F, phen=NULL) {
   # get expression data (and make them columns)
   ed <- t(expr[c(e1, e2), ])
   # get marker data
@@ -306,7 +313,12 @@ analyzeclusters <- function(e1, e2, m=NULL, draw = F) {
     ylab <- paste("Probeset", exprrownames[e2], sep=" ")
     sub <- paste("Marker ", if(is.character(m)) {m} else {markerrownames[m]}, sep="")
     pch <- rep(21, length(col))
-    pch[naindices] <- 20
+    if (!is.null(phen)) {
+    	p.factors<-as.factor(phen$values)
+	pch[phen$notna]<-20+sapply(phen$values,function(X){which(X==unique(phen$values))})
+    	pch[naindices] <- 20
+    }
+    #pch[naindices] <- 20
     plot(x=ed, col=col, pch=pch, xlab=xlab, ylab=ylab, sub=sub)
     ed.pindices<-ed[pindices,]; chu.pindices<-chull(ed.pindices); lines(ed.pindices[c(chu.pindices,chu.pindices[1]),],lty="dotted",col="green")
     ed.nindices<-ed[nindices,]; chu.nindices<-chull(ed.nindices); lines(ed.nindices[c(chu.nindices,chu.nindices[1]),],lty="dotted",col="red")
@@ -365,6 +377,7 @@ find.best.markers <- function(e1, e2,n=1) {
 e1 <- 1444
 e2 <- 3821
 m <- 134
+#r<-evalresiduals(e1,e2)
 analyzeclusters(e1, e2, m, T)
 
 
