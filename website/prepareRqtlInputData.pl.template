@@ -100,7 +100,7 @@ my $applyTrue;
 my $applyFalse;
 
 GetOptions("verbose" =>\$verbose, "help" => \$help, "man" => \$man,
-	"applyLog2" => \$applyTrue, "doNotApplyLog2" => \$applyFalse
+	"applyLog2" => \$applyTrue
 	) or die "Could not parse options: $@.\n";
 
 if ($applyTrue and $applyFalse) {
@@ -352,6 +352,9 @@ while (FCGI::accept >= 0) {
 		
 		my $lastIndex = $#genotypeLines;			
 		for (my $i=0; $i<=$lastIndex; $i++) {	# iteration over column positions, 0 is first, 
+
+			#print STDERR "genotypeLines[$i]==".$genotypeLines[$i]."\n";
+
 			my @iline = split(/GENOFIELDSEP/, $genotypeLines[$i]);
 							# always take the first field
 			my $id  = shift @iline;		# ID of sample, pairs with ID of individual of phenotype data
@@ -360,7 +363,7 @@ while (FCGI::accept >= 0) {
 				my $name = shift @iline;	# name,sex or whatever of individual
 								# the is preferred to appear prior to 
 								# expression data.
-				$ret = $sep.$name;		# start of line to make up from this information
+				$ret .= $sep.$name;		# start of line to make up from this information
 			}
 					#  the later returned file is splitted up at this position to insert
 					# the information on the phenotype, i.e. the expression level.
