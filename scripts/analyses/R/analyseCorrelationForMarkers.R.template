@@ -31,6 +31,15 @@ The load.data.R and maxcminc.R files needs to be sourced
 prior to this file.
 
 
+To include these functions
+
+source('BASEDIR/scripts/analysis/R/load.data.R')
+
+=cut
+
+"
+
+
 ##### Extracting values
 # Initialisation of chromosomes, cMorgan distances and the expression values
 expr <- load.data("expression") # probes x individuals
