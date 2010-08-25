@@ -22,6 +22,11 @@ R, in principle.
 
 return the num highest values in vector v
 
+
+To use this function, until the library has been formed, run
+
+source('BASEDIR/scripts/analysis/R/maxcminc.R')
+
 =cut
 
 "
