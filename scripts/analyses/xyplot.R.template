@@ -85,13 +85,11 @@ width of image, the units depend on the format of the image, png needs the numbe
 
 =head1 AUTHORS
 
-Steffen Moeller <steffen.moeller@uk-sh.de>,
-ME<eacute>lanie ThessE<eacute>n Hedreul,
-Maja Jagodic 
+Steffen Moeller <steffen.moeller@uk-sh.de>
 
 =head1 COPYRIGHT
 
-(C) 2009 University of LE<uuml>beck, Germany, and Karolinska Institute, Stockholm, Sweden
+(C) 2009 University of LE<uuml>beck, Germany
 (C) 2010 University Clinics Schleswig-Holstein
 
 =cut
@@ -242,10 +240,15 @@ if (is.null(opt$interactive)) {
 ##### HERE THE MAIN PROGRAM STARTS #####
 
 
-source('BASEDIR/scripts/analysis/R/maxcminc.R')
-source('BASEDIR/scripts/analysis/R/load.data.R')
-source('BASEDIR/scripts/analysis/R/analyseCorrelationForMarkers.R')
+source('BASEDIR/scripts/analyses/R/maxcminc.R')
+source('BASEDIR/scripts/analyses/R/load.data.R')
+source('BASEDIR/scripts/analyses/R/analyseCorrelationForMarkers.R')
 
+a<-analyzeclusters(22454,5680,draw=T)
+
+cat("<pre>")
+print(a)
+cat("</pre>\n")
 
 ####n CLOSIN GRAPHICS         #####
 

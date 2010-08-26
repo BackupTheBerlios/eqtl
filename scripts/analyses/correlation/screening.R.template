@@ -1,9 +1,9 @@
 
 TEMPLATEWARNINGHASH
 
-source('BASEDIR/scripts/analysis/R/maxcminc.R')
-source('BASEDIR/scripts/analysis/R/load.data.R')
-source('BASEDIR/scripts/analysis/R/analyseCorrelationForMarkers.R')
+source('BASEDIR/scripts/analyses/R/maxcminc.R')
+source('BASEDIR/scripts/analyses/R/load.data.R')
+source('BASEDIR/scripts/analyses/R/analyseCorrelationForMarkers.R')
 
 
 # For the stockholm dataset

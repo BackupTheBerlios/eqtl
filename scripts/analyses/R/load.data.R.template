@@ -46,7 +46,7 @@ the genotypes for all the individuals, returned as individualsxmarker table
 
 To use this function, until the library has been formed, run
 
-source('BASEDIR/scripts/analysis/R/load.data.R')
+source('BASEDIR/scripts/analyses/R/load.data.R')
 
 =cut
 

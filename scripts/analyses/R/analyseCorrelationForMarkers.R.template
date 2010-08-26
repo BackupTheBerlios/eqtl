@@ -33,7 +33,7 @@ prior to this file.
 
 To include these functions
 
-source('BASEDIR/scripts/analysis/R/load.data.R')
+source('BASEDIR/scripts/analyses/R/load.data.R')
 
 =cut
 
