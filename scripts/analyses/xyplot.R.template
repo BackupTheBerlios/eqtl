@@ -42,10 +42,11 @@ the output file to which to write - if there is a file to write to.
 
 only one parameter can be shown for every dimension, and these selection_xaxis or selection_colour etc. specify where to look for every axis. Only exactly one of the strings 'trait','phen' or 'marker' shall be given as an argument.
 
-=item (xaxis|yaxis|colour|symbol)_(trait|phen|marker) value
+For the time speaking this is not implemented. 
+
+=item value_(xaxis|yaxis|colour|symbol) value
 
 For every axis / dimension, three different values can be specified for the selecion of a molecular trait, a classical phenotype or a genetic marker. But only one of those is read, as determined by the selection_X parameter.
-
 
 =item graphical parameters:
 
@@ -113,27 +114,31 @@ library(getopt)
 # cat("I was here 0.\n")
 
 opt = getopt(matrix(c(                                            
-   'verbose'    , 'v', 2, "integer",  "gives information on the internal status of program",
-   'help'       , 'h', 0, "logical",  "gives instructions on how to retrieve information on how to use the program",
-   'interactive', 'i', 0, "logical",  "indication that this script is run from the UNIX shell",
-   'selection_xaxis','X',0,"character","parameter to display for X axis, defaults to 'trait'",
-   'selection_yaxis','Y',0,"character","parameter to display for Y axis, defaults to 'trait'",
-   'selection_colour','D',0,"character","parameter to show as colour, defaults to 'none'",
-   'selection_symbol','G',0,"character","parameter to show as symbol (gestalt), defaults to 'none'",
-   'format'     , 'f', 1, "character","the format of the image that should present the plot",
-   'output'     , 'o', 1, "character","name of output file",
-   'display'    , 'd', 2, "character","defaults to lod, alternatives are rank and p.value",
-   'main'       , 'M', 1, "character","main title of the plot",
-   'sub'        , 'S', 1, "character","sub title of the plot",
-   'imagewidth' , 'W', 1, "integer",  "width of image, represented in dependency on the format",
-   'imageheight', 'H', 1, "integer",  "height of image, represented in dependency on the format",
-   'linecolour' , 'a', 1, "character","colour of lines separating the chromosomes",
-   'linewidth'  , 'w', 1, "double",   "width of lines separating the chromosomes",
-   'linetype'   , 't', 1, "integer",  "type of lines separating the chromosomes",
-   'axescolour' , 'b', 1, "character","colour of axes",
-   'axeswidth'  , 'x', 1, "double",   "width of axes",
-   'axestype'   , 'y', 1, "integer",  "line type of axes",
-   'legend'     , 'e', 2, "logical",  "set to add a legend"
+   'verbose'         , 'v', 2, "integer"  , "gives information on the internal status of program",
+   'help'            , 'h', 0, "logical"  , "gives instructions on how to retrieve information on how to use the program",
+   'interactive'     , 'i', 0, "logical"  , "indication that this script is run from the UNIX shell",
+   'selection_xaxis' , 'X', 0, "character", "parameter to display for X axis, defaults to 'trait'",
+   'selection_yaxis' , 'Y', 0, "character", "parameter to display for Y axis, defaults to 'trait'",
+   'selection_colour', 'D', 0, "character", "parameter to show as colour, defaults to 'none'",
+   'selection_symbol', 'G', 0, "character", "parameter to show as symbol (gestalt), defaults to 'none'",
+   'value_xaxis'     , 'C', 0, "character", "parameter to display for X axis, defaults to 'trait'",
+   'value_yaxis'     , 'V', 0, "character", "parameter to display for Y axis, defaults to 'trait'",
+   'value_colour'    , 'B', 0, "character", "parameter to show as colour, defaults to 'none'",
+   'value_symbol'    , 'N', 0, "character", "parameter to show as symbol (gestalt), defaults to 'none'",
+   'format'          , 'f', 1, "character", "the format of the image that should present the plot",
+   'output'          , 'o', 1, "character", "name of output file",
+   'display'         , 'd', 2, "character", "defaults to lod, alternatives are rank and p.value",
+   'main'            , 'M', 1, "character", "main title of the plot",
+   'sub'             , 'S', 1, "character", "sub title of the plot",
+   'imagewidth'      , 'W', 1, "integer"  , "width of image, represented in dependency on the format",
+   'imageheight'     , 'H', 1, "integer"  , "height of image, represented in dependency on the format",
+   'linecolour'      , 'a', 1, "character", "colour of lines separating the chromosomes",
+   'linewidth'       , 'w', 1, "double"   , "width of lines separating the chromosomes",
+   'linetype'        , 't', 1, "integer"  , "type of lines separating the chromosomes",
+   'axescolour'      , 'b', 1, "character", "colour of axes",
+   'axeswidth'       , 'x', 1, "double"   , "width of axes",
+   'axestype'        , 'y', 1, "integer"  , "line type of axes",
+   'legend'          , 'e', 2, "logical"  , "set to add a legend"
    ),ncol=5,byrow=TRUE),
    debug=TRUE)
 
@@ -144,6 +149,23 @@ if ( !is.null(opt$help) ) {
    cat(paste("Output can be expected at file '",opt$output,"'.\n",sep=""))
    q(status=1);
 }
+
+
+mandatory.attributes<-c('selection_xaxis', 'selection_yaxis', 'value_xaxis', 'value_yaxis'
+			 # ,'selection_colour', 'selection_symbol', 'value_colour', 'value_symbol' 
+)
+
+mandatory.attributes.missing<-NULL
+for(ma in mandatory.attributes) {
+	if (is.null(opt[[ma]])) mandatory.attributes.missing <- c(mandatory.attributes.missing,ma)
+}
+if (0<length(mandatory.attributes.missing)) {
+	cat("The following mandatory attributes are not set: ",
+	    paste(mandatory.attributes.missing,collapse=", ",sep=""),
+	    "\n")
+	q(status=1)
+}
+
 
 if (is.null(opt$output)) {
    if (!is.null(opt$verbose)) cat("Set ouput to default value.\n")
@@ -244,7 +266,7 @@ source('BASEDIR/scripts/analyses/R/maxcminc.R')
 source('BASEDIR/scripts/analyses/R/load.data.R')
 source('BASEDIR/scripts/analyses/R/analyseCorrelationForMarkers.R')
 
-a<-analyzeclusters(22454,5680,draw=T)
+a<-analyzeclusters(opt$value_xaxis,opt$value_yaxis,draw=T)
 
 cat("<pre>")
 print(a)

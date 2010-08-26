@@ -214,7 +214,7 @@ analyzeclusters <- function(e1, e2, m=NULL, draw = F, phen=NULL,label.individual
     }
     points(t(posm), col = "green", pch = 8, cex = 2)
     points(t(negm), col = "red", pch = 8, cex = 2)
-    if (label.individuals) text(x=ed[to.print,],labels=rownames(ed)[to.print],cex=0.5,pos=0)
+    if (label.individuals) text(x=ed[to.print,],labels=rownames(ed)[to.print],cex=0.5,pos=4,offset=0.3)
   }
   res <- list(posm = posm, negm = negm)
   return(res)

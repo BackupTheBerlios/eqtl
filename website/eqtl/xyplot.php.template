@@ -277,10 +277,10 @@ University Clinics Schleswig-Holstein, Germany, 2010
 				if ("yaxis"=="$d") $errors[]="Missing display variable for Y-axis";
 			} else {
 				$outputfilename .= "_$d_".$$value_varname;
-				array_push($attributes,"--${d}_select",$$select_varname);
-				$cmd .= " --${d}_select ".$$select_varname;
-				array_push($attributes,"--${d}_value",$$value_varname);
-				$cmd .= " --${d}_value ".$$value_varname;
+				array_push($attributes,"--selection_${d}",$$select_varname);
+				$cmd .= " --selection_${d} ".$$select_varname;
+				array_push($attributes,"--value_${d}",$$value_varname);
+				$cmd .= " --value_${d} ".$$value_varname;
 			}
 		}
 
@@ -322,7 +322,7 @@ University Clinics Schleswig-Holstein, Germany, 2010
 			    echo "</p>";
 			}
 			elseif ($verbose) {
-			    echo "<p>Could not find any prior existing file '$outputfilename'.</p?\n";
+			    echo "<p>Could not find any prior existing file '$outputfilename'.</p>\n";
 			}
 			if ($verbose) echo "executing '$cmd'<br>\n";
 			#print_r($attributes);
