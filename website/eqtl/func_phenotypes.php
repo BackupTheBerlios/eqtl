@@ -77,6 +77,3 @@ University Clinics of Schleswig-Holstein, Germany, 2010
 */
 
 ?>
-</body>
-</html>
-

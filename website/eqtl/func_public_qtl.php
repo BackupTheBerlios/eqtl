@@ -109,6 +109,7 @@ an index by chromosome, "name" otherise (default).
 		if (empty($result)) {
 			errorMessage(mysql_error($dbh)."</p><p>".$query."</p>");
 			mysql_close($dbh);
+			echo "<!-- func_public_qtl.php -->\n";
 			echo "</body></html>\n";
 			exit;
 		}
