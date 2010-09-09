@@ -56,6 +56,7 @@ an index by chromosome, "name" otherise (default).
 
 		global $databaseqtl;
 		global $species_name_ensembl_core;
+		global $qtlsCache,$qtlsCacheByChromosome;
 
 		if ("" != $qtlsCache) {
 			echo "<p>get_public_qtls: Returning cached value.</p>";
@@ -108,6 +109,7 @@ an index by chromosome, "name" otherise (default).
 		if (empty($result)) {
 			errorMessage(mysql_error($dbh)."</p><p>".$query."</p>");
 			mysql_close($dbh);
+			echo "<!-- func_public_qtl.php -->\n";
 			echo "</body></html>\n";
 			exit;
 		}
@@ -208,8 +210,10 @@ Prepares the table to collect QTLs from in the various input forms to specify fi
 		echo "<table>";
 		$orderOfChromosomes = list_chromosomes();
 		foreach ($orderOfChromosomes as $c) {
-			$qtls = $qtlsByC[$c];
-			if (empty($qtls)) continue;
+			if (empty($qtlsByC["$c"])) {
+				continue;
+			}
+			$qtls = $qtlsByC["$c"];
 			# echo "<p>qtls:"; print_r($qtls); echo "</p>";
 			foreach ($qtls as $q) {
 				echo "<tr><td>";

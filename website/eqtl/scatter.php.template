@@ -54,16 +54,19 @@ University of LE<uuml>beck, Germany, 2009
 		"quantilemin","quantilemax",
 		"qtl_covariates",
 		"cqtl",
+		"legend",
 		"LODdiffmin","LODdiffmax",
 		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
-		"locus","chrlist", "condition"
+		"locus","chrlist"
 	);
 
 	# fields that are likely to appear and have a special interpretation
 	# later as attributes passed to the wrapped application
 	$presentationAttributes = array("main","sub",
+					"display","format",
+					"LODmax","LODmin","PvalueMax","PvalueMin",
 					"imagewidth","imageheight",
 					"linewidth","linecolour","linetype",
 					"axeswidth","axescolour","axestype");
@@ -118,15 +121,33 @@ University of LE<uuml>beck, Germany, 2009
 		echo "<th colspan=2>Image</th>";
 		echo "<th colspan=2>Field</th>";
 		echo "<th colspan=2>Axes</th></tr>\n";
-		echo "<td>image width:</td>  <td><input type=text size=4 name=imagewidth         ></td>\n";
-		echo "<td>line width:</td>   <td><input type=text size=4 name=linewidth          ></td>\n";
-		echo "<td>axes width:</td>   <td><input type=text size=4 name=axeswidth          ></td></tr>\n";
-		echo "<td>image height:</td> <td><input type=text size=4 name=imageheight        ></td>\n";
-		echo "<td>line type:</td>    <td><input type=text size=4 name=linetype           ></td>\n";
-		echo "<td>axes type:</td>    <td><input type=text size=4 name=axestype           ></td></tr>\n";
+		echo "<td>image width:</td>  <td><input type=text size=4 name=imagewidth  value=\"".    (empty($imagewidth)?"":$imagewidth)."\"></td>\n";
+		echo "<td>line width:</td>   <td><input type=text size=4 name=linewidth   value=\"".    (empty($linewidth)?1:$linewidth).   "\"></td>\n";
+		echo "<td>axes width:</td>   <td><input type=text size=4 name=axeswidth   value=\"".    (empty($axeswidth)?3:$axeswidth).   "\"></td></tr>\n";
+		echo "<td>image height:</td> <td><input type=text size=4 name=imageheight value=\"".    (empty($imageheight)?"":$imageheight)."\"></td>\n";
+		echo "<td>line type:</td>    <td><input type=text size=4 name=linetype    value=\"".    (empty($linetype)?3:$linetype).     "\"></td>\n";
+		echo "<td>axes type:</td>    <td><input type=text size=4 name=axestype    value=\"".    (empty($axestype)?"":$axestype).    "\"></td></tr>\n";
 		echo "<td colspan=2></td>";
-		echo "<td>line colour:</td>  <td><input type=text size=4 name=linecolour value=red></td>\n";
-		echo "<td>axes colour:</td>  <td><input type=text size=4 name=axescolor  value=black></td></tr>\n";
+		echo "<td>line colour:</td>  <td><input type=text size=4 name=linecolour  value=\""  .(empty($linecolour)?"red":$linecolour)."\"></td>\n";
+		echo "<td>axes colour:</td>  <td><input type=text size=4 name=axescolour  value=\"".(empty($axescolour)?"black":$axescolour)."\"></td></tr>\n";
+
+		echo "<tr><td valign=top>Display variable:</td>  <td>";
+		if (empty($display)) $display="pvalue";
+		foreach (array("rank"=>"LOD score by rank","pvalue"=>"P-value","lod"=>"LOD") as $v=>$vv) {
+			echo "<input type=\"radio\" name=\"display\" value=\"$v\"  " . (($v==$display)?"checked":"")  .">$vv<br/>";
+		}
+		echo "</td>";
+
+		echo "<td>";
+		echo "Output format:";
+		echo "</td>";
+		echo "<td>";
+		if (empty($format)) $format="png";
+		foreach (array("pdf"=>"PDF","png"=>"PNG","jpg"=>"JPG") as $v=>$vv) {
+			echo "<input type=\"radio\" name=\"format\" value=\"$v\"  " . (($v==$format)?"checked":"")  .">$vv<br/>";
+		}
+		echo "</td></tr>\n";
+
 		echo "</table>\n";
 		echo "</td></tr>\n";
 		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
@@ -135,6 +156,7 @@ University of LE<uuml>beck, Germany, 2009
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=inlineImages value=1 />Inline Images";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=rerunAnalyses value=1 />Rerun previous analyses";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=verbose value=1 />verbose";
+		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=legend value=1 />legend";
 		echo "</td></tr>\n";
 		echo "</table></td>\n";
 
@@ -156,14 +178,26 @@ University of LE<uuml>beck, Germany, 2009
 		# invocation of external R script
 		#
 
-		echo "cwd: " . getcwd() . "<br>\n";
-		#print_r($_SERVER);
+		if ( isset($_POST["debug"]) or isset($_GET["debug"])
+		  or isset($_POST["verbose"]) or isset($_GET["verbose"])) {
+			echo "cwd: " . getcwd() . "<br>\n";
+			#print_r($_SERVER);
+		}
 
 		if (empty($qtl_covariates)) {
 			echo "No covariate set, assuming 'none'.";
 			$qtl_covariates=array("none");
 		}
 
+		$rscript = getcwd() . "/../../scripts/analyses/scatter_all.R";
+		if (!file_exists($rscript)) {
+		  errorMessage("R script '$rscript' not found.");
+	          exit();
+		}
+
+		if (empty($format)) $format="png";
+
+		# perform individually for every covariate
 		foreach ($qtl_covariates as $n=>$cov) {
 
 			if ($n>0) echo "<hr>";
@@ -181,9 +215,50 @@ University of LE<uuml>beck, Germany, 2009
 			if (!empty($MeanMin)) {
 			    $outputfilename .= "_MeanMin_$MeanMin";
 			}
-			$outputfilename .= ".png";
 
-			if (true or !file_exists($outputfilename) or !empty($rerunAnalyses)) {
+			$attributes=array();
+			$cmd = "$rscript";
+			$cmd .= " --format $format";
+			array_push($attributes,"--format","png");
+			if (!empty($qtl_covariates)) {
+			  $cmd .= " --covariates $cov";
+			  array_push($attributes,"--covariates",$cov);
+			}
+			if (!empty($verbose)) {
+			  $cmd .= " --verbose";
+			  array_push($attributes,"--verbose",1);
+			}
+
+			if (!empty($legend)) {
+			  $cmd .= " --legend";
+			  array_push($attributes,"--legend",1);
+			  $outputfilename .= "_lengend";
+			}
+
+			# the names of the html fields are the same as the ones 
+			# that the application expects as attributes
+			foreach($presentationAttributes as $pa) {
+				if ($verbose) echo "  checking if attribute '--$pa' is set";
+				if (empty($$pa)) {
+					if ($verbose) echo " ... it is not - skipping<br>\n";
+				}
+				else {
+					if ($verbose) echo " ... setting to " . $$pa . "<br>\n";
+						array_push($attributes,"--$pa",'"'.$$pa.'"');
+					$cmd .= " --$pa \"".$$pa."\"";
+					$outputfilename .= "_".$pa."_".$$pa;
+				}
+			}
+
+			$outputfilename .= ".$format";
+
+			$cmd .= " --output $outputfilename";
+			array_push($attributes,"--output",$outputfilename);
+
+			$cmd = "$rscript ".join(" ",$attributes);
+
+
+			if (!file_exists($outputfilename) or !empty($rerunAnalyses)) {
 				if (file_exists("$outputfilename")) {
 				    echo "<p>Removing filename to update: '$outputfilename'.";
 				    if (!unlink("$outputfilename")) {
@@ -194,45 +269,12 @@ University of LE<uuml>beck, Germany, 2009
 				elseif ($verbose) {
 				    echo "<p>Could not find any prior existing file '$outputfilename'.</p?\n";
 				}
-				$rscript = getcwd() . "/../../scripts/analyses/scatter_all.R";
-				$attributes=array();
-				if (!file_exists($rscript)) {
-				  errorMessage("R script '$rscript' not found.");
+				if ( isset($_POST["debug"]) or isset($_GET["debug"])) {
+					echo "\$_POST: "; print_r($_POST);
 				}
-				$cmd = "$rscript";
-				$cmd .= " --format png";
-				array_push($attributes,"--format","png");
-				if (!empty($qtl_covariates)) {
-				  $cmd .= " --covariates $cov";
-				  array_push($attributes,"--covariates",$cov);
-				}
-				if (!empty($verbose)) {
-				  $cmd .= " --verbose";
-				  array_push($attributes,"--verbose",1);
-				}
-
-				# the names of the html fields are the same as the ones 
-				# that the application expects as attributes
-				foreach($presentationAttributes as $pa) {
-					if ($verbose) echo "  checking if attribute '--$pa' is set";
-					if (empty($$pa)) {
-						if ($verbose) echo " ... it is not - skipping<br>\n";
-					}
-					else {
-						if ($verbose) echo " ... setting to " . $$pa . "<br>\n";
-						array_push($attributes,"--$pa",'"'.$$pa.'"');
-						$cmd .= " --$pa \"".$$pa."\"";
-					}
-				}
-
-				$cmd .= " --output $outputfilename";
-				array_push($attributes,"--output",$outputfilename);
-				#$cmd = "./scatter_wrapper.sh ".join(" ",$attributes);
-				$cmd = "$rscript ".join(" ",$attributes);
-
-				
-				if ($verbose) {
-					echo "executing '$cmd'<br>\n";
+				if ( isset($_POST["debug"]) or isset($_GET["debug"])
+				  or isset($_POST["verbose"]) or isset($_GET["verbose"])) {
+					echo "<br>executing '$cmd'<br>\n";
 				}
 				#print_r($attributes);
 				echo "<small><pre>";
@@ -245,8 +287,10 @@ University of LE<uuml>beck, Germany, 2009
 
 			$imagePath=dirname($_SERVER["PHP_SELF"])."/$outputfilename";
 
-			if (!empty($inlineImages)) {
-				echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n";
+			if ("pdf" != $format) {
+				if (!empty($inlineImages)) {
+					echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n";
+				}
 			}
 			echo "<a href=\"http:$imagePath\">$outputfilename</a><br/>\n";
 		}

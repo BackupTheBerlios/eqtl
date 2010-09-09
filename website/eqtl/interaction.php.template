@@ -60,7 +60,7 @@ set in the configuration.
 		return($m);
 	};
 	$aKeys = array_keys($a);
-	$aPrepend = array_map(prependShow,$aKeys);
+	$aPrepend = array_map("prependShow",$aKeys);
 	#echo "Mapping: " . join(",",$aPrepend)."\n";
 
 	# fields that should appear

@@ -151,7 +151,7 @@ Do all the steps described in 1.2.1.
 
 =item install software to show analyses
 
-  apt-get install r-cran-getopt r-recommended
+  apt-get install r-cran-getopt r-recommended r-cran-gplots
 
 =back
 

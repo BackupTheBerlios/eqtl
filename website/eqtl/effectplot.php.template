@@ -9,10 +9,10 @@
 Display of strain differences on the expression levels. This can be shown only for individual marker (or QTL).
 The default will hence be to have this page requested as an extension to the information shown on QTL with the locus directly specified.
 
-It is planned to allow the script to perform a complete rerun of the QTL
+The script can rerun individual expression QTL analyses
 and then show effect plots for all loci above a particular LOD score.
 No permutation tests are then performed, i.e. a filtering for p-Values
-not supported.
+is not supported.
 
 The interface shall also be usable to rerun the QTL with another (most CPU-intensive, possibly) method.
 
@@ -229,13 +229,13 @@ University of LE<uuml>beck, Germany, 2010
 			}
 		}
 
-		foreach ($traitlist as $trait) {
+		foreach ($traitlist as $n=>$trait) {
 
 			if (1<count($traitlist)) {
-				echo "<h2>Trait <i>$trait</$i></h2>\n";
+				echo "<h2>Trait <i>$trait</i></h2>\n";
 			}
 			else {
-				echo "<h1>Effect Plot on trait <i>$trait</$i></h1>\n";
+				echo "<h1>Effect Plot on trait <i>$trait</i></h1>\n";
 			}
 		
 			#
@@ -352,9 +352,14 @@ University of LE<uuml>beck, Germany, 2010
 			if (file_exists("$outputfilename.txt")) {
 				$myFile = "$outputfilename.txt";
 				$fh = fopen($myFile, 'r');
-				$theData = fread($fh, 200000);
-				fclose($fh);
-				echo $theData;
+				if (! $fh) {
+					errorMessage("Could not open file '$outputfilename.txt' for reading.");
+				}
+				else {
+					$theData = fread($fh, 200000);
+					fclose($fh);
+					echo $theData;
+				}
 			}
 
 			echo "<br><a href=\"".$outputfilename.".png\">$outputfilename.png</a>\n";

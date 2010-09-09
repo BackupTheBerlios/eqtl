@@ -134,8 +134,6 @@ University of LE<uuml>beck, Germany, 2009
 		echo "cwd: " . getcwd() . "<br>\n";
 		#print_r($_SERVER);
 
-		if ($n>0) echo "<hr>";
-
 		$attributes=array();
 
 		$outputfilename = "tmp_images/venn_output";

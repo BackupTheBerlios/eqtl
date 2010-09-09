@@ -27,12 +27,13 @@ analogous projects.
 
 =item -projectname <projectname>
 
-sets the name of the project. Configuration files are expected at the directory ./conf_<projectname>
+sets the name of the project. Configuration files are expected at the
+directory ./conf_<projectname>
 
 =item --force
 
-If set, no file will be spared from the transformation. This should be used after 
-performing changes to the configuration files.
+If set, no file will be spared from the transformation. This should be
+used after performing changes to the configuration files.
 
 =back
 

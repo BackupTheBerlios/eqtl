@@ -151,7 +151,7 @@ ENDOFDOCUMENTATION
 		return($m);
 	};
 	$aKeys = array_keys($a);
-	$aPrepend = array_map(prependShow,$aKeys);
+	$aPrepend = array_map("prependShow",$aKeys);
 	#echo "Mapping: " . join(",",$aPrepend)."\n";
 
 	$accessible_fields_in_POST_or_GET = array_merge(
@@ -273,18 +273,20 @@ ENDOFDOCUMENTATION
 				echo empty($onlyNumbers)?"":" value=\"$onlyNumbers\""; ?>>
 			   <br />
 			&nbsp;
-			   <input type="radio" name="onlyNumbersGrouped" value="totals" <?php ((empty($onlyNumbersGrouped) or "totals"=="$onlyNumbersGrouped")?" checked=TRUE":"")?>>Totals only<br />
+			   <input type="radio" name="onlyNumbersGrouped" value="totals" <?php ((empty($onlyNumbersGrouped)?
+			   					" checked":
+			   					("totals"=="$onlyNumbersGrouped")?" checked":""))?>>Totals only<br />
 			&nbsp;
-			   <input type="radio" name="onlyNumbersGrouped" value="seqname" <?php ("seqname"=="$onlyNumbersGrouped"?" checked":"")?>>Trait's Chromosome<br />
+			   <input type="radio" name="onlyNumbersGrouped" value="seqname" <?php (!empty($seqname) && "seqname"=="$onlyNumbersGrouped"?" checked":"")?>>Trait's Chromosome<br />
 			&nbsp;
-			   <input type="radio" name="onlyNumbersGrouped" value="Chromosome" <?php ("Chromosome"=="$onlyNumbersGrouped"?" checked":"")?>>eQTL's Chromosome<br />
+			   <input type="radio" name="onlyNumbersGrouped" value="Chromosome" <?php (!empty($seqname) && "Chromosome"=="$onlyNumbersGrouped"?" checked":"")?>>eQTL's Chromosome<br />
 			</p>
 
 			<?php
 			require_once("func_conditions.php");
 			print_condition_form_element($conditionList,
 				"Select from the following constraints",
-				$condition);
+				empty($condition)?array():$condition);
 			?>
 		
 		</td><td align=right valign=top>
@@ -354,7 +356,7 @@ ENDOFDOCUMENTATION
 
 		$where="WHERE ";
 		$query = "SELECT ";
-		if ($onlyNumbers and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
+		if (!empty($onlyNumbers) and $onlyNumbers and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
 			if (!empty($onlyNumbersGrouped) and !("totals"==$onlyNumbersGrouped)) {
 				if ("Chromosome"=="$onlyNumbersGrouped" or "seqname" == "$onlyNumbersGrouped") {
 					$query .= "$onlyNumbersGrouped,";
@@ -369,7 +371,11 @@ ENDOFDOCUMENTATION
 		else {
 			#$query .= "DISTINCT ";
 			$query .= "Trait, Locus, LOD";
-			
+
+			if (!empty($show_pvalue)) {
+				$query .= ", pvalue";
+			}
+
 			$query .= ", covariates"; # we always need to know the covariates
 
 			if (!empty($show_Groups)) {
@@ -386,10 +392,6 @@ ENDOFDOCUMENTATION
 			
 			if (!empty($show_gene_name)) {
 				$query .= ", gene_name";
-			}
-
-			if (!empty($show_pvalue)) {
-				$query .= ", pvalue";
 			}
 
 			if (!empty($show_ensembl_stable_gene_id)) {
@@ -608,7 +610,7 @@ ENDOFDOCUMENTATION
 		if ("selected" == $covariate_selection_type) {
 			if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
 				if ("WHERE " != $where) $where .= " AND ";
-				if (0==count($covariates)) {
+				if (empty($covariates) or 0==count($covariates)) {
 					$where .= " covariates='' ";
 				}
 				else {
@@ -702,11 +704,13 @@ ENDOFDOCUMENTATION
 
 		$query .= " $where ";
 
-		if (!empty($onlyNumbers) and !empty($onlyNumbersGrouped) and "totals" != "$onlyNumbersGrouped" and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
+		if (!empty($onlyNumbers) and !empty($onlyNumbersGrouped) and "totals" != "$onlyNumbersGrouped"
+				and !( isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition) )
+		   ) {
 			$query .= " GROUP BY $onlyNumbersGrouped ORDER BY $onlyNumbersGrouped";
 		}
 
-		if (!$onlyNumbers and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
+		if ((empty($onlyNumbers) or !$onlyNumbers) and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
 			if (!empty($order)) {
 				$query .= " ORDER BY ".$order." ";
 			}
@@ -1042,11 +1046,13 @@ ENDOFDOCUMENTATION
 				}
 				//expressionviewgene(array("db"=>"EMBL","name"=>$line["Transcript"],"symbol"=>$line["Accession"]));
 
-				$symb=$line["Symbol"];
-				if (empty($symb)) {
+
+				$symb="";
+				if (empty($line["Symbol"])) {
 					$symb="Trait#".$line["Trait"];
 				}
 				else {
+					$symb=$line["Symbol"];
 					if (file_exists("func_expressionview.php")) {
 						expressionviewgene(
 							array(
@@ -1058,20 +1064,22 @@ ENDOFDOCUMENTATION
 						);
 					}
 				}
-				$a=cM2bp($c,$cMmin);
-				if ($a<0) $a=0;
-				$b=cM2bp($c,$cMmax);
-				if ($b<0) $b=0;
-				
 
-				if (file_exists("func_expressionview.php")) {
-					expressionviewqtl(array("name"=>$symb,
-						//"trait"=>$line["Trait"],
-						"trait"=>$symb,
-						"chr"=>$c,
-						"cMmin"=>$cMmin, "cMmax"=>$cMmax,
-						"bpmin"=>min($a,$b),"bpmax"=>max($a,$b)
-					));
+				if (isset($cMmin) and isset($cMmax)) {
+					$a=cM2bp($c,$cMmin);
+					if ($a<0) $a=0;
+					$b=cM2bp($c,$cMmax);
+					if ($b<0) $b=0;
+				
+					if (file_exists("func_expressionview.php")) {
+						expressionviewqtl(array("name"=>$symb,
+							//"trait"=>$line["Trait"],
+							"trait"=>$symb,
+							"chr"=>$c,
+							"cMmin"=>$cMmin, "cMmax"=>$cMmax,
+							"bpmin"=>min($a,$b),"bpmax"=>max($a,$b)
+						));
+					}
 				}
 			}
 

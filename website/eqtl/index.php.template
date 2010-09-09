@@ -51,21 +51,29 @@ probe of the chip.
 
 <?php
 $forms=array();
-$forms[]=array(href=>"qtl_groups.php", title=>"QTL Groups", description=>"Characterisation of classical QTL");
-$forms[]=array(href=>"qtl.php", title=>"QTL", description=>"Filter for single loci influencing the expression of at least one gene.");
-$forms[]=array(href=>"interaction.php", title=>"Interactions", description=>"Filter for pairs of loci contributing to the control of the expression of at least one gene.");
-$forms[]=array(href=>"trait.php", title=>"e-Traits", description=>"Filter for all information on particular genes.");
-$forms[]=array(href=>"phen.php", title=>"c-Traits", description=>"Classically scored phenotypes and their correlation with transcript levels");
-$forms[]=array(href=>"locus.php", title=>"Loci", description=>"Do not show the genes but only the loci and the number of genes thes control. This is supposed to determine a preferences for further investigation within the genome.");
-$forms[]=array(href=>"marker.php", title=>"Marker", description=>"Link the cMorgan positions assigned to markers to base pairs.");
+$forms[]=array("href"=>"qtl_groups.php",  "title"=>"QTL Groups",   
+               "description"=>"Characterisation of classical QTL");
+$forms[]=array("href"=>"qtl.php",         "title"=>"QTL",          
+               "description"=>"Filter for single loci influencing the expression of at least one gene.");
+$forms[]=array("href"=>"interaction.php", "title"=>"Interactions", 
+               "description"=>"Filter for pairs of loci contributing to the control of the expression of at least one gene.");
+$forms[]=array("href"=>"trait.php",       "title"=>"e-Traits",     
+               "description"=>"Filter for all information on particular genes.");
+$forms[]=array("href"=>"phen.php",        "title"=>"c-Traits",     
+               "description"=>"Classically scored phenotypes and their correlation with transcript levels");
+$forms[]=array("href"=>"locus.php",       "title"=>"Loci",         
+               "description"=>"Do not show the genes but only the loci and the number of genes thes control. "
+	      ."This is supposed to determine a preferences for further investigation within the genome.");
+$forms[]=array("href"=>"marker.php",      "title"=>"Marker",       
+               "description"=>"Link the cMorgan positions assigned to markers to base pairs.");
 if (file_exists("parental_expression.php")) 
-	$forms[]=array(href=>"parental_expression.php", title=>"Expression data", description=>"See expression level of genes 30 days post immunisation.");
+	$forms[]=array("href"=>"parental_expression.php", "title"=>"Expression data", "description"=>"See expression level of genes 30 days post immunisation.");
 if (file_exists("expression_trait_correlation.php"))
-	$forms[]=array(href=>"expression_trait_correlation.php", title=>"Correlation of classical and expresssion traits", description=>"For any trait this answers the question to what extend a gene's expression is correlating with the severity of the disease.");
+	$forms[]=array("href"=>"expression_trait_correlation.php", "title"=>"Correlation of classical and expresssion traits", "description"=>"For any trait this answers the question to what extend a gene's expression is correlating with the severity of the disease.");
 
 echo "<table>\n";
 foreach($forms as $f) {
-	echo "<tr><td><a href=\"".$f["href"]."\">".$f["title"]."</a></td><td>".$f["description"]."</td></tr>\n";
+	echo "<tr><td nowrap><a href=\"".$f["href"]."\">".$f["title"]."</a></td><td>".$f["description"]."</td></tr>\n";
 }
 echo "</table>\n";
 ?>
@@ -73,16 +81,18 @@ echo "</table>\n";
 <h2>Analyses</h2>
 <?php
 $analyses=array();
-$analyses[]=array(href=>"scatter.php", title=>"Cause-vs-Effect Location Scatter Plot");
-$analyses[]=array(href=>"venn.php", title=>"Venn diagrams for Covariates");
-$analyses[]=array(href=>"effectplot.php", title=>"Effect plot for individual traits");
-$analyses[]=array(href=>"overview.php", title=>"Tabular presentation of QTL density");
-$analyses[]=array(href=>"analyses/SingleQTL/index.php", title=>"Density of QTLs");
-$analyses[]=array(href=>"analyses/Interactions/", title=>"Density of Interactions");
-$analyses[]=array(href=>"analyses/Interactions_Selection/index.php", title=>"Density of Interactions (selected traits)");
+$analyses[]=array("href"=>"scatter.php",       "title"=>"Cause-vs-Effect Location Scatter Plot");
+$analyses[]=array("href"=>"venn.php",          "title"=>"Venn diagrams for Covariates");
+$analyses[]=array("href"=>"effectplot.php",    "title"=>"R/qtl Effect plot, Scanone and Scantwo for individual traits");
+$analyses[]=array("href"=>"overview.php",      "title"=>"Tabular presentation of QTL density");
+$analyses[]=array("href"=>"trait_summary.php", "title"=>"Differential analysis of covariates for single trait");
 echo "<table>\n";
 foreach($analyses as $a) {
-	echo "<tr><td><a href=\"".$a["href"]."\">".$a["title"]."</a></td>".$a["description"]."<td></td></tr>\n";
+	echo "<tr><td><a href=\"".$a["href"]."\">".$a["title"]."</a></td>";
+	if (!empty($a["description"])) {
+		echo "<td>".$a["description"]."</td>";
+	}
+	echo "</tr>\n";
 }
 echo "</table>\n";
 ?>

@@ -53,12 +53,14 @@ University of LE<uuml>beck, 2009
 
 	if (!isset($hostname) or !isset($username) or !isset($database)) {
 		errorMessage("func_dbconfig failed to specify hostname, username or database for func_connect.php");
+		echo "<!-- func_connect.php -->\n";
 		echo "</body></html>";
 		exit;
 	}
 
 	if (empty($ensemblversion)) {
 		errorMessage("func_dbconfig failed to specify ensemblversion");
+		echo "<!-- func_connect.php -->\n";
 		echo "</body></html>";
 		exit;
 // 		print "<p>Attention: func_connect: setting ensemblversion to $ensemblversion</p>\n";

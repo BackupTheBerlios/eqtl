@@ -122,7 +122,6 @@ function print_exclusive_selection($rname,$variablename,$entryarray,$default="")
 
   foreach($entryarray as $presentation=>$value) {
   	echo "<input type=radio name=\"$variablename\" value=\"$value\"".("$value"=="$preset"?" checked":"")." />$presentation<br>\n";
-  	$no++;
   }
   echo "</td>";
   echo "</tr>\n";
@@ -156,13 +155,14 @@ function print_selection_form($properties) {
 	global $LODmin,$LODmax,$quantilemin,$quantilemax,
 	       $chromosome,  $cM,  $marker, 
 	       $chromosome2, $cM2, $marker2, 
-	       $LODdiffmin, $LODdiffmax, $cM_Peak_Min, $cM_Peak_Max,
+	       $LODdiffmin, $LODdiffmax, $cM_Peak_Min, $cM_Peak_Max, $Mbp_Peak_Min, $Mbp_Peak_Max,
 	       $cM_within, $groups, $locus, $chrlist,
 	       $MeanMin, $MeanMax, 
 	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,
                $PvalueMax,$PvalueMin,
 	       $SdMin, $SdMax, $VarianceMin, $VarianceMax, $MedianMin, $MedianMax,
-	       $traitlist, $traits, $work, $method, $unit, $find_marker, $cistrans
+	       $traitlist, $traits, $work, $method, $unit, $find_marker, $cistrans,
+	       $split_chromosomes
 	;
 
 
@@ -199,6 +199,12 @@ function print_selection_form($properties) {
 			break;
 
 		 case "table_overview_scanone":
+			$properties = array(
+						"LOD", "pvalue", "mean", "sd", "median", "variance" ,"split_chromosomes"
+						#, "number_of_chromosomes_per_trait"
+			);
+			break;
+
 		 case "figure_scatter":
 			$properties = array(
 						"LOD", "pvalue", "mean", "sd", "median", "variance" ,
@@ -313,7 +319,7 @@ function print_selection_form($properties) {
 				break;
 
 			case "LOD":
-				if (empty($LODmin)) $LODmin=3.9;
+				if (empty($LODmin)) $LODmin=THRESHOLD; # from conf/*
 				print_row_two_text_single("LOD-score span","LODmin","LODmax",$LODmin,$LODmax,5);
 				break;
 
@@ -486,6 +492,15 @@ function print_selection_form($properties) {
 				echo "</td></tr>";
 				break;
 
+			case "split_chromosomes":
+				echo "<tr><th>Split Chromosomes</th><td>";
+				echo "<select name=\"split_chromosomes\">\n";
+				echo "<option value=\"separated\">Show results for every chromosome separately</option>\n";
+				echo "<option value=\"aggregated\">Show aggregated chromsomal results per covariates</option>\n";
+				echo "</select>";
+				echo "</td></tr>\n";
+				break;
+
 			case "phen_analysis":
 		     		echo "<tr><th>Phen Analyses:</th><td>";
 				$query = "select trait_phen_analysis_id, analysis, "
@@ -515,6 +530,10 @@ function print_selection_form($properties) {
 
 			case "hr":
 				echo "<tr><td colspan=200><hr></td></tr>\n";
+				break;
+
+			case "submit": case "cancel": case "cancle": case "reset":
+				echo "<tr><td colspan=4><input type=\"submit\"> &nbsp; <input type=\"reset\"></td><tr>\n";
 				break;
 
 			default:
