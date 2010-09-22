@@ -93,10 +93,10 @@ set in the configuration.
 
 	foreach ($accessible_fields_in_POST_or_GET as $vname) {
 		if (isset($_POST[$vname])) {
-			$$vname=$_POST[$vname];
+			$$vname=ltrim(rtrim($_POST[$vname]));
 		}
 		elseif (isset($_GET[$vname])) {
-			$$vname=$_GET[$vname];
+			$$vname=ltrim(rtrim($_GET[$vname]));
 		}
 // 		echo $$vname . " = " . $vname ."<br>";
 	}
