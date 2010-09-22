@@ -101,13 +101,13 @@ University of LE<uuml>beck, Germany, 2010
 	foreach($accessible_fields_in_POST_or_GET as $vname)
 	{
 		if (isset($_POST[$vname])) {
-			$$vname = $_POST[$vname];
+			$$vname = trim($_POST[$vname]);
 			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
 				echo $vname."=".$$vname."\t";
 			}
 		}
 		elseif(isset($_GET[$vname])) {
-			$$vname = $_GET[$vname];
+			$$vname = trim($_GET[$vname]);
 			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
 				echo $vname."=".$$vname."\t";
 			}

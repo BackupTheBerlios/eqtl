@@ -410,6 +410,11 @@ my.cross <- read.cross(	format="csv", dir="",
 		        genotypes=RQTLREADCROSSGENOTYPES,
 			alleles=RQTLREADCROSSALLELES,
 			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=CONVERTXDATA )
+
+if (USEJITTERMAP) {
+	my.cross <- jittermap(my.cross)
+}
+
 if (USECALCGENOPROB) {
 	cat("Running calc.genoprob.\\n")
 	my.cross <- calc.genoprob( my.cross, step=$steps, error.prob=$execParams{'errorP'} )
