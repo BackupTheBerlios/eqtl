@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.1.48, for debian-linux-gnu (x86_64)
+-- MySQL dump 10.13  Distrib 5.1.49, for debian-linux-gnu (i686)
 --
--- Host: localhost    Database: eQTL_stockholm_eae_logplier
+-- Host: localhost    Database: eQTL_Braunschweig_Treg
 -- ------------------------------------------------------
--- Server version	5.1.48-1
+-- Server version	5.1.49-1ubuntu8
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -14,6 +14,59 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `Affymetrix_Mouse_430_2_Chip_Details`
+--
+
+DROP TABLE IF EXISTS `Affymetrix_Mouse_430_2_Chip_Details`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `Affymetrix_Mouse_430_2_Chip_Details` (
+  `Probe_Set_ID` varchar(200) NOT NULL DEFAULT '',
+  `GeneChip_Array` varchar(200) DEFAULT NULL,
+  `Species_Scientific_Name` varchar(200) DEFAULT NULL,
+  `Annotation_Date` varchar(200) DEFAULT NULL,
+  `Sequence_Type` varchar(200) DEFAULT NULL,
+  `Sequence_Source` varchar(200) DEFAULT NULL,
+  `Transcript_ID_Array_Design_` varchar(200) DEFAULT NULL,
+  `Target_Description` varchar(200) DEFAULT NULL,
+  `Representative_Public_ID` varchar(200) DEFAULT NULL,
+  `Archival_UniGene_Cluster` varchar(200) DEFAULT NULL,
+  `UniGene_ID` varchar(200) DEFAULT NULL,
+  `Genome_Version` varchar(200) DEFAULT NULL,
+  `Alignments` varchar(200) DEFAULT NULL,
+  `Gene_Title` varchar(200) DEFAULT NULL,
+  `Gene_Symbol` varchar(200) DEFAULT NULL,
+  `Chromosomal_Location` varchar(200) DEFAULT NULL,
+  `Unigene_Cluster_Type` varchar(200) DEFAULT NULL,
+  `Ensembl` varchar(200) DEFAULT NULL,
+  `Entrez_Gene` varchar(200) DEFAULT NULL,
+  `SwissProt` varchar(200) DEFAULT NULL,
+  `EC` varchar(200) DEFAULT NULL,
+  `OMIM` varchar(200) DEFAULT NULL,
+  `RefSeq_Protein_ID` varchar(200) DEFAULT NULL,
+  `RefSeq_Transcript_ID` varchar(200) DEFAULT NULL,
+  `FlyBase` varchar(200) DEFAULT NULL,
+  `AGI` varchar(200) DEFAULT NULL,
+  `WormBase` varchar(200) DEFAULT NULL,
+  `MGI_Name` varchar(200) DEFAULT NULL,
+  `RGD_Name` varchar(200) DEFAULT NULL,
+  `SGD_accession_number` varchar(200) DEFAULT NULL,
+  `Gene_Ontology_Biological_Process` varchar(200) DEFAULT NULL,
+  `Gene_Ontology_Cellular_Component` varchar(200) DEFAULT NULL,
+  `Gene_Ontology_Molecular_Function` varchar(200) DEFAULT NULL,
+  `Pathway` varchar(200) DEFAULT NULL,
+  `InterPro` varchar(200) DEFAULT NULL,
+  `Trans_Membrane` varchar(200) DEFAULT NULL,
+  `QTL` varchar(200) DEFAULT NULL,
+  `Annotation_Description` varchar(200) DEFAULT NULL,
+  `Annotation_Transcript_Cluster` varchar(200) DEFAULT NULL,
+  `Transcript_Assignments` varchar(200) DEFAULT NULL,
+  `Annotation_Notes` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`Probe_Set_ID`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `characteristics`
@@ -54,7 +107,7 @@ CREATE TABLE `computation` (
   KEY `computation_timestamp` (`timestamp`),
   KEY `computation_stat_appl` (`status`,`application`),
   KEY `idx_computation_application_status` (`application`,`status`)
-) ENGINE=MyISAM AUTO_INCREMENT=5901431 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=5946532 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -126,7 +179,7 @@ CREATE TABLE `locus` (
   PRIMARY KEY (`No`),
   UNIQUE KEY `indLocusName` (`Name`),
   UNIQUE KEY `indLocusChrMorgan` (`Chr`,`cMorgan`)
-) ENGINE=MyISAM AUTO_INCREMENT=4674 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=5000 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -214,7 +267,7 @@ CREATE TABLE `qtl` (
   `cMorgan_Peak` float DEFAULT NULL,
   `Mbp_Peak` float DEFAULT NULL,
   `Quantile` float DEFAULT NULL,
-  `covariates` set('eae_add','eae_int','sum_add','sum_int','max_add','max_int','weight_add','weight_int','sud_add','sud_int','cage_add','cage_int','dose_add','dose_int','dpw_add','dpw_int','ons_add','ons_int','sd_add','sd_int','s35_add','s35_int','d12g1_add','d12g1_int','d12g2b_add','d12b2b_int','d12g2c_add','d12g2c_int','d35g1_add','d35g1_int','d35g2b_add','d35g2b_int','d35g2c_add','d35g2c_int','cross_add','cross_int','dud_add','dud_int','t12p_add','t12p_int','t35p_add','t35p_int','bd_add','bd_int','wl0_add','wl0_int','totalIgG_add','totalIgG_int','set_add','set_int','sim_add','sim_int') DEFAULT NULL,
+  `covariates` set('sex_add','sex_int') DEFAULT NULL,
   `phenocol` char(10) DEFAULT NULL,
   `cis` tinyint(1) DEFAULT NULL,
   `cis_dist` int(11) DEFAULT NULL,
@@ -231,7 +284,7 @@ CREATE TABLE `qtl` (
   KEY `qtl_location_min` (`Chromosome`,`cMorgan_Min`),
   KEY `qtl_location_max` (`Chromosome`,`cMorgan_Max`),
   KEY `qtl_computation` (`computation_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1601969 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=1602416 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -257,7 +310,7 @@ DROP TABLE IF EXISTS `trait`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `trait` (
-  `trait_id` varchar(20) NOT NULL DEFAULT '',
+  `trait_id` varchar(200) NOT NULL DEFAULT '',
   `name` varchar(50) DEFAULT NULL,
   `chromosome` varchar(2) DEFAULT NULL,
   `start` int(11) DEFAULT NULL,
@@ -341,4 +394,4 @@ CREATE TABLE `trait_phen_cor` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2010-07-27 11:23:57
+-- Dump completed on 2010-09-22 15:13:02
