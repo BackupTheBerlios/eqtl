@@ -213,6 +213,8 @@ if (USEJITTERMAP) {
 		cat("Executing jittermap.\n")
 	}
 	my.cross<-jittermap(my.cross)
+} else  if (!is.null(opt$verbose)) {
+	cat("*Not* executing jittermap.\n")
 }
 
 if (is.null(my.cross)) {
