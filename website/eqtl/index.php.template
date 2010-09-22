@@ -86,6 +86,7 @@ $analyses[]=array("href"=>"venn.php",          "title"=>"Venn diagrams for Covar
 $analyses[]=array("href"=>"effectplot.php",    "title"=>"R/qtl Effect plot, Scanone and Scantwo for individual traits");
 $analyses[]=array("href"=>"overview.php",      "title"=>"Tabular presentation of QTL density");
 $analyses[]=array("href"=>"trait_summary.php", "title"=>"Differential analysis of covariates for single trait");
+$analyses[]=array("href"=>"xyplot.php",        "title"=>"Plotting two traits/phenotypes against each other");
 echo "<table>\n";
 foreach($analyses as $a) {
 	echo "<tr><td><a href=\"".$a["href"]."\">".$a["title"]."</a></td>";
