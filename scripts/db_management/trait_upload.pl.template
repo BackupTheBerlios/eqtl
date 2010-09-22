@@ -52,8 +52,8 @@ while(<>) {
 	my @cols=split(/\t/,$_);
 	if (!defined($mouseids)) {
 		my $n=shift(@cols);
-		die "The file is not in Eisen format, expected UNIQID to be first element (was $n).\n"
-			unless $n=~/^UNIQID/i;
+		die "The file is not in Eisen format, expected PHENOUNIQID to be first element (was $n), which is specified bz the cofiguration variable PHENO"."UNIQID.\n"
+			unless $n=~/^PHENOUNIQID/i;
 		if ($cols[0] =~ /^NAME/i) {
 			shift @cols;
 			$extended=1;
