@@ -106,14 +106,6 @@ INTROACKNOWLEDGEMENTS
 <?php
 	require_once("footer.php");
 ?>
-<h4>TODO</h4>
-<small>
-<ul>
-<!-- <li>locus.php seems to have non-understood problems -->
-<!-- <li>continue investigation to substitute links via the query page by direct ones -->
-<li>allow for dynamic generation of R/qtl images
-<!-- <li>Find Robert to revive his iHOP pages -->
-</small>
 </body>
 </html>
 
