@@ -5,7 +5,7 @@ doc<-"
 
 =head1 NAME
 
-load.datac(type)
+load.data(type)
 
 =head1 DESCRIPTION
 
