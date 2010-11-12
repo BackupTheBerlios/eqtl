@@ -103,12 +103,12 @@ require_once("func_species.php");
 @show_small_header("Marker Selection",TRUE);
 
 $requiredFields=array(
-	"markerhost","markeruser","markerdatabase",
+	"markerhost","markeruser","markerdatabase","markerpassword",
 	"ensemblhost","ensembluser","ensemblversion" #,"ensembldatabase"
 );
 
 global $ensemblhost,$ensembluser,$ensemblversion,$ensembldatabase;
-global $markerhost,$markeruser,$markerdatabase;
+global $markerhost,$markeruser,$markerdatabase,$markerpassword;
 
 $tmp=$requiredFields;
 array_push($tmp,
@@ -364,7 +364,7 @@ if (empty($submitted)) {
 		//echo "query: $query<br>";
 
 
-		$linkLocal=mysql_connect($markerhost,$markeruser,"");
+		$linkLocal=mysql_connect($markerhost,$markeruser,"$markerpassword");
 
 		if (empty($linkLocal)) {
 			echo "<p>Could not create link to database on '$markerhost'. ";

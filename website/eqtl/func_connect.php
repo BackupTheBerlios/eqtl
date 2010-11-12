@@ -67,7 +67,7 @@ University of LE<uuml>beck, 2009
 	}
 
 	//$link=mysql_connect($hostname,$username,"");
-	$linkLocal=mysql_connect($hostnameqtl,$usernameqtl,"");
+	$linkLocal=mysql_connect($hostnameqtl,$usernameqtl,"$passwordqtl");
 
 	if (empty($linkLocal)) {
 		errorMessage("Could not create link to local database.");
