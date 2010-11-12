@@ -220,7 +220,7 @@ function print_selection_form($properties) {
 			break;
 		 case "figure_effectplot":
 			$properties = array(
-						"trait","hr","work","method","LOD","hr","unit","marker","marker2","find_marker","hr" #"cistrans"
+						"trait","subset","hr","work","method","LOD","hr","unit","marker","marker2","find_marker","hr" #"cistrans"
 			);
 			break;
 
@@ -381,6 +381,10 @@ function print_selection_form($properties) {
 			?>
 			</td></tr>
 <?php
+				break;		// end of trait
+
+			case "subset":
+				echo "<tr><td colspan=1000>Donno how to ask for the subset, yet.</td></tr>\n";
 				break;
 
 			case "work":
