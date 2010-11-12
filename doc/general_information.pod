@@ -219,7 +219,7 @@ that is put next to this document:
 
         yourMysqlSettings="-h yourHostname -u yourUsername"
 	echo "create database yourDatabasename;"|mysql $yourMysqlSettings
-        mysql $yourMysqlSettings yourDatabaseName < DatabaseSchema.sql
+        mysql $yourMysqlSettings yourDatabaseName < DatabaseSchema.txt
 
 In MySQL call "help alter table" for instructions how to change the
 properties of columns. This should only be required for the table

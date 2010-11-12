@@ -32,3 +32,7 @@ To produce those PDF documents, it is required to executed the
 Makefile by invoking "make" at the command line. This requires
 the Debian packages pod2man and pdftk to be installed, which
 may or may not be available for your distribution.
+<<<<<<< HEAD
+=======
+
+>>>>>>> 15a14e952511058ab885859f6fcc0f886c292c90
