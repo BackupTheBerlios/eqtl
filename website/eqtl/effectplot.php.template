@@ -86,6 +86,7 @@ University of LE<uuml>beck, Germany, 2010
 		"method",
 		"find_marker",
 		"cistrans",
+		"subset",
 		"condition"
 	);
 
