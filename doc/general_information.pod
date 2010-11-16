@@ -628,8 +628,10 @@ new data to be submitted. The setup expected to be ready involves
 
 For Debian install the packages libfcgi-perl, libapache2-mod-fastcgi,
 php5-mysql, libapache2-mod-php5 and ensure that the website folder
-is accessible by the apache.
-
+is accessible by the apache. The file 
+/etc/apache2/mods-enabled/fastcgi.conf needs to be edited to accept
+files ending on .pl as fcgi scripts. Also, the directory harboring the
+.pl scripts need to be granted to +ExecCGI in the apache configuration.
 
 =head3 2.1  Communication of the project's internals
 
