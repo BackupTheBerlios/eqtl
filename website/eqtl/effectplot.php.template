@@ -67,6 +67,7 @@ University of LE<uuml>beck, Germany, 2010
 	$dataSelectionFieldsQTL = array(
 		"traits","traitlist",
 		"groups",
+		"individualConstraintSelection",
 		"chromosome","cM",
 		"chromosome2","cM2",
 		"marker","marker2",
@@ -92,7 +93,14 @@ University of LE<uuml>beck, Germany, 2010
 
 	#print_r($_GET);
 
-
+                      echo "<tr><td>Subset</td></tr>";
+         global $constraintList;
+	$constraintList=array(
+		array(id=>"sick1Rat",name=>"once sick",phen=>"EAE",relation=>"=",value=>"1"),
+		array(id=>"lateOnsetRat",name=>"late onset",phen=>"ONS",relation=>">=",value=>"20"),
+		array(id=>"lateOnsetMouse",name=>"late onset mouse",phen=>"onset",relation=>">=",value=>"20"),
+		array(id=>"sick1Mouse",name=>"once sick mouse",phen=>"AUC",relation=>">",value=>"0")
+	);
 
 	$accessible_fields_in_POST_or_GET = array_merge (
 		array("submitted","direct","inlineImages","rerunAnalyses","verbose"),
@@ -152,6 +160,7 @@ University of LE<uuml>beck, Germany, 2010
 		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
 
 		echo "<table>\n";
+
 		print_selection_form("figure_effectplot");
 		//echo "<tr><th>Covariates of stored QTL</th><td>";
 		//select_covariates_combinations(3);
@@ -290,6 +299,11 @@ University of LE<uuml>beck, Germany, 2010
 			if (!empty($work)) {
 				$outputfilename .= "_work_$work";
 				array_push($attributes,"--work",$work);
+			}
+			if (!empty($individualConstraintSelection)) {
+				
+				$outputfilename .= "_individuals_$individualConstraintSelection";
+				array_push($attributes,"--individuals",$individualConstraintSelection);
 			}
 			if (!empty($method)
 			   and (empty($marker) and (empty($cM) or ""=="$cM" or empty($chromosome)))) {

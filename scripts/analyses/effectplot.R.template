@@ -119,6 +119,7 @@ opt = getopt(matrix(c(
     'findmarker' , 'z', 2, "character",
     'LODmin'     , 'l', 1, "double",
     'interactive', 'i', 0, "logical",
+    'individuals', 'I', 0, "character",
     'format'     , 'f', 1, "character",
     'covariates' , 'c', 1, "character",
     'work'       , 'w', 1, "character",
