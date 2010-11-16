@@ -435,6 +435,22 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	r<-ep(m,chr,cM,m2,chr2,cM2)
 	print(r)
 }
+     if(opt$individuals = "sick1Rat"){
+                indi.pull <- pull.pheno(my.cross,"EAE");
+                indi.subset <- subset(my.cross, ind = (!is.na(indi.pull) & indi.pull = 1));
+       }
+    else if (opt$individuals = "lateOnsetRat"){
+                indi.pull <- pull.pheno(my.cross,"ONS");
+                indi.subset <- subset(my.cross, ind = (!is.na(indi.pull) & indi.pull >= 20));
+       }                 
+    else if (opt$individuals = "lateOnsetMouse"){
+                indi.pull <- pull.pheno(my.cross,"onset");
+                indi.subset <- subset(my.cross, ind = (!is.na(indi.pull) & indi.pull >= 20));
+       }
+    else {
+                indi.pull <- pull.pheno(my.cross,"AUC");
+                indi.subset <- subset(my.cross, ind = (!is.na(indi.pull) & indi.pull = 0));
+       }
 
 
 doc <- "
