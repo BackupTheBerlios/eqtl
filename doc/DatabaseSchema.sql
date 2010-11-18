@@ -395,3 +395,17 @@ CREATE TABLE `trait_phen_cor` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2010-09-22 15:13:02
+
+
+-- Manual additions
+
+DROP TABLE IF EXISTS `individuals_group`;
+CREATE TABLE individuals_group (
+  individuals_group_id int AUTO_INCREMENT,
+  name varchar(20),
+  phen varchar(40),
+  relation enum('=','<','>','<=','>='),
+  value float,
+  PRIMARY KEY (individuals_group_id)
+);
+

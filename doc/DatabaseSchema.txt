@@ -187,13 +187,13 @@ FOR EACH ROW DELETE FROM qtl where computation_id=OLD.computation_id;
 
 
 CREATE TABLE individuals_group (
-  individuals_group_id AUTO_INCREMENT,
-  name varchar(20) ,
+  individuals_group_id int AUTO_INCREMENT,
+  name varchar(20),
   phen varchar(40),
   relation enum('=','<','>','<=','>='),
-  value float;
+  value float,
   PRIMARY KEY (individuals_group_id)
-) 
+);
 
 mysql> desc individuals_group;
 +----------------------+-----------------------------+------+-----+---------+----------------+
