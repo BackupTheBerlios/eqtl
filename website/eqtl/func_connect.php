@@ -66,8 +66,7 @@ University of LE<uuml>beck, 2009
 // 		print "<p>Attention: func_connect: setting ensemblversion to $ensemblversion</p>\n";
 	}
 
-	//$link=mysql_connect($hostname,$username,"");
-	$linkLocal=mysql_connect($hostnameqtl,$usernameqtl,"$passwordqtl");
+	$linkLocal=mysql_connect($hostnameqtl,$usernameqtl,$passwordqtl);
 
 	if (empty($linkLocal)) {
 		errorMessage("Could not create link to local database.");
