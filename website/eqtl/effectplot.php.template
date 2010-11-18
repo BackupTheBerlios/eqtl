@@ -92,9 +92,7 @@ University of LE<uuml>beck, Germany, 2010
 	);
 
 	#print_r($_GET);
-
-                      echo "<tr><td>Subset</td></tr>";
-         global $constraintList;
+        global $constraintList;
 	$constraintList=array(
 		array(id=>"sick1Rat",name=>"once sick",phen=>"EAE",relation=>"=",value=>"1"),
 		array(id=>"lateOnsetRat",name=>"late onset",phen=>"ONS",relation=>">=",value=>"20"),
