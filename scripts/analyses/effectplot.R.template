@@ -198,6 +198,7 @@ fname.input<-paste(
 	opt$trait,
 	"&applyLog2=APPLYLOG2&score=",sep="")
 
+
 if (!is.null(opt$verbose)) {
 	cat("fname.input",":",fname.input,"\n");
 }
@@ -208,6 +209,28 @@ my.cross <- read.cross(	format="csv", dir="",
 		        genotypes=RQTLREADCROSSGENOTYPES,
 			alleles=RQTLREADCROSSALLELES ,
 			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=CONVERTXDATA )
+#------------code for subset-------------------*
+if(!is.null(opt$individuals)){
+                 if(opt$individuals == "sick1Mouse"){
+                                  my.subset.pheno=pull.pheno(my.cross,"AUC")
+                                  my.cross <- subset(my.cross, ind = (!is.na(my.subset.pheno) & my.subset.pheno > 0))
+                     }
+       else if(opt$individuals == "lateOnsetMouse"){
+                                  my.subset.pheno=pull.pheno(my.cross,"onset")
+                                  my.cross <- subset(my.cross, ind = (!is.na(my.subset.pheno) & my.subset.pheno >= 20))
+                     }
+       else if(opt$individuals == "lateOnsetRat"){
+                                  my.subset.pheno=pull.pheno(my.cross,"ONS")
+                                  my.cross <- subset(my.cross, ind = (!is.na(my.subset.pheno) & my.subset.pheno >= 20))
+                     }
+       else if(opt$individuals == "sick1Rat"){
+                                  my.subset.pheno=pull.pheno(my.cross,"EAE")
+                                  my.cross <- subset(my.cross, ind = (!is.na(my.subset.pheno) & my.subset.pheno == 1))
+                     }
+}         else { 
+                 cat("No subset defined.Analysis is running on all individuals as no subset defined.\n");
+}
+#-----------------------code ends for subset------------------------------*
 
 if (USEJITTERMAP) {
 	if (!is.null(opt$verbose)) {
