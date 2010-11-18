@@ -160,7 +160,6 @@ mysql> desc trait;
 
 Two tables for the integration of various separate analyses with the remaining data.
 
-
 CREATE TABLE trait_phen_analysis (
   trait_phen_analysis_id MEDIUMINT NOT NULL AUTO_INCREMENT,
   analysis varchar(20) COMMENT 'Verbal description of analysis, short identifier.',
@@ -187,3 +186,23 @@ FOR EACH ROW DELETE FROM qtl where computation_id=OLD.computation_id;
 
 
 
+CREATE TABLE individuals_group (
+  individuals_group_id AUTO_INCREMENT,
+  name varchar(20) ,
+  phen varchar(40),
+  relation enum('=','<','>','<=','>='),
+  value float;
+  PRIMARY KEY (individuals_group_id)
+) 
+
+mysql> desc individuals_group;
++----------------------+-----------------------------+------+-----+---------+----------------+
+| Field                | Type                        | Null | Key | Default | Extra          |
++----------------------+-----------------------------+------+-----+---------+----------------+
+| individuals_group_id | int(10) unsigned            | NO   | PRI | NULL    | auto_increment |
+| name                 | varchar(40)                 | YES  |     | NULL    |                |
+| phen                 | varchar(40)                 | YES  |     | NULL    |                |
+| relation             | enum('=','<','>','<=','>=') | YES  |     | NULL    |                |
+| value                | float                       | YES  |     | NULL    |                |
++----------------------+-----------------------------+------+-----+---------+----------------+
+5 rows in set (0.00 sec)
