@@ -23,6 +23,8 @@ of the entry form between the various interfaces.
 
 */
 
+global $individuals_group_id;
+
 
 require_once("func_dbconfig.php"); // errorMessage
 
@@ -394,15 +396,21 @@ function print_selection_form($properties) {
 				}
 				else {
 					echo "<table>";
-					while($line = mysql_fetch_array($constraintsResult, MYSQL_ASSOC)) {
+					echo "<tr><td>";
+					$line=array(individuals_group_id=>"", name=>"all", phen=>"", relation=>"",  value=>"");
+					do {
 						echo "<tr><td>";
 						echo '<input type="radio" name="individuals_group_id" value="'
-							.$line["individuals_group_id"].'">'.$line["name"]
-							.'</td><td><small> ('.$line["phen"]." ".$line["relation"]." ".$line["value"].')</small></td><td>';
-						echo '<a href="http:individuals_group?id='.$line["individuals_group_id"].'">edit</a>';
+							.$line["individuals_group_id"].("$individuals_group_id"==$line["individuals_group_id"]?' selected':'').'">'.$line["name"]
+							.'</td><td>';
+						if ("all" != $line["name"]) echo '<small> ('.$line["phen"]." ".$line["relation"]." ".$line["value"].')</small>';
+						echo '</td><td>';
+						if ("all" != $line["name"]) echo '<a href="http:individuals_group?id='.$line["individuals_group_id"].'">edit</a>';
 						echo "</td></tr>\n";
 					}
+					while($line = mysql_fetch_array($constraintsResult, MYSQL_ASSOC));
 					echo "</table>";
+					mysql_free_result($constraintsResult);
 				}
 				echo "</td>";
 				echo "</tr>\n";
