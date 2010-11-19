@@ -67,7 +67,7 @@ University of LE<uuml>beck, Germany, 2010
 	$dataSelectionFieldsQTL = array(
 		"traits","traitlist",
 		"groups",
-		"individualConstraintSelection",
+		"individuals_group_id",
 		"chromosome","cM",
 		"chromosome2","cM2",
 		"marker","marker2",
@@ -87,7 +87,6 @@ University of LE<uuml>beck, Germany, 2010
 		"method",
 		"find_marker",
 		"cistrans",
-		"subset",
 		"condition"
 	);
 
