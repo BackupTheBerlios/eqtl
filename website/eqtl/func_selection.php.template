@@ -384,21 +384,28 @@ function print_selection_form($properties) {
 				break;		// end of trait
 
 			case "subset":
-			     global $constraintList;
-	                     $constraintList=array(
-		                             array(individuals_group_id=>"sick1Rat",name=>"once sick",phen=>"EAE",relation=>"=",value=>"1"),
-		                             array(individuals_group_id=>"lateOnsetRat",name=>"late onset",phen=>"ONS",relation=>">=",value=>"20"),
-		                             array(individuals_group_id=>"lateOnsetMouse",name=>"late onset mouse",phen=>"onset",relation=>">=",value=>"20"),
-		                             array(individuals_group_id=>"sick1Mouse",name=>"once sick mouse",phen=>"AUC",relation=>">",value=>"0")
-                                                  );
-                                       echo "<tr>";
-                                       echo "<th align=right>Subset:</th>";
-                                       echo "<td>";
-                             foreach($constraintList as $cl) {
-                                                 echo '<input type="radio" name="individuals_group_id" value="'.$cl["individuals_group_id"].'">'.$cl["name"].' ('.$cl["relation"].$cl["value"].')<br>';
-                                                             }
-                                       echo "</td>";
-                                       echo "</tr>\n";
+				echo "<tr>";
+				echo "<th align=right>Subset:</th>";
+				echo "<td>";
+				$constraintsQuery="SELECT * FROM individuals_group";
+				$constraintsResult=mysql_query($constraintsQuery);
+				if (!$constraintsResult) {
+					echo 'Query failed: ' . mysql_error()."\n";
+				}
+				else {
+					echo "<table>";
+					while($line = mysql_fetch_array($constraintsResult, MYSQL_ASSOC)) {
+						echo "<tr><td>";
+						echo '<input type="radio" name="individuals_group_id" value="'
+							.$line["individuals_group_id"].'">'.$line["name"]
+							.'</td><td><small> ('.$line["phen"]." ".$line["relation"]." ".$line["value"].')</small></td><td>';
+						echo '<a href="http:individuals_group?id='.$line["individuals_group_id"].'">edit</a>';
+						echo "</td></tr>\n";
+					}
+					echo "</table>";
+				}
+				echo "</td>";
+				echo "</tr>\n";
 				break;
 
 			case "work":
