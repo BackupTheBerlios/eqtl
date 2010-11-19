@@ -246,7 +246,11 @@ expression as a covariate.
 
 	my $keyData = '';
 	if( defined( $probeID ) ){
-		$probeID =~ s/\n//;
+		# erradicate terminal white space
+		chomp($probeID);
+		# substitute slashes in probe names, as in e.g. affymetrix gapdh controls
+		# also going for colons that are directory separators in other OS
+		$probeID =~ s/[\/:]/_/g;
 		$keyData = $mode."_".$probeID."_".$execParams{'threshold'}."_".$execParams{'perms'};
 		if( @covars ){
 			$keyData = "$keyData" . "_(".join(",",@covars).")";
@@ -416,6 +420,11 @@ my.cross <- read.cross(	format="csv", dir="",
 		        genotypes=RQTLREADCROSSGENOTYPES,
 			alleles=RQTLREADCROSSALLELES,
 			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=CONVERTXDATA )
+
+if (USEJITTERMAP) {
+	my.cross <- jittermap(my.cross)
+}
+
 if (USECALCGENOPROB) {
 	cat("Running calc.genoprob.\\n")
 	my.cross <- calc.genoprob( my.cross, step=$steps, error.prob=$execParams{'errorP'} )

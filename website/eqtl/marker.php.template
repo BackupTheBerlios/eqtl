@@ -131,10 +131,10 @@ foreach($attributeArray as $vname=>$v) {
 foreach($tmp as $vname) 
 {
 	if (isset($_POST[$vname])) {
-		$$vname=$_POST[$vname];
+		$$vname=ltrim(rtrim($_POST[$vname]));
 	}
 	elseif (isset($_GET[$vname])) {
-		$$vname=$_GET[$vname];
+		$$vname=ltrim(rtrim($_GET[$vname]));
 	}
 }
 

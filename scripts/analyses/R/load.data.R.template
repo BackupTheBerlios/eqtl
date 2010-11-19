@@ -5,7 +5,7 @@ doc<-"
 
 =head1 NAME
 
-load.datac(type)
+load.data(type)
 
 =head1 DESCRIPTION
 
@@ -67,6 +67,7 @@ load.data <- function(type) {
     cat(" [failed]\n",sep="")
     stop(paste("Failed to find file '",filename,"' to read ",type," data.\n",sep=""))
   }
+  cat("Filename: ",filename,"\n")
   d<-NULL
   if ("expression" == type) {
     d.prime<-read.table(filename, header=T, sep="PHENOFIELDSEP", row.names=1, skip=PHENOLINESSKIPNO,nrows=5)
@@ -78,12 +79,13 @@ load.data <- function(type) {
 	colClasses[col.char.min:ncol(d.prime)]<-"character"
     }
     colClasses<-c("character",colClasses)
-    d<-read.table(filename, header=T, sep=",", row.names=1, skip=1, stringsAsFactors=F,colClasses=colClasses)
+    d<-read.table(filename, header=T, sep="PHENOFIELDSEP", row.names=1, skip=(1+PHENOLINESSKIPNO), stringsAsFactors=F,colClasses=colClasses)
+    cat(" [read.table ok] ")
     if (any(!col.numeric)) {
         d<-d[,1:col.char.min]
     }
-    # This needs to be helped, somehow
-    d<-d[,1:150]
+    #nonsense# This needs to be helped, somehow
+    #nonsense#d<-d[,1:150]
     cat(paste(" [ok]  dimension is [",paste(dim(d),collapse=",",sep=""),"]\n",sep=""),sep="")
     return(d)
   } else if ("genotypes" == type) {
