@@ -404,7 +404,7 @@ CREATE TABLE individuals_group (
   individuals_group_id int AUTO_INCREMENT,
   name varchar(20),
   phen varchar(40),
-  relation enum('=','<','>','<=','>='),
+  relation enum('=','<','>','<=','>=','!='),
   value float,
   PRIMARY KEY (individuals_group_id)
 );
