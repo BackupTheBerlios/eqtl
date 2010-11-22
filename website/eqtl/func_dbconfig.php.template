@@ -25,6 +25,8 @@ The documentation does not end here but is dispersed throughout the file.
 */
 
 
+global $verbose;
+$verbose=VERBOSEPHP;
 
 global $ensemblversion;
 global $ensemblversionLocal;
@@ -132,9 +134,31 @@ function transcript2ensemblSearchUrl($id,$species="Rattus_norvegicus"){
 }
 
 
+global $hostname,$username,$database,$ensemblversion,$ensemblversionLocal;
+
+global $urlLogoLeft2,$urlLogoLeft, $urlLogoRight, $urlLogoRightLarge;
+$urlLogoLeft2="PATHLOGOLEFT2";
+$urlLogoLeft="PATHLOGOLEFTNORMAL";
+$urlLogoRight="PATHLOGORIGHTNORMAL";
+$urlLogoRightLarge="PATHLOGORIGHTLARGE";
+
+$hostname=`hostname --long`;
+$htmlroot="URLEQTL";
+$hostname="DATABASEHOSTLOCAL";
+$username="DATABASEEQTLUSER";
+$databaseqtl="DATABASEQTLNAME";
+$databaseeqtl="DATABASEEQTLNAME";
+$database="DATABASEEQTLNAME";
+$hostnameeqtl="DATABASEHOSTLOCAL";
+$usernameeqtl="DATABASEEQTLUSER";
+$passwordeqtl="DATABASEEQTLPASSWORD";
+$hostnameqtl="DATABASEHOSTLOCAL";
+$usernameqtl="DATABASEQTLUSER";
+$passwordqtl="DATABASEQTLPASSWORD";
 
 $hostnameEnsembl=martdbhost($ensemblversionEnsembl);
 $databaseEnsembl=martdbname($ensemblversionEnsembl);
+$databaseLocal=$database;
 
 $ensemblhost=$hostnameEnsembl;
 $ensembluser="anonymous";
@@ -192,30 +216,9 @@ if (empty($ensemblversionLocal)) {
 	$ensemblversionLocal=$ensemblversionLocal;
 }
 
-$databaseLocal=$database;
-
-global $hostname,$username,$database,$ensemblversion,$ensemblversionLocal;
-
-global $urlLogoLeft2,$urlLogoLeft, $urlLogoRight, $urlLogoRightLarge;
-$urlLogoLeft2="PATHLOGOLEFT2";
-$urlLogoLeft="PATHLOGOLEFTNORMAL";
-$urlLogoRight="PATHLOGORIGHTNORMAL";
-$urlLogoRightLarge="PATHLOGORIGHTLARGE";
-
-$hostname=`hostname --long`;
-$htmlroot="URLEQTL";
-$hostname="DATABASEHOSTLOCAL";
-$username="DATABASEEQTLUSER";
-$databaseqtl="DATABASEQTLNAME";
-$databaseeqtl="DATABASEEQTLNAME";
-$database="DATABASEEQTLNAME";
-$hostnameeqtl="DATABASEHOSTLOCAL";
-$usernameeqtl="DATABASEEQTLUSER";
-$hostnameqtl="DATABASEHOSTLOCAL";
-$usernameqtl="DATABASEQTLUSER";
-
 $markerhost=$hostnameeqtl;
 $markeruser=$usernameeqtl;
+$markerpassword=$passwordeqtl;
 $markerdatabase=$databaseeqtl;
 
 $debug=TRUE;

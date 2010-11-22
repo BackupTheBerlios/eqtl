@@ -89,6 +89,7 @@ do
 done
 
 if [ -z "$nopull" ]; then
+	echo "Preparing update of local repository, add --no-pull to skip."
 	if ! git pull; then
 		echo "Could not properly pull from the archive - exiting. Call with '--no-pull' to circumvent the problem."
 		exit -1
@@ -109,7 +110,7 @@ case "$projectname" in
 		elif [ -d "conf" -o -L "conf" ]; then
 			internal_projectname=""
 		else
-			echo "Projectname not set. The Projectname must correspond with the config folder name: config_projectname"
+			echo "Projectname not set. The Projectname must correspond with the config folder name: conf_<projectname>"
 			echo "Candidates in this folder are:" `find .  -maxdepth 1 \( -type d -o -type l \) -name "conf_*"| cut -f2 -d_ | tr "\n" " "`
 			exit -1;
 		fi

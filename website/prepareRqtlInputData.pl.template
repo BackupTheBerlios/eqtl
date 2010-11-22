@@ -51,6 +51,25 @@ useful only while developing and invoking the script from the command line
 
 =back
 
+=head1 DETAILS
+
+It is preferable for the
+intput files to have the same IDs for the individuals for the
+marker files and the phenotypic data. If not, then the values
+obviously need to be in the same order, but to have some
+option to test the consistency - just be as strict as possible.
+
+To reorder a matrix, this is how it can be done in R
+
+  df<-read.delim("PHENOFILE",row.names=1)
+  cnames<-colnames(df)
+  cnames.order<-order(cnames)
+  df.sorted<df[,cnames.order]
+  df.sorted<-df[,cnames.order]
+  write.table(x=df.sorted,
+              file="PHENOFILE_ordered.txt",col.names=T,sep="\t",row.names=T)
+
+
 =head1 AUTHORS
 
 Jan Kolbaum,
@@ -81,7 +100,7 @@ my $applyTrue;
 my $applyFalse;
 
 GetOptions("verbose" =>\$verbose, "help" => \$help, "man" => \$man,
-	"applyLog2" => \$applyTrue, "doNotApplyLog2" => \$applyFalse
+	"applyLog2" => \$applyTrue
 	) or die "Could not parse options: $@.\n";
 
 if ($applyTrue and $applyFalse) {
@@ -133,8 +152,8 @@ the individual's ID to the position in the row is performed.
 
 =cut
 
-printf STDERR "opening phenotype file\n" if $verbose;
-my @filenames=($base.$database.$data{'phenofile'},$database.$data{'phenofile'},$database.$data{'phenofile'}, $data{'phenofile'});
+printf STDERR "opening molecular phenotype file\n" if $verbose;
+my @filenames=("$base/$database/".$data{'phenofile'},"$database/".$data{'phenofile'},"$database/".$data{'phenofile'}, $data{'phenofile'});
 my $opened=0;
 foreach my $f (@filenames) {
 	if (open(getFrom, '<', $f)) {
@@ -151,25 +170,34 @@ unless ($opened) {
 	die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";
 }
 
-printf STDERR "reading phenotype file into hash table\n" if $verbose;
+printf STDERR "reading molecular phenotype file into hash table\n" if $verbose;
 my %probe2line;
 my $individualsString = undef;
 my @individualsArray = undef;
+my $numLinesSkipped=0;
 while( <getFrom> ){
+	chomp;
         my $l = $_;
 	# don't expect quotes
 	$l =~ s/"//g;
 	my ($p,$_) = split( /PHENOFIELDSEP/,$l);
 	if (!defined($individualsString)) {
 		# skip comments
-		next if $l =~ /^\s*#/;
+		if ($l =~ /^\s*#/) {
+			$numLinesSkipped++;
+			next;
+		}
 		print STDERR "Undefined individualsString and p='$p'.\n" if $verbose;
 		# accepting a range of keywords, also the empty first field as produced by R
-		if ($p =~ /^(|id|rat|mouse|name|ind|probeset)$/i) {
+		if ($p =~ /^(|id|rat|mouse|name|ind|probeset|PHENOUNIQID|probeset_id|probesetid|uniqid)$/i) {
 			$individualsString = $l;
 			@individualsArray=split(/PHENOFIELDSEP/,$individualsString);
 			print STDERR  "individualsString now set to '$individualsString'\n" if $verbose;
 		}
+		elsif ($numLinesSkipped >30) {
+			die "Could not find header line within first 30 lines. Exit.\n";
+		}
+		$numLinesSkipped++;
 		next;
 	}
 	$probe2line{$p}=$l;
@@ -193,9 +221,9 @@ for(my $i=0; $i<=$#individualsArray; $i++) {
 	if (!defined($id)) {
 		die "Was pointed to undefined individualsArray ID entry at position $i.\n";
 	}
-	elsif ($id =~ /^MT(\d+)/) {
-		my $realId=$1;
-		#print STDERR "\$1=$1\n";
+	elsif ($id =~ /^(INDIVIDUALIDPREFIX)(INDIVIDUALIDREGEXP)/) {
+		my $realId=$2;
+		#print STDERR "\$2=$2\n";
 		$individualIDtoProbePosition{"$realId"}=$i; 
 		if ($realId =~ /^0+([1-9]\d*)$/) {
 			print STDERR "Minimised numerical ID to '$1'.\n" if $verbose;
@@ -210,7 +238,7 @@ for(my $i=0; $i<=$#individualsArray; $i++) {
 
 #if ($verbose) {
 #	foreach my $k (keys %individualIDtoProbePosition) {
-#		print STDERR "$k -> ".$individualIDtoProbePosition{$k}."\n";
+#		print STDERR "$k -> ".$individualIDtoProbePosition{"$k"}."\n";
 #	}
 #}
 
@@ -230,8 +258,8 @@ and fill it with the expression data from the molecular phenotype file.
 printf STDERR "opening genotype file\n" if $verbose;
 my @genotypeLines;
 my @genotypeFilenames=(
-		$base.$database.$data{'genofile'},
-		$database.$data{'genofile'},
+		$base."/".$database."/".$data{'genofile'},
+		$database."/".$data{'genofile'},
 		$data{'genofile'}
 );
 my $gfsuccess=0;
@@ -324,53 +352,74 @@ while (FCGI::accept >= 0) {
 		
 		my $lastIndex = $#genotypeLines;			
 		for (my $i=0; $i<=$lastIndex; $i++) {	# iteration over column positions, 0 is first, 
+
+			#print STDERR "genotypeLines[$i]==".$genotypeLines[$i]."\n";
+
 			my @iline = split(/GENOFIELDSEP/, $genotypeLines[$i]);
-								# always take the first two fields
-			my $id  = shift @iline;			# ID of sample, pairs with ID of individual of phenotype data
-			my $name = shift @iline;		# ID of individual
-			my $ret = $id.$sep.$name;		# start of line to make up from this information and return
-			
-								# here the later returned file is splitted up to insert the information on
-								# the phenotype, i.e. the expression level.
-			if( $i==0) 	# column names
-			{ 					# as some lines have to be omitted, some indexshifting is required
-				$ret .= $sep . $phenofields[$i];	# addition of the first (at positio 0) element of the phenotypes, i.e. the probeset ID
+							# always take the first field
+			my $id  = shift @iline;		# ID of sample, pairs with ID of individual of phenotype data
+			my $ret = $id;			# start of line to make up from this information and return
+			for (my $RColumnNo=2; $RColumnNo<PHENOCOL; $RColumnNo++) {
+				my $name = shift @iline;	# name,sex or whatever of individual
+								# the is preferred to appear prior to 
+								# expression data.
+				$ret .= $sep.$name;		# start of line to make up from this information
+			}
+					#  the later returned file is splitted up at this position to insert
+					# the information on the phenotype, i.e. the expression level.
+
+			if( $i==0) 	# column headers
+			{ 				 	# as some lines have to be omitted, some indexshifting is required
+				$ret .= $sep . $phenofields[$i];# addition of the first (at position 0) element of the phenotypes, i.e. the probeset ID
 			}
 			elsif( $i > 2 ){
 				# Marker data
-				if (exists($individualIDtoProbePosition{$id})) {
-					my $positionOfPhenotypeInfo=$individualIDtoProbePosition{$id};
+				if (exists($individualIDtoProbePosition{"$id"})) {
+					my $positionOfPhenotypeInfo=$individualIDtoProbePosition{"$id"};
 					print STDERR "Directed query on '$id' to field position '$positionOfPhenotypeInfo' "
 						    ."with value $phenofields[$positionOfPhenotypeInfo] for probe '$probeID'.\n" if $verbose;
 					$ret .= $sep;
 					my $expressionValue=$phenofields[$positionOfPhenotypeInfo];
 					if ("TRUE" eq "$applyLog2") {
-						my $expressionValueOffset = 50;
+						my $expressionValueOffset = EXPRESIONVALUEOFFSET;
+						my $v="NA";
 						if (-$expressionValueOffset < $expressionValue) {
-							$ret .= log($expressionValue+$expressionValueOffset)/$logOf2;
+							$v = log($expressionValue+$expressionValueOffset)/$logOf2;
+							if ($verbose) {
+								print STDERR "Adding log value '$v' for value '$expressionValue'.\n";
+							}
 						}
 						else {
-							$ret .= "NA";
+							print STDERR "Line $i has value below negative value for offset.\n";
 						}
+						$ret .= $v;
 					}
 					else {
 						$ret .= $expressionValue;
+						if ($verbose) {
+							print STDERR "Adding value '$expressionValue' in untransformed manner..\n";
+						}
 					}
 				}
 				else {
-					die "Cannot find phenotype data for probe '$probeID' and individual '$id'.\n";
+					die "Cannot find phenotype data for probe '$probeID' and individual '$id'. The only values we have in the hash individualIDtoProbePosition are: " . join(",",sort keys %individualIDtoProbePosition)."\n";
 				}
 			}
 			elsif( 1==$i # Chromosomes
 				or
 			       2==$i # Centimorgan
 			){
-				$ret .= $sep;
+				$ret .= $sep; # no expression data to add
 			}
 
 			$ret .= $sep;
 			$ret .= join($sep,@iline);		# add remaining genotype data
-			$ret .= "\n";
+			$ret .= "\n";	
+
+			if ($verbose) {
+				my @s=split(/$sep/,$ret);
+				print STDERR "Row ",($i+1)," has ".(1+1+$#s)." fields.\n";
+			}
 
 			print $ret;
 		}

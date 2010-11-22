@@ -6,7 +6,7 @@ use DBI;
 use vars qw($VERSION 
 	$exitcode
 	%EXITCODE2TEXT
-	$sth_loc
+	$sth_loc_insert
 	$sth_loc_update
 	$sth_loc_select
 	$sth_jobexists
@@ -57,8 +57,8 @@ sub setLocus($$){
 	my $chr = $_[0];
 	my $cM = $_[1];
 	my $name = 'ic'.$chr.'.loc'.$cM;
-	$sth_loc->execute( $name, $chr, $cM, undef );
-	$sth_loc->finish;
+	$sth_loc_insert->execute( $name, $chr, $cM, undef );
+	$sth_loc_insert->finish;
 	return $name;
 }
 
@@ -149,13 +149,13 @@ sub perform {
 
 =cut
 
-	unless (defined($sth_loc) and defined($sth_qtl_scanone)) {
-		my $sql_loc = qq{INSERT INTO locus (Name, Chr, cMorgan, Organism, Marker) VALUES (?,?,?,"NCBITAXONOMYSPECIESNAME",?)};
+	unless (defined($sth_loc_insert) and defined($sth_qtl_scanone)) {
+		my $sql_loc_insert = qq{INSERT INTO locus (Name, Chr, cMorgan, Organism, Marker) VALUES (?,?,?,"NCBITAXONOMYSPECIESNAME",?)};
 		my $sql_loc_update = qq{UPDATE locus set cMorgan =? where Name=?};
 		my $sql_loc_select = qq{select Name, cMorgan from locus where Name=?};
-		my $query_jobexists = "select computation_id, status, version from computation where jobname = ?;";
-		my $reset_query_recalculate = "UPDATE computation SET status=\"RECALCULATE\" where jobname = ? ";
-		my $reset_query_queued = "UPDATE computation SET status=\"QUEUED\" where jobname = ? ";			
+		my $query_jobexists = "select computation_id, status, version from computation where jobname = lcase(?);";
+		my $reset_query_recalculate = "UPDATE computation SET status=\"RECALCULATE\" where jobname = lcase(?) ";
+		my $reset_query_queued = "UPDATE computation SET status=\"QUEUED\" where jobname = lcase(?) ";			
 		my $sql_getloc = qq{SELECT Name FROM locus WHERE Chr = ? AND ((cMorgan-?)>=-0.2) AND ((cMorgan-?)<=0.2)};
 		my $sql_delete_interaction = "DELETE from locusInteraction where computation_id = ?";
 		my $sql_delete_qtl = "DELETE from qtl where computation_id = ?";
@@ -164,7 +164,7 @@ sub perform {
 		my $sql_qtl_scantwo = qq{INSERT INTO  locusInteraction (computation_id, Trait,A, B, LogP, covariates, lod_full, lod_fv1, lod_int, lod_add, lod_av1, qlod_full, qlod_fv1, qlod_int, qlod_add, qlod_av1, pvalue_full, pvalue_fv1, pvalue_int, pvalue_add, pvalue_av1) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)};
 		my $sql_qtl_scanone = qq{INSERT INTO  qtl (computation_id, Locus, Trait, LOD, pvalue, Chromosome, cMorgan_Peak, Quantile, covariates, phenocol) VALUES (?,?,?,?,?,?,?,?,?,?)};
 
-		$sth_loc = $dbh->prepare( $sql_loc );
+		$sth_loc_insert = $dbh->prepare( $sql_loc_insert );
 		$sth_loc_update = $dbh->prepare( $sql_loc_update );
 		$sth_loc_select = $dbh->prepare( $sql_loc_select );
 		$sth_jobexists = $dbh->prepare($query_jobexists);
@@ -281,7 +281,7 @@ sub perform {
 	my $status = undef;
 	my $version;
 
-	if ( ! $sth_jobexists->execute("$filename")) {
+	if ( ! $sth_jobexists->execute(lc("$filename"))) {
 		harmless($DBI::errstr,-1);
 		return($exitcode);
 	}
@@ -368,7 +368,7 @@ sub perform {
 =cut
 
 	my @fields;
-	if (@fields=$filename=~/^([^_]+)_([^_]+)_([^_]+)_([^_]+)_\(([^)]+)\)/) {
+	if (@fields=$filename=~/^([^_]+)_(.+)_([^_]+)_([^_]+)_\(([^)]+)\)/) {
 		$covars = $fields[4];
 	}
 
@@ -623,7 +623,7 @@ sub perform {
 							if ($hasPvalues) {
 								$sth_qtl->execute($compute_id, $trait, $loc1, $loc2,
 									$NULL, # type - was add/int, now obsolete
-									join(",",@covars_array), # covariates
+									lc(join(",",@covars_array)), # covariates only as lower case
 									# LOD scores
 									$remainder[0], $remainder[2], $remainder[4],
 									$remainder[8], $remainder[10],
@@ -694,7 +694,7 @@ sub perform {
 										 $lineFields[1], # Chromosome
 										 $lineFields[2], # cMorgan
 										 $quant[0],
-										 join(",",@covars_array), $phenocol))
+										 lc(join(",",@covars_array)), $phenocol))
 							{
 								print STDERR "** Problem writing single effect into QTL table: scanoneline:$scanoneline:\n"
 									 . "\t"."lineFields[0]: ". $lineFields[0]. "# Locus/Marker " ."\n"
@@ -704,7 +704,7 @@ sub perform {
 									 . "\t"."lineFields[1]: ". $lineFields[1]. "# Chromosome " ."\n"
 									 . "\t"."lineFields[2]: ". $lineFields[2]. "# cMorgan " ."\n"
 									 . "\t"."quant[0]: ",$quant[0], ."\n"
-									 . "\t"."covariates: ". join(",",@covars_array)."\n"
+									 . "\t"."covariates: ". lc(join(",",@covars_array))."\n"
 									 . "\t"."phenocol: ". $phenocol ."\n"
 								;
 							}
@@ -729,13 +729,13 @@ sub perform {
 								}
 								$sth_jobexists->finish;
 								if($loc_name eq ""){
-									if (!$sth_loc->execute($lineFields[0],
+									if (!$sth_loc_insert->execute($lineFields[0],
 											     $lineFields[1], 
 												$lineFields[2], $NULL)) {
 										print STDERR "***** FIXME *** explain what this error (ide:dguhsh) is about: ";
 										harmless($DBI::errstr,-1);
 									}
-									$sth_loc->finish;
+									$sth_loc_insert->finish;
 								}
 								elsif ($loc_name eq $lineFields[0] and $loc_pos ne $lineFields[2]){
 									if (!$sth_loc_update->execute("$lineFields[2]","$loc_name")) {

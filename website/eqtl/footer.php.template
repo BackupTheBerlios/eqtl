@@ -22,11 +22,14 @@ Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
 
 =head1 COPYRIGHT
 	
-Universities of Rostock and LE<uuml>beck, Germany, 2001-2009
+Universities of Rostock and LE<uuml>beck, Germany, 2001-2010
 
 =cut
 
 */
+
+  //phpinfo();
+  require_once("func_relatedProjects.php");
 
   echo "<HR>\n";
   echo "<table border=0 width=100%>\n";
@@ -55,7 +58,11 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2009
 		$m++;
 	}
   }
-  echo '</td><td align=center>';
+  echo '</td>';
+  echo '<td align=center>';
+  relatedProjects("eqtl");
+  echo '</td>';
+  echo '<td align=center>';
   echo FOOTERLOGORIGHT;
   echo "</td></tr></table>\n";
 ?>

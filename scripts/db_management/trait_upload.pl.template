@@ -6,7 +6,7 @@ trait_upload.pl - transform traits into SQL statements
 
 =head1 SYNOPSIS
 
-trait_upload.pl filename | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+trait_upload.pl PHENOFILE | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
 
 =head1 DESCRIPTION
 
@@ -28,6 +28,10 @@ With names of genes/transcripts or the assignment of probesets to
 such being continously updated, one should consider the trait table
 to be of a transient nature.
 
+If you get an error like the following:
+  ERROR 1062 (23000) at line 45039: Duplicate entry 'AFFX-18SRNAMur/X0068' for key 'PRIMARY'
+then investigate the number of characters reserved for the trait_id.
+
 =head1 AUTHORS
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
@@ -44,12 +48,12 @@ my $mouseids=undef;
 my $extended=0;
 
 while(<>) {
+	chomp;
 	my @cols=split(/\t/,$_);
 	if (!defined($mouseids)) {
-		chomp;
 		my $n=shift(@cols);
-		die "The file is not in Eisen format, expected UNIQID to be first element (was $n).\n"
-			unless $n=~/^UNIQID/i;
+		die "The file is not in Eisen format, expected PHENOUNIQID to be first element (was $n), which is specified bz the cofiguration variable PHENO"."UNIQID.\n"
+			unless $n=~/^PHENOUNIQID/i;
 		if ($cols[0] =~ /^NAME/i) {
 			shift @cols;
 			$extended=1;
@@ -77,11 +81,11 @@ while(<>) {
 		my $vals=join(",",@cols);
 
 		print "insert into `trait` set ";
-		print "`trait_id`='$u'";
-		print ", `name`='$n'" if defined($n);
-		print ", `mean`=$mean, `sd`=$sd";
-		print ", `vals`='$vals'";
-		print ", `individuals`='$mouseids'";
+		print "trait_id='$u'";
+		print ", name='$n'" if defined($n);
+		print ", mean=$mean, sd=$sd";
+		print ", vals='$vals'";
+		print ", individuals='$mouseids'";
 		print ";\n";
 		
 	}

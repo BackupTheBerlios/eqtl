@@ -60,7 +60,7 @@ set in the configuration.
 		return($m);
 	};
 	$aKeys = array_keys($a);
-	$aPrepend = array_map(prependShow,$aKeys);
+	$aPrepend = array_map("prependShow",$aKeys);
 	#echo "Mapping: " . join(",",$aPrepend)."\n";
 
 	# fields that should appear
@@ -93,10 +93,10 @@ set in the configuration.
 
 	foreach ($accessible_fields_in_POST_or_GET as $vname) {
 		if (isset($_POST[$vname])) {
-			$$vname=$_POST[$vname];
+			$$vname=ltrim(rtrim($_POST[$vname]));
 		}
 		elseif (isset($_GET[$vname])) {
-			$$vname=$_GET[$vname];
+			$$vname=ltrim(rtrim($_GET[$vname]));
 		}
 // 		echo $$vname . " = " . $vname ."<br>";
 	}

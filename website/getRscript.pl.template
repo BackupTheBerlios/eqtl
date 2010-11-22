@@ -4,7 +4,7 @@ TEMPLATEWARNINGHASH
 
 =head1 NAME
 
-getRscript.pl - should better be named 'prepare R/qtl input data'
+getRscript.pl - prepares an R script to execute the expression QTL analysis
 
 =head1 SYNOPSIS
 
@@ -240,7 +240,11 @@ expression as a covariate.
 
 	my $keyData = '';
 	if( defined( $probeID ) ){
-		$probeID =~ s/\n//;
+		# erradicate terminal white space
+		chomp($probeID);
+		# substitute slashes in probe names, as in e.g. affymetrix gapdh controls
+		# also going for colons that are directory separators in other OS
+		$probeID =~ s/[\/:]/_/g;
 		$keyData = $mode."_".$probeID."_".$execParams{'threshold'}."_".$execParams{'perms'};
 		if( @covars ){
 			$keyData = "$keyData" . "_(".join(",",@covars).")";
@@ -352,7 +356,7 @@ quantile.scantwoperm<-function(perms,quantiles) {
 
 # name of file that collects results of this workunit
 
-my.file.name <- paste("$execParams{'d'}/$keyData.csv.gz",sep="")
+my.file.name <- paste("$execParams{'d'}/$keyData.csv",sep="")
 
 # check if file exists and rename it if so
 if (file.exists(my.file.name)) {
@@ -362,8 +366,10 @@ if (file.exists(my.file.name)) {
 # function to store results
 writeToDisk <- function( toWrite, row.names=TRUE, col.names=TRUE ){
 
-	my.file <- gzfile(description=my.file.name, open = "a",
-	                  encoding = getOption("encoding"), compression = 6)
+	open.mode<-"w"
+        if (file.exists(my.file.name)) open.mode<-"a"
+	my.file <- file(description=my.file.name, open = open.mode,
+	                  encoding = getOption("encoding"))
 
 	if ( is.list(toWrite) ) {
 		#cat("*** DEBUG START*** Now I am printing a list.\\n")
@@ -407,10 +413,20 @@ my.cross <- read.cross(	format="csv", dir="",
                        	file="$getDataUrl",
 		        genotypes=RQTLREADCROSSGENOTYPES,
 			alleles=RQTLREADCROSSALLELES,
-			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )
-my.cross <- calc.genoprob( my.cross, step=$steps, error.prob=$execParams{'errorP'} )
+			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=CONVERTXDATA )
+
+if (USEJITTERMAP) {
+	my.cross <- jittermap(my.cross)
+}
+
+if (USECALCGENOPROB) {
+	cat("Running calc.genoprob.\\n")
+	my.cross <- calc.genoprob( my.cross, step=$steps, error.prob=$execParams{'errorP'} )
+}
 
 EOWRITETODISK
+
+	my $writePermutations; # don't move this too far down because of non-obvious control/data flow 
 
 	if( $mode eq 'scantwo' ){
 		$getData .= <<EOWRITETODISK;
@@ -418,6 +434,7 @@ my.cross <- sim.geno(my.cross, step=$steps, n.draws=$execParams{'draws'})
 EOWRITETODISK
 	}
 
+	# Transform the Perl-array of additive covariates into R lingo
 	my $printCov_add ="";
 	if( @covars_add ){
 		my $concat = "\"".join("\",\"",@covars_add)."\"";
@@ -427,6 +444,8 @@ EOWRITETODISK
 cov_add <- my.cross\$pheno[,c($concat)]
 EOWRITETODISK
 	}
+
+	# ditto for interacting covariates
 	my $printCov_int ="";
 	if( @covars_int ){
 		my $concat_int = "\"".join("\",\"",@covars_int)."\"";
@@ -437,7 +456,7 @@ cov_int <- my.cross\$pheno[,c($concat_int)]
 EOWRITETODISK
 	}
 
-	my $writePermutations;
+	# The first line does the regular scanone or scantwo
 	my $tryPermutations = <<EOWRITETODISK;
 
 my.$mode.S <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, verbose=FALSE )
@@ -484,17 +503,18 @@ EOWRITETODISK
 # if still acceptable, perform permutation tests
 if (acceptable) {
 	# list of pairs identifying the number of permutations and the quantils that is to be reached
-	perm.checks<-list(c(  10,                1-0.5),
-	                  c(  25,                1-$execParams{'alpha'}-0.2),
-			  c( 100,                1-$execParams{'alpha'}-0.02),
-			  c($execParams{perms}/4,1-$execParams{'alpha'}),
-			  c($execParams{perms}/2,1-$execParams{'alpha'}),
-			  c($execParams{perms}  ,1-$execParams{'alpha'}))
+	perm.checks<-list(c(  15,                  1-0.5),
+	                  c(  25,                  1-$execParams{'alpha'}-0.25),
+			  c($execParams{perms}/10, 1-$execParams{'alpha'}-0.1),
+			  c($execParams{perms}/4 , 1-$execParams{'alpha'}-0.05),
+			  c($execParams{perms}/2 , 1-$execParams{'alpha'}-0.02),
+			  c($execParams{perms}   , 1-$execParams{'alpha'}))
 
 	# iteration over partial permutations, the permutation results are stored in perm.collection
 	#print(perm.checks)
 	perm.collection<-NULL
 	perm.no.prev.round<-0
+	max.assigned.to.quantile.in.permutations<-1
 	for(X in perm.checks) {
 		cat( paste("\\n",date(),": Performing ",X[1]," permutations, checking against quantile 1-",X[2],"\\n",sep="") )
 		my.$mode.P <- $mode( my.cross, $phenocol method="$execParams{'method'}"$covStr, n.perm=X[1]-perm.no.prev.round, verbose=FALSE )
@@ -529,6 +549,8 @@ EOWRITETODISK
 			break;
 		}
 		perm.no.prev.round<-X[1]
+		max.assigned.to.quantile.in.permutations<-sum(perm.collection>my.max)/length(perm.collection)
+		cat(paste("The value ",my.max," was assigned the quantile ",max.assigned.to.quantile.in.permutations," after ",length(perm.collection)," permutations.\\n",sep=""))
 	}
 
 	if (acceptable) {
@@ -541,7 +563,7 @@ EOWRITETODISK
 EOWRITETODISK
 
 
-		$writePermutations = <<EOWRITETODISK;
+	$writePermutations = <<EOWRITETODISK;
 
 if (acceptable) {
 
@@ -611,9 +633,10 @@ EOWRITETODISK
 
 
 	#
-	# PRINTING OF FILE STARTS HERE
+	# PRINTING OF FILE THAT IS AN R SCRIPT TO DO eQTL ANALYSIS STARTS HERE
 	#
 
+	# Write header of result file
 	print "cat( \"<eqtl mode=\\\"$mode\\\" probe=\\\"$probeID\\\""
 		." covars=\\\""    .join(",",@covars)."\\\""
 		." covars_add=\\\"".join(",",@covars_add)."\\\""
@@ -634,6 +657,7 @@ cat( paste("!-",date(),"\\n",sep="") )
 cat( "\\n" )
 EOWRITETODISK
 
+	# tell file to tell R to read the data
 	print $getData;
 
 	if( @covars_add ){
@@ -643,18 +667,22 @@ EOWRITETODISK
 		print $printCov_int;
 	}
 
+	# tell file to tell R to do the permutations
 	print $tryPermutations;
 
 	print $status;
 
 	print $toDisk;
 
+	# tell file to tell R to show us the permutation data
 	print $writePermutations;
 
 	print $toEnd;
 
+	# tell file to tell R to end the file
 	print "cat(\"</eqtl>\\n\\n\")\n";
 
+	# tell file to have a neat return value for the source() executing the file
 	print "\n".'"completed"'."\n"; 
 
 	if (!exists($ENV{'QUERY_STRING'})) {

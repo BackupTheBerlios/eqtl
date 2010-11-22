@@ -9,10 +9,10 @@
 Display of strain differences on the expression levels. This can be shown only for individual marker (or QTL).
 The default will hence be to have this page requested as an extension to the information shown on QTL with the locus directly specified.
 
-It is planned to allow the script to perform a complete rerun of the QTL
+The script can rerun individual expression QTL analyses
 and then show effect plots for all loci above a particular LOD score.
 No permutation tests are then performed, i.e. a filtering for p-Values
-not supported.
+is not supported.
 
 The interface shall also be usable to rerun the QTL with another (most CPU-intensive, possibly) method.
 
@@ -52,6 +52,7 @@ University of LE<uuml>beck, Germany, 2010
 
 */
 
+	global $individuals_group_id;
 	require_once("header.php");
 	require_once("func_covariates.php");
 	require_once("func_dbconfig.php"); // errorMessage
@@ -67,6 +68,7 @@ University of LE<uuml>beck, Germany, 2010
 	$dataSelectionFieldsQTL = array(
 		"traits","traitlist",
 		"groups",
+		"individuals_group_id",
 		"chromosome","cM",
 		"chromosome2","cM2",
 		"marker","marker2",
@@ -90,8 +92,13 @@ University of LE<uuml>beck, Germany, 2010
 	);
 
 	#print_r($_GET);
-
-
+        global $constraintList;
+	$constraintList=array(
+		array(id=>"sick1Rat",name=>"once sick",phen=>"EAE",relation=>"=",value=>"1"),
+		array(id=>"lateOnsetRat",name=>"late onset",phen=>"ONS",relation=>">=",value=>"20"),
+		array(id=>"lateOnsetMouse",name=>"late onset mouse",phen=>"onset",relation=>">=",value=>"20"),
+		array(id=>"sick1Mouse",name=>"once sick mouse",phen=>"AUC",relation=>">",value=>"0")
+	);
 
 	$accessible_fields_in_POST_or_GET = array_merge (
 		array("submitted","direct","inlineImages","rerunAnalyses","verbose"),
@@ -101,13 +108,13 @@ University of LE<uuml>beck, Germany, 2010
 	foreach($accessible_fields_in_POST_or_GET as $vname)
 	{
 		if (isset($_POST[$vname])) {
-			$$vname = $_POST[$vname];
+			$$vname = trim($_POST[$vname]);
 			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
 				echo $vname."=".$$vname."\t";
 			}
 		}
 		elseif(isset($_GET[$vname])) {
-			$$vname = $_GET[$vname];
+			$$vname = trim($_GET[$vname]);
 			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
 				echo $vname."=".$$vname."\t";
 			}
@@ -151,6 +158,7 @@ University of LE<uuml>beck, Germany, 2010
 		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
 
 		echo "<table>\n";
+
 		print_selection_form("figure_effectplot");
 		//echo "<tr><th>Covariates of stored QTL</th><td>";
 		//select_covariates_combinations(3);
@@ -229,13 +237,13 @@ University of LE<uuml>beck, Germany, 2010
 			}
 		}
 
-		foreach ($traitlist as $trait) {
+		foreach ($traitlist as $n=>$trait) {
 
 			if (1<count($traitlist)) {
-				echo "<h2>Trait <i>$trait</$i></h2>\n";
+				echo "<h2>Trait <i>$trait</i></h2>\n";
 			}
 			else {
-				echo "<h1>Effect Plot on trait <i>$trait</$i></h1>\n";
+				echo "<h1>Effect Plot on trait <i>$trait</i></h1>\n";
 			}
 		
 			#
@@ -289,6 +297,11 @@ University of LE<uuml>beck, Germany, 2010
 			if (!empty($work)) {
 				$outputfilename .= "_work_$work";
 				array_push($attributes,"--work",$work);
+			}
+			if (!empty($individuals_group_id)) {
+				
+				$outputfilename .= "_individuals_".$individuals_group_id;
+				array_push($attributes,"--individuals",$individuals_group_id);
 			}
 			if (!empty($method)
 			   and (empty($marker) and (empty($cM) or ""=="$cM" or empty($chromosome)))) {
@@ -352,9 +365,14 @@ University of LE<uuml>beck, Germany, 2010
 			if (file_exists("$outputfilename.txt")) {
 				$myFile = "$outputfilename.txt";
 				$fh = fopen($myFile, 'r');
-				$theData = fread($fh, 200000);
-				fclose($fh);
-				echo $theData;
+				if (! $fh) {
+					errorMessage("Could not open file '$outputfilename.txt' for reading.");
+				}
+				else {
+					$theData = fread($fh, 200000);
+					fclose($fh);
+					echo $theData;
+				}
 			}
 
 			echo "<br><a href=\"".$outputfilename.".png\">$outputfilename.png</a>\n";
