@@ -217,36 +217,24 @@ if(!is.null(opt$individuals)){
 	q <- paste("SELECT name,phen,relation,value FROM individuals_group WHERE individuals_group_id=",opt$individuals,";",sep="")
 	cat("q: "); print(q)
 	q.result<-dbGetQuery(con,q)
-	cat("q.result: "); print(q.result)
-	cat("dim(q.result): "); print(dim(q.result))
-	#colnames(q.result)<-q.result[,1]
-	cat("colnames(q.result): "); print(colnames(q.result))
-	#phen<-q[1,"phen"]
-	#relation<-q[1,"relation"]; if ("="==relation) relation="==";
-	#value<-q[1,"value"]
+	if (opt$verbose) cat("q.result: "); print(q.result)
+	if (opt$verbose) cat("dim(q.result): "); print(dim(q.result))
+	if (opt$verbose) cat("colnames(q.result): "); print(colnames(q.result))
 	phen<-q.result[1,2]
 	relation<-q.result[1,3];
 	value<-q.result[1,4]
 	dbDisconnect(con)
 	if ("="==relation) relation="==";
-	cat("phen:",phen," relation:",relation," value:",value,"\n")
+	if (opt$verbose) cat("phen:",phen," relation:",relation," value:",value,"\n")
 	my.subset.pheno <- pull.pheno(my.cross,phen)
 	if (is.null(my.subset.pheno) | 0 == length(my.subset.pheno)) {
 		stop(paste("Could not retrieve information on phenotype '",phen,
 				"' The following are available: ",paste(colnames(my.cross$pheno),collapse=",", sep=""),
 				".\n",sep=""))
 	}
-	e.ind<-NULL
-	#} else {
-	#} else {
-	#} else {
-	#} else {
-	#} else {
-	#}
-	# did not work #
 	e<-paste("my.subset.pheno",relation,value); cat("Expression: "); print(e)
 	e.ind<-eval(parse(text=e))
-	cat("e.ind: "); print(e.ind)
+	if (opt$verbose) cat("e.ind: "); print(e.ind)
 	my.cross <- subset(my.cross, ind = e.ind)
 } else { 
 	cat("Analysis is running on all individuals as no subset defined.\n")
