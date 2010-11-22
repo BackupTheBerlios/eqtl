@@ -120,8 +120,14 @@ ENDOFDOCUMENTATION
 		<input type=hidden name=submitted value=1>
 		<table width=100%><tr><td>
 			<table>
-			<tr><th class=r valign=top>Covariates:<br>
+			<tr><th class=r valign=top>All groups:</th>
+<?php
+			print_selection_form("subset");
+?>
+			<tr><th class=r valign=top>Current Entry:</th>
+<?php
 			print_selection_form("individuals_group");
+?>
 			<tr><td>&nbsp;</td><td></td></tr>
 			<tr><td align=right><input type=submit></td><td align=left><input type=reset></td></tr>
 		</table>
