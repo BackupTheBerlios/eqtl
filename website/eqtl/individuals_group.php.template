@@ -55,7 +55,7 @@ ENDOFDOCUMENTATION
 	require_once("func_covariates.php");
 	require_once("func_selection.php"); // prints part of the HTML for forms
 
-	show_small_header("Maintenance of Group Specifications",TRUE);
+	show_small_header("Maintenance of Individuals Group Specifications",TRUE);
 
 	# fields that should appear
 	$dataSelectionFieldsQTL = array(
