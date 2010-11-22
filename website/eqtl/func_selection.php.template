@@ -387,7 +387,7 @@ function print_selection_form($properties) {
 
 			case "subset":
 				echo "<tr>";
-				echo "<th align=right>Subset:</th>";
+				echo "<th align=right>Available Specs for Subset of Individuals:</th>";
 				echo "<td>";
 				$constraintsQuery="SELECT * FROM individuals_group";
 				$constraintsResult=mysql_query($constraintsQuery);
@@ -404,9 +404,13 @@ function print_selection_form($properties) {
 							.("$individuals_group_id"==$line["individuals_group_id"]?' checked':'').'>'.$line["name"]
 							.'</td><td>';
 						if ("all" != $line["name"]) echo '<small> ('.$line["phen"]." ".$line["relation"]." ".$line["value"].')</small>';
-						echo '</td><td>';
-						if ("all" != $line["name"]) echo '<a href="http:individuals_group?id='.$line["individuals_group_id"].'">edit</a>';
-						echo "</td></tr>\n";
+						echo '</td>';
+						if (ALLOWEDITING) {
+							echo '<td>';
+							if ("all" != $line["name"]) echo '<a href="http:individuals_group?id='.$line["individuals_group_id"].'">edit</a>';
+							echo "</td>";
+						}
+						echo "</tr>\n";
 					}
 					while($line = mysql_fetch_array($constraintsResult, MYSQL_ASSOC));
 					echo "</table>";
