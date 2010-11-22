@@ -395,14 +395,13 @@ function print_selection_form($properties) {
 					echo 'Query failed: ' . mysql_error()."\n";
 				}
 				else {
-					echo "<table>";
-					echo "<tr><td>";
+					echo "<table>\n";
 					$line=array(individuals_group_id=>"", name=>"all", phen=>"", relation=>"",  value=>"");
 					do {
 						echo "<tr><td>";
 						echo '<input type="radio" name="individuals_group_id" value="'
 							.$line["individuals_group_id"].'"'
-							.("$individuals_group_id"==$line["individuals_group_id"]?' selected':'').'>'.$line["name"]
+							.("$individuals_group_id"==$line["individuals_group_id"]?' checked':'').'>'.$line["name"]
 							.'</td><td>';
 						if ("all" != $line["name"]) echo '<small> ('.$line["phen"]." ".$line["relation"]." ".$line["value"].')</small>';
 						echo '</td><td>';
