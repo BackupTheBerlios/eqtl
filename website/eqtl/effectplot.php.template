@@ -298,10 +298,10 @@ University of LE<uuml>beck, Germany, 2010
 				$outputfilename .= "_work_$work";
 				array_push($attributes,"--work",$work);
 			}
-			if (!empty($individualConstraintSelection)) {
+			if (!empty($individuals_group_id)) {
 				
-				$outputfilename .= "_individuals_$individualConstraintSelection";
-				array_push($attributes,"--individuals",$individualConstraintSelection);
+				$outputfilename .= "_individuals_".$individuals_group_id;
+				array_push($attributes,"--individuals",$individuals_group_id);
 			}
 			if (!empty($method)
 			   and (empty($marker) and (empty($cM) or ""=="$cM" or empty($chromosome)))) {
