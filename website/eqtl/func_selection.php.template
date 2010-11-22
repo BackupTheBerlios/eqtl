@@ -401,7 +401,8 @@ function print_selection_form($properties) {
 					do {
 						echo "<tr><td>";
 						echo '<input type="radio" name="individuals_group_id" value="'
-							.$line["individuals_group_id"].("$individuals_group_id"==$line["individuals_group_id"]?' selected':'').'">'.$line["name"]
+							.$line["individuals_group_id"].'"'
+							.("$individuals_group_id"==$line["individuals_group_id"]?' selected':'').'>'.$line["name"]
 							.'</td><td>';
 						if ("all" != $line["name"]) echo '<small> ('.$line["phen"]." ".$line["relation"]." ".$line["value"].')</small>';
 						echo '</td><td>';
