@@ -160,7 +160,6 @@ mysql> desc trait;
 
 Two tables for the integration of various separate analyses with the remaining data.
 
-
 CREATE TABLE trait_phen_analysis (
   trait_phen_analysis_id MEDIUMINT NOT NULL AUTO_INCREMENT,
   analysis varchar(20) COMMENT 'Verbal description of analysis, short identifier.',
@@ -187,3 +186,31 @@ FOR EACH ROW DELETE FROM qtl where computation_id=OLD.computation_id;
 
 
 
+Experimentalists sometimes have the hunch that some results may be
+affected by factors unrelated to the disease. This may be a seasonal
+effect (individuals born in the winter or the linking to a particular
+animal care taker). But there may be an interest in particular 
+subgroup of individuals for a biological property, too. To inspect
+covariates may not always be sufficient.
+
+
+CREATE TABLE individuals_group (
+  individuals_group_id int AUTO_INCREMENT,
+  name varchar(20),
+  phen varchar(40),
+  relation enum('=','<','>','<=','>=','!='),
+  value float,
+  PRIMARY KEY (individuals_group_id)
+);
+
+mysql> desc individuals_group;
++----------------------+-----------------------------+------+-----+---------+----------------+
+| Field                | Type                        | Null | Key | Default | Extra          |
++----------------------+-----------------------------+------+-----+---------+----------------+
+| individuals_group_id | int(10) unsigned            | NO   | PRI | NULL    | auto_increment |
+| name                 | varchar(40)                 | YES  |     | NULL    |                |
+| phen                 | varchar(40)                 | YES  |     | NULL    |                |
+| relation             | enum('=','<','>','<=','>=','!=') | YES  |     | NULL    |                |
+| value                | float                       | YES  |     | NULL    |                |
++----------------------+-----------------------------+------+-----+---------+----------------+
+5 rows in set (0.00 sec)

@@ -9,14 +9,21 @@
 # set to TRUE if data needs to be prepared, too
 data.prepare<-FALSE
 data.binary<-F
-data.covariates<-c("sex,weight.6m")
-model<-"additive"
+data.covariates<-NULL
+#data.covariates<-c("sex","weight.6m")
+#model<-"additive"
+model<-"full"
+split.chromosomes<-F
+generations<-4
+
 
 #  P A R A M E T E R S
 
 library(happy.hbrem)
 
 markers.filename<-"markers.txt"
+missing.code="NA"
+#missing.code="ND"
 
 inputdir<-"inputs"
 if (!file.exists(inputdir)) {
@@ -28,7 +35,7 @@ if (!file.exists(outputdir)) {
 	dir.create(outputdir)
 }
 
-permute<-150
+permute<-1000
 
 
 
@@ -102,17 +109,20 @@ if (data.prepare) {
 	}
 
 	cat(file=file,"markers ",ncol(genotype.matrix.parentals.distribution),
-		      " strains ",length(parental.strains),"\n",sep="")
-	cat(file=file,"strain_names ",paste(parental.strains,collapse=" ",sep=""),"\n",append=T,sep="")
+		      " strains ",length(parental.strains),"\n",append=F,sep="")
+	cat(file=file,"strain_names ",paste(parental.strains,collapse=" ",sep=""),
+			"\n",append=T,sep="")
 	for(n in colnames(genotype.matrix.parentals.distribution)) {
 		d<-genotype.matrix.parentals.distribution[,n]
 		chr<-as.character(genotype.matrix["Chr",n])
 		pos<-as.numeric(as.character(genotype.matrix["Position",n]))
 		#cat("chr",chr,", pos",pos,"\n"); print(d)
-		cat(file=file,"marker ",n," ",(length(d)+1)," ",chr," ",bp2cM(pos),"\n",sep="",append=T)
-		cat(file=file,"allele NA ",
-		 	      paste(rep(1/length(parental.strains),length(parental.strains)),
-				    collapse=" ",sep=""),"\n",append=T)
+		cat(file=file,"marker ",n," ",(length(d)+1)," ",
+				chr," ",bp2cM(pos),"\n",sep="",append=T)
+		cat(file=file,paste("allele ",
+				    missing.code,
+		 	            paste(rep(1/length(parental.strains),length(parental.strains)),
+				          collapse=" ",sep=""),"\n"),append=T)
 		for(nucleotide in names(d)) {	
 			cat(file=file,"allele ",nucleotide,sep="",append=T)
 			for(s in parental.strains) {
@@ -130,20 +140,20 @@ if (data.prepare) {
 	}
     }
 
-    if (F) {
+    if (!split.chromosomes) {
 	# A single file for everything
-	happy.prepare.marker.file(file=paste(inputdir,"/",markers.filename,sep=""),
+	happy.prepare.marker.file(file=paste(markers.filename,sep=""),
 				genotype.matrix=read.table.snps.selected)
-    }
-
-    # A file for every chromosome
-    for(chr in unique(sort(snps.selected.chromosomes))) {
-	fname<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
-	cat("\n\nWorking on '",fname,"'\n\n",sep="")
-	columns.selected= (snps.selected.chromosomes==chr)
-	print(which(columns.selected))
-	s<-read.table.snps.selected[,columns.selected]
-	happy.prepare.marker.file(file=fname, genotype.matrix=s)
+    } else {
+        # A file for every chromosome
+        for(chr in unique(sort(snps.selected.chromosomes))) {
+    	    fname<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
+	    cat("\n\nWorking on '",fname,"'\n\n",sep="")
+	    columns.selected= (snps.selected.chromosomes==chr)
+	    print(which(columns.selected))
+	    s<-read.table.snps.selected[,columns.selected]
+	    happy.prepare.marker.file(file=fname, genotype.matrix=s)
+	}
     }
 }
 
@@ -234,8 +244,21 @@ if (data.prepare) {
 	return(snps.local)
     }
 
-    if (F) {
-	# C H R O M O S O M E -- I N D E P E N D E N T   A N A L Y S I S
+    # Determine which individuals are interesting to investigate
+    interesting.individuals<-function(M,thresh=0.99) {
+	interesting<-apply(M,1,function(X){
+		r<-(sum(!(is.na(X)|"ND"==X|"NA"==X|missing.code==X))/length(X))>thresh
+	})
+	#print(interesting)
+	#print(dim(interesting))
+	return(interesting)
+    }
+
+    if (!split.chromosomes) {
+
+	# P R E P A R E   I N P U T  F I L E S   For  C H R O M O S O M E -- I N D E P E N D E N T   A N A L Y S I S
+
+	name.suffix<-ifelse(data.binary,".binary","")
 
 	# preparing a happy-formatted variant of all the genotypes, except for the parents
 	snps<-merged2happy(read.table.snps.selected,selected.rows=individuals.all)
@@ -259,44 +282,32 @@ if (data.prepare) {
 
 		if (sum(!is.na(phens.3m))>100) {
 			input.3m <-cbind(individuals.3m, phens.3m, snps.3m )
-			write.table(file=paste("happy_3m_", phen,".input",sep=""),input.3m,  col.names=F, row.names=F, quote=F, sep="\t")
+			write.table(file=paste("happy_3m_", phen,".input",sep=""),input.3m[!is.na(phens.3m),],  col.names=F, row.names=F, quote=F, sep="\t")
 		} else cat("Skipping ",phen," 3m series, missing data.\n",sep="")
 		if (sum(!is.na(phens.6m))>100) {
 			input.6m <-cbind(individuals.6m, phens.6m, snps.6m )
-			write.table(file=paste("happy_6m_", phen,".input",sep=""),input.6m,  col.names=F, row.names=F, quote=F, sep="\t")
+			write.table(file=paste("happy_6m_", phen,".input",sep=""),input.6m[!is.na(phens.6m),],  col.names=F, row.names=F, quote=F, sep="\t")
 		} else cat("Skipping ",phen," 6m series, missing data.\n",sep="")
 		if (sum(!is.na(phens.all))>100) {
 			input.all<-cbind(individuals.all,phens.all,snps.all)
-			write.table(file=paste("happy_all_",phen,".input",sep=""),input.all, col.names=F, row.names=F, quote=F, sep="\t")
+			write.table(file=paste("happy_all_",phen,".input",sep=""),input.all[!is.na(phens.all),], col.names=F, row.names=F, quote=F, sep="\t")
 		} else cat("Skipping ",phen," series, missing data.\n",sep="")
 	}
-    }
-}
 
-
-if (data.prepare) {
-    # Determine which individuals are interesting to investigate
-    interesting.individuals<-function(M,thresh=0.99) {
-	interesting<-apply(M,1,function(X){
-		r<-(sum(!(is.na(X)|"ND"==X|"NA"==X))/length(X))>thresh
-	})
-	#print(interesting)
-	#print(dim(interesting))
-	return(interesting)
-    }
+    } else {
 
     ## P R E P A R E  I N P U T  F I L E S  FOR   E V E R Y  P H E N   AND  C H R O M O S O M E
 
     # The markers and the genotype files are prepared individually for
     # every phenotype and every chromosome. The dependency on the phenotype
     # still needs to be implemented.
-    for(phen in phenotypes) {
-	name.suffix<-ifelse(data.binary,".binary","")
-	# Writing a genotype data file for every phenotype
-	cat("Working on phen",phen,name.suffix,"\n"i,sep="")
+        for(phen in phenotypes) {
+	    name.suffix<-ifelse(data.binary,".binary","")
+	    # Writing a genotype data file for every phenotype
+	    cat("Working on phen",phen,name.suffix,"\n",sep="")
 
-	chromosomes<-unique(sort(as.character(snps.selected.chromosomes)))
-	for(chr in chromosomes) {
+	    chromosomes<-unique(sort(as.character(snps.selected.chromosomes)))
+	    for(chr in chromosomes) {
 		# Writing a genotype data file for every chromosome
 		cat("... chr ",chr,"\n")
 		columns.selected= (snps.selected.chromosomes==chr)
@@ -350,36 +361,14 @@ if (data.prepare) {
 			write.table(file=paste(inputdir,"/","happy_all_",phen,name.suffix,"_chr_",chr,".input",sep=""),
 				input.all, col.names=F, row.names=F, quote=F, sep="\t")
 		} else cat("Skipping ",phen,name.suffix," all series, missing data.\n",sep="")
-	}
+    	    }
+        }
     }
 }
 
 
 
-if (F) {
-	# Perform analysis over all chromosomes
-
-	name.suffix<-if(data.binary){".binary"}else{""}
-
-	if (!file.exists(markers.filename)) stop("Cannot find markers file expected at '",markers.filename,"\n")
-	for(phen in colnames(read.table.phenotypes)) {
-		for (individuals.subset in c("3m","6m","all")) {
-			cat("Investigating",phen,name.suffix,"at times",individuals.subset,"\n")
-			fname<-paste("happy_",individuals.subset,"_",phen,name.suffix,".input",sep="")
-			if (!file.exists(fname)) {
-				cat("  cannot find input file expected at '",fname,"\n")
-				next
-			}
-			#happy(datafile=fname,allelesfile=markers.filename,generations=4,standardise=T,phase="unknown",file.format="happy",missing.code="ND")
-			h<-happy(datafile=fname,allelesfile=markers.filename,generations=4,,phase="unknown",file.format="happy",missing.code="ND")
-			fit<-hfit(h)
-			break
-		}
-	}
-}
-
-
-analyse<-function(phen,chr) {
+analyse.split.chromosomes<-function(phen,chr) {
 	markers.filename.chr<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
 	if (!file.exists(markers.filename.chr)) stop(paste("Cannot find marker file for chromosome",chr,"\n",sep=""))
 
@@ -402,7 +391,6 @@ analyse<-function(phen,chr) {
 		}
 
 		# Every chromosome may have a different set of individuals
-		covariatematrix<-NULL
 		if(!is.null(data.covariates)) {
 			covariatematrix<-as.matrix(read.table.phenotypes[h$subjects,data.covariates,drop=FALSE])
 		}
@@ -442,24 +430,106 @@ analyse<-function(phen,chr) {
 }
 
 
-# Perform analysis for every chromosome
-for(phen in phenotypes) {
+name.suffix<-ifelse(data.binary,".binary","")
+covariatematrix<-NULL
 
-	name.suffix<-ifelse(data.binary,".binary","")
-	covariates.suffix<-ifelse(is.null(data.covariates),"",paste("_covars_",paste(data.covariates,collapse=",",sep=""),sep=""))
-	cat("\n**************\n")
-	cat("      ",phen,name.suffix,covariates.suffix,"\n",sep="")
-	cat("\n**************\n\n")
+if (!split.chromosomes) {
+	cat("\n")
+	cat("\n")
+	cat("-------------------------------------------------------------------------------------\n")
+	cat("               Analysis on all chromosomes together"                                    )
+	cat("-------------------------------------------------------------------------------------\n")
 
-	if (phen %in% data.covariates) {
-		cat("W: phen ",phen," also appears in data.covariates, ... skipping.\n")
-		next
+	if (!file.exists(markers.filename)) {
+		stop("Cannot find markers file expected at '",markers.filename,"\n")
 	}
 
-	pdf(paste(outputdir,"/","analysis_happy_phen_",phen,name.suffix,covariates.suffix,"_chr_all.pdf",sep=""))
-	chromosomes<-unique(sort(as.character(snps.selected.chromosomes)))
-	for(chr in chromosomes) {
-		analyse(phen,chr)
+	#for(phen in colnames(read.table.phenotypes))
+	for(phen in phenotypes) {
+		cat("\n")
+		covariates.suffix<-paste("_covars_",ifelse(is.null(data.covariates),"none",paste(data.covariates,collapse=",",sep="")),sep="")
+		cat("---------- Phenotype '",phen,"' ----- Covariates ",covariates.suffix," -----------------------------------\n",sep="")
+		one.was.omitted<-FALSE
+		for (individuals.subset in c("3m","6m","all")) {
+			if ("weight.6m" %in% data.covariates && "6m" != individuals.subset) {
+				cat("weight.6m specified as covariate, need to work also with that subset.\n")
+				one.was.omitted<-TRUE ; next
+			}
+			if ("weight.3m" %in% data.covariates && "3m" != individuals.subset) {
+				cat("weight.3m specified as covariate, need to work also with that subset.\n")
+				one.was.omitted<-TRUE ; next
+			}
+			
+			cat("Investigating",phen,name.suffix,"at times",individuals.subset,"\n")
+			fname<-paste("happy_",individuals.subset,"_",phen,name.suffix,".input",sep="")
+			if (!file.exists(fname)) {
+				cat("  cannot find input file expected at '",fname,"\n")
+				one.was.omitted<-TRUE ;  next
+			}
+			if ("all"==individuals.subset && one.was.omitted) {
+				cat("There was already some subset not readable/omitted for other reasons. Skipping otherwise missleading 'all'.\n")
+				next
+			}
+
+			#happy(datafile=fname,allelesfile=markers.filename,generations=4,standardise=T,phase="unknown",file.format="happy",missing.code=missing.code)
+			h<-happy(datafile=fname,allelesfile=markers.filename,generations=generations,phase="unknown",file.format="happy",missing.code=missing.code)
+
+			# Every chromosome may have a different set of individuals
+			if(is.null(data.covariates)) {
+				covariatematrix<-NULL
+			} else {
+				covariatematrix<-as.matrix(read.table.phenotypes[h$subjects,data.covariates,drop=FALSE])
+			}
+
+			fit.0<-hfit(h, permute=0, verbose=verbose, model=model, covariatematrix=covariatematrix)
+			cat("\n",phen,name.suffix,covariates.suffix,"@","all"," fit.0$mapx: ",fit.0$maxp,"\n",sep="")
+
+			fit.permute<-NULL
+			if (permute > 0) {
+				fit.permute<-hfit(h, permute=permute,verbose=TRUE,model=model,covariatematrix=covariatematrix)
+				cat("\n",phen,name.suffix,covariates.suffix,"@","all"," fit.permute$permdata$p01: ",fit.permute$permdata$p01,"\n",sep="")
+				cat(     phen,name.suffix,covariates.suffix,"@","all"," fit.permute$permdata$p05: ",fit.permute$permdata$p05,"\n",sep="")
+			}
+
+			ofile=paste(outputdir,"/","analysis_happy_phen_",phen,name.suffix,"_subset_",individuals.subset,covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".pdf",sep="")
+			cat("Writingt PDF to file '",ofile,"'\n") ; pdf(ofile,width=50,height=9)
+			happyplot(fit.0,labels=T,together=TRUE,vlines.chr.lwd=3,vlines.chr.col="darkgray",
+				main=paste("AIL for phenotype '",phen,"' on subset '",individuals.subset,"'",sep=""),
+				sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
+			write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen, name.suffix,
+				covariates.suffix,"_chr_","together","_maxLodP_",fit.0$maxp,".csv",sep=""), x=fit.0$table)
+			if (!is.null(fit.permute)) {
+				happyplot(fit.permute,labels=TRUE,together=TRUE,
+					main=paste("Permutation data for AIL phenotype",phen),sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
+				write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen,
+						name.suffix,covariates.suffix,"_chr_","together","_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
+					  x=fit.permute$permdata$permutation.pval)
+			}
+			dev.off()
+		} #stop("Just stopping to help development.")
 	}
-	dev.off()
+
+} else {
+
+	# Perform analysis for every chromosome
+	for(phen in phenotypes) {
+
+		cat("\n**************\n")
+		cat("               Analysis on individual chromosomes "                                    )
+		cat("      ",phen,name.suffix,covariates.suffix,"\n",sep="")
+		cat("\n**************\n\n")
+
+		if (phen %in% data.covariates) {
+			cat("W: phen ",phen," also appears in data.covariates, ... skipping.\n")
+			next
+		}
+
+		pdf(paste(outputdir,"/","analysis_happy_phen_",phen,name.suffix,covariates.suffix,"_chr_all.pdf",sep=""))
+		chromosomes<-unique(sort(as.character(snps.selected.chromosomes)))
+		for(chr in chromosomes) {
+			analyse.split.chromosomes(phen,chr)
+		}
+		dev.off()
+	}
 }
+
