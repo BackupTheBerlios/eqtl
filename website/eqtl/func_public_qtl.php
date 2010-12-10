@@ -219,13 +219,15 @@ Prepares the table to collect QTLs from in the various input forms to specify fi
 				echo "<tr><td>";
 				if ($checkboxes) echo "<input name=\"cqtl[]\" type=\"checkbox\" value=\"".$q["name"]."\" />";
 				echo "<small>";
+				$mbpFrom= intval($q["start_bps"])/1000000;
+				$mbpTo  = intval($q["stop_bps"])/1000000;
 				echo '<a onClick="fillChrFromTo('
-							.$q["chr"].",".$q["start_bps"].",".$q["stop_bps"].')">'
+							.$q["chr"].",$mbpFrom,$mbpTo)\">"
 							.$q["name"]."</a>";
 				echo "</small></td>";
-				echo "<td align=right><small><a onClick=\"fillChr(" .$q["chr"]      .")\">".$q["chr"]      ."</a></small></td>";
-				echo "<td align=right><small><a onClick=\"fillFrom(".$q["start_bps"].")\">".$q["start_bps"]."</a></small></td>";
-				echo "<td align=right><small><a onClick=\"fillTo("  .$q["stop_bps"] .")\">".$q["stop_bps"] ."</a></small></td>";
+				echo "<td align=right><small><a onClick=\"fillChr(" .$q["chr"]                 .")\">".$q["chr"]      ."</a></small></td>";
+				echo "<td align=right><small><a onClick=\"fillFrom(".$mbpFrom.")\">".$q["start_bps"]."</a></small></td>";
+				echo "<td align=right><small><a onClick=\"fillTo("  .$mbpTo  .")\">".$q["stop_bps"] ."</a></small></td>";
 				echo "</tr>\n";
 			}
 		}

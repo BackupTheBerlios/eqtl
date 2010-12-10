@@ -119,6 +119,8 @@ ENDOFDOCUMENTATION
 		)
 	);
 
+	//print_r($_POST);
+
 
 	$database="DATABASEEQTLNAME";
 	include_once("func_connect.php");
