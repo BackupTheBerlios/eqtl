@@ -92,6 +92,9 @@ ENDOFDOCUMENTATION
 	require_once("func_selection.php"); // prints part of the HTML for forms
 
 	show_small_header("Selection of eQTL",TRUE);
+?>
+<?php
+
 	$err=array();
 	$conditionList=array(
 		"Equal Chromosomes" => array(
@@ -222,13 +225,15 @@ ENDOFDOCUMENTATION
 
 	if (empty($direct) and empty($submitted))
 	{
+		include_once("func_public_qtl.php");
+		print_cQTL_javascript_section();
 ?>
-		<form action=qtl.php method=post>
-		<input type=hidden name=submitted value=1>
-		<table width=100%><tr><td>
+		<form id="mainform" action="qtl.php" method="post">
+		<input type="hidden" name="submitted" value="1">
+		<table width="100%"><tr><td>
 			<table>
 			<tr><th class=r valign=top>Covariates:<br>
-	<font size=-3><i>
+	<font size="-3"><i>
 	<?php
 		$cvs=get_covars_on_your_own_from_qtl($linkLocal);
 		$colors=array("red","green","blue","black");
@@ -305,7 +310,6 @@ ENDOFDOCUMENTATION
 			<tr bgcolor="red"><th colspan=4 class=c>QTLs - Select Locus</th></tr>
 			<tr bgcolor="orange"><th>Name</th><th>Chromosome</th><th><small>bp From</small></th><th><small>bp To</small></th></tr>
 <?php
-		include_once("func_public_qtl.php");
 		select_from_public_qtls($linkLocal);
 
 ?>

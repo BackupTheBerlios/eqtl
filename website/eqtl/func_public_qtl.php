@@ -218,7 +218,12 @@ Prepares the table to collect QTLs from in the various input forms to specify fi
 			foreach ($qtls as $q) {
 				echo "<tr><td>";
 				if ($checkboxes) echo "<input name=\"cqtl[]\" type=\"checkbox\" value=\"".$q["name"]."\" />";
-				echo "<small>".$q["name"]."</small></td>";
+				echo "<small>";
+				#echo '<a href="#" onClick="fillChrFromTo('
+				echo '<a href="#" onClick="fillChrFromTo('
+							.$q["chr"].",".$q["start_bps"].",".$q["stop_bps"].')">'
+							.$q["name"]."</a>";
+				echo "</small></td>";
 				echo "<td align=right><small><a href=qtl.php?chrlist=".$q["chr"].">".$q["chr"]."</a></small></td>";
 				echo "<td align=right><small><small>".$q["start_bps"]."</small></small></td>";
 				echo "<td align=right><small><small>".$q["stop_bps"]."</small></small></td>";
@@ -246,6 +251,24 @@ function list_chromosomes() {
 	}
 	$orderOfChromosomes[]="X";
 	return($orderOfChromosomes);
+}
+
+function print_cQTL_javascript_section() {
+	echo '
+<script type="text/javascript">
+<!--
+function fillChrFromTo(chr,from,to) {
+   var myForm = document.getElementById("mainform");
+   myForm.chrlist.value=chr;
+   myForm.Mbp_Peak_Min.value=from;
+   myForm.Mbp_Peak_Max.value=to;
+}
+-->
+</script>
+<noscript>
+<p>Javascript was not enabled. This is not dramatic, effecting only the automated setting of values opon a click to a classical QTL name.</a>
+</noscript>
+';
 }
 
 /*
