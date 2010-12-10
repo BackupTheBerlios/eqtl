@@ -79,3 +79,5 @@ scripts/analyses/R/analyseCorrelationForMarkers.R
 scripts/analyses/R/load.data.R
 scripts/analyses/R/maxcminc.R
 
+eqtl/individuals_group.php
+eqtl/func_edit.php
