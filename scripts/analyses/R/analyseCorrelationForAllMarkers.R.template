@@ -39,13 +39,11 @@ source('BASEDIR/scripts/analyses/R/load.data.R')
 
 "
 
-if (FALSE) {
-	# Information shall come from database, instead
-	##### Extracting values
-	# Initialisation of chromosomes, cMorgan distances and the expression values
-	expr <- load.data("expression") # probes x individuals
-	exprrownames <- rownames(expr)
-}
+
+##### Extracting values
+# Initialisation of chromosomes, cMorgan distances and the expression values
+expr <- load.data("expression") # probes x individuals
+exprrownames <- rownames(expr)
 
 quandata <- load.data("genotypes")
 # Look for marker data on chromosomes
@@ -79,12 +77,7 @@ Plot some expression samples
 =cut
 
 "
-
-plotExpr <- function(x,y,ch=c(1,2),...) {
-  expr<-x
-  if (!missing(y)) {
-  	expr<-rbind(x,y)
-  }
+plotExpr <- function(expr, ch=c(1,2),...) {
   xlab=paste("Probeset",rownames(expr)[ch[1]],sep=": ")
   ylab=paste("Probeset",rownames(expr)[ch[2]],sep=": ")
   plot(t(expr[ch[1],]), t(expr[ch[2],]), xlab=xlab, ylab=ylab)
@@ -155,8 +148,7 @@ getClinical <- function(covar="eae") {
   val[val == 0] <- -1
   return(list(values=val, notna=notna, covar=covar))
 }
-eae<-NULL
-#eae <- getClinical("eae")
+eae <- getClinical("eae")
 
 
 library(grDevices) # qhull
@@ -173,24 +165,12 @@ draw is a boolean and activates the graphical output
 
 "
 
-getValues<-function(type,constraint) {
-}
-
-analyzeclusters <- function(t1,v1,t2,v2,t3,v3,t4,e4,draw = F,
+analyzeclusters <- function(e1, e2, m=NULL, draw = F, phen=NULL,
 			    label.individuals=T,
 			    selection_xaxis="gene",selection_yaxis="gene",selection_shape="phen",selection_colour="marker"
 ) {
-  e1<-getValues(t1,v1)
-  e2<-getValues(t2,v2)
-  e3<-NULL; if (!missing(t3) & !missing(v3)) e3<-getValues(t3,v3)
-  e4<-NULL; if (!missing(t4) & !missing(v4)) e4<-getValues(t4,v4)
-
-  m<-NULL
-  phen<-NULL
   # get expression data (and make them columns)
-  ed <- cbind(e1,e2)
-  colnames(ed)<-c(v1,v2)
-
+  ed <- t(expr[c(e1, e2), ])
   # get marker data
   if (is.null(m)) {
   	m<-find.best.markers(e1,e2)

@@ -73,3 +73,4 @@ website/resources.txt
 website/showSRC.pl
 website/status.txt
 *.swp
+*~
