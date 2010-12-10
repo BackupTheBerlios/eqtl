@@ -74,3 +74,8 @@ website/showSRC.pl
 website/status.txt
 *.swp
 *~
+scripts/analyses/R/analyseCorrelationForAllMarkers.R
+scripts/analyses/R/analyseCorrelationForMarkers.R
+scripts/analyses/R/load.data.R
+scripts/analyses/R/maxcminc.R
+
