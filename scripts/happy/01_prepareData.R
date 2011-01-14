@@ -6,6 +6,10 @@
 
 #  C O N T R O L
 
+# say what project to be actually working on
+project.name<-"baines"
+#project.name<-NULL
+
 # set to TRUE if data needs to be prepared, too
 data.prepare<-FALSE
 data.binary<-F
@@ -25,14 +29,14 @@ markers.filename<-"markers.txt"
 missing.code="NA"
 #missing.code="ND"
 
-inputdir<-"inputs"
+inputdir<-paste("inputs",if(is.null(project.name)) "unnamed" else project.name,sep="/")
 if (!file.exists(inputdir)) {
-	dir.create(inputdir)
+	dir.create(inputdir,recursive=T)
 }
 
-outputdir<-"outputs"
+outputdir<-paste("outputs",if(is.null(project.name)) "unnamed" else project.name,sep="/")
 if (!file.exists(outputdir)) {
-	dir.create(outputdir)
+	dir.create(outputdir,recursive=T)
 }
 
 #permute<-1000
@@ -174,8 +178,7 @@ if (data.prepare) {
 # [9] "cia.max.score"  "cia.onset.week" "Col.VII"        "eba.max.score"
 # [13] "eba.onset.week" "Aggressivity"
 
-
-# The first ten lines should be skipped
+	# The first ten lines should be skipped
 read.table.phenotypes<-read.table("G3-first-phenotypes-2.tsv",sep="\t",na.strings="x",skip=10, row.names=1,header=T)
 w<-read.table.phenotypes[,"weight.3m"]
 w[is.na(w)]<-read.table.phenotypes[is.na(w),"weight.6m"]
@@ -189,11 +192,40 @@ phenotypes.victimised.3m<- as.integer(rownames(read.table.phenotypes)) < 333
 phenotypes.victimised.3m[is.na(phenotypes.victimised.3m)]<-F
 # The phenotypes.*.* are binary vectors, all of the very same length
 
+phenotypes.extra <- NULL
+
+if ("baines"==project.name) {
+	cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
+	r<-read.table("data/baines/otu_table/otu_table.txt",sep="\t",header=F,row.names=1,stringsAsFactors=F,colClasses=integer())
+	phenotypes.baines<-t(r[-1,])
+	rownames(phenotypes.baines)<-as.character(r[1,])
+	rm(r)
+}
+
 
 # C H E C K   F O R   C O N S I S T E N C Y
 
 if (!all(rownames(read.table.phenotypes) %in% rownames(read.table.snps))) {
 	stop("Found some individuals of the phenotypes not to be available in genotypes table.\n")
+}
+
+if ("baines"==project.name) {
+	if (!all(rownames(phenotypes.baines) %in% rownames(read.table.snps))) {
+		"%w/o%" <- function(x, y) x[!x %in% y]
+		unknown.individuals <- rownames(phenotypes.baines) %w/o% rownames(read.table.snps)
+		warning(paste("Found some individuals (",
+			paste(unknown.individuals,collapse=",",sep=""),
+			") of the phenotypes of project '",
+			project.name,
+			"' not to be available in genotypes table.\n",sep=""))
+		phenotypes.baines<-phenotypes.baines[rownames(phenotypes.baines) %in% rownames(read.table.snps),]
+	}
+
+	cat("Selecting of phenotypes of interest")
+	number.of.individuals.affected.per.phenotype<-apply(phenotypes.baines>0,2,sum)
+	a<-which(number.of.individuals.affected.per.phenotype>=40)
+	phenotypes.baines<-phenotypes.baines[,a]
+
 }
 
 # P R E P A R A T I O N   O F   H A P P Y   I N P U T  F I L E S
@@ -268,7 +300,7 @@ if (data.prepare) {
 		stop("E: ! (dim(read.table.snps.selected)[2])*2==(dim(snps)[2])")
 	}
 
-	# Write genptype data files
+	# Write genotype data files
 
 	snps.3m <-snps[individuals.3m, ]
 	snps.6m <-snps[individuals.6m, ]
@@ -293,6 +325,26 @@ if (data.prepare) {
 			input.all<-cbind(individuals.all,phens.all,snps.all)
 			write.table(file=paste("happy_all_",phen,".input",sep=""),input.all[!is.na(phens.all),], col.names=F, row.names=F, quote=F, sep="\t")
 		} else cat("Skipping ",phen," series, missing data.\n",sep="")
+	}
+
+	# Continuing for other projects
+	if ("baines"==project.name) {
+		snps.baines<-merged2happy(read.table.snps.selected,selected.rows=rownames(phenotypes.baines))
+		if (!file.exists(inputdir)) {
+			if (!dir.create(inputdir)) {
+				stop(paste("Could not create directory '",inputdir,"'.\n",sep=""))
+			}
+		}
+		for (phen in colnames(phenotypes.baines)) {
+			phens.baines.all<-phenotypes.baines[,phen]
+			if (sum(!is.na(phens.baines.all))>100) {
+				input.baines.all<-cbind(rownames(phenotypes.baines),phens.baines.all,snps.baines)
+				write.table(file=paste(inputdir,"/",project.name,"_all_", phen,".input",sep=""),
+							input.baines.all[!is.na(phens.baines.all),], col.names=F, row.names=F, quote=F, sep="\t")
+			} else {
+				stop(paste("Too many NA values for phenotype '",phen,"' of project '",project.name,"'.\n",sep=""))
+			}
+		}
 	}
 
     } else {
@@ -375,9 +427,9 @@ analyse.split.chromosomes<-function(phen,chr) {
 
 	for (individuals.subset in c("3m","6m","all")) {
 							# covariates do not influence parameters stored
-		fname<-paste(inputdir,"/","happy_",individuals.subset,"_",phen,name.suffix,"_chr_",chr,".input",sep="")
+		fname<-paste(inputdir,"/","happy_project_",project.name,"_",individuals.subset,"_",phen,name.suffix,"_chr_",chr,".input",sep="")
 		if (!file.exists(fname)) {
-			cat("  cannot find input file expected at '",fname,"\n") ; next
+			cat("  cannot find input file expected at '",fname,"'\n",sep="") ; next
 		}
 
 		cat("\n\nWorking on '",fname,"'\n\n",sep="")
@@ -430,7 +482,7 @@ analyse.split.chromosomes<-function(phen,chr) {
 	}
 }
 
-analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariates,name.suffix="",verbose=FALSE,vlines.chr.col="darkgreen") {
+analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariates,name.suffix="",verbose=FALSE,vlines.chr.col="darkgreen",project.name="") {
 	cat("\n")
 	covariates.suffix<-paste("_covars_",ifelse(is.null(data.covariates),"none",paste(data.covariates,collapse=",",sep="")),sep="")
 	cat("Investigating",phen,name.suffix,"at times",individuals.subset,"and",covariates.suffix,"\n")
@@ -443,8 +495,8 @@ analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariat
 		cat("weight.3m specified as covariate, need to work also with that subset.\n")
 		return(FALSE);
 	}
-	
-	fname<-paste("happy_",individuals.subset,"_",phen,name.suffix,".input",sep="")
+
+	fname<-paste(inputdir,"/","happy_project_",project.name,"_",individuals.subset,"_",phen,name.suffix,".input",sep="")
 	if (!file.exists(fname)) {
 		cat("  cannot find input file expected at '",fname,"\n")
 		return(FALSE);
@@ -469,17 +521,18 @@ analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariat
 		cat(     phen,name.suffix,covariates.suffix,"@","all"," fit.permute$permdata$p05: ",fit.permute$permdata$p05,"\n",sep="")
 	}
 
-	ofile=paste(outputdir,"/","analysis_happy_phen_",phen,name.suffix,"_subset_",individuals.subset,covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".pdf",sep="")
+	ofile=paste(outputdir,"/","analysis_happy_project_",project.name,"phen_",phen,name.suffix,"_subset_",
+				individuals.subset,covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".pdf",sep="")
 	cat("Writingt PDF to file '",ofile,"'\n") ; pdf(ofile,width=50,height=9)
 	happyplot(fit.0,labels=T,together=TRUE,vlines.chr.lwd=3,vlines.chr.col=vlines.chr.col,
 		main=paste("AIL for phenotype '",phen,"' on subset '",individuals.subset,"'",sep=""),
 		sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
-	write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen, name.suffix,
+	write.csv(file=paste(outputdir,"/","happy_project_",project.name,"_subset_",individuals.subset,"_phen_",phen,name.suffix,
 		covariates.suffix,"_chr_","together","_maxLodP_",fit.0$maxp,".csv",sep=""), x=fit.0$table)
 	if (!is.null(fit.permute)) {
 		happyplot(fit.permute,labels=TRUE,together=TRUE,
 			main=paste("Permutation data for AIL phenotype",phen),sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
-		write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen,
+		write.csv(file=paste(outputdir,"/","happy_project_",project.name,"_subset_",individuals.subset,"_phen_",phen,
 				name.suffix,covariates.suffix,"_chr_","together","_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
 			  x=fit.permute$permdata$permutation.pval)
 	}
@@ -501,17 +554,29 @@ if (!split.chromosomes) {
 		stop("Cannot find markers file expected at '",markers.filename,"\n")
 	}
 
-	#for(phen in colnames(read.table.phenotypes))
-	for(phen in phenotypes) {
-		one.was.omitted<-FALSE
-		for (individuals.subset in c("3m","6m","all")) {
-			if ("all"==individuals.subset && one.was.omitted) {
-				cat("\nPhnotype ",phen,": There was already some subset not readable/omitted for other reasons. Skipping otherwise missleading 'all'.\n",sep="")
-				next
+	if ("baines"==project.name) {
+		for(phen in colnames(phenotypes.baines)) {
+			ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset="all",data.covariates=data.covariates,
+							     name.suffix=name.suffix,project.name=project.name)
+			if (!ok) {
+				stop(paste("Problem occurred for phen '",phen,"'.\n",sep=""))
+			} else {
+				cat("[",phen,"]\n")
 			}
-			ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset=individuals.subset,data.covariates=data.covariates,name.suffix=name.suffix)
-			if (!ok) one.was.omitted<-TRUE
-		} #stop("Just stopping to help development.")
+		}
+	} else {
+		#for(phen in colnames(read.table.phenotypes))
+		for(phen in phenotypes) {
+			one.was.omitted<-FALSE
+			for (individuals.subset in c("3m","6m","all")) {
+				if ("all"==individuals.subset && one.was.omitted) {
+					cat("\nPhnotype ",phen,": There was already some subset not readable/omitted for other reasons. Skipping otherwise missleading 'all'.\n",sep="")
+					next
+				}
+				ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset=individuals.subset,data.covariates=data.covariates,name.suffix=name.suffix)
+				if (!ok) one.was.omitted<-TRUE
+			} #stop("Just stopping to help development.")
+		}
 	}
 
 } else {
