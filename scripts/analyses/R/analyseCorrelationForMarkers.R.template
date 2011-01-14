@@ -155,6 +155,7 @@ getClinical <- function(covar="eae") {
   val[val == 0] <- -1
   return(list(values=val, notna=notna, covar=covar))
 }
+eae<-NULL
 #eae <- getClinical("eae")
 
 

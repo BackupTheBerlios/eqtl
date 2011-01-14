@@ -218,10 +218,16 @@ Prepares the table to collect QTLs from in the various input forms to specify fi
 			foreach ($qtls as $q) {
 				echo "<tr><td>";
 				if ($checkboxes) echo "<input name=\"cqtl[]\" type=\"checkbox\" value=\"".$q["name"]."\" />";
-				echo "<small>".$q["name"]."</small></td>";
-				echo "<td align=right><small><a href=qtl.php?chrlist=".$q["chr"].">".$q["chr"]."</a></small></td>";
-				echo "<td align=right><small><small>".$q["start_bps"]."</small></small></td>";
-				echo "<td align=right><small><small>".$q["stop_bps"]."</small></small></td>";
+				echo "<small>";
+				$mbpFrom= intval($q["start_bps"])/1000000;
+				$mbpTo  = intval($q["stop_bps"])/1000000;
+				echo '<a onClick="fillChrFromTo('
+							.$q["chr"].",$mbpFrom,$mbpTo)\">"
+							.$q["name"]."</a>";
+				echo "</small></td>";
+				echo "<td align=right><small><a onClick=\"fillChr(" .$q["chr"]                 .")\">".$q["chr"]      ."</a></small></td>";
+				echo "<td align=right><small><a onClick=\"fillFrom(".$mbpFrom.")\">".$q["start_bps"]."</a></small></td>";
+				echo "<td align=right><small><a onClick=\"fillTo("  .$mbpTo  .")\">".$q["stop_bps"] ."</a></small></td>";
 				echo "</tr>\n";
 			}
 		}
@@ -246,6 +252,41 @@ function list_chromosomes() {
 	}
 	$orderOfChromosomes[]="X";
 	return($orderOfChromosomes);
+}
+
+function print_cQTL_javascript_section() {
+	echo '
+<script type="text/javascript">
+<!--
+
+function fillChr(chr){
+   var myForm = document.getElementById("mainform");
+   myForm.chrlist.value=chr;
+}
+
+function fillFrom(from){
+   var myForm = document.getElementById("mainform");
+   myForm.Mbp_Peak_Min.value=from;
+}
+
+function fillTo(to){
+   var myForm = document.getElementById("mainform");
+   myForm.Mbp_Peak_Max.value=to;
+}
+
+function fillChrFromTo(chr,from,to) {
+   var myForm = document.getElementById("mainform");
+   myForm.chrlist.value=chr;
+   myForm.Mbp_Peak_Min.value=from;
+   myForm.Mbp_Peak_Max.value=to;
+}
+
+-->
+</script>
+<noscript>
+<p>Javascript was not enabled. This is not dramatic, effecting only the automated setting of values opon a click to a classical QTL name.</a>
+</noscript>
+';
 }
 
 /*
