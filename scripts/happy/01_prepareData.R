@@ -44,6 +44,9 @@ permute<-0
 
 verbose<-F
 
+# set to FALSE to skip tasks that seem to have been already computed
+overwrite<-F
+
 #  G E N O T Y P E S
 
 # When opening Andreia's file in OpenOffice:
@@ -193,6 +196,7 @@ phenotypes.victimised.3m[is.na(phenotypes.victimised.3m)]<-F
 # The phenotypes.*.* are binary vectors, all of the very same length
 
 phenotypes.extra <- NULL
+phenotypes.baines<- NULL
 
 if ("baines"==project.name) {
 	cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
@@ -482,10 +486,9 @@ analyse.split.chromosomes<-function(phen,chr) {
 	}
 }
 
-analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariates,name.suffix="",verbose=FALSE,vlines.chr.col="darkgreen",project.name="") {
-	cat("\n")
+analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariates,name.suffix="",verbose=FALSE,vlines.chr.col="darkgreen",project.name="",overwrite=TRUE) {
 	covariates.suffix<-paste("_covars_",ifelse(is.null(data.covariates),"none",paste(data.covariates,collapse=",",sep="")),sep="")
-	cat("Investigating",phen,name.suffix,"at times",individuals.subset,"and",covariates.suffix,"\n")
+	cat("\n"); cat("Investigating",phen,name.suffix,"at times",individuals.subset,"and",covariates.suffix,"\n")
 
 	if ("weight.6m" %in% data.covariates && "6m" != individuals.subset) {
 		cat("weight.6m specified as covariate, need to work also with that subset.\n")
@@ -502,8 +505,17 @@ analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariat
 		return(FALSE);
 	}
 
-	#happy(datafile=fname,allelesfile=markers.filename,generations=4,standardise=T,phase="unknown",file.format="happy",missing.code=missing.code)
+	ofile.pdf<-paste(outputdir,"/","analysis_happy_project_",project.name,"phen_",phen,name.suffix,"_subset_",
+				individuals.subset,covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".pdf",sep="")
+	ofile.csv<-paste(outputdir,"/","analysis_happy_project_",project.name,"_phen_",phen,name.suffix,"_subset_",
+				individuals.subset, covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".csv",sep="")
+	if (overwrite && file.exists(ofile.pdf) && file.exists(ofile.csv)) {
+		cat("\nSkipping: Results are already existing: ",ofile.pdf,", ",ofile.csv,"\n",sep="")
+		return(TRUE)
+	}
+
 	h<-happy(datafile=fname,allelesfile=markers.filename,generations=generations,phase="unknown",file.format="happy",missing.code=missing.code)
+
 
 	# Every chromosome may have a different set of individuals
 	covariatematrix<-NULL
@@ -521,14 +533,11 @@ analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariat
 		cat(     phen,name.suffix,covariates.suffix,"@","all"," fit.permute$permdata$p05: ",fit.permute$permdata$p05,"\n",sep="")
 	}
 
-	ofile=paste(outputdir,"/","analysis_happy_project_",project.name,"phen_",phen,name.suffix,"_subset_",
-				individuals.subset,covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".pdf",sep="")
-	cat("Writingt PDF to file '",ofile,"'\n") ; pdf(ofile,width=50,height=9)
+	cat("Writingt PDF to file '",ofile.pdf,"'\n") ; pdf(ofile.pdf,width=50,height=9)
 	happyplot(fit.0,labels=T,together=TRUE,vlines.chr.lwd=3,vlines.chr.col=vlines.chr.col,
 		main=paste("AIL for phenotype '",phen,"' on subset '",individuals.subset,"'",sep=""),
 		sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
-	write.csv(file=paste(outputdir,"/","happy_project_",project.name,"_subset_",individuals.subset,"_phen_",phen,name.suffix,
-		covariates.suffix,"_chr_","together","_maxLodP_",fit.0$maxp,".csv",sep=""), x=fit.0$table)
+	write.csv(file=ofile.csv, x=fit.0$table)
 	if (!is.null(fit.permute)) {
 		happyplot(fit.permute,labels=TRUE,together=TRUE,
 			main=paste("Permutation data for AIL phenotype",phen),sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
@@ -536,7 +545,7 @@ analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariat
 				name.suffix,covariates.suffix,"_chr_","together","_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
 			  x=fit.permute$permdata$permutation.pval)
 	}
-	dev.off() ; cat("Created figure at '",ofile,"'\n",sep="")
+	dev.off() ; cat("Created figure at '",ofile.pdf,"'\n",sep="")
 	return(TRUE);
 }
 
@@ -557,7 +566,7 @@ if (!split.chromosomes) {
 	if ("baines"==project.name) {
 		for(phen in colnames(phenotypes.baines)) {
 			ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset="all",data.covariates=data.covariates,
-							     name.suffix=name.suffix,project.name=project.name)
+							     name.suffix=name.suffix,project.name=project.name,overwrite=overwrite)
 			if (!ok) {
 				stop(paste("Problem occurred for phen '",phen,"'.\n",sep=""))
 			} else {
@@ -573,7 +582,7 @@ if (!split.chromosomes) {
 					cat("\nPhnotype ",phen,": There was already some subset not readable/omitted for other reasons. Skipping otherwise missleading 'all'.\n",sep="")
 					next
 				}
-				ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset=individuals.subset,data.covariates=data.covariates,name.suffix=name.suffix)
+				ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset=individuals.subset,data.covariates=data.covariates,name.suffix=name.suffix,overwrite=overwrite)
 				if (!ok) one.was.omitted<-TRUE
 			} #stop("Just stopping to help development.")
 		}
