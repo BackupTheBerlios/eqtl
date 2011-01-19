@@ -340,7 +340,7 @@ if (data.prepare) {
 		}
 		written.act<-0;written.max<-ncol(phenotypes.baines)
 		for (phen in colnames(phenotypes.baines)) {
-			ifile<-paste(inputdir,"/",project.name,"_all_", phen,".input",sep="")
+			ifile<-paste(inputdir,"/happy_project_",project.name,"_all_", phen,".input",sep="")
 			phens.baines.all<-phenotypes.baines[,phen]
 			if (sum(!is.na(phens.baines.all))>100) {
 				cat("Creating file '",ifile,"'.\n",sep="")
