@@ -103,7 +103,6 @@ if (data.prepare) {
     happy.prepare.marker.file <- function(file="", genotype.matrix=NULL) {
 
 	genotype.matrix.parentals<-as.matrix(genotype.matrix[parental.strains,])
-
 	genotype.matrix.parentals.distribution<-apply(genotype.matrix.parentals,2,function(X){
 		if (any(is.na(X))) stop("Found NA in parental strains' genotyping")
 		alleles_concatenated<-paste(X,collapse="",sep="");
@@ -227,7 +226,7 @@ if ("baines"==project.name) {
 
 	cat("Selecting of phenotypes of interest")
 	number.of.individuals.affected.per.phenotype<-apply(phenotypes.baines>0,2,sum)
-	a<-which(number.of.individuals.affected.per.phenotype>=40)
+	a<-which(number.of.individuals.affected.per.phenotype>=30)
 	phenotypes.baines<-phenotypes.baines[,a]
 
 }
@@ -339,16 +338,19 @@ if (data.prepare) {
 				stop(paste("Could not create directory '",inputdir,"'.\n",sep=""))
 			}
 		}
+		written.act<-0;written.max<-ncol(phenotypes.baines)
 		for (phen in colnames(phenotypes.baines)) {
+			ifile<-paste(inputdir,"/",project.name,"_all_", phen,".input",sep="")
 			phens.baines.all<-phenotypes.baines[,phen]
 			if (sum(!is.na(phens.baines.all))>100) {
+				cat("Creating file '",ifile,"'.\n",sep="")
 				input.baines.all<-cbind(rownames(phenotypes.baines),phens.baines.all,snps.baines)
-				write.table(file=paste(inputdir,"/",project.name,"_all_", phen,".input",sep=""),
-							input.baines.all[!is.na(phens.baines.all),], col.names=F, row.names=F, quote=F, sep="\t")
+				write.table(file=ifile, input.baines.all[!is.na(phens.baines.all),], col.names=F, row.names=F, quote=F, sep="\t")
 			} else {
 				stop(paste("Too many NA values for phenotype '",phen,"' of project '",project.name,"'.\n",sep=""))
 			}
 		}
+		cat("Created input files for ",written.act," of ",written.max," phenotypes.\n",sep="")
 	}
 
     } else {
