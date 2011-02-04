@@ -12,19 +12,18 @@ function showMe (it, box) {
 	    print("Connect did not work.\n");
 	}
         $mod_query = mysqli_query($dbcon,"select distinct moduleColor from module_trait_moduleMembership");
-        echo "<form action=\"module1.php\" method='get'>";
+        echo "<form action='modules.php' method='get'>";
         echo "<table width=100% border=0><tr><td><table border=0>";
-        echo "<tr><th align=right>MODULE COLOR : </th><td>";
-        echo "<select name=\"modcolor\">";
-        while($row = mysqli_fetch_array($mod_query))
-              {
+        echo "<tr><th align=right>Module Colour : </th><td>";
+        echo "<select name='modcolor'>";
+        while($row = mysqli_fetch_array($mod_query)) {
                echo "<option>".$row["moduleColor"]."</option>";
-              }
+        }
         echo "</select><font color=blue> #A module is a group of genes which have high correlation in term of scale free topology and Topological overlap</font></td></tr>";
-        $mod_query = mysqli_query($dbcon,"SHOW COLUMNS FROM module_trait_pheno_geneSignificance where Field like \"%p_GS%\"");
+        $mod_query = mysqli_query($dbcon,"SHOW COLUMNS FROM module_trait_pheno_geneSignificance WHERE Field LIKE '%p_GS%'");
         echo "<tr><td><br></td></tr>";
-        echo "<tr><th align=right>CLINICAL PHENOTYPE : </th><td>";
-        echo "<select name=\"clinical\">";
+        echo "<tr><th align=right>Clinical Phenotype: </th><td>";
+        echo "<select name='clinical'>";
         if (mysqli_num_rows($mod_query) > 0) {
                while ($row5 = mysqli_fetch_assoc($mod_query)) {
                        $clinical = $row5["Field"];
@@ -35,11 +34,11 @@ function showMe (it, box) {
         echo "</select></td></tr><tr><td><br></td></tr>";
         echo "<tr><td><font color=red>(optional)</font></td></tr>";
         echo "</td></tr><tr><td><br></td></tr>";
-        echo "<tr><th align=right>GENE SIGNIFICANCE : </th><td><input type=\"text\" name=\"gs\" size=3><font color=blue> #Gene significance implies the significance of gene for the phenotype in the given module </td></tr><br>"; 
+        echo "<tr><th align=right>Gene Significance: </th><td><input type='text' name='gs' size=3><font color=blue> #Gene significance implies the significance of gene for the phenotype in the given module </td></tr><br>"; 
         echo "</select></td></tr><tr><td><br></td></tr>";
-        echo "<tr><th align=right>MODULE MEMBERSHIP : </th><td><input type=\"text\" name=\"mm\" size=3><font color=blue> #Module Membership implies the membership of each gene in the given module </td></tr><br>"; 
+        echo "<tr><th align=right>Module Membership: </th><td><input type='text' name='mm' size=3><font color=blue> #Module Membership implies the membership of each gene in the given module </td></tr><br>"; 
         echo "<tr><td><br></tr></td>";
-        echo "<tr><td><input type=\"submit\" name=\"submit\"/>";
+        echo "<tr><td><input type='submit' name='submit'/>";
         echo "</td><tr>";
         echo "</td></tr></table></form>";
 ?>
