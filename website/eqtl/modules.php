@@ -6,12 +6,10 @@ function showMe (it, box) {
 </script>
 <?php
         require_once("header.php");
-	show_small_header("MODULES",TRUE);
-        $dbcon = mysqli_init();
-	if (!mysqli_real_connect($dbcon,"localhost", "root", "yask123", "eqtl_stockholm_eae_logplier")) {
-	    print("Connect did not work.\n");
-	}
-        $mod_query = mysqli_query($dbcon,"select distinct moduleColor from module_trait_moduleMembership");
+        require_once("func_connecti.php");
+	show_small_header("Modules",TRUE);
+
+        $mod_query = mysqli_query($linkLocali,"select distinct moduleColor from module_trait_moduleMembership");
         echo "<form action='modules.php' method='get'>";
         echo "<table width=100% border=0><tr><td><table border=0>";
         echo "<tr><th align=right>Module Colour : </th><td>";
@@ -20,7 +18,7 @@ function showMe (it, box) {
                echo "<option>".$row["moduleColor"]."</option>";
         }
         echo "</select><font color=blue> #A module is a group of genes which have high correlation in term of scale free topology and Topological overlap</font></td></tr>";
-        $mod_query = mysqli_query($dbcon,"SHOW COLUMNS FROM module_trait_pheno_geneSignificance WHERE Field LIKE '%p_GS%'");
+        $mod_query = mysqli_query($linkLocali,"SHOW COLUMNS FROM module_trait_pheno_geneSignificance WHERE Field LIKE '%p_GS%'");
         echo "<tr><td><br></td></tr>";
         echo "<tr><th align=right>Clinical Phenotype: </th><td>";
         echo "<select name='clinical'>";
@@ -29,8 +27,8 @@ function showMe (it, box) {
                        $clinical = $row5["Field"];
                        $cli= preg_replace("/p_GS_/","",$clinical);
                        echo "<option>".$cli."</option>";
-                                                             }
-                                            }
+		}
+	}
         echo "</select></td></tr><tr><td><br></td></tr>";
         echo "<tr><td><font color=red>(optional)</font></td></tr>";
         echo "</td></tr><tr><td><br></td></tr>";
@@ -43,9 +41,9 @@ function showMe (it, box) {
         echo "</td></tr></table></form>";
 ?>
 <?php
-        echo '<input type="checkbox" name="c1" onclick="showMe(\'div1\', this)"><b>Please check Module Trait Relationship graph to find Module of your need !</b>';
+        echo '<input type="checkbox" name="c1" onclick="showMe(\'div1\', this)"><b>Check this box to see Module Trait Relationship diagram. Identify the modules that are highest in their association with clinical phenotypes. The selection perfom by the drop-down menus showing respective module colours and phenotypes.</b>';
         echo '<div id="div1"style="display:none"';
-        echo "<a><img src=\"tmp_images/try.png\" ISMAP/></a>";
+        echo "<a><img width='100%' src='tmp_images/module_trait_relationship_map.png' ISMAP/></a>";
         echo '</div>';
         echo "<hr>";
         $mod = $_GET["modcolor"];
@@ -54,39 +52,38 @@ function showMe (it, box) {
         $gs = $_GET["gs"];
         echo "<a href=\"demo/visant.php?mod=".$mod."\"><b>See gene network for module></b></a>";
         echo "<p></p>";
-        if(empty($mm) and empty($gs))
-           {
-            $option="";
-           }
-        elseif(!empty($mm) and empty($gs))
-            {
+        if (empty($mm) and empty($gs)) { $option=""; }
+        elseif (!empty($mm) and empty($gs)) {
              $option = "and module_trait_moduleMembership.MM_".$mod." >= ".$mm;
-            }
-         elseif(empty($mm) and !empty($gs))
-            {
-             $option = "and module_trait_pheno_geneSignificance.GS_".$cli." >= ".$gs;
-            }
-         elseif(!empty($mm) and !empty($gs))
-            {
+        }
+        elseif (empty($mm) and !empty($gs)) {
+            $option = "and module_trait_pheno_geneSignificance.GS_".$cli." >= ".$gs;
+        }
+        elseif (!empty($mm) and !empty($gs)) {
              $option = "and module_trait_pheno_geneSignificance.GS_".$cli." >= ".$gs." and module_trait_moduleMembership.MM_".$mod." >= ".$mm;
-            }
+        }
         
         $query = "SELECT module_trait_moduleMembership.trait_id as trait_id,"
 				      ."trait.chromosome,round((trait.start+trait.stop)/2)/1000000 as pos,"
-				      ."bearatchip.first_name,module_trait_pheno_geneSignificance.GS_".$cli.","
+				      ."BEARatChip.first_name,module_trait_pheno_geneSignificance.GS_".$cli.","
 				      ."module_trait_moduleMembership.MM_".$mod.","
 				      ."qtl.Chromosome as qtl_Chromosome,"
 				      ."qtl.cMorgan_Peak as qtl_cMorgan_Peak,"
 				      ."qtl.covariates as qtl_covariates,"
 				      ."qtl.LOD as qtl_lod,"
-                                      ."bearatchip.pathway "
-	        ."FROM module_trait_moduleMembership left join bearatchip on module_trait_moduleMembership.trait_id=bearatchip.probeset_id left join module_trait_pheno_geneSignificance on module_trait_moduleMembership.trait_id=module_trait_pheno_geneSignificance.trait_id left join trait on module_trait_moduleMembership.trait_id=trait.trait_id left join qtl on module_trait_moduleMembership.trait_id=qtl.Trait where module_trait_moduleMembership.moduleColor=\"".$mod."\" ".$option." and bearatchip.first_name != \"\" ORDER BY trait_id,trait.chromosome"
+                                      ."BEARatChip.pathway "
+	        ."FROM module_trait_moduleMembership LEFT JOIN BEARatChip ON module_trait_moduleMembership.trait_id=BEARatChip.probeset_id "
+		."LEFT JOIN module_trait_pheno_geneSignificance USING(trait_id) "
+		."LEFT JOIN trait USING(trait_id) "
+		."LEFT JOIN qtl on module_trait_moduleMembership.trait_id=qtl.Trait "
+		."WHERE module_trait_moduleMembership.moduleColor=\"".$mod."\" ".$option." and BEARatChip.first_name != \"\" ORDER BY trait.chromosome ASC"
 	        ."";
-	$rec_query = mysqli_query($dbcon,$query);
+
+	$rec_query = mysqli_query($linkLocali,$query);
         echo "QUERY : $query";
         echo "<p></p>";
         echo "<table border=1 cellspacing=0 width=100%>";
-        echo "<thread align><tr bgcolor=yellow><th>Trait ID</th><th>Chromosome</th><th>Position(Mbp)</th><th>Function</th><th>Gene Significane(".$clin.")</th><th>Module Membership(".$mod.")</th><th>Pathway</th><th>qtl_Chromosome:qtl_cMorgan_Peak qtl_covariates</th></thread>";
+        echo "<thread align><tr bgcolor=yellow><th>Trait ID</th><th>Chromosome</th><th>Position(Mbp)</th><th>Function</th><th>Gene Significane(".$clin.")</th><th>Module Membership(".$mod.")</th><th>Pathway</th><th>Chromosome:Peak (cM):Covariates:LOD</th></thread>";
 	
 	$prevTrait="";
         while ($row1 = mysqli_fetch_assoc($rec_query)) {
@@ -95,7 +92,7 @@ function showMe (it, box) {
 		    echo "<tr>";
 		    foreach ($row1 as $n => $v) {
 			  if ("$n" != "qtl_cMorgan_Peak" and "$n" != "qtl_Chromosome" and "$n" != "qtl_covariates" and "$n" != "qtl_lod") {
-				echo "<td valign=top>$v</td>";
+				echo "<td valign=top>".(empty($v)?"&nbsp;":"$v")."</td>";
 			  }		
 		    }
 		    echo "<td nowrap>";
