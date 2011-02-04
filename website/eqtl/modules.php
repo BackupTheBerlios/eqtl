@@ -72,7 +72,7 @@ function showMe (it, box) {
              $option = "and module_trait_pheno_geneSignificance.GS_".$cli." >= ".$gs." and module_trait_moduleMembership.MM_".$mod." >= ".$mm;
             }
         
-        $query = "SELECT module_trait_moduleMembership.TRAIT as trait_id,"
+        $query = "SELECT module_trait_moduleMembership.trait_id as trait_id,"
 				      ."trait.chromosome,round((trait.start+trait.stop)/2)/1000000 as pos,"
 				      ."bearatchip.first_name,module_trait_pheno_geneSignificance.GS_".$cli.","
 				      ."module_trait_moduleMembership.MM_".$mod.","
@@ -81,7 +81,7 @@ function showMe (it, box) {
 				      ."qtl.covariates as qtl_covariates,"
 				      ."qtl.LOD as qtl_lod,"
                                       ."bearatchip.pathway "
-	        ."FROM module_trait_moduleMembership left join bearatchip on module_trait_moduleMembership.TRAIT=bearatchip.probeset_id left join module_trait_pheno_geneSignificance on module_trait_moduleMembership.TRAIT=module_trait_pheno_geneSignificance.TRAIT left join trait on module_trait_moduleMembership.TRAIT=trait.trait_id left join qtl on module_trait_moduleMembership.TRAIT=qtl.Trait where module_trait_moduleMembership.moduleColor=\"".$mod."\" ".$option." and bearatchip.first_name != \"\" ORDER BY trait_id,trait.chromosome"
+	        ."FROM module_trait_moduleMembership left join bearatchip on module_trait_moduleMembership.trait_id=bearatchip.probeset_id left join module_trait_pheno_geneSignificance on module_trait_moduleMembership.trait_id=module_trait_pheno_geneSignificance.trait_id left join trait on module_trait_moduleMembership.trait_id=trait.trait_id left join qtl on module_trait_moduleMembership.trait_id=qtl.Trait where module_trait_moduleMembership.moduleColor=\"".$mod."\" ".$option." and bearatchip.first_name != \"\" ORDER BY trait_id,trait.chromosome"
 	        ."";
 	$rec_query = mysqli_query($dbcon,$query);
         echo "QUERY : $query";
