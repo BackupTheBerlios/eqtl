@@ -31,7 +31,7 @@ Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
 echo "<html><head><title>DB</title></head>\n";
 echo "<body>";
 
-$link=mysql_connect("DATABASEHOSTLOCAL","DATABASEQTLUSER","");
+$link=mysql_connect("DATABASEHOSTLOCAL","DATABASEQTLUSER","DATABASEQTLPASSWORD");
 mysql_select_db("DATABASEEQTLNAME");
 
 $char = mysql_query("select * from characteristics;");
