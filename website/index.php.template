@@ -19,8 +19,8 @@ TEMPLATEWARNINGXML
 <?php
 
 $link = mysql_connect('DATABASEHOSTLOCAL', 'DATABASEEQTLUSER')
-    //or die("Could not connect ('DATABASEHOSTLOCAL', 'DATABASEEQTLUSER'): " . mysql_error());
-    or die("Could not connect: " . mysql_error());
+    or die("Could not connect ('DATABASEHOSTLOCAL', 'DATABASEEQTLUSER'): " . mysql_error());
+    //or die("Could not connect: " . mysql_error());
 mysql_select_db('DATABASEEQTLNAME') or die('Could not select database DATABASEEQTLNAME: '.mysql_error());
 
 #

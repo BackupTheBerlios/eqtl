@@ -11,9 +11,11 @@ scripts/analyses/regularExpressionAnalyses_delete.sh
 scripts/analyses/regularExpressionAnalyses_list.sh
 scripts/analyses/regularExpressionAnalyses.R
 scripts/analyses/regularExpressionAnalyses_upload.sh
+scripts/analyses/R/analyseCorrelationForAllMarkers.R
+scripts/analyses/R/analyseCorrelationForMarkers.R
+scripts/analyses/R/load.data.R
+scripts/analyses/R/maxcminc.R
 scripts/analyses/scatter_all.R
-scripts/analyses/showQtlDensity.R
-scripts/db_management/checkIfUploaded.pl
 scripts/db_management/database_dump.sh
 scripts/db_management/database_upload.sh
 scripts/db_management/reprocessing.sh

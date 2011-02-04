@@ -93,6 +93,7 @@ prepareOutput<-function(filename) {
 	}
 }
 
+library(RMySQL)
 library(getopt)
 library(qtl)
 
@@ -119,6 +120,7 @@ opt = getopt(matrix(c(
     'findmarker' , 'z', 2, "character",
     'LODmin'     , 'l', 1, "double",
     'interactive', 'i', 0, "logical",
+    'individuals', 'I', 0, "character",
     'format'     , 'f', 1, "character",
     'covariates' , 'c', 1, "character",
     'work'       , 'w', 1, "character",
@@ -197,6 +199,7 @@ fname.input<-paste(
 	opt$trait,
 	"&applyLog2=APPLYLOG2&score=",sep="")
 
+
 if (!is.null(opt$verbose)) {
 	cat("fname.input",":",fname.input,"\n");
 }
@@ -207,6 +210,36 @@ my.cross <- read.cross(	format="csv", dir="",
 		        genotypes=RQTLREADCROSSGENOTYPES,
 			alleles=RQTLREADCROSSALLELES ,
 			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=CONVERTXDATA )
+
+# Retrieval of details for specification of subset of individuals
+if(!is.null(opt$individuals)){
+	con <- dbConnect(MySQL(),host="DATABASEHOSTLOCAL",db="DATABASEEQTLNAME",user="DATABASEEQTLUSER")
+	q <- paste("SELECT name,phen,relation,value FROM individuals_group WHERE individuals_group_id=",opt$individuals,";",sep="")
+	cat("q: "); print(q)
+	q.result<-dbGetQuery(con,q)
+	if (opt$verbose) cat("q.result: "); print(q.result)
+	if (opt$verbose) cat("dim(q.result): "); print(dim(q.result))
+	if (opt$verbose) cat("colnames(q.result): "); print(colnames(q.result))
+	phen<-q.result[1,2]
+	relation<-q.result[1,3];
+	value<-q.result[1,4]
+	dbDisconnect(con)
+	if ("="==relation) relation="==";
+	if (opt$verbose) cat("phen:",phen," relation:",relation," value:",value,"\n")
+	my.subset.pheno <- pull.pheno(my.cross,phen)
+	if (is.null(my.subset.pheno) | 0 == length(my.subset.pheno)) {
+		stop(paste("Could not retrieve information on phenotype '",phen,
+				"' The following are available: ",paste(colnames(my.cross$pheno),collapse=",", sep=""),
+				".\n",sep=""))
+	}
+	e<-paste("my.subset.pheno",relation,value); cat("Expression: "); print(e)
+	e.ind<-eval(parse(text=e))
+	if (opt$verbose) cat("e.ind: "); print(e.ind)
+	my.cross <- subset(my.cross, ind = e.ind)
+} else { 
+	cat("Analysis is running on all individuals as no subset defined.\n")
+}
+#-----------------------code ends for subset------------------------------*
 
 if (USEJITTERMAP) {
 	if (!is.null(opt$verbose)) {
@@ -434,7 +467,6 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	r<-ep(m,chr,cM,m2,chr2,cM2)
 	print(r)
 }
-
 
 doc <- "
 
