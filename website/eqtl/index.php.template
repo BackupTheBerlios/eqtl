@@ -68,6 +68,11 @@ $forms[]=array("href"=>"xyplot.php",      "title"=>"XYplot",
                "description"=>"See how markers affect the relation of two molecular or phenotypic traits to each other.");
 $forms[]=array("href"=>"marker.php",      "title"=>"Marker",       
                "description"=>"Link the cMorgan positions assigned to markers to base pairs.");
+$forms[]=array("href"=>"modules.php",      "title"=>"Networks",       
+               "description"=>"Specification of modules and their significance based on co-expression analysis by WGCNA");
+$forms[]=array("href"=>"URLWEBSITE/intergenomics/index.php",
+	       "title"=>"Intergenomics",       
+               "description"=>"Compare findings with xQTL from other projects - soon to be released.");
 if (file_exists("parental_expression.php")) 
 	$forms[]=array("href"=>"parental_expression.php", "title"=>"Expression data", "description"=>"See expression level of genes 30 days post immunisation.");
 if (file_exists("expression_trait_correlation.php"))
@@ -75,7 +80,7 @@ if (file_exists("expression_trait_correlation.php"))
 
 echo "<table>\n";
 foreach($forms as $f) {
-	echo "<tr><td nowrap><a href=\"".$f["href"]."\">".$f["title"]."</a></td><td>".$f["description"]."</td></tr>\n";
+	echo "<tr><td nowrap valign=top><a href=\"".$f["href"]."\">".$f["title"]."</a></td><td>".$f["description"]."</td></tr>\n";
 }
 echo "</table>\n";
 ?>
