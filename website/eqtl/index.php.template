@@ -68,8 +68,6 @@ $forms[]=array("href"=>"xyplot.php",      "title"=>"XYplot",
                "description"=>"See how markers affect the relation of two molecular or phenotypic traits to each other.");
 $forms[]=array("href"=>"marker.php",      "title"=>"Marker",       
                "description"=>"Link the cMorgan positions assigned to markers to base pairs.");
-$forms[]=array("href"=>"modules.php",      "title"=>"Networks",       
-               "description"=>"Specification of modules and their significance based on co-expression analysis by WGCNA");
 $forms[]=array("href"=>"URLWEBSITE/intergenomics/index.php",
 	       "title"=>"Intergenomics",       
                "description"=>"Compare findings with xQTL from other projects - soon to be released.");
@@ -88,12 +86,20 @@ echo "</table>\n";
 <h2>Analyses</h2>
 <?php
 $analyses=array();
-$analyses[]=array("href"=>"scatter.php",       "title"=>"Cause-vs-Effect Location Scatter Plot");
-$analyses[]=array("href"=>"venn.php",          "title"=>"Venn diagrams for Covariates");
-$analyses[]=array("href"=>"effectplot.php",    "title"=>"R/qtl Effect plot, Scanone and Scantwo for individual traits");
-$analyses[]=array("href"=>"overview.php",      "title"=>"Tabular presentation of QTL density");
-$analyses[]=array("href"=>"trait_summary.php", "title"=>"Differential analysis of covariates for single trait");
-$analyses[]=array("href"=>"xyplot.php",        "title"=>"Plotting two traits/phenotypes against each other");
+$analyses[]=array("href"=>"scatter.php",       "title"=>"Cause-vs-Effect Location Scatter Plot",
+		"description" => "The chromosomal position of the QTL is plotted against the chromosomal location of the gene it controls.");
+$analyses[]=array("href"=>"venn.php",          "title"=>"Venn diagrams for Covariates",
+		"description" => "Some phenotypes share more chromosomal loci than others. These diagrams present this graphically.");
+$analyses[]=array("href"=>"effectplot.php",    "title"=>"R/qtl Wrapper",
+		"description" => "This is a wrapper of the R/qtl functionalities in the Effect plot, Scanone and Scantwo. This means that it investigates one trait at a time, with one or multiple markers.");
+$analyses[]=array("href"=>"overview.php",      "title"=>"Tabular presentation of QTL density",
+		"description" => "The number of QTL per chromosome is shown for multiple covariates in separate columns.");
+$analyses[]=array("href"=>"trait_summary.php", "title"=>"Differential analysis of covariates for single trait",
+		"description" => "The researcher is presented all the combinatons of covariates for a given trait. This allows for a comparative analysis of the change in the LOD score that the addition of an additive or interacting covariate brings.");
+$analyses[]=array("href"=>"xyplot.php",        "title"=>"Plotting two traits/phenotypes against each other",
+		"description" => "");
+$analyses[]=array("href"=>"modules.php",      "title"=>"Networks",       
+               "description"=>"Specification of modules and their significance based on co-expression analysis by WGCNA");
 echo "<table>\n";
 foreach($analyses as $a) {
 	echo "<tr><td><a href=\"".$a["href"]."\">".$a["title"]."</a></td>";
