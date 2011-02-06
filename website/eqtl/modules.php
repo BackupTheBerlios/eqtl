@@ -153,25 +153,28 @@ function showMe (it, box) {
   echo "<tr><th align=right nowrap>Module Colour:</th><td>";
   echo "<select name='modcolour'>";
   while($row = mysqli_fetch_array($mod_query)) {
-               echo "<option>".$row["moduleColor"]."</option>";
+      $r=$row["moduleColor"];
+      echo "<option".("$r"=="$modcolour"?" selected":"").">$r</option>";
   }
   echo "</select></td>";
   echo "<td><font color=blue>Modules are groups of genes that are pairwise connected since they strongly correlate with the same set of genes.</font></td>";
   echo "</tr>";
 
-  $mod_query = mysqli_query($linkLocali,"SHOW COLUMNS FROM module_trait_pheno_geneSignificance WHERE Field LIKE '%p_GS%'");
+  $mod_query = mysqli_query($linkLocali,"SHOW COLUMNS FROM module_trait_pheno_geneSignificance "
+                                                    ."WHERE Field LIKE '%p_GS%'");
   echo "<tr><td><br></td></tr>";
   echo "<tr><th align=right nowrap>Clinical Phenotype: </th><td>";
   echo "<select name='clinical'>";
-   if (mysqli_num_rows($mod_query) > 0) {
-               while ($row5 = mysqli_fetch_assoc($mod_query)) {
-                       $clinical = $row5["Field"];
-                       $cli= preg_replace("/p_GS_/","",$clinical);
-                       echo "<option>".$cli."</option>";
-		}
+  if (mysqli_num_rows($mod_query) > 0) {
+      while ($r = mysqli_fetch_assoc($mod_query)) {
+           $cli= preg_replace("/p_GS_/","",$r["Field"]);
+           echo "<option".("$cli"=="$clinical"?" selected":"").">".$cli."</option>";
+      }
   }
   echo "</select></td>";
-  echo "<td><font color=blue>All modules where evaluated for their association with each phenotype.</font></td>";
+  echo "<td><font color=blue>"
+           ."All modules where evaluated for their association with each phenotype."
+	   ."</font></td>";
   echo "</tr>\n";
   echo "</table>\n";
 
@@ -261,22 +264,30 @@ function showMe (it, box) {
 	
     $prevTrait="";
     while ($row1 = mysqli_fetch_assoc($rec_query)) {
-		  if (!empty($prevTrait) and $prevTrait != $row1["trait_id"]) echo "</td></tr>\n";
-		  if ($prevTrait != $row1["trait_id"]) {
-		    echo "<tr>";
-		    foreach ($row1 as $n => $v) {
-			  if ("$n" != "qtl_cMorgan_Peak" and "$n" != "qtl_Chromosome" and "$n" != "qtl_covariates" and "$n" != "qtl_lod") {
-				echo "<td valign=top>".(empty($v)?"&nbsp;":"$v")."</td>";
-			  }		
-		    }
-		    echo "<td nowrap>";
-		  }
+        if (!empty($prevTrait) and $prevTrait != $row1["trait_id"]) echo "</td></tr>\n";
+        if ($prevTrait != $row1["trait_id"]) {
+            echo "<tr>";
+            foreach ($row1 as $n => $v) {
+                if ("$n" != "qtl_cMorgan_Peak" and 
+		    "$n" != "qtl_Chromosome" and 
+		    "$n" != "qtl_covariates" and 
+		    "$n" != "qtl_lod")
+                {
+                    echo "<td valign=top>".(empty($v)?"&nbsp;":"$v")."</td>";
+                }		
+            }
+            echo "<td nowrap>";
+        }
 		  
-		  if ($prevTrait == $row1["trait_id"]) {
-			echo "<br />";
-		  }
-		  echo $row1["qtl_Chromosome"].":".$row1["qtl_cMorgan_Peak"]." ".(empty($row1["qtl_covariates"])?"none":$row1["qtl_covariates"]).":".$row1["qtl_lod"];
-		  $prevTrait=$row1["trait_id"];
+        if ($prevTrait == $row1["trait_id"]) {
+            echo "<br />";
+        }
+        $col="black";
+        if ($row1["qtl_Chromosome"]==$row1["chromosome"]) $col="red";
+        echo "<font color='$col'>";
+        echo $row1["qtl_Chromosome"].":".$row1["qtl_cMorgan_Peak"]." ".(empty($row1["qtl_covariates"])?"none":$row1["qtl_covariates"]).":".$row1["qtl_lod"];
+        echo "</font>";
+        $prevTrait=$row1["trait_id"];
     }
     if (!empty($prevTrait)) echo "</td></tr>\n";
   }
