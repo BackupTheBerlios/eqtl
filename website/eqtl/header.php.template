@@ -112,6 +112,15 @@ The documentation does not end here but is dispersed throughout the file.
     }
 
 /**
+ * Reading some configuration variables into variables
+ */
+
+global $projectlongtitle;
+$projectlongtitle = "PROJECTLONGTITLE";
+global $projecttitle;
+$projecttitle = "PROJECTTITLE";
+
+/**
 =head1 AUTHOR
 
 Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
