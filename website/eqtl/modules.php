@@ -111,7 +111,7 @@ function showMe (it, box) {
   // retrieva data from previous form execution
 
   $accessible_fields_in_POST_or_GET = array(
-  	"modcolour","clinical","mm","gs","LODmin"
+  	"modcolour","clinical","mm","gs","LODmin","order"
   );
 
 
@@ -248,7 +248,10 @@ function showMe (it, box) {
         $query .= "AND qtl.LOD >= ".$LODmin." ";
     }
 
-    $query .= "ORDER BY trait.chromosome ASC";
+    if (empty($order)) {
+	    $order .= "trait.chromosome ASC, trait_id, qtl.LOD DESC";
+    }
+    $query .= "ORDER BY $order";
         
     $rec_query = mysqli_query($linkLocali,$query);
     echo "<p><small>query: $query</small></p>\n";
