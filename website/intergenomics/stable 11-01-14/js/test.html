@@ -1,0 +1,36 @@
+<html>
+<body>
+
+<h3>Beispiel</h3>
+<script src="mouseposition.js"></script>
+<script src="jquery-1.4.4.min.js"></script>
+<form action="#" name="maus_pos">
+<p>Das Beispiel zeigt die aktuelle Mausposition.
+<table>
+  <tr>
+    <td>top / left:</td>
+    <td><input type="text" name="top" size="3"></td>
+    <td><input type="text" name="left" size="3"></td>
+    <td>Koordinaten im Dokument</td>
+  </tr>
+</table>
+<input type="button" value="Start" onclick="Start(this);"></form>
+
+<table border="2">
+  <tbody>
+    <tr>
+      <td>cell is row 0 column 0</td>
+      <td>cell is row 0 column 1</td>
+    </tr>
+    <tr>
+      <td>cell is row 1 column 0</td>
+      <td>cell is row 1 column 1</td>
+    </tr>
+  </tbody>
+</table>
+
+<script type='text/javascript'>
+window.document.onclick = call_detail_view;
+</script>
+</body>
+</html>
