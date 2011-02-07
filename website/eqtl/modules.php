@@ -34,7 +34,7 @@ the module membership of a trait (I<module membershipi>),
 the association with a phenotype (I<gene significance>) and
 the association with a chromosomal locus (I<LOD score> - coming
 later tonight). The wording from this page relects that of R's CRAN <a
-href='http://www.genetics.ucla.edu/labs/horvath/CoexpressionNetwork/Rpackages/WGCNA/'>WGCRA</a>
+href='http://www.genetics.ucla.edu/labs/horvath/CoexpressionNetwork/Rpackages/WGCNA/'>WGCNA</a>
 software package that is used to perform those analyses.
 
 The analysis should start by a click to the checkbox right below the
