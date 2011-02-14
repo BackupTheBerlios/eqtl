@@ -200,8 +200,12 @@ function showMe (it, box) {
 
   echo "<tr><th align=right nowarp>Order:</th>"
           ."<td><select name='order'>";
-  $entries = array("Mol Trait, LOD" => "trait.chromosome ASC, trait_id, qtl.LOD DESC",
-  	           "Expression level, LOD" => "trait.mean DESC, qtl.LOD DESC");
+  $entries = array(
+     "Mol Trait (Chr, Pos), LOD" => "trait.chromosome ASC, pos ASC, qtl.LOD DESC",
+     "Mol Trait (ID), LOD"       => "trait_id ASC, qtl.LOD DESC",
+     "QTL (Chr,Pos), LOD"        => "qtl_Chromosome ASC, qtl_cMorgan_Peak ASC, qtl.LOD DESC",
+     "Expression level, LOD"     => "trait.mean DESC, qtl.LOD DESC"
+  );
   foreach ($entries as $n => $v) {
       echo "<option value=\"$v\" ".("$v"=="$order"?" selected":"").">$n</option>";
   }
