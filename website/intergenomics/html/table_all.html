@@ -1,0 +1,87 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xml:lang="de" xmlns="http://www.w3.org/1999/xhtml" lang="de"><head>
+<!--IE7 in Quirksmode bitte-->
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<script type="text/javascript">
+if (document.layers) {
+ window.location.replace("leer.html");
+} else {
+ if(self == parent) {
+  window.location.replace("frameset.html");
+ }
+}
+window.onscroll = function () { parent.scrollen (); };
+</script>
+<link href="/css/style.css" rel="stylesheet" type="text/css" />
+</head><body onmouseover="parent.aktFrame=window.name;">
+<script src="../js/mouseposition.js"></script>
+<script src="../js/jquery-1.4.4.min.js"></script>
+
+<div id="cont" style="font-size: small;"><!-- the display table -->
+<table border="1" cellpadding="5" cellspacing="0">
+  <thead>
+    <tr>
+      <!-- THIS IS ASCII-ART! -->
+      <th rowspan="6">\ Ex. 1<br />
+      \&nbsp;&nbsp;&nbsp;&nbsp;<br />
+      \<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;\<br />
+      Ex. 2 \</th>
+      <!-- ID-column header -->
+      <th rowspan="6">homologue <br />
+      Ensembl <br />
+      stable <br />
+      IDs</th><th colspan="1">c2.loc82</th>
+<th colspan="1">c2.loc83</th>
+<th colspan="4">D2Mit285</th>
+<th colspan="1">c2.loc104</th>
+<th colspan="1">c2.loc110</th>
+</tr><tr><th rowspan="5">ENS<br />MUS<br />G00<br />000<br />039<br />323<br /></th>
+<th rowspan="5">ENS<br />MUS<br />G00<br />000<br />039<br />323<br /></th>
+<th rowspan="5">ENS<br />MUS<br />G00<br />000<br />003<br />068<br /></th><th rowspan="5">ENS<br />MUS<br />G00<br />000<br />018<br />899<br /></th><th rowspan="5">ENS<br />MUS<br />G00<br />000<br />024<br />513<br /></th><th rowspan="5" class="ciss">ENS<br />MUS<br />G00<br />000<br />027<br />678<br /></th>
+<th rowspan="5">ENS<br />MUS<br />G00<br />000<br />023<br />046<br /></th>
+<th rowspan="5">ENS<br />MUS<br />G00<br />000<br />024<br />513<br /></th>
+</tr>
+</thead>
+<tbody><tr><th rowspan="33">c2.loc139</th><th>ENSRNOG00000001001</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000001653</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000002802</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000005206</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000007495</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000009696</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th class="ciss">ENSRNOG00000009992</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000011177</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000011955</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000012747</th><td class="homologue syn">Hom</td><td class="homologue syn">Hom</td><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="homologue syn">Hom</td><td class="syn"/></tr>
+<tr><th class="ciss">ENSRNOG00000013389</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000013874</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th class="ciss">ENSRNOG00000014927</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th class="ciss">ENSRNOG00000015089</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000016997</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000018084</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000020513</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000020850</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000022641</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000023431</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000033584</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000034365</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000034872</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000035223</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000035353</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000035673</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000035760</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000035806</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000036017</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000038535</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000041100</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000044299</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+<tr><th>ENSRNOG00000045181</th><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/><td class="syn"/></tr>
+</tbody>
+</table>
+</div>
+<script type='text/javascript'>
+window.document.onclick = call_detail_view;
+</script>
+</body></html>

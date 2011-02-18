@@ -1,0 +1,73 @@
+
+TEMPLATEWARNINGHASH
+
+doc<-"
+
+=head1 NAME
+
+maxc(v,num)
+
+minc(v,num)
+
+=head1 DESCRIPTION
+
+The following internal functions have been prepared for the 
+correlation analysis. Some of those should be of general
+interest. Some possibly even for a general interest for
+R, in principle.
+
+=over 4
+
+=item maxc(v,num)
+
+return the num highest values in vector v
+
+
+To use this function, until the library has been formed, run
+
+source('BASEDIR/scripts/analyses/R/maxcminc.R')
+
+=cut
+
+"
+maxc <- function(v, num=1) {
+  if (num > length(v)) {
+    message(paste("Maxc tried to extract ",c," elements from a list of ",length(v)," elements!"))
+    num<-length(v)
+  }
+  res <- rep(0, times=num)
+  maxind <- 0
+  for (i in 1:num) {
+    maxind <- which.max(v)
+    res[i] <- maxind
+    v[maxind] = NA
+  }
+  return(res)
+}
+
+doc<-"
+
+=item maxc(v,num)
+
+return the num lowest values in vector v
+
+=back
+
+=cut
+
+"
+minc <- function(v, num=1) {
+  if (num > length(v)) {
+    message(paste("Minc tried to extract ",c," elements from a list of ",length(v)," elements!"))
+    num<-length(v)
+  }
+  res <- rep(0, times=num)
+  minind <- 0
+  for (i in 1:num) {
+    minind <- which.min(v)
+    res[i] <- minind
+    v[minind] = NA
+  }
+  return(res)
+}
+

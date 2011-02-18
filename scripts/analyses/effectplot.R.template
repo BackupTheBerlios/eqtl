@@ -93,6 +93,7 @@ prepareOutput<-function(filename) {
 	}
 }
 
+library(RMySQL)
 library(getopt)
 library(qtl)
 
@@ -119,6 +120,7 @@ opt = getopt(matrix(c(
     'findmarker' , 'z', 2, "character",
     'LODmin'     , 'l', 1, "double",
     'interactive', 'i', 0, "logical",
+    'individuals', 'I', 0, "character",
     'format'     , 'f', 1, "character",
     'covariates' , 'c', 1, "character",
     'work'       , 'w', 1, "character",
@@ -195,14 +197,58 @@ fname.input<-paste(
 	"URLGETDATA",
 	"?probesetid=",
 	opt$trait,
-	"&applyLog2=TRUE&score=",sep="")
+	"&applyLog2=APPLYLOG2&score=",sep="")
+
+
+if (!is.null(opt$verbose)) {
+	cat("fname.input",":",fname.input,"\n");
+}
 
 my.cross <- NULL
 my.cross <- read.cross(	format="csv", dir="",
                        	file=fname.input,
 		        genotypes=RQTLREADCROSSGENOTYPES,
 			alleles=RQTLREADCROSSALLELES ,
-			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=TRUE )
+			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=CONVERTXDATA )
+
+# Retrieval of details for specification of subset of individuals
+if(!is.null(opt$individuals)){
+	con <- dbConnect(MySQL(),host="DATABASEHOSTLOCAL",db="DATABASEEQTLNAME",user="DATABASEEQTLUSER")
+	q <- paste("SELECT name,phen,relation,value FROM individuals_group WHERE individuals_group_id=",opt$individuals,";",sep="")
+	cat("q: "); print(q)
+	q.result<-dbGetQuery(con,q)
+	if (opt$verbose) cat("q.result: "); print(q.result)
+	if (opt$verbose) cat("dim(q.result): "); print(dim(q.result))
+	if (opt$verbose) cat("colnames(q.result): "); print(colnames(q.result))
+	phen<-q.result[1,2]
+	relation<-q.result[1,3];
+	value<-q.result[1,4]
+	dbDisconnect(con)
+	if ("="==relation) relation="==";
+	if (opt$verbose) cat("phen:",phen," relation:",relation," value:",value,"\n")
+	my.subset.pheno <- pull.pheno(my.cross,phen)
+	if (is.null(my.subset.pheno) | 0 == length(my.subset.pheno)) {
+		stop(paste("Could not retrieve information on phenotype '",phen,
+				"' The following are available: ",paste(colnames(my.cross$pheno),collapse=",", sep=""),
+				".\n",sep=""))
+	}
+	e<-paste("my.subset.pheno",relation,value); cat("Expression: "); print(e)
+	e.ind<-eval(parse(text=e))
+	if (opt$verbose) cat("e.ind: "); print(e.ind)
+	my.cross <- subset(my.cross, ind = e.ind)
+} else { 
+	cat("Analysis is running on all individuals as no subset defined.\n")
+}
+#-----------------------code ends for subset------------------------------*
+
+if (USEJITTERMAP) {
+	if (!is.null(opt$verbose)) {
+		cat("Executing jittermap.\n")
+	}
+	my.cross<-jittermap(my.cross)
+} else  if (!is.null(opt$verbose)) {
+	cat("*Not* executing jittermap.\n")
+}
 
 if (is.null(my.cross)) {
 	cat("Could no read data for trait '",trait,"'.\n")
@@ -286,6 +332,10 @@ ep<-function(marker1,chr1,cM1,marker2,chr2,cM2) {
 	return(r)
 }
 
+if (!is.null(opt$verbose)) {
+	cat("Learned all functions.\n");
+}
+
 m<-opt[["marker1"]]
 chr<-opt[["chromosome1"]]
 cM<-opt[["cM1"]]
@@ -296,19 +346,20 @@ cM2<-opt[["cM2"]]
 if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	txtname<-paste(opt$output,".txt",sep="")
 
-	effectplotlinkO<-function(file,chr,pos,name){
+	effectplotlinkO<-function(file,chr,pos,name,verbose){
 		cat(file=txtname,paste(
 			"<a href='effectplot.php?chromosome=",chr,"&cM=",pos,
 			"&traitlist=",opt$trait,
 			"&direct=1",
 			"&inlineImages=1",
 			"&unit=cM",
+			if (verbose) "&verbose=1" else "",
 			"'>",name,"</a>",
 			sep=""),
 			append=T
 		)
 	}
-	effectplotlinkT<-function(file,chr1,pos1,chr2,pos2,name){
+	effectplotlinkT<-function(file,chr1,pos1,chr2,pos2,name,verbose){
 		cat(file=txtname,paste(
 			"<a href='effectplot.php?","chromosome=",chr1,"&cM=",pos1,
 			                      "&","chromosome2=",chr2,"&cM2=",pos2,
@@ -316,6 +367,7 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 			"&direct=1",
 			"&inlineImages=1",
 			"&unit=cM",
+			if (verbose) "&verbose=1" else "",
 			"'>",name,"</a>",
 			sep=""),
 			append=T
@@ -325,17 +377,26 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	my.work<-NULL
 
 	if ("scanone" == opt$work) {
-		my.cross <- calc.genoprob( my.cross, step=STEPSSO, error.prob=0.01 )
+		if (USECALCGENOPROB) {
+			if (!is.null(opt$verbose)) {
+				cat("Executing Calc.genoprob.\n");
+			}
+			my.cross <- calc.genoprob( my.cross, step=STEPSSO, error.prob=0.01 )
+		}
+		if (!is.null(opt$verbose)) {
+			cat("Executing Scanone.\n");
+		}
 		my.work <- scanone( my.cross, pheno.col=PHENOCOL, method=opt$method, verbose=FALSE )
 		m<-as.matrix(summary(my.work,thr=opt$LODmin)) # LODmin is always set
 		cat(file=txtname,"<h2>Scanone</h2>\n")
-		cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
-			"<th>Links</th>",
-			"</th></tr>\n"),append=T)
+		cat(file=txtname,
+                    paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
+			  "<th>Links</th>",
+			  "</th></tr>\n"),append=T)
 		apply(m,1,function(X){
 			cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
 			cat(file=txtname,"<td>",append=T)
-			effectplotlinkO(txtname,X["chr"],X["pos"],"effectplot")
+			effectplotlinkO(txtname,X["chr"],X["pos"],"effectplot",verbose=!is.null(opt$verbose))
 			cat(file=txtname,"</td>",append=T)
 			cat(file=txtname,"</tr>\n",append=T)
 			
@@ -343,7 +404,15 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 		cat(file=txtname,paste("</table>\n"),append=T)
 	} else if ("scantwo" == opt$work) {
 
-		my.cross <- calc.genoprob( my.cross, step=STEPSST, error.prob=0.01 )
+		if (USECALCGENOPROB) {
+			if (!is.null(opt$verbose)) {
+				cat("Executing calc.genoprob.\n");
+			}
+			my.cross <- calc.genoprob( my.cross, step=STEPSST, error.prob=0.01 )
+		}
+		if (!is.null(opt$verbose)) {
+			cat("Executing Scantwo.\n");
+		}
 		my.work <- scantwo( my.cross, pheno.col=PHENOCOL, method=opt$method, verbose=FALSE )
 		m<-as.matrix(summary(my.work,thr=c(opt$LODmin,0,0,0,0))) # LODmin is always set
 		cat(file=txtname,"<h2>Scantwo</h2>\n")
@@ -354,10 +423,12 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 			cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
 			cat(file=txtname,"<td>",append=T)
 			effectplotlinkT(file=txtname,chr1=X["chr1"],pos1=X["pos1f"],
-			                             chr2=X["chr2"],pos2=X["pos2f"],name="full")
+			                             chr2=X["chr2"],pos2=X["pos2f"],name="full",
+					verbose=!is.null(opt$verbose))
 			cat(file=txtname," &nbsp; ",append=T)
 			effectplotlinkT(file=txtname,chr1=X["chr1"],pos1=X["pos1a"],
-			                             chr2=X["chr2"],pos2=X["pos2a"],name="additive")
+			                             chr2=X["chr2"],pos2=X["pos2a"],name="additive",
+					verbose=!is.null(opt$verbose))
 			cat(file=txtname,"</td>",append=T)
 			cat(file=txtname,"</tr>\n",append=T)
 			
@@ -379,6 +450,9 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	if (!is.null(opt$findmarker)) {
 		if ("pseudomarker" == opt$findmarker) {
 			if (!is.null(opt$verbose)) cat("I: pseudomarker requested, running sim.geno\n")
+			if (!is.null(opt$verbose)) {
+				cat("Executing sim.geno.\n");
+			}
 			my.cross <- sim.geno(my.cross, step=STEPSSO, n.draws=DRAWS)
 		}
 	}
@@ -393,7 +467,6 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	r<-ep(m,chr,cM,m2,chr2,cM2)
 	print(r)
 }
-
 
 doc <- "
 

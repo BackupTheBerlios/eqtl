@@ -1,0 +1,271 @@
+
+TEMPLATEWARNINGHASH
+
+doc <- "
+
+=head1 NAME
+
+analyseCorrelationForMarkers.R - collection of functions to investigate a change in the correlation of genes because of some marker
+
+=head1 SYNOPSIS
+
+plotExpr
+
+plotExprSamples
+
+plotExprPairs
+
+analyzeclusters - main function for the investigation of the data
+
+evalresiduals
+
+find.best.markers
+
+=head1 DESCRIPTION
+
+This f
+
+This function defines a series of then global variables that
+it needs for its analysis.
+The load.data.R and maxcminc.R files needs to be sourced
+prior to this file.
+
+
+To include these functions
+
+source('BASEDIR/scripts/analyses/R/load.data.R')
+
+=cut
+
+"
+
+if (FALSE) {
+	# Information shall come from database, instead
+	##### Extracting values
+	# Initialisation of chromosomes, cMorgan distances and the expression values
+	expr <- load.data("expression") # probes x individuals
+	exprrownames <- rownames(expr)
+}
+
+quandata <- load.data("genotypes")
+# Look for marker data on chromosomes
+chromos <- quandata$chromosomes
+chromnames <- unique(chromos)
+# Look for cMorgan distances on markers
+cmorgan <- quandata$cMorgan
+# get genotypes in same orientation
+marker <- t(quandata$genotypes)
+# Extract marker names
+markerrownames <- rownames(marker)
+# and analogously for clinical phenotypes
+clinical <- t(quandata$clinical)
+
+# Remove the first two lines (chromos and cmorgan)
+#quan <- apply(quandata[,3:dim(quandata)[2]], c(1, 2), as.numeric)
+#cat("Loaded quantitative data\n")
+#cat(dim(quan)); cat("\n")
+
+
+doc <- "
+
+=head2 Functions of interest for this script only
+
+=over 4
+
+=item plotExpr
+
+Plot some expression samples
+
+=cut
+
+"
+
+plotExpr <- function(x,y,ch=c(1,2),...) {
+  expr<-x
+  if (!missing(y)) {
+  	expr<-rbind(x,y)
+  }
+  xlab=paste("Probeset",rownames(expr)[ch[1]],sep=": ")
+  ylab=paste("Probeset",rownames(expr)[ch[2]],sep=": ")
+  plot(t(expr[ch[1],]), t(expr[ch[2],]), xlab=xlab, ylab=ylab)
+}
+
+
+doc <- "
+
+=item plotExprSamples
+
+a routine of some value for interim evaluation while developing
+Randomly take n samples of expression pairs and plot them one after another
+
+To invoke it, try
+ plotExprSamples(expr)
+
+=cut
+
+"
+
+plotExprSamples <- function(expr, n = 20) {
+  p<-par("ask")
+  par("ask"=T)
+  for (i in 1:n) {
+    ch <- sample(1:dim(expr)[1], 2, replace=F)
+    cat(ch); cat("\n")
+    plotExpr(expr, ch)
+  }
+  par("ask"=p)
+}
+
+doc <- "
+
+=item plotExprPairs
+
+a routine of some value for interim evaluation while developing
+Randomly take n samples of expression pairs (with p elements) and plot them one after another
+
+=cut
+
+"
+
+plotExprPairs <- function(expr, n = 20, p = 3) {
+  a<-par("ask")
+  par("ask"=T)
+  cat("Selecting ",p," probes to compare all against all.\n")
+  for (i in 1:n) {
+    ch <- sample(1:dim(expr)[1], p, replace=F)
+    cat(ch); cat("\n")
+    pairs(t(expr[ch,]))
+  }
+  par("ask"=a)
+}
+
+
+doc<- "
+
+=item getClinical(covar)
+
+Extract the EAE values and corresponding cols
+
+"
+
+getClinical <- function(covar="eae") {
+  phenv <- as.numeric(clinical[covar,])
+  notna <- which(!is.na(phenv))
+  val <- phenv[notna]
+  val[val == 0] <- -1
+  return(list(values=val, notna=notna, covar=covar))
+}
+eae<-NULL
+#eae <- getClinical("eae")
+
+
+library(grDevices) # qhull
+
+doc <- "
+
+=item analyzeclusters
+
+Analyze clusters on pairs of expressions by marker values
+e1 and e2 are indices of expression data rows, m is the marker index
+draw is a boolean and activates the graphical output
+
+=cut
+
+"
+
+getValues<-function(type,constraint) {
+}
+
+analyzeclusters <- function(t1,v1,t2,v2,t3,v3,t4,e4,draw = F,
+			    label.individuals=T,
+			    selection_xaxis="gene",selection_yaxis="gene",selection_shape="phen",selection_colour="marker"
+) {
+  e1<-getValues(t1,v1)
+  e2<-getValues(t2,v2)
+  e3<-NULL; if (!missing(t3) & !missing(v3)) e3<-getValues(t3,v3)
+  e4<-NULL; if (!missing(t4) & !missing(v4)) e4<-getValues(t4,v4)
+
+  m<-NULL
+  phen<-NULL
+  # get expression data (and make them columns)
+  ed <- cbind(e1,e2)
+  colnames(ed)<-c(v1,v2)
+
+  # get marker data
+  if (is.null(m)) {
+  	m<-find.best.markers(e1,e2)
+  }
+  md <- marker[m,]
+  pindices <- which(md %in% c(1,"1"))
+  nindices <- which(md %in% c(2,"2",3,"3"))
+  naindices <- which(is.na(md))
+  if (length(pindices) == 0 || length(nindices) == 0) {
+    message("analyzeclusters(",e1,",",e2,",",m,") :  problem with length(pindices)==",length(pindices)," and length(nindices)==",length(nindices),".\n")
+    return(0)
+  }
+  # set color vector
+  col <- rep("gray", length(md))
+  col[pindices] <- "green"
+  col[nindices] <- "red"
+
+  # evaluate the markerwise (classwise) means
+  posm <- colMeans(ed[pindices,])
+  negm <- colMeans(ed[nindices,])
+
+  # if drawing is activated
+  if (draw) {
+    xlab <- paste("Probeset", exprrownames[e1], sep=" ")
+    ylab <- paste("Probeset", exprrownames[e2], sep=" ")
+    sub <- paste("Marker ", if(is.character(m)) {m} else {markerrownames[m]}, sep="")
+    pch <- rep(21, length(col))
+    if (!is.null(phen)) {
+    	p.factors<-as.factor(phen$values)
+	pch[phen$notna]<-20+sapply(phen$values,function(X){which(X==unique(phen$values))})
+    	pch[naindices] <- 20
+    }
+    #pch[naindices] <- 20
+    plot(x=ed, col=col, pch=pch, xlab=xlab, ylab=ylab, sub=sub)
+
+    hulls<-list(list("indices"=pindices,"col"="green","lty"="dotted"),
+                list("indices"=nindices,"col"="red","lty"="dotted"),
+                list("indices"=1:nrow(ed),"col"="gray","lty"="dotted"))
+
+    to.print<-NULL
+    for (l in hulls) {
+    	ed.sub<-ed[l$indices,]; chu.indices<-chull(ed.sub); lines(ed.sub[c(chu.indices,chu.indices[1]),],lty=l$lty,col=l$col)
+	to.print<-c(to.print,l$indices[chu.indices])
+    }
+    points(t(posm), col = "green", pch = 8, cex = 2)
+    points(t(negm), col = "red", pch = 8, cex = 2)
+    if (label.individuals) text(x=ed[to.print,],labels=rownames(ed)[to.print],cex=0.5,pos=4,offset=0.3)
+  }
+  res <- list(posm = posm, negm = negm)
+  return(res)
+}
+
+# Evaluate the differences of the means for each markerpair
+evalresiduals <- function(e1, e2, verbose=F) {
+  sa<-sapply(markerrownames,function(m) {
+      res <- analyzeclusters(e1, e2, m, F)
+      if (verbose) {
+      	cat("evalresiduals: evaluation of ",m,"\n")
+      }
+      r<-c(posm=res$posm[1],
+      	   posm=res$posm[2],
+           negm=res$negm[1],
+	   negm=res$negm[2])
+      if (verbose) print(r)
+      return(r)
+  })
+  geom.diff <- sqrt(colSums(sa[1:2,] - sa[3:4,])^2)
+  names(geom.diff)<-colnames(sa)
+  return(geom.diff)
+}
+
+# 
+find.best.markers <- function(e1, e2,n=1) {
+  m<-evalresiduals(e1,e2)
+  m.best<-maxc(m)
+  return(names(m)[m.best])
+}
+

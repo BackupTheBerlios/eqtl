@@ -72,13 +72,13 @@ University of LE<uuml>beck, Germany, 2009
 	foreach($accessible_fields_in_POST_or_GET as $vname)
 	{
 		if (isset($_POST[$vname])) {
-			$$vname = $_POST[$vname];
+			$$vname = ltrim(rtrim($_POST[$vname]));
 			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
 				echo $vname."=".$$vname."\t";
 			}
 		}
 		elseif(isset($_GET[$vname])) {
-			$$vname = $_GET[$vname];
+			$$vname = ltrim(rtrim($_GET[$vname]));
 			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
 				echo $vname."=".$$vname."\t";
 			}
@@ -266,10 +266,13 @@ University of LE<uuml>beck, Germany, 2009
 
 			$dataFromTable = array();
 			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-				if (empty($dataFromTable[$line["covariates"]])) {
-					$dataFromTable[$line["covariates"]] = array();
+				$cov=$line["covariates"];
+				$chr=$line["chr"];
+				if (""=="$cov") $cov="none";
+				if (empty($dataFromTable["$cov"])) {
+					$dataFromTable["$cov"] = array();
 				}
-				$dataFromTable[$line["covariates"]][$line["chr"]]=array(
+				$dataFromTable["$cov"]["$chr"]=array(
 								"numTraits"=>$line["numTraits"],
 								"numCis"=>$line["numCis"],
 								"numTrans"=>($line["numTraits"]-$line["numCis"]));
@@ -300,7 +303,7 @@ University of LE<uuml>beck, Germany, 2009
 			if ("WHERE" != "$where") $queryDiseaseLoci .= " $where ";
 			$queryDiseaseLoci .= " GROUP BY covariates,locus.chr ";
 
-			echo "<p>cqtl: "; print_r($cqtl); echo "</p>\n";
+			echo "<p>cqtl: "; if (empty($cqtl)) {echo "empty";} else {print_r($cqtl);} echo "</p>\n";
 			echo "<p>Query DiseaseLoci:"; print_r($queryDiseaseLoci); echo "</p>\n";
 
 			$result = mysql_query($queryDiseaseLoci,$linkLocal);
@@ -313,37 +316,72 @@ University of LE<uuml>beck, Germany, 2009
 
 			$dataFromTableDiseaseLoci = array();
 			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-				if (empty($dataFromTableDiseaseLoci[$line["covariates"]])) {
-					$dataFromTableDiseaseLoci[$line["covariates"]] = array();
-				}
-				$dataFromTableDiseaseLoci[$line["covariates"]][$line["chr"]]=array(
-								"numTraitsDiseaseLoci"=>$line["numTraits"],
-								"numCisDiseaseLoci"=>$line["numCis"],
-								"numTransDiseaseLoci"=>$line["numTrans"]);
-				if ($dataFromTableDiseaseLoci[$line["covariates"]]["numTraitsDiseaseLoci"]
-					== $dataFromTableDiseaseLoci[$line["covariates"]]["numTransDiseaseLoci"]) {
 
-					if (1 == $dataFromTableDiseaseLoci[$line["covariates"]]["numCisDiseaseLoci"]) {
+				$cov=$line["covariates"];
+				if ("" == "$cov") $cov="none";
+
+				if (empty($line["chr"])) {
+					errorMessage("Programming Error: expected \$line[\"chr\"] to be non-empty.");
+					print_r($line);
+					break;
+				}
+				$chr=$line["chr"];
+
+
+				if (empty($dataFromTableDiseaseLoci["$cov"])) {
+					$dataFromTableDiseaseLoci["$cov"] = array();
+				}
+
+				if(!empty($dataFromTableDiseaseLoci["$cov"]["$chr"])) {
+					errorMessage("Programming Error: expected \$dataFromTableDiseaseLoci to be ready for covariates "
+							."$covariates at chromosome $chr.");
+					break;
+				}
+
+				$dataFromTableDiseaseLoci["$cov"]["$chr"]=array(
+					"numTraitsDiseaseLoci"=>$line["numTraits"], # all traits assigned                to this locus
+					"numCisDiseaseLoci"   =>$line["numCis"],    # all traits assigned that are cis   to this locus
+					"numTransDiseaseLoci" =>$line["numTrans"]   # all traits assigned that are trans to this locus
+				);
+
+				if (       $dataFromTableDiseaseLoci["$cov"]["$chr"]["numTraitsDiseaseLoci"]
+					== $dataFromTableDiseaseLoci["$cov"]["$chr"]["numTransDiseaseLoci"]) {
+
+					# all traits are trans
+
+					if (1 == $dataFromTableDiseaseLoci["$cov"]["$chr"]["numCisDiseaseLoci"]) {
 						# Exception, the number shown for 'trans' is correct, don't change it later
-						$dataFromTableDiseaseLoci[$line["covariates"]]["numTransDiseaseLoci"]++ ;
+						$dataFromTableDiseaseLoci["$cov"]["$chr"]["numTransDiseaseLoci"]++ ;
 					}
 
 				}
-				else if ($dataFromTableDiseaseLoci[$line["covariates"]]["numTraitsDiseaseLoci"]
-					== $dataFromTableDiseaseLoci[$line["covariates"]]["numCisDiseaseLoci"]) {
+				else if (  $dataFromTableDiseaseLoci["$cov"]["$chr"]["numTraitsDiseaseLoci"]
+					== $dataFromTableDiseaseLoci["$cov"]["$chr"]["numCisDiseaseLoci"]) {
 
-					if (1 == $dataFromTableDiseaseLoci[$line["covariates"]]["numTransDiseaseLoci"]) {
+					# all traits are cis
+
+					if (1 == $dataFromTableDiseaseLoci["$cov"]["$chr"]["numTransDiseaseLoci"]) {
 						# Exception, the number shown for 'trans' is correct, don't change it later
-						$dataFromTableDiseaseLoci[$line["covariates"]]["numCisDiseaseLoci"]++ ;
+						$dataFromTableDiseaseLoci["$cov"]["$chr"]["numCisDiseaseLoci"]++ ;
 					}
 				}
 
 				# correct for "0" that is shown because of imperfectionism
-				$dataFromTableDiseaseLoci[$line["covariates"]]["numTransDiseaseLoci"]-- ;
-				$dataFromTableDiseaseLoci[$line["covariates"]]["numCisDiseaseLoci"]-- ;
+				if (!isset($dataFromTableDiseaseLoci["$cov"]["$chr"]["numTransDiseaseLoci"])) {
+					errorMessage("Programming Error: numTransDiseaseLoci still unset.");
+					echo "\n".'$dataFromTableDiseaseLoci["$cov"]["$chr"] : '."\n";
+					print_r($dataFromTableDiseaseLoci["$cov"]["$chr"]);
+				}
+				else {
+					$dataFromTableDiseaseLoci["$cov"]["$chr"]["numTransDiseaseLoci"]-- ;
+				}
+				$dataFromTableDiseaseLoci["$cov"]["$chr"]["numCisDiseaseLoci"]-- ;
 			}
 
-			// print_r($dataFromTableDiseaseLoci);
+			if (!empty($verbose)) {
+				echo "dataFromTableDiseaseLoci: ";
+				print_r($dataFromTableDiseaseLoci);
+			}
 
 			#
 			# P R I N T   T A B L E
@@ -358,6 +396,7 @@ University of LE<uuml>beck, Germany, 2009
 			echo "<td rowspan=2 valign=top align=right></td>";
 			foreach ($qtl_covariates as $cov) {
 				//echo "<colgroup span=2 cellspacing=10>"; # respective cov
+				if ("" == "$cov") $cov="none";
 				echo "<td>&nbsp;</td><td colspan=2 align=center>"
 					.(empty($cov)?"transcript":preg_replace("/,/"," ",displayCovariates($cov)))
 				    ."</td>";
@@ -365,12 +404,14 @@ University of LE<uuml>beck, Germany, 2009
 			echo "</tr>\n<tr>";
 			$totals=array();
 			foreach ($qtl_covariates as $cov) {
-				$totals[$cov]=array("cis"=>0,"trans"=>0);
+				if ("" == "$cov") $cov="none";
+				$totals["$cov"]=array("cis"=>0,"trans"=>0,"cisDiseaseLoci"=>0,"transDiseaseLoci"=>0);
 				echo "<td></td><td bgcolor=\"black\" colspan=2></td>";
 			}
 			echo "</tr>\n<tr>";
 			echo "<td align=left valign=bottom>Chromosome</td>";
 			foreach ($qtl_covariates as $cov) {
+				if ("" == "$cov") $cov="none";
 				echo "<td></td><td align=right>cis</td><td align=right>trans</td>";
 			}
 			echo "</tr>\n";
@@ -389,25 +430,59 @@ University of LE<uuml>beck, Germany, 2009
 				echo "<tr>";
 				echo "<td align=right>$c&nbsp;&nbsp;&nbsp;&nbsp;</td>";
 				foreach ($qtl_covariates as $cov) {
-					$d=$dataFromTable[$cov][$c];
-					$dDiseaseLoci=$dataFromTableDiseaseLoci[$cov][$c];
-					if (empty($d)) {
+					if ("" == "$cov") { $cov="none"; }
+					if (empty($dataFromTable["$cov"])) {
+						echo "<td colspan=3>";
+						echo "<small>";
+						echo "empty(\$dataFromTable[\"$cov\"]), the following keys are available: '"
+							.join("','",array_keys($dataFromTable))."'<br>\n";
+						echo "</small>";
+						echo "</td>";
+					} else if (empty($dataFromTable["$cov"]["$c"])) {
 						echo "<td colspan=3>";
 						if (!empty($dDiseaseLoci)) {
-							echo "<small>Problem!</small>";
+							echo "<small>";
+							echo "empty(\$dataFromTable[\"$cov\"]), the following keys are available: '"
+								.join("','",array_keys($dataFromTable))."'<br>\n";
+							echo "</small>";
 						}
 						echo "</td>";
 					}
 					else {
+						$d=$dataFromTable["$cov"]["$c"];
+						if (empty($dataFromTableDiseaseLoci["$cov"])) {
+							errorMessage("Programming Error: Unknown cov '$cov' in \$dataFromTableDiseaseLoci.");
+							echo "array_keys(dataFromTableDiseaseLoci) : '".join("','",array_keys($dataFromTableDiseaseLoci))."'\n";
+							#print_r($dataFromTableDiseaseLoci);
+							break;
+						}
+						if (empty($dataFromTableDiseaseLoci["$cov"]["$c"])) {
+							if (FALSE) {
+								# not an error, just no disease loci
+								errorMessage("Programming Error: Unknown c [$c] in \$dataFromTableDiseaseLoci[\"$cov\"].");
+								echo "\ndataFromTableDiseaseLoci : ";
+								echo "array_keys(\$dataFromTableDiseaseLoci[\"$cov\"]) : '"
+									.join("','",array_keys($dataFromTableDiseaseLoci["$cov"]))."'\n";
+								#print_r($dataFromTableDiseaseLoci);
+								echo "</tr>\n";
+								break;
+							}
+							$dataFromTableDiseaseLoci["$cov"]["$c"]=array("numCisDiseaseLoci"=>0,"numTransDiseaseLoci"=>0);
+						}
+						$dDiseaseLoci=$dataFromTableDiseaseLoci["$cov"]["$c"];
 						echo "<td></td>";
 						echo "<td align=right>".$d["numCis"]
 							.($dDiseaseLoci["numCisDiseaseLoci"]?(" (".$dDiseaseLoci["numCisDiseaseLoci"].")"):"")."</td>";
 						echo "<td align=right>".$d["numTrans"]
 							.($dDiseaseLoci["numTransDiseaseLoci"]?(" (".$dDiseaseLoci["numTransDiseaseLoci"].")"):"")."</td>";
-						$totals[$cov]["cis"]   += $d["numCis"];
-						$totals[$cov]["trans"] += $d["numTrans"];
-						$totals[$cov]["cisDiseaseLoci"]   += $dDiseaseLoci["numCisDiseaseLoci"];
-						$totals[$cov]["transDiseaseLoci"] += $dDiseaseLoci["numTransDiseaseLoci"];
+						if (empty($totals["$cov"])) {
+							errorMessage("Programming Error: Unknown cov '$cov' in \$totals.");
+						} else {
+							$totals["$cov"]["cis"]   += $d["numCis"];
+							$totals["$cov"]["trans"] += $d["numTrans"];
+							$totals["$cov"]["cisDiseaseLoci"]   += $dDiseaseLoci["numCisDiseaseLoci"];
+							$totals["$cov"]["transDiseaseLoci"] += $dDiseaseLoci["numTransDiseaseLoci"];
+						}
 					}
 				}
 				echo "</tr>\n";
@@ -415,9 +490,10 @@ University of LE<uuml>beck, Germany, 2009
 			echo "<tr><td colspan=\"".(1+(1+2)*count($qtl_covariates))."\" bgcolor=\"black\"></td></tr>\n";
 			echo "<tr><td align=center>Totals</td>";
 			foreach ($qtl_covariates as $cov) {
+				if ("" == "$cov") $cov="none";
 				echo "<td></td>";
-				echo "<td align=right>".$totals[$cov]["cis"]  ." (".$totals[$cov]["cisDiseaseLoci"]  .")"."</td>";
-				echo "<td align=right>".$totals[$cov]["trans"]." (".$totals[$cov]["transDiseaseLoci"].")"."</td>";
+				echo "<td align=right>".$totals["$cov"]["cis"]  ." (".$totals["$cov"]["cisDiseaseLoci"]  .")"."</td>";
+				echo "<td align=right>".$totals["$cov"]["trans"]." (".$totals["$cov"]["transDiseaseLoci"].")"."</td>";
 			}
 			echo "</tr>\n";
 			echo "<tr><td colspan=\"".(1+(1+2)*count($qtl_covariates))."\" bgcolor=\"black\"></td></tr>\n";

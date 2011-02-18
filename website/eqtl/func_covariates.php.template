@@ -216,11 +216,11 @@ function select_covariates($dbh,$cov,$maxPerLine=6) {
 
 	global $_POST, $_GET; // still to be used.
 	global $covariates; // the covariates selected on the web site
-	if (empty($covariates)) {
+	if (empty($covariates) and !empty($_POST["covariates"])) {
 		$covariates=$_POST["covariates"];
-		if (empty($covariates)) {
-			$covariates=$_GET["covariates"];
-		}
+	}
+	if (empty($covariates) and !empty($_GET["covariates"])) {
+		$covariates=$_GET["covariates"];
 	}
 
 	#print_r($covariates);
@@ -287,6 +287,7 @@ expression QTL.
 
 function select_covariates_combinations($ncol=2,$htmlFieldName="qtl_covariates") {
 	echo "<b>Covariates:</b><br>";
+	global $linkLocal;
 	$covars = get_covars_on_your_own_from_qtl($linkLocal,FALSE);
 	//print_r($covars);
 	echo "<table border=0><tr>";

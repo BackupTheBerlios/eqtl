@@ -48,10 +48,10 @@ my $debug=1;
 # uncomment for debugging:
 #$test=1;
 
-open(GENO, "$base/$database/".$data{'genofile'})
-	|| open(GENO,"$database/".$data{'genofile'})
+open(GENO, $base."/".$database."/".$data{'genofile'})
+        || open(GENO,$database."/".$data{'genofile'})
 	|| open(GENO,$data{'genofile'})
-	|| die "No such gene-file at $database/".$data{'genofile'}.": ".$@;               #open the file wich contains probe-data
+	|| die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;               #open the file wich contains probe-data
 
 $markers=readline(GENO);
 my $new=undef;
@@ -85,10 +85,10 @@ while(<GENO>) {
 }
 close(GENO);
 
-open(EXPR, "$base/$database/".$data{'phenofile'})
-	|| open(EXPR,"$database/".$data{'phenofile'})
+open(EXPR, $base."/".$database."/".$data{'phenofile'})
+        || open(EXPR,$database."/".$data{'phenofile'})
 	|| open(EXPR,$data{'phenofile'})
-	|| die "No such pheno-file at $database/".$data{'phenofile'}.", executed from ".cwd().": $@";            #insert-file will  be expaneded by probe-column
+	|| die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";            #insert-file will  be expaneded by probe-column
 
                 #
                 # read in conversion table for new and old identifiers - the new ones count
@@ -167,10 +167,10 @@ while(<EXPR>) {
 }
 close(EXPR);
 
-open(SCORE, "$base/$database/".$data{'scorefile'})
-	|| open(SCORE,"$database/".$data{'scorefile'})
+open(SCORE, $base."/".$database."/".$data{'scorefile'})
+        || open(SCORE,$database."/".$data{'scorefile'})
 	|| open(SCORE,$data{'scorefile'})
-	|| die "No such score-file at $database/".$data{'scorefile'}.": ".$@;               #open the file wich contains score-data
+	|| die "No such score-file at ".$database.$data{'scorefile'}.": ".$@;               #open the file wich contains score-data
 
 my $scoreline=readline(SCORE);
 chomp $scoreline;

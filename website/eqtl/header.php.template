@@ -71,7 +71,7 @@ The documentation does not end here but is dispersed throughout the file.
 	    ."<td align=center>".HEADERLOGOLEFT."</td>"
 	    ."<td><p align=left>Investigation of complex diseases</p><h1 align=center>$title</h1></td>\n"
 	    ."<td align=center>".HEADERLOGORIGHT."</td>"
-	    ."</td></tr>"
+	    ."</td></tr>\n"
 	    ."</table>\n";
     }
 
@@ -110,6 +110,15 @@ The documentation does not end here but is dispersed throughout the file.
 	echo "<img width=WIDTHLOGORIGHT src=\"" .$urlLogoRightLarge ."\" ALT=\"Logo\">";
 	echo "</td>\n" ."</tr></table>\n";
     }
+
+/**
+ * Reading some configuration variables into variables
+ */
+
+global $projectlongtitle;
+$projectlongtitle = "PROJECTLONGTITLE";
+global $projecttitle;
+$projecttitle = "PROJECTTITLE";
 
 /**
 =head1 AUTHOR

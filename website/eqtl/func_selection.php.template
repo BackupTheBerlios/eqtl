@@ -23,6 +23,8 @@ of the entry form between the various interfaces.
 
 */
 
+global $individuals_group_id;
+
 
 require_once("func_dbconfig.php"); // errorMessage
 
@@ -155,7 +157,7 @@ function print_selection_form($properties) {
 	global $LODmin,$LODmax,$quantilemin,$quantilemax,
 	       $chromosome,  $cM,  $marker, 
 	       $chromosome2, $cM2, $marker2, 
-	       $LODdiffmin, $LODdiffmax, $cM_Peak_Min, $cM_Peak_Max,
+	       $LODdiffmin, $LODdiffmax, $cM_Peak_Min, $cM_Peak_Max, $Mbp_Peak_Min, $Mbp_Peak_Max,
 	       $cM_within, $groups, $locus, $chrlist,
 	       $MeanMin, $MeanMax, 
 	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,
@@ -220,7 +222,7 @@ function print_selection_form($properties) {
 			break;
 		 case "figure_effectplot":
 			$properties = array(
-						"trait","hr","work","method","LOD","hr","unit","marker","marker2","find_marker","hr" #"cistrans"
+						"trait","subset","hr","work","method","LOD","hr","unit","marker","marker2","find_marker","hr" #"cistrans"
 			);
 			break;
 
@@ -319,7 +321,7 @@ function print_selection_form($properties) {
 				break;
 
 			case "LOD":
-				if (empty($LODmin)) $LODmin=3.9;
+				if (empty($LODmin)) $LODmin=THRESHOLD; # from conf/*
 				print_row_two_text_single("LOD-score span","LODmin","LODmax",$LODmin,$LODmax,5);
 				break;
 
@@ -381,6 +383,41 @@ function print_selection_form($properties) {
 			?>
 			</td></tr>
 <?php
+				break;		// end of trait
+
+			case "subset":
+				echo "<tr>";
+				echo "<th align=right>Available Specs for Subset of Individuals:</th>";
+				echo "<td>";
+				$constraintsQuery="SELECT * FROM individuals_group";
+				$constraintsResult=mysql_query($constraintsQuery);
+				if (!$constraintsResult) {
+					echo 'Query failed: ' . mysql_error()."\n";
+				}
+				else {
+					echo "<table>\n";
+					$line=array(individuals_group_id=>"", name=>"all", phen=>"", relation=>"",  value=>"");
+					do {
+						echo "<tr><td>";
+						echo '<input type="radio" name="individuals_group_id" value="'
+							.$line["individuals_group_id"].'"'
+							.("$individuals_group_id"==$line["individuals_group_id"]?' checked':'').'>'.$line["name"]
+							.'</td><td>';
+						if ("all" != $line["name"]) echo '<small> ('.$line["phen"]." ".$line["relation"]." ".$line["value"].')</small>';
+						echo '</td>';
+						if (ALLOWEDITING) {
+							echo '<td>';
+							if ("all" != $line["name"]) echo '<a href="http:individuals_group?id='.$line["individuals_group_id"].'">edit</a>';
+							echo "</td>";
+						}
+						echo "</tr>\n";
+					}
+					while($line = mysql_fetch_array($constraintsResult, MYSQL_ASSOC));
+					echo "</table>";
+					mysql_free_result($constraintsResult);
+				}
+				echo "</td>";
+				echo "</tr>\n";
 				break;
 
 			case "work":
@@ -530,6 +567,10 @@ function print_selection_form($properties) {
 
 			case "hr":
 				echo "<tr><td colspan=200><hr></td></tr>\n";
+				break;
+
+			case "submit": case "cancel": case "cancle": case "reset":
+				echo "<tr><td colspan=4><input type=\"submit\"> &nbsp; <input type=\"reset\"></td><tr>\n";
 				break;
 
 			default:

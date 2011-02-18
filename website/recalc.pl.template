@@ -138,7 +138,12 @@ while (FCGI::accept >= 0) {
 		#
 
 		my @fields;
-		if (@fields=$jobname=~/^([^_]+)_([^_]+)_([^_]+)_([^_]+)_\(([^)]+)\)/) {
+                                       # "scanone"
+                                              # probe_set
+                                                     # threshold
+                                                            # permutations
+                                                                     # covariates
+		if (@fields=$jobname=~/^([^_]+)_(.+)_([^_]+)_([^_]+)_\(([^)]+)\)/) {
 			
 			my $mode = $fields[0];
 			my $probesetid = $fields[1];
@@ -156,7 +161,7 @@ while (FCGI::accept >= 0) {
 
 			my $a = get $u;
 
-			if ( "" ne "$a" ) {
+			if ( defined($a) and "" ne "$a" ) {
 				$content = $a;
 			}
 			else {
@@ -170,7 +175,9 @@ while (FCGI::accept >= 0) {
 			#
 			# presenting an explanation for the exit
 			#
-			print STDERR "# Could not parse jobname '$jobname'.\n";
+			my $err = "# Could not parse jobname '$jobname'.\n";
+			print STDERR $err;
+			$content .= "$err";
 		}
 	}
 

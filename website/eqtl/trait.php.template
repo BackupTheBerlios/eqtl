@@ -309,10 +309,10 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 			echo "<small>";
 			echo "<table border=1>\n";
 			echo "<tr><th rowspan=2>$posOrNeg</th><th>Gene</th>";
-			array_walk($traits,presentTraitInTableElement,$connection);
+			array_walk($traits,"presentTraitInTableElement",$connection);
 			echo "</tr>\n";
 			echo "<tr><th>Rho</th>";
-			array_walk($traitsRho,presentRhoInTableElement);
+			array_walk($traitsRho,"presentRhoInTableElement");
 			echo "</tr>\n";
 			echo "</table>\n";
 			echo "</small>";
@@ -851,7 +851,7 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 // 					case "":
 // 						echo "<td valign=top>".$line["gene_stable_id_rat"]."</td><td rowspan=$numberOfLociToShow valign=top>".$line["hum_onth_ens"]."<td rowspan=$numberOfLociToShow valign=top>";
 // 						break;
-					case trait_name:
+					case "trait_name":
 						# dealt with in trait_id/Trait
 						break;
 					default:
