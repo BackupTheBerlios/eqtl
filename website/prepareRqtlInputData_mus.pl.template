@@ -223,11 +223,11 @@ while (FCGI::accept >= 0) {
 		foreach my $param (@params){
 			my @keyval = split(/=/,$param);
 			if ($#keyval!=1) {
-				print STDOUT "Could not parse parameters from\n" . $ENV{'QUERY_STRING'} . "\n";
-				print STDOUT "Paramer '$param' could not be splitted by character '='.\n";
-				print STDOUT "keyval = '".join("','",@keyval)."'\n";
+				print STDOUT "# Could not parse parameters from\n#" . $ENV{'QUERY_STRING'} . "\n";
+				print STDOUT "# Paramer '$param' could not be splitted by character '='.\n";
+				print STDOUT "# keyval = '".join("','",@keyval)."'\n";
 			}
-			if( $keyval[0] =~ m/probesetid/ ){
+			elsif( $keyval[0] =~ m/probesetid/ ){
 				$probeID = $keyval[1];
 			}
 			elsif( $keyval[0] =~ m/score/ ){
