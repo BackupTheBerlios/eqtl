@@ -1,0 +1,14 @@
+<?php
+
+TEMPLATEWARNINGHASH
+
+global $compara_array;
+
+$compara_array["PROJECTNAME"]=array(
+        "databasehostlocal"    => "DATABASEHOSTLOCAL",
+        "databaseportlocal"    => "DATABASEPORTLOCAL",
+        "databaseeqtlname"     => "DATABASEEQTLNAME",
+        "databaseeqtluser"     => "DATABASEEQTLUSER",
+        "databaseeqtlpassword" => "DATABASEEQTLPASSWORD"
+);
+?>
