@@ -4,6 +4,28 @@ include 'html/header.html';
 # rat: stockholm "Rattus norvegicus"
 # mus: rostock "Mus musculus"
 
+/**
+ * 
+ * Maybe this shall be in its own file
+ * @param $projects
+ * @param $isSource
+ */
+function showProjectList($projects, $isSource){
+	global $compara_array;
+
+	$index = $isSource ? 0 : 1;
+
+	echo'<select onclick="submit_page(\'this\')" name="'.$species_str.'" size="'.$num_species.'">';
+
+	foreach ($compara_array as $project_name => $project_info) {
+		echo '<option value="'.$project_name.'" '.
+		($project_name == $projects[$index] ? 'selected="selected">': '>').
+		$project_name.' ('.$project_info['species'].')</option>';
+	}
+	echo '</select>';
+}
+
+
 $speciesArray = array("Rattus norvegicus","Mus musculus");
 $genome_db_ids = array(57,3);
 $species2genome_db_ids = array("Rattus norvegicus" =>3,"Mus musculus"=>57);
@@ -13,10 +35,51 @@ $species_str = 'species';
 $reg_str = 'regions';
 $args = $_GET;
 
-//require_once 'qtl_functions.php';
 require_once 'db_functions.php';
 require_once 'qtl_functions.php';
 require_once 'utils.php';
+require_once 'fill_related_projects.php';
+
+fill_compara_array();
+global $compara_array;
+
+$proj_str = 'projects';
+if(!isset($args[$proj_str])){//no project selected
+	$projects = array();
+}
+// enlarge project array with NULLs
+$n = count($projects);
+while ($n<2) {
+	$projects[] = NULL;
+	$n++;
+}
+
+
+?>
+<script
+  type="text/javascript" src="js/regions.js"></script>
+
+<div class="lr">
+<h3>Compare source project:</h3>
+<?php 
+showProjectList($projects,true);
+?>
+</div>
+<div class="lr">
+<h3>...with target project:</h3>
+<?php 
+showProjectList($projects,false);
+?>
+</div>
+<br style="clear: both;"/>
+<?php
+include 'html/footer.html';
+exit();
+
+
+connectToQtlDBs($args[$proj_str]);
+
+
 $qtldb = connectToQtlDB();
 $compara = connectToCompara(3306);
 
@@ -73,7 +136,7 @@ echo '</select></p>';
 // fetch chromosomes to species id
 $genome_db_id = $species2genome_db_ids[$species];
 $chrs = getChromosomsAndLengths($compara,$genome_db_id);
-// addition filtering 
+// addition filtering
 $database = $genome_ids2dbs[$genome_db_id];
 useDB($database, $qtldb);
 $chrs = filter_chromos($qtldb, $chrs);

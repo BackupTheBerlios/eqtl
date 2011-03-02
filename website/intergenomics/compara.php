@@ -6,14 +6,28 @@ require_once 'db_functions.php';
 require_once 'utils.php';
 //measure running-time
 $start = tic();
-$qtldb = connectToQtlDB();
+
+$args = $_GET;
+
 $compara = connectToCompara(3306);
+
+$proj_str = 'project';
+if(isset($args[$proj_str])&&(count($args[$proj_str])==2)){
+	connectToQtlDBs($args[$proj_str]);
+}else{
+	fatal_error('No project found or wrong number of projects!');
+}
+
+
+
+
 
 $reg_str = 'regions';
 $chr2reg = array();
-$args = $_GET;
+//TODO: update compara_array with genome_db_ID
 $species2genome_db_ids = array("Rattus norvegicus" => 3,"Mus musculus"=>57);
 $genome_ids2dbs = array(57 => 'eqtl_rostock_eae', 3 =>'eqtl_stockholm_eae_logplier');
+
 if(isset($args[$reg_str])){
 	if(isset($args['species'])){
 		if(isset($args['confidence_int'])){
