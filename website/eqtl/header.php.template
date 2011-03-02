@@ -26,7 +26,11 @@ The documentation does not end here but is dispersed throughout the file.
 
 */
 
-    require_once("func_dbconfig.php");
+global $urlLogoLeft2,$urlLogoLeft, $urlLogoRight, $urlLogoRightLarge;
+$urlLogoLeft2="PATHLOGOLEFT2";
+$urlLogoLeft="PATHLOGOLEFTNORMAL";
+$urlLogoRight="PATHLOGORIGHTNORMAL";
+$urlLogoRightLarge="PATHLOGORIGHTLARGE";
 
 /*
 

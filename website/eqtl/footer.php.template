@@ -34,7 +34,7 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2010
   echo "<HR>\n";
   echo "<table border=0 width=100%>\n";
   require_once("func_dbconfig.php");
-  echo "<tr><td align = center>";
+  echo "<tr><td align = center nowrap>";
   echo FOOTERLOGOLEFT;
   echo '</td><td align=center>';
   foreach (array(

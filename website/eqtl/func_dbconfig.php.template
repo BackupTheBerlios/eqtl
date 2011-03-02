@@ -136,12 +136,6 @@ function transcript2ensemblSearchUrl($id,$species="Rattus_norvegicus"){
 
 global $hostname,$username,$database,$ensemblversion,$ensemblversionLocal;
 
-global $urlLogoLeft2,$urlLogoLeft, $urlLogoRight, $urlLogoRightLarge;
-$urlLogoLeft2="PATHLOGOLEFT2";
-$urlLogoLeft="PATHLOGOLEFTNORMAL";
-$urlLogoRight="PATHLOGORIGHTNORMAL";
-$urlLogoRightLarge="PATHLOGORIGHTLARGE";
-
 $hostname=`hostname --long`;
 $htmlroot="URLEQTL";
 $hostname="DATABASEHOSTLOCAL";

@@ -77,3 +77,4 @@ website/status.txt
 *.swp
 *~
 website/intergenomics/compara_config.php
+website/intergenomics/fill_related_projects.php

@@ -218,13 +218,17 @@ function showMe (it, box) {
   echo "</table>";
   echo "</form>";
 
-  echo '<input type="checkbox" name="c1" onclick="showMe(\'div1\', this)"><b>Check this box to see Module Trait Relationship diagram. Identify the modules that are highest in their association with clinical phenotypes. The selection perfom by the drop-down menus showing respective module colours and phenotypes.</b>';
+  foreach (array("png","jpg") as $filetype) {
+    if (!file_exists("tmp_images/module_trait_relationship_map.$filetype")) continue;
+    echo '<input type="checkbox" name="c1" onclick="showMe(\'div1\', this)">';
+    echo "<b>Check this box to see Module Trait Relationship diagram. Identify the modules that are highest in their association with clinical phenotypes. The selection perfom by the drop-down menus showing respective module colours and phenotypes.</b>\n";
+    echo '<div id="div1"style="display:none"';
+    echo "<a><img width='100%' src='tmp_images/module_trait_relationship_map.$filetype' ISMAP/></a>";
+    echo "</div>\n";
+    break;
+  }
 
-  echo '<div id="div1"style="display:none"';
-  echo "<a><img width='100%' src='tmp_images/module_trait_relationship_map.png' ISMAP/></a>";
-  echo '</div>';
-
-  echo "<hr>";
+  echo "<hr />\n";
 
   // perform database search
 
@@ -233,25 +237,27 @@ function showMe (it, box) {
     echo "<p><a href=\"demo/visant.php?modcolour=$modcolour\">"
             ."<b>Click to open gene network for module with Visant (<i>coming Monday</i>)</b>"
 	    ."</a>"
-	."</p>";
-    $query = "SELECT module_trait_moduleMembership.trait_id as trait_id,"
-                   ."trait.chromosome as chromosome,"
-		   ."round((trait.start+trait.stop)/2)/1000000 as pos,"
-		   ."trait.mean as mean,"
-		   ."trait.sd as sd,"
-                   ."BEARatChip.first_name,module_trait_pheno_geneSignificance.GS_".$cli.","
-                   ."module_trait_moduleMembership.MM_".$modcolour.","
-                   ."qtl.Chromosome as qtl_Chromosome,"
-                   ."qtl.cMorgan_Peak as qtl_cMorgan_Peak,"
-                   ."qtl.covariates as qtl_covariates,"
-                   ."qtl.LOD as qtl_lod,"
-                   ."BEARatChip.pathway "
-	     ."FROM module_trait_moduleMembership LEFT JOIN BEARatChip ON module_trait_moduleMembership.trait_id=BEARatChip.probeset_id "
-                  ."LEFT JOIN module_trait_pheno_geneSignificance USING(trait_id) "
-                  ."LEFT JOIN trait USING(trait_id) "
-                  ."LEFT JOIN qtl on module_trait_moduleMembership.trait_id=qtl.Trait "
-             ."WHERE module_trait_moduleMembership.moduleColor='$modcolour' "
-                  ."AND BEARatChip.first_name != '' "
+	."</p>\n";
+    $query = "SELECT module_trait_moduleMembership.trait_id as trait_id"
+                   .",trait.chromosome as chromosome"
+		   .",round((trait.start+trait.stop)/2)/1000000 as pos"
+		   .",trait.mean as mean"
+		   .",trait.sd as sd"
+		   .",trait.name as name"
+             #      .",BEARatChip.first_name,module_trait_pheno_geneSignificance.GS_".$cli.","
+                   .",module_trait_moduleMembership.MM_".$modcolour
+                   .",qtl.Chromosome as qtl_Chromosome"
+                   .",qtl.cMorgan_Peak as qtl_cMorgan_Peak"
+                   .",qtl.covariates as qtl_covariates"
+                   .",qtl.LOD as qtl_lod"
+                   #.",BEARatChip.pathway "
+	     ." FROM module_trait_moduleMembership "
+	     #     ." LEFT JOIN BEARatChip ON module_trait_moduleMembership.trait_id=BEARatChip.probeset_id "
+                  ." LEFT JOIN module_trait_pheno_geneSignificance USING(trait_id) "
+                  ." LEFT JOIN trait USING(trait_id) "
+                  ." LEFT JOIN qtl on module_trait_moduleMembership.trait_id=qtl.Trait "
+             ." WHERE module_trait_moduleMembership.moduleColor='$modcolour' "
+                #  ."AND name != '' "
 	        ."";
 
     if (!empty($mm)) {
