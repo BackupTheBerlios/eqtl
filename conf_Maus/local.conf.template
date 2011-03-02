@@ -1,5 +1,0 @@
-# This file contains parameters that are unlikely to be shared among
-# installations for the same project (e.g. development and production servers)
-
-ABSOLUTEPATHWEBSITE	/the/root/is/here/website
-BASEDIR	/absolute/path/to/source/code
