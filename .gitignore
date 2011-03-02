@@ -76,5 +76,9 @@ website/showSRC.pl
 website/status.txt
 *.swp
 *~
+# Intergenomics stuff
 website/intergenomics/compara_config.php
 website/intergenomics/fill_related_projects.php
+# local install for testing
+conf_Maus
+conf_Ratte
