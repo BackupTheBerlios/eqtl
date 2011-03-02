@@ -8,17 +8,16 @@
 /**
  * prepare species string for $_GET
  */
-function prepareSpecies(site){
+function prepareSpecies(site) {
 	var project_str = "projects";
-	var project_selects = document.getElementsByName(species_str);
-	var src_sel = project_selects[0];// hopefully
+	// var project_selects = document.getElementsByName(project_str);
+	var src_sel = document.getElementById(project_str + "0");
 	var expr = /(\w.+)\s(\w.+)/;
 	expr.exec(src_sel[src_sel.selectedIndex].value);
 	if (site == null) {
 		site = "regions.php";
 	}
 	return site + "?" + project_str + "[]=" + RegExp.$1 + "+" + RegExp.$2;
-	
 
 	// var species_str = "species";
 	// var species_select = document.getElementsByName(species_str)[0];
@@ -27,7 +26,7 @@ function prepareSpecies(site){
 	// if (site == null) {
 	// site = "regions.php";
 	// }
-	//	return site + "?" + species_str + "=" + RegExp.$1 + "+" + RegExp.$2;
+	// return site + "?" + species_str + "=" + RegExp.$1 + "+" + RegExp.$2;
 }
 
 /**
@@ -80,9 +79,9 @@ function deleteRegion(chr) {
 function submit_page(target) {
 	if (target == 'overview') {
 		window.location.href = prepareGetString("compara.php");
-	} else if (target == 'all'){
+	} else if (target == 'all') {
 		window.location.href = prepareGetString("display_all.php");
-	}else{//this
+	} else {// this
 		window.location.href = prepareSpecies();
 	}
 
