@@ -47,6 +47,8 @@ global $compara_array;
 $proj_str = 'projects';
 if(!isset($args[$proj_str])){//no project selected
 	$projects = array();
+}else{
+	$projects = $args[$proj_str];
 }
 // enlarge project array with NULLs
 $n = count($projects);
