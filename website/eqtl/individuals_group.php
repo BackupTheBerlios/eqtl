@@ -50,7 +50,7 @@ ENDOFDOCUMENTATION
 */
 
 	require_once("header.php");
-	$database="eqtl_rostock_eae";
+	$database="eqtl_stockholm_eae_logplier";
 	include_once("func_connect.php");
 	require_once("func_covariates.php");
 	require_once("func_selection.php"); // prints part of the HTML for forms

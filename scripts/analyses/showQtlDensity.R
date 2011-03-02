@@ -175,7 +175,7 @@ colnames(m)<-c("Chromosome","Mbp_Peak","LOD")
 
 require(RMySQL)
 #example data for chromosome 1
-con <- dbConnect(MySQL(),user="userqtl", password="", dbname="eqtl_rostock_eae", host="localhost")
+con <- dbConnect(MySQL(),user="userqtl", password="", dbname="eqtl_stockholm_eae_logplier", host="127.0.0.1")
 rs<-dbGetQuery(con, "select covariates, Chromosome, Mbp_Peak, LOD from qtl where covariates in ('','eae_add','sud_add','wl0_add','dud_add','totalIgG_add') and LOD>Quantile and LOD>3.5 and ((cis=1 and cis_dist>20000000) or cis=0 )order by covariates,Chromosome, LOD")
 #rs<-dbGetQuery(con, "select covariates, Chromosome, Mbp_Peak, LOD from qtl where covariates in ('','eae_add','sud_add','wl0_add','dud_add','totalIgG_add') and LOD>Quantile and LOD>3.5 and cis=1 and cis_dist<20000000 order by covariates,Chromosome, LOD")
 #rs<-dbGetQuery(con, "select covariates, Chromosome, Mbp_Peak, LOD from qtl where covariates in ('','eae_add','sud_add','wl0_add','dud_add','totalIgG_add') and LOD>Quantile and LOD>3.5 order by covariates,Chromosome, LOD")
