@@ -9,14 +9,25 @@
  * prepare species string for $_GET
  */
 function prepareSpecies(site){
-	var species_str = "species";
-	var species_select = document.getElementsByName(species_str)[0];
+	var project_str = "projects";
+	var project_selects = document.getElementsByName(species_str);
+	var src_sel = project_selects[0];// hopefully
 	var expr = /(\w.+)\s(\w.+)/;
-	expr.exec(species_select[species_select.selectedIndex].value);
+	expr.exec(src_sel[src_sel.selectedIndex].value);
 	if (site == null) {
 		site = "regions.php";
 	}
-	return site + "?" + species_str + "=" + RegExp.$1 + "+" + RegExp.$2;
+	return site + "?" + project_str + "[]=" + RegExp.$1 + "+" + RegExp.$2;
+	
+
+	// var species_str = "species";
+	// var species_select = document.getElementsByName(species_str)[0];
+	// var expr = /(\w.+)\s(\w.+)/;
+	// expr.exec(species_select[species_select.selectedIndex].value);
+	// if (site == null) {
+	// site = "regions.php";
+	// }
+	//	return site + "?" + species_str + "=" + RegExp.$1 + "+" + RegExp.$2;
 }
 
 /**

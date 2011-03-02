@@ -82,22 +82,21 @@ if($projects[0]==NULL || !isset($args[$reg_str])){
 	exit();
 }
 
-
+// only the database of the source project needs to be opened
 $src_proj = $projects[0];
 connectToQtlDBs(array($src_proj));
-$qtldb = $compara_array[$src_proj];
+$qtldb = $compara_array[$src_proj]['connection'];
 $compara = connectToCompara(3306);
-
 
 
 // region selection
 
 // fetch chromosomes to species id
-$genome_db_id = $species2genome_db_ids[$species];
+$genome_db_id = $compara_array[$src_proj]['genome_db_id'];
 $chrs = getChromosomsAndLengths($compara,$genome_db_id);
 // addition filtering
-$database = $genome_ids2dbs[$genome_db_id];
-useDB($database, $qtldb);
+//$database = $genome_ids2dbs[$genome_db_id];
+//useDB($database, $qtldb);
 $chrs = filter_chromos($qtldb, $chrs);
 
 // get selected regions
