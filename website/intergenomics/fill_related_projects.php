@@ -1,13 +1,13 @@
 <?php
 
-#    A T T E N T I O N:   Edit the template, not this file !!!!
+#    A T T E N T I O N:   Edit the template, not this file !!!!
 
 /**
  * scanns all "base paths" of the related projects to fill up the $compara_array.
  */
 function fill_compara_array() {
 	include 'compara_config.php';
-	$a="[Maus,URL,../../../maus]";
+	$a="[Ratte,URL,../../../ratte]";
 	if (empty($a)) {
 		return null;
 	}
