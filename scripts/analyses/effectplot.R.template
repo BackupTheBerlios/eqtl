@@ -209,7 +209,7 @@ my.cross <- read.cross(	format="csv", dir="",
                        	file=fname.input,
 		        genotypes=RQTLREADCROSSGENOTYPES,
 			alleles=RQTLREADCROSSALLELES ,
-			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=CONVERTXDATA )
+			na.strings=RQTLREADCROSSNASTRINGS, convertXdata=CONVERTXDATA , comment.char="#")
 
 # Retrieval of details for specification of subset of individuals
 if(!is.null(opt$individuals)){
