@@ -9,7 +9,7 @@ function connectToQtlDBs($project_names) {
 		if (mysqli_connect_errno()) {
 			fatal_error('Could not connect to database: '.mysqli_connect_error().'('.mysqli_connect_errno().')');
 		}
-		$proj['connection'] = $targetdb; 
+		$compara_array[$project_name]['connection'] = $targetdb; 
 	}
 
 }

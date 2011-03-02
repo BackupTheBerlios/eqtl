@@ -76,3 +76,4 @@ website/showSRC.pl
 website/status.txt
 *.swp
 *~
+website/intergenomics/compara_config.php
