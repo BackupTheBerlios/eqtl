@@ -160,7 +160,7 @@ if(isset($args[$confidence_int_str])){
   }
   ?>
 </table>
-<fieldset>
+</fieldset>
 <p><label for="conf">Length of confidence intervall around each locus: </label><input
   id="conf" type="text" size="4"
   value="<?php echo $confidence_int_len; ?>" /> cM</p>
