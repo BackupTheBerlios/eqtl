@@ -16,6 +16,7 @@ scripts/analyses/R/analyseCorrelationForMarkers.R
 scripts/analyses/R/load.data.R
 scripts/analyses/R/maxcminc.R
 scripts/analyses/scatter_all.R
+scripts/analyses/showQtlDensity.R
 scripts/db_management/database_dump.sh
 scripts/db_management/database_upload.sh
 scripts/db_management/reprocessing.sh
