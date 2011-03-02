@@ -1,0 +1,15 @@
+<?php
+
+TEMPLATEWARNINGHASH
+
+global $compara_array;
+
+$compara_array["PROJECTNAME"]=array(
+        "db_host"    => "DATABASEHOSTLOCAL",
+        "db_port"    => "DATABASEPORTLOCAL",
+        "db_name"    => "DATABASEEQTLNAME", /* database name */
+        "db_user"    => "DATABASEEQTLUSER",
+        "db_pass" 	 => "DATABASEEQTLPASSWORD",
+		"species"	 => "NCBITAXONOMYSPECIESNAME"
+);
+?>

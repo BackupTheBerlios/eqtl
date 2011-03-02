@@ -1,1 +1,0 @@
-mysqlimport -h localhost -u root --fields_escaped_by=\\ ensembl_compara_59 C:\\Users\Georg\Desktop\test\member.txt -p

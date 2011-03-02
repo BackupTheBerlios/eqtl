@@ -1,6 +1,19 @@
 <?php
 require_once 'utils.php';
 
+function connectToQtlDBs($project_names) {
+	global $compara_array;
+	foreach ($project_names as $project_name){
+		$proj = $compara_array[$project_name];
+		$targetdb = @new mysqli($proj['db_host'], $proj['db_user'], $proj['db_pass'], $proj['db_name'], $proj['db_port']);
+		if (mysqli_connect_errno()) {
+			fatal_error('Could not connect to database: '.mysqli_connect_error().'('.mysqli_connect_errno().')');
+		}
+		$proj['connection'] = $targetdb; 
+	}
+
+}
+
 function connectToQtlDB($port = '3306') {
 	$targetdb = @new mysqli('127.0.0.1', 'anonymous', 'no', '', $port);
 	if (mysqli_connect_errno()) {
@@ -8,6 +21,7 @@ function connectToQtlDB($port = '3306') {
 	}
 	return $targetdb;
 }
+
 /**
  * fill the correlation array with default values, if a correlation between an
  * trait and lous not exists.
