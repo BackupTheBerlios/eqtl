@@ -5,7 +5,7 @@
 global $compara_array;
 
 $compara_array["Ratte"]=array(
-        "db_host"    => "localhost",
+        "db_host"    => "127.0.0.1",
         "db_port"    => "3306",
         "db_name"    => "eqtl_stockholm_eae_logplier", /* database name */
         "db_user"    => "anonymous",
