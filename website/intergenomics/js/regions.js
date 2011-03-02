@@ -14,6 +14,7 @@ function prepareSpecies(site) {
 	var src_sel = document.getElementById(project_str + "0");
 	var expr = /(\w.+)\s(\w.+)/;
 	expr.exec(src_sel[src_sel.selectedIndex].value);
+	alert(src_sel[src_sel.selectedIndex].value);
 	if (site == null) {
 		site = "regions.php";
 	}
