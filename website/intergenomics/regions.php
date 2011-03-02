@@ -5,7 +5,7 @@ include 'html/header.html';
 # mus: rostock "Mus musculus"
 
 /**
- * 
+ *
  * Maybe this shall be in its own file
  * @param $projects
  * @param $isSource
@@ -16,7 +16,7 @@ function showProjectList($projects, $isSource){
 	$index = $isSource ? 0 : 1;
 
 	echo'<select onclick="submit_page(\'this\')" name="projects'.$index.'" size="'.
-		count($compara_array).'">';
+	count($compara_array).'">';
 
 	foreach ($compara_array as $project_name => $project_info) {
 		echo '<option value="'.$project_name.'" '.
@@ -62,21 +62,19 @@ while ($n<2) {
 
 <div class="lr">
 <fieldset>
-<h3>Compare source project:</h3>
-<?php 
+<h3>Compare source project</h3>
+<?php
 showProjectList($projects,true);
-?>
-</fieldset>
+?></fieldset>
 </div>
 <div class="lr">
 <fieldset>
 <h3>...with target project:</h3>
-<?php 
+<?php
 showProjectList($projects,false);
-?>
-</fieldset>
+?></fieldset>
 </div>
-<br style="clear: both;"/>
+<br style="clear: both;" />
 <?php
 include 'html/footer.html';
 exit();
