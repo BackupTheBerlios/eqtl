@@ -13,13 +13,24 @@ function prepareSpecies(site) {
 	// var project_selects = document.getElementsByName(project_str);
 	var src_sel = document.getElementById(project_str + "0");
 	var tar_sel = document.getElementById(project_str + "1");
-	alert(src_sel.selectedIndex+" "+tar_sel.selectedIndex);
-	
-	var src_val = src_sel[src_sel.selectedIndex].value;
+
+	if (src_sel.selectedIndex >= 0) {
+		var src_val = src_sel[src_sel.selectedIndex].value;
+	} else {
+		var src_val = "NULL";
+	}
+
+	if (tar_sel.selectedIndex >= 0) {
+		var tar_val = tar_sel[tar_sel.selectedIndex].value;
+	} else {
+		var tar_val = "NULL";
+	}
+
 	if (site == null) {
 		site = "regions.php";
 	}
-	return site + "?" + project_str + "[]=" + src_val;
+	var proj_arg = project_str + "[]=";
+	return site + "?" + proj_arg + src_val + "&" + proj_arg + tar_val;
 
 	// var species_str = "species";
 	// var species_select = document.getElementsByName(species_str)[0];
