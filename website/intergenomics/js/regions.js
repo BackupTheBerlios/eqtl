@@ -12,6 +12,9 @@ function prepareSpecies(site) {
 	var project_str = "projects";
 	// var project_selects = document.getElementsByName(project_str);
 	var src_sel = document.getElementById(project_str + "0");
+	var tar_sel = document.getElementById(project_str + "1");
+	alert(src_sel.selectedIndex+" "+tar_sel.selectedIndex);
+	
 	var src_val = src_sel[src_sel.selectedIndex].value;
 	if (site == null) {
 		site = "regions.php";
