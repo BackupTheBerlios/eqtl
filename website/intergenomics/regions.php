@@ -19,7 +19,7 @@ function showProjectList($projects, $isSource){
 	count($compara_array).'">';
 
 	foreach ($compara_array as $project_name => $project_info) {
-		echo '<option value="'.$project_name.'" '.
+		echo '<option value="'.implode("+", explode(" ", $project_name)).'" '.
 		($project_name == $projects[$index] ? 'selected="selected">': '>').
 		$project_name.' ('.$project_info['species'].')</option>';
 	}

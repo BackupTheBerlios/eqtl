@@ -12,13 +12,11 @@ function prepareSpecies(site) {
 	var project_str = "projects";
 	// var project_selects = document.getElementsByName(project_str);
 	var src_sel = document.getElementById(project_str + "0");
-	var expr = /(\w.+)\s(\w.+)/;
-	expr.exec(src_sel[src_sel.selectedIndex].value);
-	alert(src_sel[src_sel.selectedIndex].value);
+	var src_val = src_sel[src_sel.selectedIndex].value;
 	if (site == null) {
 		site = "regions.php";
 	}
-	return site + "?" + project_str + "[]=" + RegExp.$1 + "+" + RegExp.$2;
+	return site + "?" + project_str + "[]=" + src_val;
 
 	// var species_str = "species";
 	// var species_select = document.getElementsByName(species_str)[0];
