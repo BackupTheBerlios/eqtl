@@ -15,8 +15,7 @@ function showProjectList($projects, $isSource){
 
 	$index = $isSource ? 0 : 1;
 
-	echo'<fieldset>
-	<select onclick="submit_page(\'this\')" name="projects'.$index.'" size="'.
+	echo'<select onclick="submit_page(\'this\')" name="projects'.$index.'" size="'.
 		count($compara_array).'">';
 
 	foreach ($compara_array as $project_name => $project_info) {
@@ -24,8 +23,7 @@ function showProjectList($projects, $isSource){
 		($project_name == $projects[$index] ? 'selected="selected">': '>').
 		$project_name.' ('.$project_info['species'].')</option>';
 	}
-	echo '</select>
-	</fieldset>';
+	echo '</select>';
 }
 
 
@@ -63,16 +61,20 @@ while ($n<2) {
   type="text/javascript" src="js/regions.js"></script>
 
 <div class="lr">
+<fieldset>
 <h3>Compare source project:</h3>
 <?php 
 showProjectList($projects,true);
 ?>
+</fieldset>
 </div>
 <div class="lr">
+<fieldset>
 <h3>...with target project:</h3>
 <?php 
 showProjectList($projects,false);
 ?>
+</fieldset>
 </div>
 <br style="clear: both;"/>
 <?php
