@@ -96,10 +96,10 @@ $compara = connectToCompara(3306);
 // fetch chromosomes to species id
 $genome_db_id = $compara_array[$src_proj]['genome_db_id'];
 $chrs = getChromosomsAndLengths($compara,$genome_db_id);
-// additional filtering
+// addition filtering
+//$database = $genome_ids2dbs[$genome_db_id];
+//useDB($database, $qtldb);
 $chrs = filter_chromos($qtldb, $chrs);
-
-$species = $compara_array[$src_proj]['species'];
 
 // get selected regions
 $chr2reg = array();
@@ -119,7 +119,7 @@ if(isset($args[$confidence_int_str])){
 	$confidence_int_len = 1;
 }
 ?>
-<fieldset>
+
 <h3>Add regions for species <?php echo $species;?></h3>
 <table border="1" cellpadding="3" cellspacing="0">
   <tr>
@@ -160,13 +160,13 @@ if(isset($args[$confidence_int_str])){
   }
   ?>
 </table>
-<fieldset>
 <p><label for="conf">Length of confidence intervall around each locus: </label><input
   id="conf" type="text" size="4"
   value="<?php echo $confidence_int_len; ?>" /> cM</p>
 <p>&nbsp;&nbsp;<input type="button" onclick="submit_page('overview')"
   value="Overview" /> &nbsp;&nbsp; <input type="button"
   onclick="submit_page('all')" value="Display all" /></p>
+</form>
   <?php
   include 'html/footer.html';
   ?>
