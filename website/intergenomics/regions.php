@@ -13,10 +13,40 @@ $species_str = 'species';
 $reg_str = 'regions';
 $args = $_GET;
 
-//require_once 'qtl_functions.php';
 require_once 'db_functions.php';
 require_once 'qtl_functions.php';
 require_once 'utils.php';
+require_once 'fill_related_projects.php';
+
+fill_compara_array();
+global $compara_array;
+
+$proj_str = 'project';
+if(!isset($args[$proj_str])){//no species selected
+	?>
+
+<script
+  type="text/javascript" src="js/regions.js"></script>
+
+<h3>Please select a species first:</h3>
+<form method="get">
+<p><?php 
+// show an list with the available target species
+echo'<label for="'.$species_str.'">Species: </label>
+<select onclick="submit_page(\'this\')" name="'.$species_str.'" size="'.$num_species.'">';
+foreach ($compara_array as $project_name => $project_info) {
+	echo '<option value="'.$project_name.'" >
+  		'.$project_name.' ('.$project_info['species'].')</option>';
+}
+?></select></p>
+</form>
+<?php
+include 'html/footer.html';
+exit();
+}
+connectToQtlDBs($args[$proj_str]);
+
+
 $qtldb = connectToQtlDB();
 $compara = connectToCompara(3306);
 
@@ -73,7 +103,7 @@ echo '</select></p>';
 // fetch chromosomes to species id
 $genome_db_id = $species2genome_db_ids[$species];
 $chrs = getChromosomsAndLengths($compara,$genome_db_id);
-// addition filtering 
+// addition filtering
 $database = $genome_ids2dbs[$genome_db_id];
 useDB($database, $qtldb);
 $chrs = filter_chromos($qtldb, $chrs);
