@@ -79,7 +79,7 @@ showProjectList($projects,false);
 <br style="clear: both;" />
 <?php
 
-if($projects[0]==NULL || !isset($args[$reg_str])){
+if($projects[0]==NULL){
 	include 'html/footer.html';
 	exit();
 }
