@@ -15,7 +15,8 @@ function showProjectList($projects, $isSource){
 
 	$index = $isSource ? 0 : 1;
 
-	echo'<select onclick="submit_page(\'this\')" name="projects'.$index.'" size="'.
+	echo'<fieldset>
+	<select onclick="submit_page(\'this\')" name="projects'.$index.'" size="'.
 		count($compara_array).'">';
 
 	foreach ($compara_array as $project_name => $project_info) {
@@ -23,7 +24,8 @@ function showProjectList($projects, $isSource){
 		($project_name == $projects[$index] ? 'selected="selected">': '>').
 		$project_name.' ('.$project_info['species'].')</option>';
 	}
-	echo '</select>';
+	echo '</select>
+	</fieldset>';
 }
 
 
