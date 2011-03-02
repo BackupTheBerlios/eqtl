@@ -76,63 +76,19 @@ showProjectList($projects,false);
 </div>
 <br style="clear: both;" />
 <?php
-include 'html/footer.html';
-exit();
+
+if($projects[0]==NULL || !isset($args[$reg_str])){
+	include 'html/footer.html';
+	exit();
+}
 
 
-connectToQtlDBs($args[$proj_str]);
-
-
-$qtldb = connectToQtlDB();
+$src_proj = $projects[0];
+connectToQtlDBs(array($src_proj));
+$qtldb = $compara_array[$src_proj];
 $compara = connectToCompara(3306);
 
-if(!isset($args[$species_str])) {//no species selected
-	?>
 
-<script
-  type="text/javascript" src="js/regions.js"></script>
-
-<h3>Please select a species first:</h3>
-<form method="get">
-<p><?php 
-// show an list with the available target species
-echo'<label for="'.$species_str.'">Species: </label>
-<select onclick="submit_page(\'this\')" name="'.$species_str.'" size="'.$num_species.'">';
-foreach ($speciesArray as $speciesValue) {
-	echo '<option value="'.$speciesValue.'" >
-  		'.$speciesValue.'</option>';
-}
-?></select></p>
-</form>
-<?php
-include 'html/footer.html';
-exit();
-}
-//-------------------------------
-//source species is preselected
-?>
-
-<script
-  type="text/javascript" src="js/regions.js"></script>
-
-<h3>Selected species:</h3>
-<form method="get" action="javascript:submitToCompara()"><?php
-
-// show a list with the available target species; the selected is highlighted
-echo'<p><label for="'.$species_str.'">Species: </label>
-<select onclick="submit_page(\'this\')"
-  name="'.$species_str.'" size="'.$num_species.'">';
-$species = $args[$species_str];
-for ($i = 0; $i < sizeof($speciesArray); $i++) {
-	echo '<option name="'.$species_str.'" value="'.$speciesArray[$i].'" ';
-	if($speciesArray[$i]==$species){
-		echo ' selected="selected">';
-	}else{
-		echo '>';
-	}
-	echo $speciesArray[$i]."</option>\n";
-}
-echo '</select></p>';
 
 // region selection
 
