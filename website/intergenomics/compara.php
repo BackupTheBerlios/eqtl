@@ -19,7 +19,8 @@ if(isset($args[$proj_str])&&(count($args[$proj_str])==2)){
 }
 
 
-
+var_export($args);
+exit('Debug');
 
 
 $reg_str = 'regions';
@@ -27,6 +28,8 @@ $chr2reg = array();
 //TODO: update compara_array with genome_db_ID
 $species2genome_db_ids = array("Rattus norvegicus" => 3,"Mus musculus"=>57);
 $genome_ids2dbs = array(57 => 'eqtl_rostock_eae', 3 =>'eqtl_stockholm_eae_logplier');
+
+
 
 if(isset($args[$reg_str])){
 	if(isset($args['species'])){
