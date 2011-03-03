@@ -1,0 +1,55 @@
+<?php
+
+TEMPLATEWARNINGHASH
+
+/**
+STARTOFDOCUMENTATION
+
+=pod
+
+=head1 NAME
+
+fill_related_projects.php - collects information from projects' conf folders 
+
+=head1 SYNOPSIS
+
+PHP library, not for direct invocation
+
+=head1 DESCRIPTION
+
+=head1 AUTHOR
+
+Michael Brehler <brehler@informatik.uni-luebeck.de>,
+Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2011
+
+=cut
+
+ENDOFDOCUMENTATION
+*/
+
+/**
+ * scanns all "base paths" of the related projects to fill up the $compara_array.
+ */
+function fill_compara_array() {
+	include 'compara_config.php';
+	$a="PROJECTRELATED";
+	if (empty($a)) {
+		return null;
+	}
+	$projects=preg_split('/(\]|\[)([[ \t])*/',"$a");
+	foreach ($projects as $p) {
+		if (empty($p)) {
+			continue;
+		}
+		$details = preg_split("/,/",$p);
+		if(!empty($details) && count($details)>2){
+			// check of basepath ending with '/'
+			include $details[2].((substr($details[2],-1) === '/')?'':'/').
+					'website/intergenomics/compara_config.php';
+		}
+	}
+}

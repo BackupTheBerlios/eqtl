@@ -1,0 +1,45 @@
+<?php
+
+TEMPLATEWARNINGHASH
+
+/**
+STARTOFDOCUMENTATION
+
+=pod
+
+=head1 NAME
+
+compara_config.php - 
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 AUTHOR
+
+Michael Brehler <brehler@informatik.uni-luebeck.de>,
+Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2011
+
+=cut
+
+ENDOFDOCUMENTATION
+*/
+
+
+global $compara_array;
+
+$compara_array["PROJECTNAME"]=array(
+        "db_host"    => "DATABASEHOSTLOCAL",
+        "db_port"    => "DATABASEPORTLOCAL",
+        "db_name"    => "DATABASEEQTLNAME", /* database name */
+        "db_user"    => "DATABASEEQTLUSER",
+        "db_pass" 	 => "DATABASEEQTLPASSWORD",
+		"species"	 => "NCBITAXONOMYSPECIESNAME",
+		"genome_db_id" => "ENSEMBLSPECIESGENOMEDBID"
+);
+?>
+
