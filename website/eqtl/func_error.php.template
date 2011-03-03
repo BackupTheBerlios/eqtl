@@ -57,7 +57,7 @@ function errorMessage ($text,$exit=FALSE,$maintainerEmail="MAINTAINEREMAIL") {
 	}
 	echo "<p>Please report to <a href=\"mailto:$maintainerEmail\">$maintainerEmail</a>.</p>";
 	if ($exit) {
-		trigger_error($text);
+		trigger_error($text, E_USER_ERROR);
 	}
 }
 

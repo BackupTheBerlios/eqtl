@@ -37,8 +37,8 @@ function getSpecies(str) {
 }
 
 function getExp(str) {
-	var species = document.getElementById(str).firstChild.nodeValue;
-	return "projects[]=" + species;
+	var exp = document.getElementById(str).firstChild.nodeValue;
+	return "projects[]=" + exp;
 }
 
 function getReg(ex) {

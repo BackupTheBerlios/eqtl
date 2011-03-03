@@ -43,8 +43,12 @@ $args = $_GET;
 $compara = connectToCompara(3306);
 
 $proj_str = 'projects';
-if(isset($args[$proj_str])&&(count($args[$proj_str])==2)){
-	connectToQtlDBs($args[$proj_str]);
+if(!isset($args[$proj_str];){
+	fatal_error('No project givan as argument!');
+}
+$projects = $args[$proj_str];
+if(isset($projects)&&(count($projects)==2)){
+	connectToQtlDBs($projects);
 }else{
 	fatal_error('No projects found or wrong number of projects!');
 }
