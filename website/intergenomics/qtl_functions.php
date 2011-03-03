@@ -1,4 +1,32 @@
 <?php
+
+/**
+STARTOFDOCUMENTATION
+
+=pod
+
+=head1 NAME
+
+qtl_functions.php - 
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 AUTHOR
+
+Michael Brehler <brehler@informatik.uni-luebeck.de>,
+Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2011
+
+=cut
+
+ENDOFDOCUMENTATION
+*/
+
 require_once 'utils.php';
 
 function connectToQtlDBs($project_names) {

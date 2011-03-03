@@ -1,4 +1,32 @@
 <?php
+
+/**
+STARTOFDOCUMENTATION
+
+=pod
+
+=head1 NAME
+
+utils/write_all_table.php - 
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 AUTHOR
+
+Michael Brehler <brehler@informatik.uni-luebeck.de>,
+Georg Zeplin <zeplin@informatik.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2011
+
+=cut
+
+ENDOFDOCUMENTATION
+*/
+
 // $ Id: 2010-12-19 gz exp$
 // displays ALL information from two from different experiments
 // Experiment 1 is over the colums
