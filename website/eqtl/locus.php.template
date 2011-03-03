@@ -218,7 +218,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 	}
 	else {
 		require_once("func_dbconfig.php");
-		require_once("func_conversion_58.php");
+		require_once("func_conversion_ENSEMBLVERSION.php");
 		require_once("func_public_qtl.php"); // sets variable qtls
 
 		foreach (array(
