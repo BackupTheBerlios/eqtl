@@ -81,6 +81,7 @@ showProjectList($projects,false);
 <?php
 
 if($projects[0]==NULL){
+	include '../eqtl/footer.php';
 	include 'html/footer.html';
 	exit();
 }
@@ -169,5 +170,6 @@ if(isset($args[$confidence_int_str])){
   value="Overview" /> &nbsp;&nbsp; <input type="button"
   onclick="submit_page('all')" value="Display all" /></p>
   <?php
+  include '../eqtl/footer.php';
   include 'html/footer.html';
   ?>
