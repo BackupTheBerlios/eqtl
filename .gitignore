@@ -16,6 +16,7 @@ scripts/analyses/R/analyseCorrelationForMarkers.R
 scripts/analyses/R/load.data.R
 scripts/analyses/R/maxcminc.R
 scripts/analyses/scatter_all.R
+scripts/analyses/showQtlDensity.R
 scripts/db_management/database_dump.sh
 scripts/db_management/database_upload.sh
 scripts/db_management/reprocessing.sh
@@ -76,4 +77,9 @@ website/showSRC.pl
 website/status.txt
 *.swp
 *~
+# Intergenomics stuff
 website/intergenomics/compara_config.php
+website/intergenomics/fill_related_projects.php
+# local install for testing
+conf_Maus
+conf_Ratte
