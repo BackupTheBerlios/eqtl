@@ -1,31 +1,31 @@
 <?php
 
 /**
-STARTOFDOCUMENTATION
+ STARTOFDOCUMENTATION
 
-=pod
+ =pod
 
-=head1 NAME
+ =head1 NAME
 
-display_table.php - 
+ display_table.php -
 
-=head1 SYNOPSIS
+ =head1 SYNOPSIS
 
-=head1 DESCRIPTION
+ =head1 DESCRIPTION
 
-=head1 AUTHOR
+ =head1 AUTHOR
 
-Michael Brehler <brehler@informatik.uni-luebeck.de>,
-Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
+ Michael Brehler <brehler@informatik.uni-luebeck.de>,
+ Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
 
-=head1 COPYRIGHT
+ =head1 COPYRIGHT
 
-University of LE<uuml>beck, Germany, 2011
+ University of LE<uuml>beck, Germany, 2011
 
-=cut
+ =cut
 
-ENDOFDOCUMENTATION
-*/
+ ENDOFDOCUMENTATION
+ */
 
 // Experiment 1 (mus) is over the colums
 // Experiment 2 (rat) is over the rows
@@ -37,23 +37,30 @@ prepareColors($groups1,$groups2);
 <script src="js/mouseposition.js"></script>
 <script src="js/jquery-1.4.4.min.js"></script>
 
-<p>Name of exp.1 (speciesname) over the columns: <span id="species1" class="display_species"><?php echo $projectNames[0]." (".$species_names[0].")";?></span>;
-Name of exp.2 (speciesname) over the rows: <span id="species2" class="display_species"><?php echo $projectNames[1]." (".$species_names[1].")";?></span>.</p>
+<p>Name of exp.1 (speciesname) over the columns: <span id="species1"
+  class="display_species"><?php echo $projectNames[0]." (".$species_names[0].")";?></span>;
+Name of exp.2 (speciesname) over the rows: <span id="species2"
+  class="display_species"><?php echo $projectNames[1]." (".$species_names[1].")";?></span>.</p>
+<div style="display: none;">
+<div id="exp1"><?php echo implode("+", explode(" ", $projectNames[0])) ?></div>
+<div id="exp2"><?php echo implode("+", explode(" ", $projectNames[1])) ?></div>
+</div>
+
 <div style="font-size: small;"><!-- the display table -->
 <table border="1" cellpadding="5" cellspacing="0">
   <thead>
     <tr>
-      <th> syntenic <br />
+      <th>syntenic <br />
       loci <br />
       groupnumbers</th>
       <?php
       $colorArray = array("#BDB76B","#B8860B","#DAA520","#FFD700");
-	  $colIndex = 0;
-	  $regionNo = $group2region[0];
+      $colIndex = 0;
+      $regionNo = $group2region[0];
       for ($i = 0; $i < sizeof($groups1); $i++) {
-        if ($regionNo != $group2region[$i]) {
-			$colIndex++;	
-			$regionNo = $group2region[$i];
+      	if ($regionNo != $group2region[$i]) {
+      		$colIndex++;
+      		$regionNo = $group2region[$i];
       	}
       	if ($colIndex >= sizeof($colorArray)) {
       		$colIndex =0;

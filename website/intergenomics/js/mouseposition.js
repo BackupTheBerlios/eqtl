@@ -1,5 +1,6 @@
 /**
  * Get the absolute position of te mouse in the window.
+ * Currently unused. 
  * 
  * @param e
  *          Mouse event carying location information
@@ -34,6 +35,12 @@ function getSpecies(str) {
 	expr.exec(species);
 	return str + "=" + RegExp.$1 + "+" + RegExp.$2;
 }
+
+function getExp(str) {
+	var species = document.getElementById(str).firstChild.nodeValue;
+	return "projects[]=" + species;
+}
+
 function getReg(ex) {
 	var reg_ex = ex.lastChild.nodeValue;
 	var chr_ex = ex.firstChild.nodeValue;
@@ -43,14 +50,15 @@ function getReg(ex) {
 }
 
 /**
- * In the header cells, the regions in cM are seperated by line breaks. 
- *  
+ * In the header cells, the regions in cM are seperated by line breaks.
+ * 
  * @param ex
  * @returns {String}
  */
 function getRegHeader(ex) {
 	var chr = ex.firstChild;
-	return chr.nodeValue + ":" + chr.nextSibling.nextSibling.nodeValue + "-" + ex.lastChild.nodeValue;
+	return chr.nodeValue + ":" + chr.nextSibling.nextSibling.nodeValue + "-"
+			+ ex.lastChild.nodeValue;
 }
 
 function call_detail_view(e) {
@@ -67,8 +75,10 @@ function call_detail_view(e) {
 		var ex2 = row.children[0];
 		var head = row.parentNode.parentNode.getElementsByTagName('thead')[0];
 		var ex1 = head.getElementsByTagName('th')[colIndex];
-		var species1 = getSpecies('species1');
-		var species2 = getSpecies('species2');
+		// var species1 = getSpecies('species1');
+		// var species2 = getSpecies('species2');
+		var species1 = getExp('exp1');
+		var species2 = getExp('exp2');
 		window.location.href = "detailHomology.php?" + species1 + "&" + species2
 				+ "&region1=" + getRegHeader(ex1) + "&region2=" + getReg(ex2);
 		// alert("row: " + getReg(ex2) + " col: " + getReg(ex2) + " sp1");

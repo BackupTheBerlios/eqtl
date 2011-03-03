@@ -46,6 +46,9 @@ if(isset($args[$proj_str])&&(count($args[$proj_str])==2)){
 }
 
 $compara = connectToCompara(3306);
+$experiment1 = $compara_array[$args[$proj_str][0]];
+$experiment2 = $compara_array[$args[$proj_str][1]];
+
 
 $genome_db_ids = array($experiment1['genome_db_id'],$experiment2['genome_db_id']);
 $speciesArray = array($experiment1['species'],$experiment2['species']);
@@ -63,7 +66,7 @@ function getReg($str, &$chr,&$start,&$end) {
 	$start = substr($reg,0,$pos);
 	$end = substr($reg,$pos+1);
 }
-if(!isset($experiment1['species']||!isset($experiment2['species']) {// no species selected
+if(!isset($experiment1['species']) || !isset($experiment2['species'])) {// no species selected
 	$species1 = "Mus musculus";
 	$species2 = "Rattus norvegicus";
 	$region1 = "2:100-110";
