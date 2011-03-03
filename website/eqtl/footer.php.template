@@ -31,6 +31,10 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2010
   //phpinfo();
   require_once("func_relatedProjects.php");
 
+  // basepth to all links
+  $basepath = "URLEQTL";
+  // ensure basepath ends with '/'
+  $basepath = $basepath.((substr($basepath,-1) === '/')?'':'/');
   echo "<HR>\n";
   echo "<table border=0 width=100%>\n";
   require_once("func_dbconfig.php");
@@ -54,7 +58,7 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2010
 	$m=0;
 	foreach ($block as $a=>$b) {
 		if (!empty($m)) echo "&nbsp;|&nbsp;";
-		echo "<a href=\"$b\">$a</a>";
+		echo "<a href=\"$basepath$b\">$a</a>";
 		$m++;
 	}
   }

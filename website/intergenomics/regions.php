@@ -27,7 +27,7 @@ University of LE<uuml>beck, Germany, 2011
 ENDOFDOCUMENTATION
 */
 
-include 'html/header.html';
+//include 'html/header.html';
 # supported target species:
 # rat: stockholm "Rattus norvegicus"
 # mus: rostock "Mus musculus"
@@ -70,7 +70,8 @@ require_once 'utils.php';
 require_once 'fill_related_projects.php';
 fill_compara_array();
 require_once '../eqtl/header.php';
-show_large_header("Intergenomics",false,"Ensembl Compara interface for Expression QTL");
+show_large_header("Intergenomics",true,"Ensembl Compara interface for Expression QTL",
+	'../eqtl/', array('css/style.css'));
 global $compara_array;
 
 $proj_str = 'projects';

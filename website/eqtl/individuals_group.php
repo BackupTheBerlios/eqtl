@@ -1,0 +1,233 @@
+<?php
+	#    A T T E N T I O N:   Edit the template, not this file !!!!
+
+/**
+STARTOFDOCUMENTATION
+
+=pod
+
+=head1 NAME
+
+individuals_group.php - specification of subsets of individuals
+
+=head1 SYNOPSIS
+
+a dynamic weg page - may be invoked without parameters
+
+=head1 DESCRIPTION
+
+Subsets may become an issue whenever a biologist may want to
+investigate expression QTLs while keeping a particular
+phenotype constant - or excluded - from the analysis.
+
+In principle, this could be used to integrate multiple
+data sets in one analysis, when the direct approach would
+have been to prepare two independent projects.
+
+=head1 ATTRIBUTES
+
+=over 4
+
+=item individuals_group_id
+
+the individual group (subset) specification that should be dealt with
+
+=item action
+
+edit / delete, delete is not implemented, pending a security model
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2010
+
+=cut
+
+ENDOFDOCUMENTATION
+*/
+
+	require_once("header.php");
+	$database="eqtl_stockholm_eae_logplier";
+	include_once("func_connect.php");
+	require_once("func_covariates.php");
+	require_once("func_selection.php"); // prints part of the HTML for forms
+
+	show_small_header("Maintenance of Individuals Group Specifications",TRUE);
+
+	# fields that should appear
+	$dataSelectionFieldsQTL = array(
+		"individuals_group_id",
+		"action"
+	);
+
+	$accessible_fields_in_POST_or_GET = array_merge(
+
+		$dataSelectionFieldsQTL,
+
+		array(  "direct",
+			"debug",
+			"submitted",
+		),
+
+		convert_string_to_covariates_array(strtolower("qtl"))
+	);
+
+	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+		echo "<br>Retrieving info for: "; print_r($accessible_fields_in_POST_or_GET); echo "<br>\n";
+	}
+			
+	foreach($accessible_fields_in_POST_or_GET as $vname)
+	{
+		if (isset($_POST[$vname])) {
+			$$vname = ltrim(rtrim($_POST[$vname]));
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+		elseif(isset($_GET[$vname])) {
+			$$vname = ltrim(rtrim($_GET[$vname]));
+			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				echo $vname."=".$$vname."\t";
+			}
+		}
+	}
+
+	if (!empty($covariates)) {
+		if (!is_array($covariates)) {
+			if ("none"=="$covariates") {
+				$covariates=array('');
+			}
+			else {
+				$covariates=preg_split("/,/",$covariates);
+			}
+		}
+	}
+
+	if (!empty($direct)) {
+		foreach($a as $i=>$v) {
+			$n="show_".$i;
+			$$n=$v;
+		}
+	}
+
+	if (empty($direct) and empty($submitted))
+	{
+?>
+		<form action=individuals_group.php method=post>
+		<input type=hidden name=submitted value=1>
+		<table width=100%><tr><td>
+			<table>
+			<tr><th class=r valign=top>All groups:</th>
+<?php
+			print_selection_form("subset");
+?>
+			<tr><th class=r valign=top>Current Entry:</th>
+<?php
+			print_selection_form("individuals_group");
+?>
+			<tr><td>&nbsp;</td><td></td></tr>
+			<tr><td align=right><input type=submit></td><td align=left><input type=reset></td></tr>
+		</table>
+<?php
+	}
+	else {
+		include_once("func_species.php");
+
+		$where="WHERE ";
+		$query = "SELECT ";
+		$query .= "*";
+
+		#
+		# F R O M
+		#
+
+		$query  .= " FROM individuals_group ";
+
+		#
+		# W H E R E 
+		#
+
+		if (!empty($individuals_group_id)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " individuals_group_id=$individuals_group_id";
+		}
+
+		if (!empty($phen)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " phen=$phen";
+		}
+
+		if (!empty($relation)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " relation=$relation";
+		}
+
+		$query .= " $where ";
+
+		if (!empty($order)) {
+			$query .= " ORDER BY ".$order." ";
+		}
+
+		if (!empty($limit)) {
+			$query .= " LIMIT ".$limit." ";
+		}
+
+		if (0<count($err)) {
+			echo "<p>Please address the following error".(1<count($err)?"s":"").":<br>";
+			foreach ($err as $e) {
+				echo $e."<br>";
+			}
+			echo "</p>";
+			mysql_close($linkLocal);
+			exit;
+		}
+
+		if ($debug) echo "query: $query<br>";
+
+		$result = mysql_query($query,$linkLocal);
+		if (empty($result)) {
+			errorMessage(mysql_error($linkLocal)."</p><p>".$query."</p>");
+			//echo "LinkLocal: "; print_r($linkLocal);
+			mysql_close($linkLocal);
+			exit;
+		}
+
+		$rowno=0;
+		echo "<small><table border=1>\n<thead>\n";
+		$firstRow=TRUE;
+		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			$rowno++;
+			if (1==$rowno) {
+				$firstRow=FALSE;
+				echo "<tr bgcolor=yellow>";
+				echo "<th class=c>#</th>";
+				foreach($line as $n=>$l) {
+					echo "<th class=c><small>$n</small></th>";
+				}
+				echo "</tr>\n</thead>\n<tbody>\n";
+			}
+			echo "<tr><td>$rowno</td>";
+			foreach($line as $n=>$l) {
+				switch($n) {
+					default:
+						if (!isset($l)||""==$l) echo "<td>&nbsp;</td>";
+						else echo "<td class=small>$l</td>";
+				}
+				echo "</td>";
+			}
+			echo "</tr>\n";
+		}
+		echo "</tbody>\n</table>\n";
+		if (0==$rowno) {
+			echo "<p>No records found matching criteria.</p>";
+		}
+		mysql_free_result($result);
+		mysql_close($linkLocal);
+	}
+	include("footer.php");
+?>
+</body>
+</html>
