@@ -199,7 +199,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 			<tr bgcolor="red"><th colspan=4>QTLs - Select Locus</th></tr>
 			<tr bgcolor="orange"><th>Name</th><th>Chr</th><th><small>bp From</small></th><th><small>bp To</small></th></tr>
 <?php
-		include_once("func_public_qtl.php");
+		require_once("func_public_qtl.php");
 		$qtls = get_public_qtls($linkLocal);
 		foreach ($qtls as $q) {
 			echo "<tr><td><small>".$q["name"]."</small></td>";
@@ -220,6 +220,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 		require_once("func_dbconfig.php");
 		require_once("func_conversion_58.php");
 		require_once("func_public_qtl.php"); // sets variable qtls
+		$qtls = get_public_qtls($linkLocal);
 
 		foreach (array(
 			"show_NumLoci","show_NumEQTLPeak","show_NumEQTLTraitPeak","show_NumEQTLPeak",
@@ -489,7 +490,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 						</td>";
 				}
 				echo "<td>";
-				$qs=withinthefollowingqtls($line["Chr"],$bp);
+				$qs=withinthefollowingqtls($line["Chr"],$bp,$qtls);
 				if (0==count($qs)) {
 					echo "&nbsp;";
 				}

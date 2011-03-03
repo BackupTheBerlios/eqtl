@@ -42,7 +42,19 @@ The documentation does not end here but is dispersed throughout the file.
 */
 
 function errorMessage ($text,$exit=FALSE,$maintainerEmail="MAINTAINEREMAIL") {
-	echo "<p>$text</p>";
+	if (is_array($text)) {
+		echo "<p>The following errors have been observed";
+		if (!empty($origin)) echo " in $origin";
+		echo ":<p>\n";
+		echo "<ul>\n";
+		foreach ($text as $t) {
+			echo "<li>$t\n";
+		}
+		echo "</ul>";
+	}
+	else {
+		echo "<p>$text</p>";
+	}
 	echo "<p>Please report to <a href=\"mailto:$maintainerEmail\">$maintainerEmail</a>.</p>";
 	if ($exit) {
 		trigger_error($text);
