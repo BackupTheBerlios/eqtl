@@ -1,0 +1,69 @@
+<?php
+
+TEMPLATEWARNINGHASH
+
+/**
+STARTOFDOCUMENTATION
+
+=head1 NAME
+
+func_error.php - routine to inform about an error
+
+=head1 SYNOPSIS
+
+to be included by dynamic web pages
+
+=head1 DESCRIPTION
+
+=head2 errorMessage
+
+write the error message, suggest to inform the maintainer and optionally writes to the log and exists.
+
+=over 4
+
+=item text
+
+The error message to write.
+
+=item exit
+
+If set to true, the error message will be followed by a call to 'trigger_error', which immediately
+stops execution.
+
+=item maintainer
+
+Email address to send a report to.
+
+=back
+
+=cut
+
+The documentation does not end here but is dispersed throughout the file.
+*/
+
+function errorMessage ($text,$exit=FALSE,$maintainerEmail="MAINTAINEREMAIL") {
+	echo "<p>$text</p>";
+	echo "<p>Please report to <a href=\"mailto:$maintainerEmail\">$maintainerEmail</a>.</p>";
+	if ($exit) {
+		trigger_error($text);
+	}
+}
+
+/*
+
+=head1 AUTHOR
+
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
+Georg Zeplin <zeplin@inb.uni-luebeck.de>
+
+=head1 COPYRIGHT
+
+Universities of LE<uuml>beck, Germany, 2011
+
+=cut
+
+ENDOFDOCUMENTATION
+
+*/
+
+?>

@@ -24,6 +24,7 @@ i.e.  with Ensembl in its various versions.
 The documentation does not end here but is dispersed throughout the file.
 */
 
+require_once("func_error.php");
 
 global $verbose;
 $verbose=VERBOSEPHP;
@@ -216,14 +217,6 @@ $markerpassword=$passwordeqtl;
 $markerdatabase=$databaseeqtl;
 
 $debug=TRUE;
-
-function errorMessage ($text,$maintainerEmail="") {
-	if (empty($maintainerEmail)) {
-		$maintainerEmail="MAINTAINEREMAIL";
-	}
-	echo "<p>$text</p>";
-	echo "<p>Please report to <a href=\"mailto:$maintainerEmail\">$maintainerEmail</a>.</p>";
-}
 
 function show_config() {
 	global $hostnameEnsembl, $usernameEnsembl,
