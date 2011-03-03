@@ -1,37 +1,39 @@
 <?php
 
 /**
-STARTOFDOCUMENTATION
+ STARTOFDOCUMENTATION
 
-=pod
+ =pod
 
-=head1 NAME
+ =head1 NAME
 
-compara.php - 
+ compara.php -
 
-=head1 SYNOPSIS
+ =head1 SYNOPSIS
 
-=head1 DESCRIPTION
+ =head1 DESCRIPTION
 
-=head1 AUTHOR
+ =head1 AUTHOR
 
-Michael Brehler <brehler@informatik.uni-luebeck.de>,
-Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
+ Michael Brehler <brehler@informatik.uni-luebeck.de>,
+ Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
 
-=head1 COPYRIGHT
+ =head1 COPYRIGHT
 
-University of LE<uuml>beck, Germany, 2011
+ University of LE<uuml>beck, Germany, 2011
 
-=cut
+ =cut
 
-ENDOFDOCUMENTATION
-*/
+ ENDOFDOCUMENTATION
+ */
 
 include 'html/header.html';
 
 require_once 'qtl_functions.php';
 require_once 'db_functions.php';
 require_once 'utils.php';
+require_once 'fill_related_projects.php';
+fill_compara_array();
 
 //measure running-time
 $start = tic();
@@ -40,128 +42,79 @@ $args = $_GET;
 
 $compara = connectToCompara(3306);
 
-$proj_str = 'project';
+$proj_str = 'projects';
 if(isset($args[$proj_str])&&(count($args[$proj_str])==2)){
 	connectToQtlDBs($args[$proj_str]);
 }else{
-	fatal_error('No project found or wrong number of projects!');
+	fatal_error('No projects found or wrong number of projects!');
 }
 
-
-var_export($args);
-exit('Debug');
-
+$experiment1 = $compara_array[$args[$proj_str][0]];
+$experiment2 = $compara_array[$args[$proj_str][1]];
 
 $reg_str = 'regions';
 $chr2reg = array();
-//TODO: update compara_array with genome_db_ID
-$species2genome_db_ids = array("Rattus norvegicus" => 3,"Mus musculus"=>57);
-$genome_ids2dbs = array(57 => 'eqtl_rostock_eae', 3 =>'eqtl_stockholm_eae_logplier');
+$species2genome_db_ids = array($experiment1['species'] => $experiment1['genome_db_id'],$experiment2['species']=>$experiment2['genome_db_id']);
+$genome_ids2dbs = array($experiment2['genome_db_id'] => $experiment2['db_name'], $experiment1['genome_db_id'] =>$experiment1['db_name']);
 
-
-
-if(isset($args[$reg_str])){
-	if(isset($args['species'])){
-		if(isset($args['confidence_int'])){
-			$confidence_int = $args['confidence_int'];
-		}else{
-			fatal_error('No confidence interval found!');
-		}
-		$regs = $args[$reg_str];
-		foreach ($regs as $reg){
-			$pos = strpos ($reg, ":");
-			$regionChr[] = substr($reg,0,$pos);
-			$regionBP = substr($reg,$pos+1);
-			//build substrings with start and ending of region
-			$pos = strpos ($regionBP, "-");
-			//start of region in bp
-			$regionStart[] = substr($regionBP,0,$pos);
-			//end of region in bp
-			$regionEnd[] = substr($regionBP,$pos+1);
-		}
-		//initialize array for mapping groupnumbers to regions
-		$group2region = array();
-		$group2region2 = array();
-		if($args['species'] == 'Rattus norvegicus'){
-			//load rat informations (database and so on...)
-			$genome_db_ids = array(3,57);
-			$species_names = array("Rattus norvegicus","Mus musculus");
-			$database1 = 'eqtl_stockholm_eae_logplier';
-			$database2 = 'eqtl_rostock_eae';
-			//put the region start and region end in arrays
-			for ($i = 0; $i < sizeof($regionChr); $i++) {
-				//bp to cM for start of region
-				$intervalStart[$i] = bp2cM($regionChr[$i], (int)$regionStart[$i],'Rattus norvegicus');
-				//bp to cM for end of region
-				$intervalEnd[$i] = bp2cM($regionChr[$i], (int)$regionEnd[$i],'Rattus norvegicus');
-			}
-			$chromosomsEx1 = $regionChr;
-			$ex1 =  get_loci_from_sql($database1, $qtldb, 'userinterval', $chromosomsEx1, $confidence_int, $group2region, $intervalStart, $intervalEnd);
-			if (!empty($ex1)) {
-				// converts $ex1 in 2 arrays: $groups1 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end', 'Chr') $mapEx1 = index -> (locus,groupNr)
-				list($groups1, $mapEx1) = $ex1;
-			}else {
-				echo '<INPUT TYPE=BUTTON VALUE="back" onClick="history.back()">';
-				echo '<br />';
-				fatal_error('nothing found for the given region(-s)');
-			}
-			// generates an arrays with index -> locinames
-			$loci_ex1 = array_map('current',$mapEx1);
-			$chromosomsEx2 = getChromosoms($compara, 57);
-			$ex2 =  get_loci_from_sql($database2, $qtldb, 'wholeGenome', $chromosomsEx2, $confidence_int, $group2region2);
-			// converts $ex2 in 2 arrays: $groups2 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end') $mapEx2 = index -> (locus,groupNr)
-			list($groups2, $mapEx2) = $ex2;
-			// generates an arrays with index -> locinames
-			$loci_ex2 = array_map('current',$mapEx2);
-				
-				
-
-		}elseif ($args['species'] == 'Mus musculus'){
-			//load mouse informations (database and so on...)
-			$genome_db_ids = array(57,3);
-			$species_names = array("Mus musculus","Rattus norvegicus");
-			$database1 = 'eqtl_rostock_eae';
-			$database2 = 'eqtl_stockholm_eae_logplier';
-			//put the region start and region end in arrays
-			for ($i = 0; $i < sizeof($regionChr); $i++) {
-				//bp to cM for start of region
-				$intervalStart[$i] = bp2cM($regionChr[$i], (int)$regionStart[$i],'Mus musculus');
-				//bp to cM for end of region
-				$intervalEnd[$i] = bp2cM($regionChr[$i], (int)$regionEnd[$i],'Mus musculus');
-			}
-			$chromosomsEx1 = $regionChr;
-			$ex1 =  get_loci_from_sql($database1, $qtldb, 'userinterval', $chromosomsEx1, $confidence_int, $group2region, $intervalStart, $intervalEnd);
-			if (!empty($ex1)) {
-				// converts $ex1 in 2 arrays: $groups1 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end', 'Chr') $mapEx1 = index -> (locus,groupNr)
-				list($groups1, $mapEx1) = $ex1;
-			}else {
-				echo '<INPUT TYPE=BUTTON VALUE="back" onClick="history.back()">';
-				echo '<br />';
-				fatal_error('nothing found for the given region(-s)');
-			}
-			// generates an arrays with index -> locinames
-			$loci_ex1 = array_map('current',$mapEx1);
-			$chromosomsEx2 = getChromosoms($compara, 3);
-			$ex2 =  get_loci_from_sql($database2, $qtldb, 'wholeGenome', $chromosomsEx2, $confidence_int, $group2region2);
-			// converts $ex2 in 2 arrays: $groups2 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end') $mapEx2 = index -> (locus,groupNr)
-			list($groups2, $mapEx2) = $ex2;
-			// generates an arrays with index -> locinames
-			$loci_ex2 = array_map('current',$mapEx2);
-
-		}else {
-			fatal_error('wrong speciesname');
-		}
-	}else{
-		fatal_error('no speciesname');
-	}
+//get confidence interval from GET
+if(isset($args['confidence_int'])){
+	$confidence_int = $args['confidence_int'];
 }else{
-	fatal_error('BUGS!');
+	fatal_error('No confidence interval found!');
 }
-// TODO: multiple regions on one chromosome
+$regs = $args[$reg_str];
+foreach ($regs as $reg){
+	$pos = strpos ($reg, ":");
+	$regionChr[] = substr($reg,0,$pos);
+	$regionBP = substr($reg,$pos+1);
+	//build substrings with start and ending of region
+	$pos = strpos ($regionBP, "-");
+	//start of region in bp
+	$regionStart[] = substr($regionBP,0,$pos);
+	//end of region in bp
+	$regionEnd[] = substr($regionBP,$pos+1);
+}
+//initialize array for mapping groupnumbers to regions
+$group2region = array();
+$group2region2 = array();
+
+//load informations of experiment1 (database and so on...)
+$genome_db_ids = array($experiment1['genome_db_id'],$experiment2['genome_db_id']);
+$species_names = array($experiment1['species'],$experiment2['species']);
+$database1 = $experiment1['db_name'];
+$database2 = $experiment2['db_name'];
+
+
+//put the region start and region end in arrays
+for ($i = 0; $i < sizeof($regionChr); $i++) {
+	//bp to cM for start of region
+	$intervalStart[$i] = bp2cM($regionChr[$i], (int)$regionStart[$i],$experiment1['species']);
+	//bp to cM for end of region
+	$intervalEnd[$i] = bp2cM($regionChr[$i], (int)$regionEnd[$i],$experiment1['species']);
+}
+$chromosomsEx1 = $regionChr;
+$ex1 =  get_loci_from_sql($database1, $experiment1['connection'], 'userinterval', $chromosomsEx1, $confidence_int, $group2region, $intervalStart, $intervalEnd);
+if (!empty($ex1)) {
+	// converts $ex1 in 2 arrays: $groups1 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end', 'Chr') $mapEx1 = index -> (locus,groupNr)
+	list($groups1, $mapEx1) = $ex1;
+}else {
+	echo '<INPUT TYPE=BUTTON VALUE="back" onClick="history.back()">';
+	echo '<br />';
+	fatal_error('nothing found for the given region(-s)');
+}
+// generates an arrays with index -> locinames
+$loci_ex1 = array_map('current',$mapEx1);
+$chromosomsEx2 = getChromosoms($compara, $experiment2['genome_db_id']);
+$ex2 =  get_loci_from_sql($database2, $experiment2['connection'], 'wholeGenome', $chromosomsEx2, $confidence_int, $group2region2);
+// converts $ex2 in 2 arrays: $groups2 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end') $mapEx2 = index -> (locus,groupNr)
+list($groups2, $mapEx2) = $ex2;
+// generates an arrays with index -> locinames
+$loci_ex2 = array_map('current',$mapEx2);
 
 // SYNTENY
 $dbs = array($database1,$database2);
-$groupSynteny_ex12ex2 = getSyntenyGroups($qtldb,$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
+$groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
 
 // display -----------------------
 include 'display_table.php';

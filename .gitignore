@@ -80,6 +80,8 @@ website/status.txt
 # Intergenomics stuff
 website/intergenomics/compara_config.php
 website/intergenomics/fill_related_projects.php
+website/intergenomics/html/table.html
+website/intergenomics/html/table_all.html
 # local install for testing
 conf_Maus
 conf_Ratte
