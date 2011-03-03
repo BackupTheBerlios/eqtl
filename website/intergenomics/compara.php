@@ -48,7 +48,7 @@ if(isset($args[$proj_str])&&(count($args[$proj_str])==2)){
 }else{
 	fatal_error('No projects found or wrong number of projects!');
 }
-
+$projectNames = $args[$proj_str];
 $experiment1 = $compara_array[$args[$proj_str][0]];
 $experiment2 = $compara_array[$args[$proj_str][1]];
 

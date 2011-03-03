@@ -37,8 +37,8 @@ prepareColors($groups1,$groups2);
 <script src="js/mouseposition.js"></script>
 <script src="js/jquery-1.4.4.min.js"></script>
 
-<p>Spezies of exp.1 over the columns: <span id="species1" class="display_species"><?php echo $species_names[0];?></span>;
-Spezies of exp.2 over the rows: <span id="species2" class="display_species"><?php echo $species_names[1];?></span>.</p>
+<p>Name of exp.1 (speciesname) over the columns: <span id="species1" class="display_species"><?php echo $projectNames[0]." (".$species_names[0].")";?></span>;
+Name of exp.2 (speciesname) over the rows: <span id="species2" class="display_species"><?php echo $projectNames[1]." (".$species_names[1].")";?></span>.</p>
 <div style="font-size: small;"><!-- the display table -->
 <table border="1" cellpadding="5" cellspacing="0">
   <thead>
