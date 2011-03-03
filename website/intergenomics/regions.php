@@ -40,8 +40,9 @@ require_once 'db_functions.php';
 require_once 'qtl_functions.php';
 require_once 'utils.php';
 require_once 'fill_related_projects.php';
-
 fill_compara_array();
+require_once '../eqtl/header.php';
+show_large_header("Intergenomics",false,"Ensembl Compara interface for Expression QTL");
 global $compara_array;
 
 $proj_str = 'projects';

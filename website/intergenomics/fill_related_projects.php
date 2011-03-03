@@ -7,7 +7,7 @@
  */
 function fill_compara_array() {
 	include 'compara_config.php';
-	$a="[Maus,URL,../../../maus]";
+	$a="[Ratte,URL,../../../ratte]";
 	if (empty($a)) {
 		return null;
 	}
