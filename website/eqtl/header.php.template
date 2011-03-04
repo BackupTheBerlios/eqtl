@@ -40,17 +40,21 @@ $urlLogoRightLarge="PATHLOGORIGHTLARGE";
 
 */
 
-    function show_html_header($title,$reldir="") {
+function show_html_header($title, $reldir="", $additional_css=array()) {
 	echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
 	  "http://www.w3.org/TR/html4/loose.dtd">'."\n";
 	echo "<html>\n  <head>\n    <title>$title</title>\n    ";
 	$sheets = preg_split("/[ ,]/","STYLESHEETS");
 	foreach ($sheets as $s) {
-	    echo "    <link href=\"$s\" rel=\"stylesheet\" media=\"screen\"/>\n";
+	    echo "    <link href=\"".((substr($s,0,4) === 'http')? '' : $reldir).
+	    	$s."\" rel=\"stylesheet\" media=\"screen\"/>\n";
+	}
+	foreach ($additional_css as $s) {
+		echo "    <link href=\"$s\" rel=\"stylesheet\" media=\"screen\"/>\n";;
 	}
 	echo "<META http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\" />\n  ";
 	echo "</head>\n  <body>\n";
-    }
+}
 
 
 
@@ -62,10 +66,12 @@ $urlLogoRightLarge="PATHLOGORIGHTLARGE";
 
 */
 
-    function show_small_header($title,$show_html_header_flag=false,$prefix="") {
+function show_small_header($title, $show_html_header_flag=false,
+	$prefix="", $reldir="", $additional_css=array()) {
+		
     	global $urlLogoLeft2,$urlLogoRightLarge,$urlLogoRight,$urlLogoLeft;
 	if ($show_html_header_flag) {
-		@show_html_header($title);
+		@show_html_header($title,$reldir,$additional_css);
 	}
 	echo "$prefix";
 	echo "<table border=0"
@@ -89,10 +95,11 @@ $urlLogoRightLarge="PATHLOGORIGHTLARGE";
 
 */
 
-    function show_large_header($title,$show_html_header_flag=TRUE,$preamble="") {
+function show_large_header($title, $show_html_header_flag=TRUE, 
+	$preamble="", $reldir="", $additional_css=array()) {
     	global $urlLogoLeft,$urlLogoRight,$urlLogoLeftLarge,$urlLogoRightLarge,$urlLogoLeft2;
 	if ($show_html_header_flag) {
-		@show_html_header($title);
+		@show_html_header($title, $reldir, $additional_css);
 	}
 	echo "$preamble";
 	echo "<table border=0 width=\"100%\">\n<tr><td valign=top align=center cellpadding=5 nowrap>"
@@ -106,7 +113,7 @@ $urlLogoRightLarge="PATHLOGORIGHTLARGE";
 	foreach (array("Home"=>"index.php", "Interactions"=>"interaction.php", "Loci"=>"locus.php", "Markers"=>"marker.php",
 		"QTL"=>"qtl.php", "Genes"=>"trait.php") as $a=>$b)
 	{
-		echo "&nbsp;<a href=\"$b\">$a</a>&nbsp;";
+		echo "&nbsp;<a href=\"".$reldir.$b."\">$a</a>&nbsp;";
 	}
 	echo "&nbsp;<font color=green size=-1><a href=\"mailto:moeller@inb.uni-luebeck.de\"><i>Help</i></a></font>";
 	echo "</td>\n";

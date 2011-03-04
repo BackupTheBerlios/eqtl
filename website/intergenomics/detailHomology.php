@@ -1,25 +1,62 @@
 <?php
+
+/**
+STARTOFDOCUMENTATION
+
+=pod
+
+=head1 NAME
+
+detailHomology.php - 
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 AUTHOR
+
+Michael Brehler <brehler@informatik.uni-luebeck.de>,
+Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2011
+
+=cut
+
+ENDOFDOCUMENTATION
+*/
+
 //include 'html/header.html';
 require_once 'db_functions.php';
 require_once 'qtl_functions.php';
 require_once 'utils.php';
+require_once 'fill_related_projects.php';
+fill_compara_array();
 
 // databases:
-$qtldb = connectToQtlDB();
-$compara = connectToCompara(3306);
 
-# supported target species:
-# rat: stockholm "Rattus norvegicus"
-# mus: rostock "Mus musculus"
-
-$speciesArray = array("Rattus norvegicus","Mus musculus");
-$genome_db_ids = array(57,3);
-$species2genome_db_ids = array("Rattus norvegicus" => 3,"Mus musculus"=>57);
-$genome_ids2dbs = array(57 => 'eqtl_rostock_eae', 3 =>'eqtl_stockholm_eae_logplier');
-$num_species = sizeof($speciesArray);
-$species_str = 'species';
-$region_str = 'region';
 $args = $_GET;
+
+$proj_str = 'projects';
+if(isset($args[$proj_str])&&(count($args[$proj_str])==2)){
+	connectToQtlDBs($args[$proj_str]);
+}else{
+	fatal_error('No projects found or wrong number of projects!');
+}
+
+$compara = connectToCompara(3306);
+$experiment1 = $compara_array[$args[$proj_str][0]];
+$experiment2 = $compara_array[$args[$proj_str][1]];
+
+
+$genome_db_ids = array($experiment1['genome_db_id'],$experiment2['genome_db_id']);
+$speciesArray = array($experiment1['species'],$experiment2['species']);
+$species2genome_db_ids = array($experiment1['species'] => $experiment1['genome_db_id'],$experiment2['species']=>$experiment2['genome_db_id']);
+$genome_ids2dbs = array($experiment2['genome_db_id'] => $experiment2['db_name'], $experiment1['genome_db_id'] =>$experiment1['db_name']);
+$num_species = sizeof($speciesArray);
+
+$region_str = 'region';
 
 function getReg($str, &$chr,&$start,&$end) {
 	$pos = strpos($str, ":");
@@ -29,15 +66,15 @@ function getReg($str, &$chr,&$start,&$end) {
 	$start = substr($reg,0,$pos);
 	$end = substr($reg,$pos+1);
 }
-if(!isset($args[$species_str.'1'])) {// no species selected
+if(!isset($experiment1['species']) || !isset($experiment2['species'])) {// no species selected
 	$species1 = "Mus musculus";
 	$species2 = "Rattus norvegicus";
 	$region1 = "2:100-110";
 	$region2 = "2:137-137.8";
 	// header() TODO add refer to itself so one sees the arguments
 }else{
-	$species1 = $args[$species_str.'1'];
-	$species2 = $args[$species_str.'2'];
+	$species1 = $experiment1['species'];
+	$species2 = $experiment2['species'];
 	$region1 = $args[$region_str.'1'];
 	$region2 = $args[$region_str.'2'];
 }
@@ -51,7 +88,7 @@ $sql = 'select Name from '.$db1.'.Locus
 where Chr = '.$chr1.' 
 and cMorgan >= '.$start1.' 
 and cMorgan <= '.$end1.';';
-$loci_ex1 = get_only_loci_from_sql($sql, $qtldb);
+$loci_ex1 = get_only_loci_from_sql($sql, $experiment1['connection']);
 
 $genome_id2 = $species2genome_db_ids[$species2];
 $db2 = $genome_ids2dbs[$genome_id2];
@@ -59,14 +96,14 @@ $sql = 'select Name from '.$db2.'.Locus
 where Chr = '.$chr2.' 
 and cMorgan >= '.$start2.' 
 and cMorgan <= '.$end2.';';
-$loci_ex2 = get_only_loci_from_sql($sql, $qtldb);
+$loci_ex2 = get_only_loci_from_sql($sql, $experiment2['connection']);
 // Loci to genes
-useDB($db1,$qtldb);
-$loci2stable_ids_ex1 = loci2stable_ids($loci_ex1,$qtldb);
+useDB($db1,$experiment1['connection']);
+$loci2stable_ids_ex1 = loci2stable_ids($loci_ex1,$experiment1['connection']);
 $unique_ens_ids_ex1 = get_unique_vals_from_2d_array($loci2stable_ids_ex1[0]);
 
-useDB($db2,$qtldb);
-$loci2stable_ids_ex2 = loci2stable_ids($loci_ex2,$qtldb);
+useDB($db2,$experiment2['connection']);
+$loci2stable_ids_ex2 = loci2stable_ids($loci_ex2,$experiment2['connection']);
 $unique_ens_ids_ex2 = get_unique_vals_from_2d_array($loci2stable_ids_ex2[0]);
 //exit('Exit: Debbuging in compara.php!');
 

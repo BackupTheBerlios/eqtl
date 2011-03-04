@@ -1,11 +1,39 @@
 <?php
-include 'html/header.html';
+
+/**
+STARTOFDOCUMENTATION
+
+=pod
+
+=head1 NAME
+
+regions.php - 
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 AUTHOR
+
+Michael Brehler <brehler@informatik.uni-luebeck.de>,
+Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University of LE<uuml>beck, Germany, 2011
+
+=cut
+
+ENDOFDOCUMENTATION
+*/
+
+//include 'html/header.html';
 # supported target species:
 # rat: stockholm "Rattus norvegicus"
 # mus: rostock "Mus musculus"
 
 /**
- * 
+ *
  * Maybe this shall be in its own file
  * @param $projects
  * @param $isSource
@@ -15,10 +43,11 @@ function showProjectList($projects, $isSource){
 
 	$index = $isSource ? 0 : 1;
 
-	echo'<select onclick="submit_page(\'this\')" name="projects'.$index.'" size="'.$num_species.'">';
+	echo'<select onclick="submit_page(\'this\')" id="projects'.$index.'" size="'.
+	count($compara_array).'">';
 
 	foreach ($compara_array as $project_name => $project_info) {
-		echo '<option value="'.$project_name.'" '.
+		echo '<option value="'.implode("+", explode(" ", $project_name)).'" '.
 		($project_name == $projects[$index] ? 'selected="selected">': '>').
 		$project_name.' ('.$project_info['species'].')</option>';
 	}
@@ -39,13 +68,17 @@ require_once 'db_functions.php';
 require_once 'qtl_functions.php';
 require_once 'utils.php';
 require_once 'fill_related_projects.php';
-
 fill_compara_array();
+require_once '../eqtl/header.php';
+show_large_header("Intergenomics",true,"Ensembl Compara interface for Expression QTL",
+	'../eqtl/', array('css/style.css'));
 global $compara_array;
 
 $proj_str = 'projects';
 if(!isset($args[$proj_str])){//no project selected
 	$projects = array();
+}else{
+	$projects = $args[$proj_str];
 }
 // enlarge project array with NULLs
 $n = count($projects);
@@ -60,86 +93,44 @@ while ($n<2) {
   type="text/javascript" src="js/regions.js"></script>
 
 <div class="lr">
-<h3>Compare source project:</h3>
-<?php 
+<fieldset>
+<h3>Compare source project</h3>
+<?php
 showProjectList($projects,true);
-?>
+?></fieldset>
 </div>
 <div class="lr">
+<fieldset>
 <h3>...with target project:</h3>
-<?php 
-showProjectList($projects,false);
-?>
-</div>
-<br style="clear: both;"/>
 <?php
-include 'html/footer.html';
-exit();
+showProjectList($projects,false);
+?></fieldset>
+</div>
+<br style="clear: both;" />
+<?php
 
+if($projects[0]==NULL){
+	include '../eqtl/footer.php';
+	include 'html/footer.html';
+	exit();
+}
 
-connectToQtlDBs($args[$proj_str]);
-
-
-$qtldb = connectToQtlDB();
+// only the database of the source project needs to be opened
+$src_proj = $projects[0];
+connectToQtlDBs(array($src_proj));
+$qtldb = $compara_array[$src_proj]['connection'];
 $compara = connectToCompara(3306);
 
-if(!isset($args[$species_str])) {//no species selected
-	?>
-
-<script
-  type="text/javascript" src="js/regions.js"></script>
-
-<h3>Please select a species first:</h3>
-<form method="get">
-<p><?php 
-// show an list with the available target species
-echo'<label for="'.$species_str.'">Species: </label>
-<select onclick="submit_page(\'this\')" name="'.$species_str.'" size="'.$num_species.'">';
-foreach ($speciesArray as $speciesValue) {
-	echo '<option value="'.$speciesValue.'" >
-  		'.$speciesValue.'</option>';
-}
-?></select></p>
-</form>
-<?php
-include 'html/footer.html';
-exit();
-}
-//-------------------------------
-//source species is preselected
-?>
-
-<script
-  type="text/javascript" src="js/regions.js"></script>
-
-<h3>Selected species:</h3>
-<form method="get" action="javascript:submitToCompara()"><?php
-
-// show a list with the available target species; the selected is highlighted
-echo'<p><label for="'.$species_str.'">Species: </label>
-<select onclick="submit_page(\'this\')"
-  name="'.$species_str.'" size="'.$num_species.'">';
-$species = $args[$species_str];
-for ($i = 0; $i < sizeof($speciesArray); $i++) {
-	echo '<option name="'.$species_str.'" value="'.$speciesArray[$i].'" ';
-	if($speciesArray[$i]==$species){
-		echo ' selected="selected">';
-	}else{
-		echo '>';
-	}
-	echo $speciesArray[$i]."</option>\n";
-}
-echo '</select></p>';
 
 // region selection
 
 // fetch chromosomes to species id
-$genome_db_id = $species2genome_db_ids[$species];
+$genome_db_id = $compara_array[$src_proj]['genome_db_id'];
 $chrs = getChromosomsAndLengths($compara,$genome_db_id);
-// addition filtering
-$database = $genome_ids2dbs[$genome_db_id];
-useDB($database, $qtldb);
+// additional filtering
 $chrs = filter_chromos($qtldb, $chrs);
+
+$species = $compara_array[$src_proj]['species'];
 
 // get selected regions
 $chr2reg = array();
@@ -159,7 +150,7 @@ if(isset($args[$confidence_int_str])){
 	$confidence_int_len = 1;
 }
 ?>
-
+<fieldset>
 <h3>Add regions for species <?php echo $species;?></h3>
 <table border="1" cellpadding="3" cellspacing="0">
   <tr>
@@ -200,13 +191,14 @@ if(isset($args[$confidence_int_str])){
   }
   ?>
 </table>
+</fieldset>
 <p><label for="conf">Length of confidence intervall around each locus: </label><input
   id="conf" type="text" size="4"
   value="<?php echo $confidence_int_len; ?>" /> cM</p>
 <p>&nbsp;&nbsp;<input type="button" onclick="submit_page('overview')"
   value="Overview" /> &nbsp;&nbsp; <input type="button"
   onclick="submit_page('all')" value="Display all" /></p>
-</form>
   <?php
+  include '../eqtl/footer.php';
   include 'html/footer.html';
   ?>

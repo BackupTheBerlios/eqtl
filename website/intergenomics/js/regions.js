@@ -8,15 +8,45 @@
 /**
  * prepare species string for $_GET
  */
-function prepareSpecies(site){
-	var species_str = "species";
-	var species_select = document.getElementsByName(species_str)[0];
-	var expr = /(\w.+)\s(\w.+)/;
-	expr.exec(species_select[species_select.selectedIndex].value);
+function prepareSpecies(site) {
+	var project_str = "projects";
+	// var project_selects = document.getElementsByName(project_str);
+	var src_sel = document.getElementById(project_str + "0");
+	var tar_sel = document.getElementById(project_str + "1");
+
+	if (src_sel.selectedIndex >= 0) {
+		var src_val = src_sel[src_sel.selectedIndex].value;
+	} else {
+		if (site == null) {
+			// XXX
+		}
+		var src_val = "NULL";
+	}
+
+	if (tar_sel.selectedIndex >= 0) {
+		var tar_val = tar_sel[tar_sel.selectedIndex].value;
+	} else {
+		if (site == null) {
+		// XXX
+			site = "regions.php";
+		}
+		var tar_val = "NULL";
+	}
+
 	if (site == null) {
 		site = "regions.php";
 	}
-	return site + "?" + species_str + "=" + RegExp.$1 + "+" + RegExp.$2;
+	var proj_arg = project_str + "[]=";
+	return site + "?" + proj_arg + src_val + "&" + proj_arg + tar_val;
+
+	// var species_str = "species";
+	// var species_select = document.getElementsByName(species_str)[0];
+	// var expr = /(\w.+)\s(\w.+)/;
+	// expr.exec(species_select[species_select.selectedIndex].value);
+	// if (site == null) {
+	// site = "regions.php";
+	// }
+	// return site + "?" + species_str + "=" + RegExp.$1 + "+" + RegExp.$2;
 }
 
 /**
@@ -69,9 +99,9 @@ function deleteRegion(chr) {
 function submit_page(target) {
 	if (target == 'overview') {
 		window.location.href = prepareGetString("compara.php");
-	} else if (target == 'all'){
+	} else if (target == 'all') {
 		window.location.href = prepareGetString("display_all.php");
-	}else{//this
+	} else {// this
 		window.location.href = prepareSpecies();
 	}
 
