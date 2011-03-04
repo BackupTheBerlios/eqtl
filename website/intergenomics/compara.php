@@ -43,18 +43,27 @@ $args = $_GET;
 $compara = connectToCompara(3306);
 
 $proj_str = 'projects';
-if(!isset($args[$proj_str];){
-	fatal_error('No project givan as argument!');
+if(!isset($args[$proj_str])){
+	fatal_error('No project given as argument!');
 }
 $projects = $args[$proj_str];
-if(isset($projects)&&(count($projects)==2)){
-	connectToQtlDBs($projects);
-}else{
-	fatal_error('No projects found or wrong number of projects!');
+$n_proj = count($projects);
+switch ($n_proj) {
+	case 1:
+		// is possible, if the referrer is locus.php
+
+		;
+		break;
+	case 2:
+		// is possible, if the referrer is regions.php
+		connectToQtlDBs($projects);
+		break;
+	default:
+		fatal_error('Wrong number of projects!');;
+		break;
 }
-$projectNames = $args[$proj_str];
-$experiment1 = $compara_array[$args[$proj_str][0]];
-$experiment2 = $compara_array[$args[$proj_str][1]];
+$experiment1 = $compara_array[$projects[0]];
+$experiment2 = $compara_array[$projects[1]];
 
 $reg_str = 'regions';
 $chr2reg = array();
