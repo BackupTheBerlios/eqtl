@@ -63,6 +63,7 @@ website/eqtl/trait.php
 website/eqtl/trait_summary.php
 website/eqtl/venn.php
 website/eqtl/xyplot.php
+website/eqtl/locus.php
 website/evaluateQuery.R
 website/executeQuery.sh
 website/getRscript.pl

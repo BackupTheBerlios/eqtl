@@ -48,6 +48,8 @@ fieldset {
   background-color: #ddd;
 }
 
+th {background-color:#F5F5F5;}
+
 .ciss {
   background-color: lime;
 }
