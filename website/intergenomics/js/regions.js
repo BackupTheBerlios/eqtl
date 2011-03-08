@@ -17,12 +17,19 @@ function prepareSpecies(site) {
 	if (src_sel.selectedIndex >= 0) {
 		var src_val = src_sel[src_sel.selectedIndex].value;
 	} else {
+		if (site == null) {
+			// XXX
+		}
 		var src_val = "NULL";
 	}
 
 	if (tar_sel.selectedIndex >= 0) {
 		var tar_val = tar_sel[tar_sel.selectedIndex].value;
 	} else {
+		if (site == null) {
+		// XXX
+			site = "regions.php";
+		}
 		var tar_val = "NULL";
 	}
 
