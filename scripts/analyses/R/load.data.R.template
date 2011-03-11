@@ -53,7 +53,7 @@ source('BASEDIR/scripts/analyses/R/load.data.R')
 "
 
 load.data <- function(type) {
-  cat("Reading ",type," data\t",sep="")
+  cat("load.data.R: Reading ",type," data\t",sep="")
   rootdir <- paste("BASEDIR","CSVDATABASE",sep="/")
   if ("expression" == type) {
     filename <- paste(rootdir, "PHENOFILE", sep="/")
@@ -65,7 +65,7 @@ load.data <- function(type) {
   }
   if (!file.exists(filename)) {
     cat(" [failed]\n",sep="")
-    stop(paste("Failed to find file '",filename,"' to read ",type," data.\n",sep=""))
+    stop(paste("load.data.R: Failed to find file '",filename,"' to read ",type," data.\n",sep=""))
   }
   cat("Filename: ",filename,"\n")
   d<-NULL
@@ -89,13 +89,19 @@ load.data <- function(type) {
     cat(paste(" [ok]  dimension is [",paste(dim(d),collapse=",",sep=""),"]\n",sep=""),sep="")
     return(d)
   } else if ("genotypes" == type) {
-    d <- read.table(filename, header=T, sep=",", skip=0, stringsAsFactors=F)
+    d <- read.table(filename, header=T, sep="GENOFIELDSEP", skip=GENOLINESSKIPNO, na.strings=RQTLREADCROSSNASTRINGS, stringsAsFactors=F)
     d.chr<-d[1,]
+    if (!is.na(d[1,1])) stop("load.data.R: Expected some individual identifier or ",
+                             "something like it that does not have a chromosome assigned ",
+			     "on the first line. This file is not formatted in a ",
+			     "compatible manner for this analysis.\n")
     d.chr.first<-min(which(!is.na(as.numeric(d.chr))))
     d.chr<-as.character(d[1,d.chr.first:ncol(d)])
-    d.morgan<-as.numeric(d[2,d.chr.first:ncol(d)])
-    d.clinical<-d[3:nrow(d),1:(d.chr.first-1)]
-    d.genotypes<-d[3:nrow(d),d.chr.first:ncol(d)]
+    d.morgan<-rep(NA,length(d.chr))
+    if (!is.na(d[2,1])) d.morgan<-as.numeric(d[2,d.chr.first:ncol(d),drop=F])
+    d.clinical<-rep(NA,length(d.chr))
+    if ((d.chr.first-1)>0) d.clinical<-d[3:nrow(d),1:(d.chr.first-1),drop=F]
+    d.genotypes<-d[3:nrow(d),d.chr.first:ncol(d),drop=F]
     cat(paste(" [ok]  Read ",ncol(d.clinical)," classical phenotypes ",
               "and ", ncol(d.genotypes)," genotypes for ",
 	      nrow(d.genotypes), " individuals.\n",sep=""),sep="")
@@ -105,6 +111,8 @@ load.data <- function(type) {
     l[["clinical"]]<-d.clinical
     l[["genotypes"]]<-d.genotypes
     return(l)
+  } else if ("scores" == type) {
+    stop("Not yet implemented.\n")
   } else {
     stop(paste("Don't know how to read data of type '",type,"'.\n",sep=""))
   }
