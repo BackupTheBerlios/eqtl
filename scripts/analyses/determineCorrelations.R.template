@@ -51,7 +51,7 @@ fname<-"CSVDATABASE/PHENOFILE"
 if (!file.exists(fname)) {
 	stop(paste("Could not find file '",fname,"'.\n",sep=""))
 }
-d<-read.delim(file=fname,dec=",",sep="PHENOFIELDSEP",row.names=1,skip=PHENOLINESSKIPNO)
+d<-read.delim(file=fname,dec="PHENOFIELDDEC",sep="PHENOFIELDSEP",row.names=1,skip=PHENOLINESSKIPNO)
 
 # columns with expression data
 p<-grep("INDIVIDUALIDREGEXP",colnames(d))
