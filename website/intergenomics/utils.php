@@ -37,13 +37,13 @@ require_once '../eqtl/func_error.php';
  */
 function warn($str){
 	echo '<div id="warnbox">';
-	echo '<b>'.var_export($str, true).'</b>';
+	echo '<b>'.print_r($str).'</b>';
 	echo "</div>\n";
 }
 
 function error($str){
 	echo '<div id="errorbox">';
-	echo '<b>'.var_export($str, true).'</b>';
+	echo '<b>'.print_r($str).'</b>';
 	echo "</div>\n";
 }
 

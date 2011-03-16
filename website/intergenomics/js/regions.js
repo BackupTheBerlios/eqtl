@@ -14,38 +14,32 @@ function prepareSpecies(site) {
 	var src_sel = document.getElementById(project_str + "0");
 	var tar_sel = document.getElementById(project_str + "1");
 
-	var proj_null = false;
+	// indicates that something is wrong
+	var error = "";
+
 	if (src_sel.selectedIndex >= 0) {
 		var src_val = src_sel[src_sel.selectedIndex].value;
 	} else {
-		proj_null = true;
+		error = "&err=src";
 		var src_val = "NULL";
 	}
 
 	if (tar_sel.selectedIndex >= 0) {
 		var tar_val = tar_sel[tar_sel.selectedIndex].value;
 	} else {
-		proj_null = true;
+		error = "&err=tar";
 		var tar_val = "NULL";
 	}
 
 	if (site == null) {
+		error = "";
 		site = "regions.php";
-	}else if(proj_null){
-		alert("All projectssdlgmnldsfng");
+	} else if (error != "") {// error
 		site = "regions.php";
 	}
 	var proj_arg = project_str + "[]=";
-	return site + "?" + proj_arg + src_val + "&" + proj_arg + tar_val;
+	return site + "?" + proj_arg + src_val + "&" + proj_arg + tar_val + error;
 
-	// var species_str = "species";
-	// var species_select = document.getElementsByName(species_str)[0];
-	// var expr = /(\w.+)\s(\w.+)/;
-	// expr.exec(species_select[species_select.selectedIndex].value);
-	// if (site == null) {
-	// site = "regions.php";
-	// }
-	// return site + "?" + species_str + "=" + RegExp.$1 + "+" + RegExp.$2;
 }
 
 /**
