@@ -56,12 +56,19 @@ function showProjectList($projects, $isSource){
 	echo '</select>';
 }
 
+function endPage(){
+	include '../eqtl/footer.php';
+    echo <<<END
+    <script type="text/javascript" charset="utf-8">
+		$(document).ready(function(){
+			$("a[rel^='prettyPhoto']").prettyPhoto({animationSpeed:'slow',theme:'facebook',slideshow:6000});
+		});
+	</script>
+END;
+    include 'html/footer.html';
+}
 
-$speciesArray = array("Rattus norvegicus","Mus musculus");
-$genome_db_ids = array(57,3);
-$species2genome_db_ids = array("Rattus norvegicus" =>3,"Mus musculus"=>57);
-$genome_ids2dbs = array(57 => 'eqtl_rostock_eae', 3 =>'eqtl_stockholm_eae_logplier');
-$num_species = sizeof($speciesArray);
+
 $species_str = 'species';
 $reg_str = 'regions';
 $args = $_GET;
@@ -73,7 +80,7 @@ require_once 'fill_related_projects.php';
 fill_compara_array();
 require_once '../eqtl/header.php';
 show_large_header("Intergenomics",true,"Ensembl Compara interface for Expression QTL",
-	'../eqtl/', array('css/style.css'));
+	'../eqtl/', array('css/style.css','css/prettyPhoto.css'));
 global $compara_array;
 
 $proj_str = 'projects';
@@ -100,8 +107,31 @@ if(isset($args['err'])){
 ?>
 
 <script
+  src="js/jquery-1.4.4.min.js" type="text/javascript" charset="utf-8"></script>
+<script
+  src="js/jquery.prettyPhoto.js" type="text/javascript" charset="utf-8"></script>
+<script
   type="text/javascript" src="js/regions.js"></script>
 
+<div class="lr" style="width: 30%;">
+  <fieldset>
+    <h3>Description</h3>
+    The intergenomics page allows you to search for syntenies and
+    homologies in the genome of another species with a set of regions of
+    your choice. 
+    <ul>
+    <li><a href="img/regions_l.png" rel="prettyPhoto[a]"
+      title="region selection"><img src="img/regions_s.png" width="100"
+      height="65" alt="Step 1" /> </a></li>
+    <li><a href="img/synteny_l.png" rel="prettyPhoto[a]"
+      title="syntenic regions"><img src="img/synteny_s.png" width="49"
+      height="65" alt="Step 2" /> </a></li>
+    </ul>
+    
+
+
+  </fieldset>
+</div>
 <div class="lr">
   <fieldset>
     <h3>Compare source project</h3>
@@ -122,8 +152,7 @@ if(isset($args['err'])){
     <?php
 
     if($projects[0]==NULL || $projects[0]=="NULL"){
-    	include '../eqtl/footer.php';
-    	include 'html/footer.html';
+    	endPage();
     	exit();
     }
 
@@ -170,7 +199,7 @@ if(isset($args['err'])){
   <table border="1" cellpadding="3" cellspacing="0">
     <tr>
       <th>Chromosome</th>
-      <th>Length</th>
+      <th>length (bp)</th>
       <th>add region</th>
       <th>selected regions</th>
     </tr>
@@ -218,6 +247,5 @@ if(isset($args['err'])){
     onclick="submit_page('all')" value="Display all" />
 </p>
     <?php
-    include '../eqtl/footer.php';
-    include 'html/footer.html';
+    endPage();
     ?>

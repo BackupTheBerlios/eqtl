@@ -36,9 +36,15 @@ function getSpecies(str) {
 	return str + "=" + RegExp.$1 + "+" + RegExp.$2;
 }
 
+function trim (zeichenkette) {
+  // Erst führende, dann Abschließende Whitespaces entfernen
+  // und das Ergebnis dieser Operationen zurückliefern
+  return zeichenkette.replace (/^\s+/, '').replace (/\s+$/, '');
+}
+
 function getExp(str) {
 	var exp = document.getElementById(str).firstChild.nodeValue;
-	return "projects[]=" + exp;
+	return "projects[]=" + trim(exp);
 }
 
 function getReg(ex) {
