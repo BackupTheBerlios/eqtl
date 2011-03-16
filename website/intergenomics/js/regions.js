@@ -14,26 +14,25 @@ function prepareSpecies(site) {
 	var src_sel = document.getElementById(project_str + "0");
 	var tar_sel = document.getElementById(project_str + "1");
 
+	var proj_null = false;
 	if (src_sel.selectedIndex >= 0) {
 		var src_val = src_sel[src_sel.selectedIndex].value;
 	} else {
-		if (site == null) {
-			// XXX
-		}
+		proj_null = true;
 		var src_val = "NULL";
 	}
 
 	if (tar_sel.selectedIndex >= 0) {
 		var tar_val = tar_sel[tar_sel.selectedIndex].value;
 	} else {
-		if (site == null) {
-		// XXX
-			site = "regions.php";
-		}
+		proj_null = true;
 		var tar_val = "NULL";
 	}
 
 	if (site == null) {
+		site = "regions.php";
+	}else if(proj_null){
+		alert("All projectssdlgmnldsfng");
 		site = "regions.php";
 	}
 	var proj_arg = project_str + "[]=";
