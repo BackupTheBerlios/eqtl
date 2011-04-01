@@ -179,7 +179,9 @@ function print_selection_form($properties) {
 		 case "all_qtl":
 			$properties = array("groups", "locus", 
 					    "chromosome", "peakInMbp",
-					    "peakInCentiMorgan", "flanks", "trait",
+					    "peakInCentiMorgan", "flanks",
+					    "trait",
+					    "gene_name",
 					    "LOD", "quantile", "LODdiff",
 					    "pvalue",
 					    "mean", "sd");
@@ -194,6 +196,7 @@ function print_selection_form($properties) {
 		 
 		 case "all_qtl_trait":
 			$properties = array(	"trait",
+						"gene_name",
 						"correlation and loci", "phen_analysis",
 						"mean", "sd", "median", "variance" , "LOD", "pvalue",
 						"number_of_chromosomes_per_trait"
@@ -355,6 +358,10 @@ function print_selection_form($properties) {
     </td>
 </tr>
 <?php
+				break;
+
+			case "gene_name":
+				print_row_one_text_single("Gene Name","gene_name","$gene_name",50);
 				break;
 
 			case "traitlist":
