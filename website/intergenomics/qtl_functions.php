@@ -235,6 +235,7 @@ function get_loci_from_sql($databaseTable, $qtldb, $searchType, $chromosomNo, $c
 	if ($searchType == 'wholeGenome'){
 		$sql = 'SELECT q.Chromosome, q.locus, l.cMorgan FROM '.$databaseTable.'.qtl as q inner join '.$databaseTable.'.locus as l on
 		(q.Chromosome in ("'.implode('","', $chromosomNo).'") AND q.locus = l.name) GROUP BY q.locus ORDER BY q.Chromosome, l.cMorgan;';
+		
 		$res = $qtldb->query($sql) or fatal_error('Query failed: '.$qtldb->error);
 		$lociArray[0] = $res->fetch_all();
 	}elseif($searchType == 'userinterval'){
