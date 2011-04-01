@@ -37,7 +37,7 @@ require_once '../eqtl/func_error.php';
  */
 function warn($str){
 	echo '<div id="warnbox">';
-	echo '<b>'.print_r($str).'</b>';
+	print_r($str);
 	echo "</div>\n";
 }
 

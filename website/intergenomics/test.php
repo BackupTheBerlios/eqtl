@@ -88,6 +88,7 @@ list($groups1, $mapEx1) = $ex1;
 // generates an arrays with index -> locinames
 $loci_ex1 = array_map('current',$mapEx1);
 
+
 $chrs = getChromosomsAndLengths($compara,$experiment2['genome_db_id']);
 // additional filtering
 useDB($genome_ids2dbs[$experiment2['genome_db_id']], $experiment1['connection']);
@@ -146,9 +147,7 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){
 
 foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 	$loci1 = $groups1[$group1]['loci'];
-	echo $group1;
-	print_r($loci1);
-	exit();
+
 	foreach ($syn_group2 as $group2){
 		$loci2 = $groups2[$group2]['loci'];
 
@@ -156,14 +155,12 @@ foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 
 			foreach ($loci2 as $locus2){
 
-				foreach ($loci2stable_ids_ex1[$locus1] as $traits1){
-
-					foreach ($traits1 as $trait1){
-						$intersect = array_intersect($traits12traits2[$trait1],$loci2stable_ids_ex2[$locus2]);
-						if(!empty($intersect)){
-							echo '<br>Rat: $locus1: $trait1 , Maus: $locus2 ';
-							warn($intersect);
-						}
+				$traits1 = $loci2stable_ids_ex1[0][$locus1];
+				foreach ($traits1 as $trait1){
+					$intersect = array_intersect($traits12traits2[$trait1],$loci2stable_ids_ex2[0][$locus2]);
+					if(!empty($intersect)){
+						echo '<br>Rat: '.$locus1.': '.$trait1.' , Maus: '.$locus2;
+						warn($intersect);
 					}
 				}
 			}
