@@ -112,14 +112,14 @@ $n_ens_ids_ex1 = sizeof($unique_ens_ids_ex1);
 $n_ens_ids_ex2 = sizeof($unique_ens_ids_ex2);
 $traits12traits2 = array();
 if($n_ens_ids_ex1 < $n_ens_ids_ex2){
-	$homology_ex1 = get_homologue_ens_ids($compara,$unique_ens_ids_ex1,$genome_id1);
+	$homology_ex1 = get_homologue_ens_ids($compara,$unique_ens_ids_ex1,$genome_id2);
 	//intersection
 	foreach ($homology_ex1 as $unique_id_ex1 => $corr_homologue_ens_ids_ex1) {
 		$traits12traits2[$unique_id_ex1] = array_intersect($corr_homologue_ens_ids_ex1,
 		$unique_ens_ids_ex2);
 	}
 }else{
-	$homology_ex2 = get_homologue_ens_ids($compara,$unique_ens_ids_ex2,$genome_id2);
+	$homology_ex2 = get_homologue_ens_ids($compara,$unique_ens_ids_ex2,$genome_id1);
 	//intersection
 
 	foreach ($unique_ens_ids_ex1 as $id_ex1){

@@ -26,6 +26,7 @@
 
  ENDOFDOCUMENTATION
  */
+include 'html/header.html';
 
 require_once 'db_functions.php';
 require_once 'qtl_functions.php';
@@ -68,10 +69,10 @@ $species1 = $experiment1['species'];
 $species2 = $experiment2['species'];
 //  dbs
 $genome_id1 = $species2genome_db_ids[$species1];
-$db1 = $genome_ids2dbs[$genome_id1];
+$db1 = $database1;
 
 $genome_id2 = $species2genome_db_ids[$species2];
-$db2 = $genome_ids2dbs[$genome_id2];
+$db2 = $database2;
 
 
 // fetch loci and groups
@@ -101,7 +102,7 @@ $loci_ex2 = array_map('current',$mapEx2);
 
 
 // SYNTENY
-//$groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
+$groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
 
 
 // homo
@@ -121,14 +122,14 @@ $n_ens_ids_ex1 = sizeof($unique_ens_ids_ex1);
 $n_ens_ids_ex2 = sizeof($unique_ens_ids_ex2);
 $traits12traits2 = array();
 if($n_ens_ids_ex1 < $n_ens_ids_ex2){
-	$homology_ex1 = get_homologue_ens_ids($compara,$unique_ens_ids_ex1,$genome_id1);
+	$homology_ex1 = get_homologue_ens_ids($compara, $unique_ens_ids_ex1, $genome_id2);
 	//intersection
 	foreach ($homology_ex1 as $unique_id_ex1 => $corr_homologue_ens_ids_ex1) {
 		$traits12traits2[$unique_id_ex1] = array_intersect($corr_homologue_ens_ids_ex1,
 		$unique_ens_ids_ex2);
 	}
 }else{
-	$homology_ex2 = get_homologue_ens_ids($compara,$unique_ens_ids_ex2,$genome_id2);
+	$homology_ex2 = get_homologue_ens_ids($compara, $unique_ens_ids_ex2, $genome_id1);
 	//intersection
 
 	foreach ($unique_ens_ids_ex1 as $id_ex1){
@@ -142,11 +143,12 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){
 	}
 }
 
-warn($traits12traits2);
 
 foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 	$loci1 = $groups1[$group1]['loci'];
-
+	echo $group1;
+	print_r($loci1);
+	exit();
 	foreach ($syn_group2 as $group2){
 		$loci2 = $groups2[$group2]['loci'];
 
@@ -159,16 +161,13 @@ foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 					foreach ($traits1 as $trait1){
 						$intersect = array_intersect($traits12traits2[$trait1],$loci2stable_ids_ex2[$locus2]);
 						if(!empty($intersect)){
+							echo '<br>Rat: $locus1: $trait1 , Maus: $locus2 ';
 							warn($intersect);
 						}
-						
-							
 					}
 				}
-
 			}
 		}
-
 	}
 }
 
