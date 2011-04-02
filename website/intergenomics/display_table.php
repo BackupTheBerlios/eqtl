@@ -81,7 +81,6 @@ prepareColors($groups1,$groups2);
     <tbody>
     <?php
     for ($j = 0; $j < sizeof($groups2); $j++) {
-    	//TODO: update if with an else that shows the user -> a row has been deleted!
     	$rowArray = array();
     	$boolNonEmpty = false;
     	for ($i = 0; $i < sizeof($groups1); $i++) {
@@ -94,15 +93,15 @@ prepareColors($groups1,$groups2);
     			$rowArray[$i] = '<td></td>';
     		}
     	}
-    	
+    	 
+    	//TODO: update "if" with an "else" that shows the user -> a row has been deleted!
     	if ($boolNonEmpty) {
     		echo '<tr><th>'.$groups2[$j]['Chr'].'<br />'.round($groups2[$j]['start']).' - '.round($groups2[$j]['end']).'</th>';
-    		//TODO: do this without a loop... should be easy... ;-)
-			echo implode("", $rowArray);
+    		echo implode("", $rowArray);
     		echo "</tr>\n";
     	}
     }
-    	
+     
     ?>
     </tbody>
   </table>

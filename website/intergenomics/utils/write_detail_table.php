@@ -55,6 +55,8 @@ function split_and_ciss(&$ens_id,$key,$cis_lookup){
 
 $fptr = fopen('html/table.html', 'w');
 
+//SET THIS BOOLEAN TO TRUE FOR THE WHOLE TABLE (also empty rows and columns will be shown)
+$showAll = false;
 
 $str = '
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -93,6 +95,7 @@ window.onscroll = function () { parent.scrollen (); };
       IDs</th>';
 fwrite($fptr, $str);
 $str = "";
+
 foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 	if(empty($ens_ids_ex1)){
 		// FIXME: If a locus does not affect any genes
@@ -100,8 +103,8 @@ foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 		continue;
 	}
 	$str.= '<th colspan="'.sizeof($ens_ids_ex1).'" title="locus of species 1">'.$locus_ex1.'</th>';
-}
 
+}
 fwrite($fptr, $str."</tr><tr>");
 
 foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
@@ -117,40 +120,62 @@ foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 fwrite($fptr, "</tr>
 </thead>
 <tbody>");
+
+//iterate over locinames
 foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 	if(empty($ens_ids_ex2)){
 		// FIXME: If a locus does not affect any genes
 		// we skip it here.
 		continue;
 	}
-	$str = '<tr><th rowspan="'.sizeof($ens_ids_ex2).'" title="locus of species 2">';
-	$str.= $locus_ex2.'</th>';
+
+	//initialize parameter to check if whole locus-entry is empty
+	$boolNonEmptyLocus = false;
 	$firstrow = true;
 	$i = 0;
+	$rowCount = 0;
+	$str = "";
 	foreach ($ens_ids_ex2 as $ens_id_ex2) {
-		if($firstrow){
-			$firstrow = false;
-		}else{
-			$str.= "<tr>";
-		}
+		$rowBool = false;
 		if($loci2stable_ids_ex2[1][$locus_ex2][$i++]){
-			$str.= '<th class="ciss" title="ciss">';
+			$rowString = '<th class="ciss" title="ciss">';
 		}else{
-			$str.= '<th title="trans">';
+			$rowString = '<th title="trans">';
 		}
-		$str.= $ens_id_ex2."</th>";
+		$rowString.= $ens_id_ex2."</th>";
 		foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1) {
 			foreach ($ens_ids_ex1 as $ens_id_ex1){
 				if(in_array($ens_id_ex2, $traits12traits2[$ens_id_ex1])){
-					$str.= '<td class="homologue" title="homology">Hom</td>';
+					$boolNonEmptyLocus = true;
+					$rowBool = true;
+					$rowString.= '<td class="homologue" title="homology">Hom</td>';
 				}else{
-					$str.= '<td />';
+					$rowString.= '<td />';
 				}
 			}
 		}
-		$str.= "</tr>\n";
+		$rowString.= "</tr>\n";
+
+		if ($rowBool || $showAll) {
+			$rowCount++;
+			if($firstrow){
+				$firstrow = false;
+				$str .= $rowString;
+			}else{
+				$rowString = "<tr>".$rowString;
+				$str .= $rowString;
+			}
+				
+		}
+
 	}
-	fwrite($fptr, $str);
+	
+	$str = '<tr><th rowspan="'.$rowCount.'" title="locus of species 2">'.$locus_ex2.'</th>'.$str;
+	
+	if ($boolNonEmptyLocus || $showAll) {
+		fwrite($fptr, $str);
+	}
+
 }
 
 fwrite($fptr, "</tbody>
