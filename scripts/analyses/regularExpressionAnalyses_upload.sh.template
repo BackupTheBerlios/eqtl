@@ -4,15 +4,15 @@ doc=<<EODOC
 
 =head1 NAME
 
-regularExpressionAnalyses.sh - upload trait attributes
+regularExpressionAnalyses_upload.sh - upload trait attributes
 
 =head1 SYNOPSIS
 
-regularExpressionAnalyses_add.sh "analysis ID" 
+regularExpressionAnalyses_upload.sh "analysis ID" 
 
 =head1 DESCRIPTION
 
-This script expects pairs of "traid_id" and a numerical value
+This script expects pairs of "trait_id" and a numerical value
 on the standard input. The lines are transformed into regular
 SQL statements and already within the script forwarded to a 
 mysql client. The number of the analysis is passed as a
