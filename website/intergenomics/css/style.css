@@ -11,7 +11,7 @@
 fieldset {
   background-attachment: scroll;
   background-color: #ffffff;
-  background-image: url("css/gradient-inner.png");
+  background-image: url("/css/gradient-inner.png");
   background-position: 0px 0px;
   background-repeat: repeat-x;
   border-bottom-color: #d9e9f5;
@@ -38,7 +38,7 @@ fieldset {
 }
 
 .homologue {
-  background: url("css/arrow-right.png") no-repeat left center;
+  background: url("/css/arrow-right.png") no-repeat left center;
   padding-left: 13px;
   color: red;
   font-weight: bold;
