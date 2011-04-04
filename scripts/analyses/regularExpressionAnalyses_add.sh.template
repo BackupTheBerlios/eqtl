@@ -29,6 +29,8 @@ An identifier of the analysis to be performed.
 
 Long free text to give details of the analysis.
 
+=back
+
 =head1 SEE ALSO
 
 regularExpressionAnalyses_list.sh, 
@@ -41,6 +43,7 @@ Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
 =head1 COPYRIGHT
 
 University of LE<uuml>beck, Germany, 2009
+University Clinics Schleswig-Holstein, Campus LE<uuml>beck, Germany, 2011
 
 =cut
 
