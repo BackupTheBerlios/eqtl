@@ -81,21 +81,27 @@ prepareColors($groups1,$groups2);
     <tbody>
     <?php
     for ($j = 0; $j < sizeof($groups2); $j++) {
-    	echo '<tr><th>'.$groups2[$j]['Chr'].'<br />'.round($groups2[$j]['start']).' - '.round($groups2[$j]['end']).'</th>';
+    	$rowArray = array();
+    	$boolNonEmpty = false;
     	for ($i = 0; $i < sizeof($groups1); $i++) {
     		if (in_array($j, $groupSynteny_ex12ex2[$i])) {
-    			//'.getColor(sizeof($groups2[$j]['loci'])+sizeof($groups2[$j]['loci'])).'
     			$cnt2 = sizeof($groups2[$j]['loci']);
     			$cnt1 = sizeof($groups1[$i]['loci']);
-    			echo '<td class="syn"'.getColor($cnt1+$cnt2).' title="click for detail view">'.$cnt2.' : '.$cnt1.'</td>';
-    			//echo '<td class="syn">'.$cnt2.' : '.$cnt1.'</td>';
-    		}else {
-    			echo '<td></td>';
+    			$rowArray[$i] = '<td class="syn"'.getColor($cnt1+$cnt2).' title="click for detail view">'.$cnt2.' : '.$cnt1.'</td>';
+    			$boolNonEmpty = true;
+    		}else{
+    			$rowArray[$i] = '<td></td>';
     		}
     	}
-    	echo "</tr>\n";
+    	 
+    	//TODO: update "if" with an "else" that shows the user -> a row has been deleted!
+    	if ($boolNonEmpty) {
+    		echo '<tr><th>'.$groups2[$j]['Chr'].'<br />'.round($groups2[$j]['start']).' - '.round($groups2[$j]['end']).'</th>';
+    		echo implode("", $rowArray);
+    		echo "</tr>\n";
+    	}
     }
-
+     
     ?>
     </tbody>
   </table>
