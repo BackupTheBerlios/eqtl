@@ -33,9 +33,9 @@ function prepareSpecies(site) {
 
 	if (site == null) {
 		error = "";
-		site = "regions.php";
+		site = "index.php";
 	} else if (error != "") {// error
-		site = "regions.php";
+		site = "index.php";
 	}
 	var proj_arg = project_str + "[]=";
 	return site + "?" + proj_arg + src_val + "&" + proj_arg + tar_val + error;
