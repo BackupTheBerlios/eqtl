@@ -1,31 +1,31 @@
 <?php
 
 /**
-STARTOFDOCUMENTATION
+ STARTOFDOCUMENTATION
 
-=pod
+ =pod
 
-=head1 NAME
+ =head1 NAME
 
-utils/write_detail_table.php - 
+ utils/write_detail_table.php -
 
-=head1 SYNOPSIS
+ =head1 SYNOPSIS
 
-=head1 DESCRIPTION
+ =head1 DESCRIPTION
 
-=head1 AUTHOR
+ =head1 AUTHOR
 
-Michael Brehler <brehler@informatik.uni-luebeck.de>,
-Georg Zeplin <zeplin@informatik.uni-luebeck.de>
+ Michael Brehler <brehler@informatik.uni-luebeck.de>,
+ Georg Zeplin <zeplin@informatik.uni-luebeck.de>
 
-=head1 COPYRIGHT
+ =head1 COPYRIGHT
 
-University of LE<uuml>beck, Germany, 2011
+ University of LE<uuml>beck, Germany, 2011
 
-=cut
+ =cut
 
-ENDOFDOCUMENTATION
-*/
+ ENDOFDOCUMENTATION
+ */
 
 // $ Id: 2010-12-19 gz exp$
 // displays detailed homology information for two loci groups from different experiments
@@ -57,6 +57,21 @@ $fptr = fopen('html/table.html', 'w');
 
 //SET THIS BOOLEAN TO TRUE FOR THE WHOLE TABLE (also empty rows and columns will be shown)
 $showAll = false;
+
+if(!$showAll){
+	$is_homo1 = array_combine($unique_ens_ids_ex1,array_fill(0,$n_ens_ids_ex1,false));
+	$is_homo2 = array_combine($unique_ens_ids_ex2,array_fill(0,$n_ens_ids_ex2,false));
+
+	foreach ($traits12traits2 as $trait1 => $homos2){
+		if (!empty($homos2)){
+			// $trait1 has homologies
+			$is_homo1[$trait1] = true;
+			foreach ($homos2 as $homo2) {
+				$is_homo2[$homo2] = true;;
+			}
+		}
+	}
+}
 
 $str = '
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -165,13 +180,13 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 				$rowString = "<tr>".$rowString;
 				$str .= $rowString;
 			}
-				
+
 		}
 
 	}
-	
+
 	$str = '<tr><th rowspan="'.$rowCount.'" title="locus of species 2">'.$locus_ex2.'</th>'.$str;
-	
+
 	if ($boolNonEmptyLocus || $showAll) {
 		fwrite($fptr, $str);
 	}
