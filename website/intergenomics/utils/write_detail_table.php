@@ -55,24 +55,6 @@ function split_and_ciss(&$ens_id,$key,$cis_lookup){
 
 $fptr = fopen('html/table.html', 'w');
 
-//SET THIS BOOLEAN TO TRUE FOR THE WHOLE TABLE (also empty rows and columns will be shown)
-$showAll = false;
-
-if(!$showAll){
-	$is_homo1 = array_combine($unique_ens_ids_ex1,array_fill(0,$n_ens_ids_ex1,false));
-	$is_homo2 = array_combine($unique_ens_ids_ex2,array_fill(0,$n_ens_ids_ex2,false));
-
-	foreach ($traits12traits2 as $trait1 => $homos2){
-		if (!empty($homos2)){
-			// $trait1 has homologies
-			$is_homo1[$trait1] = true;
-			foreach ($homos2 as $homo2) {
-				$is_homo2[$homo2] = true;;
-			}
-		}
-	}
-}
-
 $str = '
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xml:lang="de" xmlns="http://www.w3.org/1999/xhtml" lang="de"><head>

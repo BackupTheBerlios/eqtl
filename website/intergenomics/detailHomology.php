@@ -132,6 +132,41 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){
 		}
 	}
 }
+
+//SET THIS BOOLEAN TO TRUE FOR THE WHOLE TABLE (also empty rows and columns will be shown)
+$showAll = false;
+$homos_exist = false;
+
+if(!$showAll){
+	$is_homo1 = array_combine($unique_ens_ids_ex1,array_fill(0,$n_ens_ids_ex1,false));
+	$is_homo2 = array_combine($unique_ens_ids_ex2,array_fill(0,$n_ens_ids_ex2,false));
+
+	foreach ($traits12traits2 as $trait1 => $homos2){
+		if (!empty($homos2)){
+			// $trait1 has homologies
+			$is_homo1[$trait1] = true;
+			$homos_exist = true;
+			foreach ($homos2 as $homo2) {
+				$is_homo2[$homo2] = true;;
+			}
+		}
+	}
+}
+
+if(!$homos_exist){
+	// no homologies found
+	require_once '../eqtl/header.php';
+show_large_header("Intergenomics",true,"Ensembl Compara interface for Expression QTL",
+	'../eqtl/', array('css/style.css','css/prettyPhoto.css'));
+	warn("Sorry, no homologies found for the given region.");
+	echo <<<END
+	<button onclick="javascript:history.back();">Back to the syntenic regions.</button>
+END;
+	include '../eqtl/footer.php';
+    include 'html/footer.html';
+	exit();
+}
+
 //warn($traits12traits2);
 // display -----------------------
 $cols = 227; // width of left offset
