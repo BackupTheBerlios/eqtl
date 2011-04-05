@@ -109,7 +109,7 @@ foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 	}
 	$str.= '<th colspan="'.sizeof($ens_ids_ex1).'" title="locus of species 1">'.$locus_ex1.'</th>';
 
-	//$tmp = $ens_ids_ex1;
+	$tmp = $ens_ids_ex1;
 	/*
 	foreach ($ens_ids_ex1 as $ens_id_ex1){
 		if($showNotEx1 && $$is_homo1[''])

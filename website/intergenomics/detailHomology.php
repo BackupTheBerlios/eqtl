@@ -138,10 +138,10 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){
 $showAll = false;
 $homos_exist = false;
 
-$notShowAll1 = false;
-$notShowAll2 = false;
+$notShowAll1 = true;
+$notShowAll2 = true;
 
-if($notShowAll1 || $notShowAll2){
+if(!$showAll){
 	$is_homo1 = array_combine($unique_ens_ids_ex1,array_fill(0,$n_ens_ids_ex1,false));
 	$is_homo2 = array_combine($unique_ens_ids_ex2,array_fill(0,$n_ens_ids_ex2,false));
 
@@ -155,9 +155,13 @@ if($notShowAll1 || $notShowAll2){
 			}
 		}
 	}
+}else{
+	$homos_exist = true;
 }
+//XXX: method!
+// not warking now as expected...
 if($notShowAll1){
-	foreach ($loci2stable_ids_ex1 as $loci1 => $traits1){
+	foreach ($loci2stable_ids_ex1[0] as $locus1 => $traits1){
 		foreach ($traits1 as $numkey => $trait1){
 			if(!$is_homo1[$trait1]){
 				unset($traits1[$numkey]);
@@ -166,10 +170,10 @@ if($notShowAll1){
 	}
 }
 if($notShowAll2){
-	foreach ($loci2stable_ids_ex2 as $loci2 => $traits2){
+	foreach ($loci2stable_ids_ex2[0] as $locus2 => $traits2){
 		foreach ($traits2 as $numkey => $trait2){
 			if(!$is_homo2[$trait2]){
-				unset($traits2[$numkey]);
+				unset($loci2stable_ids_ex2[0][$locus2][$numkey]);
 			}
 		}
 	}

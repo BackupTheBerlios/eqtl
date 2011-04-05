@@ -1,31 +1,31 @@
 <?php
 
 /**
-STARTOFDOCUMENTATION
+ STARTOFDOCUMENTATION
 
-=pod
+ =pod
 
-=head1 NAME
+ =head1 NAME
 
-db_functions.php - 
+ db_functions.php -
 
-=head1 SYNOPSIS
+ =head1 SYNOPSIS
 
-=head1 DESCRIPTION
+ =head1 DESCRIPTION
 
-=head1 AUTHOR
+ =head1 AUTHOR
 
-Michael Brehler <brehler@informatik.uni-luebeck.de>,
-Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
+ Michael Brehler <brehler@informatik.uni-luebeck.de>,
+ Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
 
-=head1 COPYRIGHT
+ =head1 COPYRIGHT
 
-University of LE<uuml>beck, Germany, 2011
+ University of LE<uuml>beck, Germany, 2011
 
-=cut
+ =cut
 
-ENDOFDOCUMENTATION
-*/
+ ENDOFDOCUMENTATION
+ */
 
 require_once 'bp2cM_conversion.php';
 
@@ -269,22 +269,39 @@ function homology2member_old($db, $homology_id) {
  */
 function get_homologue_ens_ids($compara, $unique_ids, $target_genome_db_id) {
 	$homology = array();
-	foreach ($unique_ids as $unique_id) {
-		$sql = 'select m.stable_id from member as m inner join homology_member as h
+
+	$sql = 'select m.stable_id from member as m inner join homology_member as h
 		on (m.member_id = h.member_id
-		and m.genome_db_id = '.$target_genome_db_id.')
+		and m.genome_db_id = ?)
 		inner join homology_member as h2
 		on h.homology_id = h2.homology_id
 		inner join member as m2
-		on m2.member_id = h2.member_id and m2.stable_id = "'.$unique_id.'"
+		on m2.member_id = h2.member_id and m2.stable_id = ?
 		group by m.stable_id;';
-		$result = $compara->query($sql) or fatal_error('Homology query failed: '.$compara->error);
-		$members = array();
-		while ($row = $result->fetch_assoc()){
-			$members[] = $row['stable_id'];
+	$stmt = $compara->prepare($sql);
+	foreach ($unique_ids as $unique_id) {
+
+		/* bind parameters for markers */
+		$stmt->bind_param("is", $target_genome_db_id, $unique_id);
+		/* execute query */
+		$stmt->execute();
+		/* bind result variables */
+		$stmt->bind_result($homo_id);
+		$homology[$unique_id] = array();
+		/* fetch value */
+		while($stmt->fetch()){
+			$homology[$unique_id][] = $homo_id;
 		}
-		$homology[$unique_id] = $members;
+		/*$result = $compara->query($sql) or fatal_error('Homology query failed: '.$compara->error);
+		 $members = array();
+		 while ($row = $result->fetch_assoc()){
+			$members[] = $row['stable_id'];
+			}
+			$homology[$unique_id] = $members;*/
 	}
+	/* close statement */
+	$stmt->close();
+
 	return $homology;
 }
 
@@ -487,7 +504,7 @@ function getSyntenyGroups($qtldb, $comparadb, $groups1, $groups2, $species_names
 			foreach ($groups2 as $group2nr => $group2) {
 				if($group2['Chr']==$region['chr']){
 					if($group2['start']<=$region['end'] && $group2['end']>=$region['start']){
-						$synteny1to2[$group1nr][] = $group2nr; 
+						$synteny1to2[$group1nr][] = $group2nr;
 					}
 				}
 			}
