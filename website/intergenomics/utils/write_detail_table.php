@@ -43,16 +43,16 @@
  * 	if($cis_lookup[$key]) the header cell gets the class "ciss".
  */
 function split_and_ciss(&$ens_id,$key,$cis_lookup){
-	$prefix = '<th rowspan="5"';
+	$prefix = '<th';
 	if($cis_lookup[$key]){
 		$prefix .= ' class="ciss" title="ciss">';
 	}else{
-		$prefix .= 'title="trans">';
+		$prefix .= ' title="trans">';
 	}
-	$ens_id = $prefix.chunk_split($ens_id,3,"<br />\n");
+	$ens_id = $prefix.chunk_split($ens_id,3,"<br />");
 }
 
-
+$refargs = $proj_str.'[]='.implode("+", explode(" ", $args[$proj_str][0])).'&'.$proj_str.'[]='.implode("+", explode(" ", $args[$proj_str][1])).'&region1='.$args[$region_str.'1'].'&region2='.$args[$region_str.'2'];
 $fptr = fopen('html/table.html', 'w');
 
 $str = '
@@ -80,7 +80,11 @@ window.onscroll = function () { parent.scrollen (); };
   <thead>
     <tr>
       <!-- THIS IS ASCII-ART! -->
-      <th rowspan="6">\ Ex. 1<br />
+      <th rowspan="6">
+      <div id="refargs" style="display: none;">
+      	'.$refargs.'
+	  </div>
+      \ Ex. 1<br />
       \&nbsp;&nbsp;&nbsp;&nbsp;<br />
       \<br />
       &nbsp;&nbsp;&nbsp;&nbsp;\<br />
@@ -93,6 +97,7 @@ window.onscroll = function () { parent.scrollen (); };
 fwrite($fptr, $str);
 $str = "";
 $tmpIDs = "";
+$showNotEx1 = false;
 foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 	if(empty($ens_ids_ex1)){
 		// FIXME: If a locus does not affect any genes
@@ -101,10 +106,21 @@ foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 	}
 	$str.= '<th colspan="'.sizeof($ens_ids_ex1).'" title="locus of species 1">'.$locus_ex1.'</th>';
 
-	$tmp = $ens_ids_ex1;
+	//$tmp = $ens_ids_ex1;
+	/*
+	foreach ($ens_ids_ex1 as $ens_id_ex1){
+		if($showNotEx1 && $$is_homo1[''])
+	}
+	$prefix = '<th';
+	if($cis_lookup[$key]){
+		$prefix .= ' class="ciss" title="ciss">';
+	}else{
+		$prefix .= ' title="trans">';
+	}
+	$ens_id = $prefix.chunk_split($ens_id,3,"<br />");
+	*/
 	array_walk($tmp, "split_and_ciss", $loci2stable_ids_ex1[1][$locus_ex1]);
 	$tmpIDs.= implode('</th>',$tmp)."</th>\n";
-	
 }
 
 fwrite($fptr, $str."</tr><tr>".$tmpIDs."</tr></thead><tbody>");

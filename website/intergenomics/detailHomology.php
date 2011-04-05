@@ -1,31 +1,31 @@
 <?php
 
 /**
-STARTOFDOCUMENTATION
+ STARTOFDOCUMENTATION
 
-=pod
+ =pod
 
-=head1 NAME
+ =head1 NAME
 
-detailHomology.php - 
+ detailHomology.php -
 
-=head1 SYNOPSIS
+ =head1 SYNOPSIS
 
-=head1 DESCRIPTION
+ =head1 DESCRIPTION
 
-=head1 AUTHOR
+ =head1 AUTHOR
 
-Michael Brehler <brehler@informatik.uni-luebeck.de>,
-Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
+ Michael Brehler <brehler@informatik.uni-luebeck.de>,
+ Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
 
-=head1 COPYRIGHT
+ =head1 COPYRIGHT
 
-University of LE<uuml>beck, Germany, 2011
+ University of LE<uuml>beck, Germany, 2011
 
-=cut
+ =cut
 
-ENDOFDOCUMENTATION
-*/
+ ENDOFDOCUMENTATION
+ */
 
 //include 'html/header.html';
 require_once 'db_functions.php';
@@ -57,6 +57,7 @@ $genome_ids2dbs = array($experiment2['genome_db_id'] => $experiment2['db_name'],
 $num_species = sizeof($speciesArray);
 
 $region_str = 'region';
+$hide_str = 'hide';
 
 function getReg($str, &$chr,&$start,&$end) {
 	$pos = strpos($str, ":");
@@ -137,7 +138,10 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){
 $showAll = false;
 $homos_exist = false;
 
-if(!$showAll){
+$notShowAll1 = false;
+$notShowAll2 = false;
+
+if($notShowAll1 || $notShowAll2){
 	$is_homo1 = array_combine($unique_ens_ids_ex1,array_fill(0,$n_ens_ids_ex1,false));
 	$is_homo2 = array_combine($unique_ens_ids_ex2,array_fill(0,$n_ens_ids_ex2,false));
 
@@ -152,18 +156,36 @@ if(!$showAll){
 		}
 	}
 }
+if($notShowAll1){
+	foreach ($loci2stable_ids_ex1 as $loci1 => $traits1){
+		foreach ($traits1 as $numkey => $trait1){
+			if(!$is_homo1[$trait1]){
+				unset($traits1[$numkey]);
+			}
+		}
+	}
+}
+if($notShowAll2){
+	foreach ($loci2stable_ids_ex2 as $loci2 => $traits2){
+		foreach ($traits2 as $numkey => $trait2){
+			if(!$is_homo2[$trait2]){
+				unset($traits2[$numkey]);
+			}
+		}
+	}
+}
 
 if(!$homos_exist){
 	// no homologies found
 	require_once '../eqtl/header.php';
-show_large_header("Intergenomics",true,"Ensembl Compara interface for Expression QTL",
+	show_large_header("Intergenomics",true,"Ensembl Compara interface for Expression QTL",
 	'../eqtl/', array('css/style.css','css/prettyPhoto.css'));
 	warn("Sorry, no homologies found for the given region.");
 	echo <<<END
 	<button onclick="javascript:history.back();">Back to the syntenic regions.</button>
 END;
 	include '../eqtl/footer.php';
-    include 'html/footer.html';
+	include 'html/footer.html';
 	exit();
 }
 
@@ -184,7 +206,8 @@ echo '<?xml version="1.0" encoding="iso-8859-1"?>';
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
-<script type="text/javascript" src="js/table-scroll.php?cols=<?php echo $cols.'&rows='.$rows;?>"></script>
+<script type="text/javascript"
+  src="js/table-scroll.php?cols=<?php echo $cols.'&rows='.$rows;?>"></script>
 </head>
 <frameset onload="init()" framespacing="0" frameborder="0"
   cols="<?php echo $cols;?>,*">
@@ -194,13 +217,13 @@ echo '<?xml version="1.0" encoding="iso-8859-1"?>';
     <!-- above left -->
     <frame marginheight="0" marginwidth="10" scrolling="no" name="obLi"
       src="html/table.html" />
-      <!-- left column -->
+    <!-- left column -->
     <frame marginheight="0" marginwidth="10" scrolling="no" name="untLi"
       src="html/table.html" />
-      <!-- scrollbar extension below -->
+    <!-- scrollbar extension below -->
     <frame marginheight="0" scrolling="no" src="html/leer.html" />
   </frameset>
-  
+
   <!-- right -->
   <frameset rows="<?php echo $rows;?>,*">
     <!-- above -->
@@ -208,7 +231,7 @@ echo '<?xml version="1.0" encoding="iso-8859-1"?>';
       <!-- above column -->
       <frame marginheight="0" marginwidth="10" scrolling="no"
         name="obRe" src="html/table.html" />
-        <!-- scrollbar extension right -->
+      <!-- scrollbar extension right -->
       <frame scrolling="no" src="html/leer.html" />
     </frameset>
 
