@@ -79,17 +79,21 @@ window.onscroll = function () { parent.scrollen (); };
 <table border="1" cellpadding="5" cellspacing="0">
   <thead>
     <tr>
-      <!-- THIS IS ASCII-ART! -->
-      <th rowspan="6">\ Ex. 1<br />
-      \&nbsp;&nbsp;&nbsp;&nbsp;<br />
-      \<br />
-      &nbsp;&nbsp;&nbsp;&nbsp;\<br />
-      Ex. 2 \</th>
       <!-- ID-column header -->
-      <th rowspan="6">homologue <br />
+      <th rowspan="2" colspan="2">
+      <div align="right">
+      <input type="checkbox" name="checkHor" value="emptyEx1">
+      </div>
+      <div align="center">
+      homologue <br />
       Ensembl <br />
       stable <br />
-      IDs</th>';
+      IDs <br />
+      </div>
+      <div align="left" >
+      <input type="checkbox" name="checkVer" value="emptyEx2">
+      </div>
+      </th>';
 fwrite($fptr, $str);
 $str = "";
 $tmpIDs = "";
