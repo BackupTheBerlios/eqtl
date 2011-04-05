@@ -95,7 +95,7 @@ window.onscroll = function () { parent.scrollen (); };
       IDs</th>';
 fwrite($fptr, $str);
 $str = "";
-
+$tmpIDs = "";
 foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 	if(empty($ens_ids_ex1)){
 		// FIXME: If a locus does not affect any genes
@@ -104,22 +104,14 @@ foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 	}
 	$str.= '<th colspan="'.sizeof($ens_ids_ex1).'" title="locus of species 1">'.$locus_ex1.'</th>';
 
-}
-fwrite($fptr, $str."</tr><tr>");
-
-foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
-	if(empty($ens_ids_ex1)){
-		// FIXME: If a locus does not affect any genes
-		// we skip it here.
-		continue;
-	}
 	$tmp = $ens_ids_ex1;
 	array_walk($tmp, "split_and_ciss", $loci2stable_ids_ex1[1][$locus_ex1]);
-	fwrite($fptr, implode('</th>',$tmp)."</th>\n");
+	$tmpIDs.= implode('</th>',$tmp)."</th>\n";
+	
 }
-fwrite($fptr, "</tr>
-</thead>
-<tbody>");
+
+fwrite($fptr, $str."</tr><tr>".$tmpIDs."</tr></thead><tbody>");
+
 
 //iterate over locinames
 foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
