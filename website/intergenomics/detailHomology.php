@@ -79,6 +79,11 @@ if(!isset($experiment1['species']) || !isset($experiment2['species'])) {// no sp
 	$region1 = $args[$region_str.'1'];
 	$region2 = $args[$region_str.'2'];
 }
+if(isset($args[$hide_str])){
+	$hide = $args[$hide_str];
+}else{
+	$hide = 3;
+}
 $start1 = $end1 = $chr1 = $start2 = $end2 = $chr2 = 0;
 getReg($region1,$chr1,$start1,$end1);
 getReg($region2,$chr2,$start2,$end2);
@@ -134,50 +139,76 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){
 	}
 }
 
+function deleteNonHomos(&$loci2stable_ids_ex,$is_homo){
+	foreach ($loci2stable_ids_ex[0] as $locus => $traits){
+		foreach ($traits as $numkey => $trait){
+			if(!$is_homo[$trait]){
+				unset($traits[$numkey]);
+			}
+		}
+		$loci2stable_ids_ex[0][$locus] = $traits;
+	}
+}
 //SET THIS BOOLEAN TO TRUE FOR THE WHOLE TABLE (also empty rows and columns will be shown)
-$showAll = false;
+$showAll = $hide==0;
 $homos_exist = false;
 
-$notShowAll1 = true;
-$notShowAll2 = true;
+$notShowAll1 = 1 & $hide;
+$notShowAll2 = 2 & $hide;
 
-if(!$showAll){
-	$is_homo1 = array_combine($unique_ens_ids_ex1,array_fill(0,$n_ens_ids_ex1,false));
-	$is_homo2 = array_combine($unique_ens_ids_ex2,array_fill(0,$n_ens_ids_ex2,false));
+switch ($hide) {
+	case 3: // hide both
+		$is_homo1 = array_combine($unique_ens_ids_ex1,array_fill(0,$n_ens_ids_ex1,false));
+		$is_homo2 = array_combine($unique_ens_ids_ex2,array_fill(0,$n_ens_ids_ex2,false));
 
-	foreach ($traits12traits2 as $trait1 => $homos2){
-		if (!empty($homos2)){
-			// $trait1 has homologies
-			$is_homo1[$trait1] = true;
-			$homos_exist = true;
-			foreach ($homos2 as $homo2) {
-				$is_homo2[$homo2] = true;;
+		foreach ($traits12traits2 as $trait1 => $homos2){
+			if (!empty($homos2)){
+				// $trait1 has homologies
+				$is_homo1[$trait1] = true;
+				$homos_exist = true;
+				foreach ($homos2 as $homo2) {
+					$is_homo2[$homo2] = true;;
+				}
 			}
 		}
-	}
-}else{
-	$homos_exist = true;
-}
-//XXX: method!
-// not warking now as expected...
-if($notShowAll1){
-	foreach ($loci2stable_ids_ex1[0] as $locus1 => $traits1){
-		foreach ($traits1 as $numkey => $trait1){
-			if(!$is_homo1[$trait1]){
-				unset($traits1[$numkey]);
+		deleteNonHomos($loci2stable_ids_ex1,$is_homo1);
+		deleteNonHomos($loci2stable_ids_ex2,$is_homo2);
+		break;
+	case 1:// hide first
+		$is_homo1 = array_combine($unique_ens_ids_ex1,array_fill(0,$n_ens_ids_ex1,false));
+
+		foreach ($traits12traits2 as $trait1 => $homos2){
+			if (!empty($homos2)){
+				// $trait1 has homologies
+				$is_homo1[$trait1] = true;
+				$homos_exist = true;
 			}
 		}
-	}
-}
-if($notShowAll2){
-	foreach ($loci2stable_ids_ex2[0] as $locus2 => $traits2){
-		foreach ($traits2 as $numkey => $trait2){
-			if(!$is_homo2[$trait2]){
-				unset($loci2stable_ids_ex2[0][$locus2][$numkey]);
+		deleteNonHomos($loci2stable_ids_ex1,$is_homo1);
+		break;
+	case 2:// hide second
+		$is_homo2 = array_combine($unique_ens_ids_ex2,array_fill(0,$n_ens_ids_ex2,false));
+
+		foreach ($traits12traits2 as $trait1 => $homos2){
+			if (!empty($homos2)){
+				// $trait1 has homologies
+				$homos_exist = true;
+				foreach ($homos2 as $homo2) {
+					$is_homo2[$homo2] = true;;
+				}
 			}
 		}
-	}
+		deleteNonHomos($loci2stable_ids_ex2,$is_homo2);
+		break;
+
+	default:
+		$homos_exist = true;
+		break;
 }
+
+
+//warn($loci2stable_ids_ex1[0]);
+//exit();
 
 if(!$homos_exist){
 	// no homologies found
@@ -202,7 +233,7 @@ include 'utils/write_detail_table.php';
 
 $scroll_width = 16;
 
-echo '<?xml version="1.0" encoding="iso-8859-1"?>';
+echo '<?xml version="2.0" encoding="iso-8859-1"?>';
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
@@ -211,37 +242,37 @@ echo '<?xml version="1.0" encoding="iso-8859-1"?>';
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
 <script type="text/javascript"
-  src="js/table-scroll.php?cols=<?php echo $cols.'&rows='.$rows;?>"></script>
+	src="js/table-scroll.php?cols=<?php echo $cols.'&rows='.$rows;?>"></script>
 </head>
 <frameset onload="init()" framespacing="0" frameborder="0"
-  cols="<?php echo $cols;?>,*">
-  <!-- left -->
-  <frameset id="links"
-    rows="<?php echo $rows;?>,*,<?php echo $scroll_width;?>">
-    <!-- above left -->
-    <frame marginheight="0" marginwidth="10" scrolling="no" name="obLi"
-      src="html/table.html" />
-    <!-- left column -->
-    <frame marginheight="0" marginwidth="10" scrolling="no" name="untLi"
-      src="html/table.html" />
-    <!-- scrollbar extension below -->
-    <frame marginheight="0" scrolling="no" src="html/leer.html" />
-  </frameset>
+	cols="<?php echo $cols;?>,*">
+	<!-- left -->
+	<frameset id="links"
+		rows="<?php echo $rows;?>,*,<?php echo $scroll_width;?>">
+		<!-- above left -->
+		<frame marginheight="0" marginwidth="10" scrolling="no" name="obLi"
+			src="html/table.html" />
+		<!-- left column -->
+		<frame marginheight="0" marginwidth="10" scrolling="no" name="untLi"
+			src="html/table.html" />
+		<!-- scrollbar extension below -->
+		<frame marginheight="0" scrolling="no" src="html/leer.html" />
+	</frameset>
 
-  <!-- right -->
-  <frameset rows="<?php echo $rows;?>,*">
-    <!-- above -->
-    <frameset id="oben" cols="*,<?php echo $scroll_width;?>">
-      <!-- above column -->
-      <frame marginheight="0" marginwidth="10" scrolling="no"
-        name="obRe" src="html/table.html" />
-      <!-- scrollbar extension right -->
-      <frame scrolling="no" src="html/leer.html" />
-    </frameset>
+	<!-- right -->
+	<frameset rows="<?php echo $rows;?>,*">
+		<!-- above -->
+		<frameset id="oben" cols="*,<?php echo $scroll_width;?>">
+			<!-- above column -->
+			<frame marginheight="0" marginwidth="10" scrolling="no" name="obRe"
+				src="html/table.html" />
+			<!-- scrollbar extension right -->
+			<frame scrolling="no" src="html/leer.html" />
+		</frameset>
 
-    <!-- content -->
-    <frame marginheight="0" marginwidth="10" scrolling="auto"
-      name="untRe" src="html/table.html" />
-  </frameset>
+		<!-- content -->
+		<frame marginheight="0" marginwidth="10" scrolling="auto" name="untRe"
+			src="html/table.html" />
+	</frameset>
 </frameset>
 </html>

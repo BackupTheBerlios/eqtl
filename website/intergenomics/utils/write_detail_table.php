@@ -85,7 +85,7 @@ window.onscroll = function () { parent.scrollen (); };
       	'.$refargs.'
 	  </div>
       <div align="right">
-      <input type="checkbox" name="checkHor" value="emptyEx1">
+      hide <input type="checkbox" name="checkHor" value="emptyEx1">
       </div>
       <div align="center">
       homologue <br />
@@ -94,7 +94,7 @@ window.onscroll = function () { parent.scrollen (); };
       IDs <br />
       </div>
       <div align="left" >
-      <input type="checkbox" name="checkVer" value="emptyEx2">
+      <input type="checkbox" name="checkVer" value="emptyEx2"> hide
       </div>
       </th>';
 fwrite($fptr, $str);
@@ -138,13 +138,13 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 	}
 
 	//initialize parameter to check if whole locus-entry is empty
-	$boolNonEmptyLocus = false;
+	//$boolNonEmptyLocus = false;
 	$firstrow = true;
 	$i = 0;
-	$rowCount = 0;
+	//$rowCount = 0;
 	$str = "";
 	foreach ($ens_ids_ex2 as $ens_id_ex2) {
-		$rowBool = false;
+		//$rowBool = false;
 		if($loci2stable_ids_ex2[1][$locus_ex2][$i++]){
 			$rowString = '<th class="ciss" title="ciss">';
 		}else{
@@ -154,8 +154,8 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 		foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1) {
 			foreach ($ens_ids_ex1 as $ens_id_ex1){
 				if(in_array($ens_id_ex2, $traits12traits2[$ens_id_ex1])){
-					$boolNonEmptyLocus = true;
-					$rowBool = true;
+					//$boolNonEmptyLocus = true;
+					//$rowBool = true;
 					$rowString.= '<td class="homologue" title="homology">Hom</td>';
 				}else{
 					$rowString.= '<td />';
@@ -164,8 +164,8 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 		}
 		$rowString.= "</tr>\n";
 
-		if ($rowBool || $showAll) {
-			$rowCount++;
+		//if ($rowBool || $showAll) {
+		//	$rowCount++;
 			if($firstrow){
 				$firstrow = false;
 				$str .= $rowString;
@@ -174,15 +174,15 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 				$str .= $rowString;
 			}
 
-		}
+		//}
 
 	}
 
-	$str = '<tr><th rowspan="'.$rowCount.'" title="locus of species 2">'.$locus_ex2.'</th>'.$str;
+	$str = '<tr><th rowspan="'.count($ens_ids_ex2).'" title="locus of species 2">'.$locus_ex2.'</th>'.$str;
 
-	if ($boolNonEmptyLocus || $showAll) {
+	//if ($boolNonEmptyLocus || $showAll) {
 		fwrite($fptr, $str);
-	}
+	//}
 
 }
 
