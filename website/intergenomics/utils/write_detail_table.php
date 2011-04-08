@@ -52,7 +52,7 @@ function split_and_ciss(&$ens_id,$key,$cis_lookup){
 	$ens_id = $prefix.chunk_split($ens_id,3,"<br />");
 }
 
-$refargs = $proj_str.'[]='.implode("+", explode(" ", $args[$proj_str][0])).'&'.$proj_str.'[]='.implode("+", explode(" ", $args[$proj_str][1])).'&region1='.$args[$region_str.'1'].'&region2='.$args[$region_str.'2'];
+$refargs = $proj_str.'[]='.implode("+", explode(" ", $proj1)).'&amp;'.$proj_str.'[]='.implode("+", explode(" ", $proj2)).'&amp;region1='.$args[$region_str.'1'].'&amp;region2='.$args[$region_str.'2'];
 $fptr = fopen('html/table.html', 'w');
 
 $str = '
@@ -71,32 +71,40 @@ if (document.layers) {
 }
 window.onscroll = function () { parent.scrollen (); };
 </script>
-
 <link href="/css/style.css" rel="stylesheet" type="text/css" />
-</head><body onmouseover="parent.aktFrame=window.name;">
 
+</head>
+
+<body onmouseover="parent.aktFrame=window.name;">
 <div id="cont" style="font-size: small;"><!-- the display table -->
 <table border="1" cellpadding="5" cellspacing="0">
   <thead>
     <tr>
       <!-- ID-column header -->
       <th rowspan="2" colspan="2">
-      <div id="refargs" style="display: none;">
-      	'.$refargs.'
-	  </div>
-      <div align="right">
-      hide <input type="checkbox" name="checkHor" value="emptyEx1">
+      <div class="enclose">
+		<div id="refargs" style="display: none;">
+      		'.$refargs.'
+	  	</div>
+      
+	  <div align="right">
+	  '.$proj1.' ('.$species1.')
+	  <div class="hidebox">
+      	<label for="check1">hide empty collumns </label> 
+      	<input type="checkbox" id="check1" onclick="javascript:parent.refresh(this)"
+      		'.((1 & $hide)? " checked=\"checked\"":"").'>
+      </div></div>
+      
+            
+      <div class="bottomleft">
+      '.$proj2.' ('.$species2.')
+      <div class="hidebox">
+      <input type="checkbox" id="check2" onclick="javascript:parent.refresh(this)"
+      	'.((2 & $hide)? " checked=\"checked\"":"").'> hide empty rows
+      </div></div>
+	  
       </div>
-      <div align="center">
-      homologue <br />
-      Ensembl <br />
-      stable <br />
-      IDs <br />
-      </div>
-      <div align="left" >
-      <input type="checkbox" name="checkVer" value="emptyEx2"> hide
-      </div>
-      </th>';
+     </th>';
 fwrite($fptr, $str);
 $str = "";
 $tmpIDs = "";

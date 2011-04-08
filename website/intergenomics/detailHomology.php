@@ -39,6 +39,9 @@ fill_compara_array();
 $args = $_GET;
 
 $proj_str = 'projects';
+$region_str = 'region';
+$hide_str = 'hide';
+
 if(isset($args[$proj_str])&&(count($args[$proj_str])==2)){
 	connectToQtlDBs($args[$proj_str]);
 }else{
@@ -46,18 +49,19 @@ if(isset($args[$proj_str])&&(count($args[$proj_str])==2)){
 }
 
 $compara = connectToCompara(3306);
-$experiment1 = $compara_array[$args[$proj_str][0]];
-$experiment2 = $compara_array[$args[$proj_str][1]];
+$proj1 = $args[$proj_str][0];
+$proj2 = $args[$proj_str][1];
+$experiment1 = $compara_array[$proj1];
+$experiment2 = $compara_array[$proj2];
 
-
+$species1 = $experiment1['species'];
+$species2 = $experiment2['species'];
 $genome_db_ids = array($experiment1['genome_db_id'],$experiment2['genome_db_id']);
-$speciesArray = array($experiment1['species'],$experiment2['species']);
-$species2genome_db_ids = array($experiment1['species'] => $experiment1['genome_db_id'],$experiment2['species']=>$experiment2['genome_db_id']);
+$speciesArray = array($species1,$species2);
+$species2genome_db_ids = array($species1 => $experiment1['genome_db_id'],$species2=>$experiment2['genome_db_id']);
 $genome_ids2dbs = array($experiment2['genome_db_id'] => $experiment2['db_name'], $experiment1['genome_db_id'] =>$experiment1['db_name']);
 $num_species = sizeof($speciesArray);
 
-$region_str = 'region';
-$hide_str = 'hide';
 
 function getReg($str, &$chr,&$start,&$end) {
 	$pos = strpos($str, ":");
@@ -67,15 +71,11 @@ function getReg($str, &$chr,&$start,&$end) {
 	$start = substr($reg,0,$pos);
 	$end = substr($reg,$pos+1);
 }
-if(!isset($experiment1['species']) || !isset($experiment2['species'])) {// no species selected
-	$species1 = "Mus musculus";
-	$species2 = "Rattus norvegicus";
+if(!isset($args[$region_str.'1'])) {// no region selected
 	$region1 = "2:100-110";
 	$region2 = "2:137-137.8";
 	// header() TODO add refer to itself so one sees the arguments
 }else{
-	$species1 = $experiment1['species'];
-	$species2 = $experiment2['species'];
 	$region1 = $args[$region_str.'1'];
 	$region2 = $args[$region_str.'2'];
 }
@@ -150,7 +150,7 @@ function deleteNonHomos(&$loci2stable_ids_ex,$is_homo){
 	}
 }
 //SET THIS BOOLEAN TO TRUE FOR THE WHOLE TABLE (also empty rows and columns will be shown)
-$showAll = $hide==0;
+//$showAll = $hide==0;
 $homos_exist = false;
 
 $notShowAll1 = 1 & $hide;
@@ -243,6 +243,8 @@ echo '<?xml version="2.0" encoding="iso-8859-1"?>';
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
 <script type="text/javascript"
 	src="js/table-scroll.php?cols=<?php echo $cols.'&rows='.$rows;?>"></script>
+<script type="text/javascript"
+	src="js/homology.js"></script>
 </head>
 <frameset onload="init()" framespacing="0" frameborder="0"
 	cols="<?php echo $cols;?>,*">
