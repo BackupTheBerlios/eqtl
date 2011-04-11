@@ -7,7 +7,7 @@
 
  =head1 NAME
 
- test.php -
+ analysis.php -
 
  =head1 SYNOPSIS
 
@@ -168,5 +168,17 @@ foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 	}
 }
 
+$n_loci_ex2 = count($loci_ex2);
+$n_loci_ex2 = count($loci_ex2);
+// DISPLAY
+echo <<<END
+<p> 
+Affected traits ex. 1: $n_ens_ids_ex1<br>
+Affected traits ex. 2: $n_ens_ids_ex2</p>
+<p> 
+Affected traits ex. 1: $n_ens_ids_ex1<br>
+Affected traits ex. 2: $n_ens_ids_ex2</p>
 
+END;
+include 'html/footer.html';
 ?>

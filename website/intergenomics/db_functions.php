@@ -267,7 +267,7 @@ function homology2member_old($db, $homology_id) {
  * @param unknown_type $unique_ids
  * @param target_genome_db_id the genome of the target species for filtering (speed up)
  */
-function get_homologue_ens_ids($compara, $unique_ids, $target_genome_db_id) {
+function get_homologue_ens_ids_slow($compara, $unique_ids, $target_genome_db_id) {
 	$homology = array();
 
 	$sql = 'select m.stable_id from member as m inner join homology_member as h
@@ -302,6 +302,34 @@ function get_homologue_ens_ids($compara, $unique_ids, $target_genome_db_id) {
 	/* close statement */
 	$stmt->close();
 
+	return $homology;
+}
+
+/**
+ * get the homologue ensemble ids of the target species to a given set of ensebl ids.
+ *
+ * @param unknown_type $compara
+ * @param unknown_type $unique_ids
+ * @param target_genome_db_id the genome of the target species for filtering (speed up)
+ */
+function get_homologue_ens_ids($compara, $unique_ids, $target_genome_db_id) {
+	$homology = array();
+
+	$sql = 'select m.stable_id, m2.stable_id from member as m inner join homology_member as h
+		on (m.member_id = h.member_id
+		and m.genome_db_id = '.$target_genome_db_id.')
+		inner join homology_member as h2
+		on h.homology_id = h2.homology_id
+		inner join member as m2
+		on m2.member_id = h2.member_id and m2.stable_id in ("'.implode('","', $unique_ids).'")
+		group by m.stable_id, m2.stable_id;';
+	$result = $compara->query($sql) or fatal_error($compara->error);
+	
+	$homology = array_combine($unique_ids, array_fill(0,count($unique_ids),array()));
+	while ($row = $result->fetch_row()) {
+		$homology[$row[1]][] = $row[0]; 
+	}
+	
 	return $homology;
 }
 
