@@ -43,16 +43,16 @@
  * 	if($cis_lookup[$key]) the header cell gets the class "ciss".
  */
 function split_and_ciss(&$ens_id,$key,$cis_lookup){
-	$prefix = '<th rowspan="5"';
+	$prefix = '<th';
 	if($cis_lookup[$key]){
 		$prefix .= ' class="ciss" title="ciss">';
 	}else{
-		$prefix .= 'title="trans">';
+		$prefix .= ' title="trans">';
 	}
-	$ens_id = $prefix.chunk_split($ens_id,3,"<br />\n");
+	$ens_id = $prefix.chunk_split($ens_id,3,"<br />");
 }
 
-
+$refargs = $proj_str.'[]='.implode("+", explode(" ", $proj1)).'&amp;'.$proj_str.'[]='.implode("+", explode(" ", $proj2)).'&amp;region1='.$args[$region_str.'1'].'&amp;region2='.$args[$region_str.'2'];
 $fptr = fopen('html/table.html', 'w');
 
 $str = '
@@ -71,32 +71,45 @@ if (document.layers) {
 }
 window.onscroll = function () { parent.scrollen (); };
 </script>
-
 <link href="/css/style.css" rel="stylesheet" type="text/css" />
-</head><body onmouseover="parent.aktFrame=window.name;">
 
+</head>
+
+<body onmouseover="parent.aktFrame=window.name;">
 <div id="cont" style="font-size: small;"><!-- the display table -->
 <table border="1" cellpadding="5" cellspacing="0">
   <thead>
     <tr>
       <!-- ID-column header -->
       <th rowspan="2" colspan="2">
-      <div align="right" style="font-weight: normal">
-      hide empty columns<input type="checkbox" name="checkHor" value="emptyEx1">
+      <div class="enclose">
+		<div id="refargs" style="display: none;">
+      		'.$refargs.'
+	  	</div>
+      
+	  <div align="right">
+	  '.$proj1.' ('.$species1.')
+	  <div class="hidebox">
+      	<label for="check1">hide empty collumns </label> 
+      	<input type="checkbox" id="check1" onclick="javascript:parent.refresh(this)"
+      		'.((1 & $hide)? " checked=\"checked\"":"").'>
+      </div></div>
+      
+            
+      <div class="bottomleft">
+      '.$proj2.' ('.$species2.')
+      <div class="hidebox">
+      <input type="checkbox" id="check2" onclick="javascript:parent.refresh(this)"
+      	'.((2 & $hide)? " checked=\"checked\"":"").'> hide empty rows
+      </div></div>
+	  
       </div>
-      <div align="center">
-      homologue <br />
-      Ensembl <br />
-      stable <br />
-      IDs <br />
-      </div>
-      <div align="left" style="font-weight: normal">
-      <input type="checkbox" name="checkVer" value="emptyEx2">hide empty rows
-      </div>
-      </th>';
+     </th>';
+
 fwrite($fptr, $str);
 $str = "";
 $tmpIDs = "";
+$showNotEx1 = false;
 foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 	if(empty($ens_ids_ex1)){
 		// FIXME: If a locus does not affect any genes
@@ -106,9 +119,20 @@ foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 	$str.= '<th colspan="'.sizeof($ens_ids_ex1).'" title="locus of species 1">'.$locus_ex1.'</th>';
 
 	$tmp = $ens_ids_ex1;
+	/*
+	foreach ($ens_ids_ex1 as $ens_id_ex1){
+		if($showNotEx1 && $$is_homo1[''])
+	}
+	$prefix = '<th';
+	if($cis_lookup[$key]){
+		$prefix .= ' class="ciss" title="ciss">';
+	}else{
+		$prefix .= ' title="trans">';
+	}
+	$ens_id = $prefix.chunk_split($ens_id,3,"<br />");
+	*/
 	array_walk($tmp, "split_and_ciss", $loci2stable_ids_ex1[1][$locus_ex1]);
 	$tmpIDs.= implode('</th>',$tmp)."</th>\n";
-	
 }
 
 fwrite($fptr, $str."</tr><tr>".$tmpIDs."</tr></thead><tbody>");
@@ -123,13 +147,13 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 	}
 
 	//initialize parameter to check if whole locus-entry is empty
-	$boolNonEmptyLocus = false;
+	//$boolNonEmptyLocus = false;
 	$firstrow = true;
 	$i = 0;
-	$rowCount = 0;
+	//$rowCount = 0;
 	$str = "";
 	foreach ($ens_ids_ex2 as $ens_id_ex2) {
-		$rowBool = false;
+		//$rowBool = false;
 		if($loci2stable_ids_ex2[1][$locus_ex2][$i++]){
 			$rowString = '<th class="ciss" title="ciss">';
 		}else{
@@ -139,8 +163,8 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 		foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1) {
 			foreach ($ens_ids_ex1 as $ens_id_ex1){
 				if(in_array($ens_id_ex2, $traits12traits2[$ens_id_ex1])){
-					$boolNonEmptyLocus = true;
-					$rowBool = true;
+					//$boolNonEmptyLocus = true;
+					//$rowBool = true;
 					$rowString.= '<td class="homologue" title="homology">Hom</td>';
 				}else{
 					$rowString.= '<td />';
@@ -149,8 +173,8 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 		}
 		$rowString.= "</tr>\n";
 
-		if ($rowBool || $showAll) {
-			$rowCount++;
+		//if ($rowBool || $showAll) {
+		//	$rowCount++;
 			if($firstrow){
 				$firstrow = false;
 				$str .= $rowString;
@@ -159,15 +183,15 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 				$str .= $rowString;
 			}
 
-		}
+		//}
 
 	}
 
-	$str = '<tr><th rowspan="'.$rowCount.'" title="locus of species 2">'.$locus_ex2.'</th>'.$str;
+	$str = '<tr><th rowspan="'.count($ens_ids_ex2).'" title="locus of species 2">'.$locus_ex2.'</th>'.$str;
 
-	if ($boolNonEmptyLocus || $showAll) {
+	//if ($boolNonEmptyLocus || $showAll) {
 		fwrite($fptr, $str);
-	}
+	//}
 
 }
 
