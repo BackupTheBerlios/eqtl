@@ -47,15 +47,11 @@ $experiment1 = $compara_array[$projects[0]];
 $experiment2 = $compara_array[$projects[1]];
 
 
-$reg_str = 'regions';
-$chr2reg = array();
+// $reg_str = 'regions';
+// $chr2reg = array();
 $species2genome_db_ids = array($experiment1['species'] => $experiment1['genome_db_id'],$experiment2['species']=>$experiment2['genome_db_id']);
 $genome_ids2dbs = array($experiment2['genome_db_id'] => $experiment2['db_name'], $experiment1['genome_db_id'] =>$experiment1['db_name']);
 
-
-//initialize array for mapping groupnumbers to regions
-$group2region = array();
-$group2region2 = array();
 
 //load informations (database and so on...)
 $genome_db_ids = array($experiment1['genome_db_id'],$experiment2['genome_db_id']);
@@ -74,7 +70,6 @@ $db1 = $database1;
 $genome_id2 = $species2genome_db_ids[$species2];
 $db2 = $database2;
 
-
 // fetch loci and groups
 $chrs = getChromosomsAndLengths($compara,$experiment1['genome_db_id']);
 // additional filtering
@@ -82,6 +77,8 @@ useDB($genome_ids2dbs[$experiment1['genome_db_id']], $experiment1['connection'])
 $chrs = filter_chromos($experiment1['connection'], $chrs);
 $chromosomsEx1 = array_keys($chrs);//getChromosoms($compara, $experiment1['genome_db_id']);
 
+//initialize array for mapping groupnumbers to regions
+$group2region = array();
 $ex1 =  get_loci_from_sql($database1, $experiment1['connection'], 'wholeGenome', $chromosomsEx1, $confidence_int, $group2region);
 // converts $ex1 in 2 arrays: $groups1 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end', 'Chr') $mapEx1 = index -> (locus,groupNr)
 list($groups1, $mapEx1) = $ex1;
@@ -94,6 +91,8 @@ $chrs = getChromosomsAndLengths($compara,$experiment2['genome_db_id']);
 useDB($genome_ids2dbs[$experiment2['genome_db_id']], $experiment1['connection']);
 $chrs = filter_chromos($experiment1['connection'], $chrs);
 $chromosomsEx2 = array_keys($chrs);//getChromosoms($compara, $experiment1['genome_db_id']);
+//initialize array for mapping groupnumbers to regions
+$group2region2 = array();
 $ex2 =  get_loci_from_sql($database2, $experiment2['connection'], 'wholeGenome', $chromosomsEx2, $confidence_int, $group2region2);
 
 // converts $ex2 in 2 arrays: $groups2 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end') $mapEx2 = index -> (locus,groupNr)
@@ -144,13 +143,17 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){
 	}
 }
 
-
+$cnt_homo1 = 0;
+$cnt_homo2 = 0;
+$cnt_syn1 = 0;
+$cnt_syn2 = 0;
 foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 	$loci1 = $groups1[$group1]['loci'];
-
+	$cnt_syn1 +=count($loci1);
 	foreach ($syn_group2 as $group2){
 		$loci2 = $groups2[$group2]['loci'];
-
+		$cnt_syn2 +=count($loci2);
+		
 		foreach ($loci1 as $locus1){
 
 			foreach ($loci2 as $locus2){
@@ -159,8 +162,8 @@ foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 				foreach ($traits1 as $trait1){
 					$intersect = array_intersect($traits12traits2[$trait1],$loci2stable_ids_ex2[0][$locus2]);
 					if(!empty($intersect)){
-						echo '<br>Rat: '.$locus1.': '.$trait1.' , Maus: '.$locus2;
-						warn($intersect);
+						$cnt_homo2 += count($intersect);
+						$cnt_homo1++;
 					}
 				}
 			}
@@ -168,16 +171,21 @@ foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 	}
 }
 
-$n_loci_ex2 = count($loci_ex2);
+$n_loci_ex1 = count($loci_ex1);
 $n_loci_ex2 = count($loci_ex2);
 // DISPLAY
 echo <<<END
 <p> 
-Affected traits ex. 1: $n_ens_ids_ex1<br>
-Affected traits ex. 2: $n_ens_ids_ex2</p>
+ex. 1: $projects[0]<br>
+ex. 2: $projects[1]</p>
+
 <p> 
-Affected traits ex. 1: $n_ens_ids_ex1<br>
-Affected traits ex. 2: $n_ens_ids_ex2</p>
+Affected traits ex. 1: $n_ens_ids_ex1 / homologue: $cnt_homo1 <br>
+Affected traits ex. 2: $n_ens_ids_ex2 / homologue: $cnt_homo2 </p>
+
+<p> 
+Causing loci ex. 1: $n_loci_ex1 / syntenic: $cnt_syn1<br>
+Causing loci ex. 2: $n_loci_ex2 / syntenic: $cnt_syn2</p>
 
 END;
 include 'html/footer.html';
