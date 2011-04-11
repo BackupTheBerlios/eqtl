@@ -154,7 +154,7 @@ function locus2stable_ids($targetdb, $locus, &$chromos, $debug=FALSE) {
 
 	while ($row = $result->fetch_assoc()) {
 		$id = $row['ensembl_stable_gene_id'];
-		if($id!='' && strlen($id) > 15){
+		if($id != '' && strlen($id) > 15){
 			// empty filtering: it is neccessary, cause some traits have no stable id!!
 			$ids[] = $id;
 			$chromos[] = $row['chromosome'];
@@ -197,11 +197,12 @@ function filter_chromos($targetdb, $chromos, $debug=FALSE) {
  *
  * @param $array a 2d array
  */
-function get_unique_vals_from_2d_array($array) {
+function get_unique_vals_from_2d_array($array,&$cnt=0) {
 	$unique_vals = array();
 	foreach ($array as $vals){
 		$unique_vals = array_merge($unique_vals, $vals);
 	}
+	$cnt = count($unique_vals);
 	return array_unique($unique_vals);
 }
 

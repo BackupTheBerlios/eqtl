@@ -62,8 +62,8 @@
 }
 
 .homologue {
-	background: url("arrow-right.png") no-repeat left center;
-	padding-left: 13px;
+	/*background: url("arrow-right.png") no-repeat left center;
+	padding-left: 13px;*/
 	color: red;
 	font-weight: bold;
 }
