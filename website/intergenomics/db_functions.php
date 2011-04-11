@@ -270,8 +270,9 @@ function homology2member_old($db, $homology_id) {
 function get_homologue_ens_ids($compara, $unique_ids, $target_genome_db_id) {
 	$homology = array();
 
-	$sql = 'select m.stable_id from member as m inner join homology_member as h
+	$sql = 'select m.stable_id,hom.description from homology as hom,member as m inner join homology_member as h
 		on (m.member_id = h.member_id
+		and h.homology_id = hom.homology_id 
 		and m.genome_db_id = ?)
 		inner join homology_member as h2
 		on h.homology_id = h2.homology_id
@@ -286,11 +287,12 @@ function get_homologue_ens_ids($compara, $unique_ids, $target_genome_db_id) {
 		/* execute query */
 		$stmt->execute();
 		/* bind result variables */
-		$stmt->bind_result($homo_id);
+		$stmt->bind_result($homo_id,$homo_descript);
 		$homology[$unique_id] = array();
 		/* fetch value */
 		while($stmt->fetch()){
 			$homology[$unique_id][] = $homo_id;
+			$homology[$unique_id][$homo_id] = $homo_descript;
 		}
 		/*$result = $compara->query($sql) or fatal_error('Homology query failed: '.$compara->error);
 		 $members = array();
@@ -504,7 +506,10 @@ function getSyntenyGroups($qtldb, $comparadb, $groups1, $groups2, $species_names
 			foreach ($groups2 as $group2nr => $group2) {
 				if($group2['Chr']==$region['chr']){
 					if($group2['start']<=$region['end'] && $group2['end']>=$region['start']){
+						//add the groupnumber
 						$synteny1to2[$group1nr][] = $group2nr;
+						//filter array for duplicate entries
+						$synteny1to2[$group1nr] = array_unique($synteny1to2[$group1nr]);
 					}
 				}
 			}

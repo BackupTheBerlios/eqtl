@@ -135,6 +135,7 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){
 		$intersect = array_intersect($corr_homologue_ens_ids_ex2, $unique_ens_ids_ex1);
 		foreach ($intersect as $id_ex1){
 			$traits12traits2[$id_ex1][] = $unique_id_ex2;
+			$traits12traits2[$id_ex1][$unique_id_ex2] = $corr_homologue_ens_ids_ex2[$id_ex1];
 		}
 	}
 }
