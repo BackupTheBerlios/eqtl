@@ -138,13 +138,13 @@ foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 fwrite($fptr, $str."</tr><tr>".$tmpIDs."</tr></thead><tbody>");
 
 //initialize mapping array for homology descriptions
-$descript = array(
-	'within_species_paralog'=>'paralog',
-	'ortholog_one2one'=>'ortholog',
-	'ortholog_one2many'=>'ortholog',
-	'between_species_paralog'=>'paralog',
-	'ortholog_many2many'=>'ortholog',
-	'apparent_ortholog_one2one'=>'apparent ortholog');
+//$descript = array(
+//	'within_species_paralog'=>'paralog',
+//	'ortholog_one2one'=>'ortholog',
+//	'ortholog_one2many'=>'ortholog',
+//	'between_species_paralog'=>'paralog',
+//	'ortholog_many2many'=>'ortholog',
+//	'apparent_ortholog_one2one'=>'apparent ortholog');
 
 
 //iterate over locinames
@@ -174,7 +174,8 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 				if(in_array($ens_id_ex2, $traits12traits2[$ens_id_ex1])){
 					//$boolNonEmptyLocus = true;
 					//$rowBool = true;
-					$rowString.= '<td class="homologue" title="homology">'.$descript[$traits12traits2[$ens_id_ex1][$ens_id_ex2]].'</td>';
+					//$rowString.= '<td class="homologue" title="homology">'.$descript[$traits12traits2[$ens_id_ex1][$ens_id_ex2]].'</td>';
+					$rowString.= '<td class="homologue" title="homology">'.$traits12traits2[$ens_id_ex1][$ens_id_ex2].'</td>';
 				}else{
 					$rowString.= '<td />';
 				}

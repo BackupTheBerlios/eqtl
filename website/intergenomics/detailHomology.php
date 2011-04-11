@@ -121,8 +121,11 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){
 	$homology_ex1 = get_homologue_ens_ids($compara,$unique_ens_ids_ex1,$genome_id2);
 	//intersection
 	foreach ($homology_ex1 as $unique_id_ex1 => $corr_homologue_ens_ids_ex1) {
-		$traits12traits2[$unique_id_ex1] = array_intersect($corr_homologue_ens_ids_ex1,
+		$intersect = array_intersect(array_keys($corr_homologue_ens_ids_ex1),
 		$unique_ens_ids_ex2);
+		foreach ($intersect as $id_ex2){
+			$traits12traits2[$unique_id_ex1][$id_ex2] = $corr_homologue_ens_ids_ex1[$id_ex2];
+		} 
 	}
 }else{
 	$homology_ex2 = get_homologue_ens_ids($compara,$unique_ens_ids_ex2,$genome_id1);
@@ -132,9 +135,8 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){
 		$traits12traits2[$id_ex1] = array();
 	}
 	foreach ($homology_ex2 as $unique_id_ex2 => $corr_homologue_ens_ids_ex2) {
-		$intersect = array_intersect($corr_homologue_ens_ids_ex2, $unique_ens_ids_ex1);
+		$intersect = array_intersect(array_keys($corr_homologue_ens_ids_ex2), $unique_ens_ids_ex1);
 		foreach ($intersect as $id_ex1){
-			$traits12traits2[$id_ex1][] = $unique_id_ex2;
 			$traits12traits2[$id_ex1][$unique_id_ex2] = $corr_homologue_ens_ids_ex2[$id_ex1];
 		}
 	}
@@ -167,7 +169,7 @@ switch ($hide) {
 				// $trait1 has homologies
 				$is_homo1[$trait1] = true;
 				$homos_exist = true;
-				foreach ($homos2 as $homo2) {
+				foreach ($homos2 as $homo2 => $desc) {
 					$is_homo2[$homo2] = true;;
 				}
 			}
@@ -194,7 +196,7 @@ switch ($hide) {
 			if (!empty($homos2)){
 				// $trait1 has homologies
 				$homos_exist = true;
-				foreach ($homos2 as $homo2) {
+				foreach ($homos2 as $homo2 => $desc) {
 					$is_homo2[$homo2] = true;;
 				}
 			}
