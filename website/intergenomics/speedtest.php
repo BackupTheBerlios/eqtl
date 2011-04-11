@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 include 'html/header.html';
 
@@ -18,4 +18,6 @@ toc($t, 'opt');
 $t = tic();
 print_r(get_homologue_ens_ids($compara,array('ENSMUSG00000017146','ENSMUSG00000068240'),3));
 toc($t, 'normal');
+
+include 'html/footer.html';
 ?>

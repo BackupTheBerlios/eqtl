@@ -117,13 +117,13 @@ if (!empty($ex1)) {
 	fatal_error('nothing found for the given region(-s)');
 }
 // generates an arrays with index -> locinames
-$loci_ex1 = array_map('current',$mapEx1);
+// $loci_ex1 = array_map('current',$mapEx1);
 $chromosomsEx2 = getChromosoms($compara, $experiment2['genome_db_id']);
 $ex2 =  get_loci_from_sql($database2, $experiment2['connection'], 'wholeGenome', $chromosomsEx2, $confidence_int, $group2region2);
 // converts $ex2 in 2 arrays: $groups2 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end') $mapEx2 = index -> (locus,groupNr)
 list($groups2, $mapEx2) = $ex2;
 // generates an arrays with index -> locinames
-$loci_ex2 = array_map('current',$mapEx2);
+// $loci_ex2 = array_map('current',$mapEx2);
 
 // SYNTENY
 $dbs = array($database1,$database2);
