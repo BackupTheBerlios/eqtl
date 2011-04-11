@@ -81,8 +81,8 @@ window.onscroll = function () { parent.scrollen (); };
     <tr>
       <!-- ID-column header -->
       <th rowspan="2" colspan="2">
-      <div align="right">
-      <input type="checkbox" name="checkHor" value="emptyEx1">
+      <div align="right" style="font-weight: normal">
+      hide empty columns<input type="checkbox" name="checkHor" value="emptyEx1">
       </div>
       <div align="center">
       homologue <br />
@@ -90,8 +90,8 @@ window.onscroll = function () { parent.scrollen (); };
       stable <br />
       IDs <br />
       </div>
-      <div align="left" >
-      <input type="checkbox" name="checkVer" value="emptyEx2">
+      <div align="left" style="font-weight: normal">
+      <input type="checkbox" name="checkVer" value="emptyEx2">hide empty rows
       </div>
       </th>';
 fwrite($fptr, $str);
