@@ -116,21 +116,10 @@ foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 		// we skip it here.
 		continue;
 	}
-	$str.= '<th colspan="'.sizeof($ens_ids_ex1).'" title="locus of species 1">'.$locus_ex1.'</th>';
+	$str.= '<th colspan="'.sizeof($ens_ids_ex1).'" title="locus of species '.$species1.'">'.$locus_ex1.'</th>';
 
 	$tmp = $ens_ids_ex1;
-	/*
-	foreach ($ens_ids_ex1 as $ens_id_ex1){
-		if($showNotEx1 && $$is_homo1[''])
-	}
-	$prefix = '<th';
-	if($cis_lookup[$key]){
-		$prefix .= ' class="ciss" title="ciss">';
-	}else{
-		$prefix .= ' title="trans">';
-	}
-	$ens_id = $prefix.chunk_split($ens_id,3,"<br />");
-	*/
+
 	array_walk($tmp, "split_and_ciss", $loci2stable_ids_ex1[1][$locus_ex1]);
 	$tmpIDs.= implode('</th>',$tmp)."</th>\n";
 }
@@ -139,12 +128,12 @@ fwrite($fptr, $str."</tr><tr>".$tmpIDs."</tr></thead><tbody>");
 
 //initialize mapping array for homology descriptions
 $descript = array(
-	'within_species_paralog'=>'paralog',
-	'ortholog_one2one'=>'ortholog',
-	'ortholog_one2many'=>'ortholog',
-	'between_species_paralog'=>'paralog',
-	'ortholog_many2many'=>'ortholog',
-	'apparent_ortholog_one2one'=>'apparent ortholog');
+	'within_species_paralog'=>'<td class="paralog" title="homology">paralog</td>',
+	'ortholog_one2one'=>'<td class="ortholog" title="homology">ortholog</td>',
+	'ortholog_one2many'=>'<td class="ortholog" title="homology">ortholog</td>',
+	'between_species_paralog'=>'<td class="paralog" title="homology">paralog</td>',
+	'ortholog_many2many'=>'<td class="ortholog" title="homology">ortholog</td>',
+	'apparent_ortholog_one2one'=>'<td class="ortholog" title="homology">apparent ortholog</td>');
 
 
 //iterate over locinames
@@ -156,13 +145,10 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 	}
 
 	//initialize parameter to check if whole locus-entry is empty
-	//$boolNonEmptyLocus = false;
 	$firstrow = true;
 	$i = 0;
-	//$rowCount = 0;
 	$str = "";
 	foreach ($ens_ids_ex2 as $ens_id_ex2) {
-		//$rowBool = false;
 		if($loci2stable_ids_ex2[1][$locus_ex2][$i++]){
 			$rowString = '<th class="ciss" title="ciss">';
 		}else{
@@ -172,10 +158,7 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 		foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1) {
 			foreach ($ens_ids_ex1 as $ens_id_ex1){
 				if(in_array($ens_id_ex2, array_keys($traits12traits2[$ens_id_ex1]))){
-					//$boolNonEmptyLocus = true;
-					//$rowBool = true;
-					$rowString.= '<td class="homologue" title="homology">'.$descript[$traits12traits2[$ens_id_ex1][$ens_id_ex2]].'</td>';
-					//$rowString.= '<td class="homologue" title="homology">'.$traits12traits2[$ens_id_ex1][$ens_id_ex2].'</td>';
+					$rowString.= $descript[$traits12traits2[$ens_id_ex1][$ens_id_ex2]];
 				}else{
 					$rowString.= '<td />';
 				}
@@ -183,8 +166,6 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 		}
 		$rowString.= "</tr>\n";
 
-		//if ($rowBool || $showAll) {
-		//	$rowCount++;
 			if($firstrow){
 				$firstrow = false;
 				$str .= $rowString;
@@ -193,15 +174,11 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 				$str .= $rowString;
 			}
 
-		//}
-
 	}
 
-	$str = '<tr><th rowspan="'.count($ens_ids_ex2).'" title="locus of species 2">'.$locus_ex2.'</th>'.$str;
+	$str = '<tr><th rowspan="'.count($ens_ids_ex2).'" title="locus of species '.$species2.'">'.$locus_ex2.'</th>'.$str;
 
-	//if ($boolNonEmptyLocus || $showAll) {
 		fwrite($fptr, $str);
-	//}
 
 }
 

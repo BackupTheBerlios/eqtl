@@ -423,10 +423,17 @@ function getCromosomeConv($chr, $species_name){
 	//echo '<b>'.$species_name.'</b>';
 	if($species_name=="Rattus norvegicus"){
 		global $conv_rattus;
-		return $conv_rattus[$chr];
+		if(isset($conv_rattus[$chr]))
+			return $conv_rattus[$chr];
+		else
+			return NULL;
+		//return [$chr];
 	}elseif ($species_name=="Mus musculus"){
 		global $conv_mus;
-		return $conv_mus[$chr];
+		if(isset($conv_mus[$chr]))
+			return $conv_mus[$chr];
+		else
+			return NULL;
 	}else{
 		trigger_error('The requested species is currently not available... (just mus and rat)');
 	}
@@ -447,8 +454,8 @@ function cM2bp($chr,$cm=0,$species_name) {
 	$prevcM=$secondCM=-1;
 	$prevbp=$secondBP=-1;
 	if (empty($chrconv)) {
-		echo "<p>pb2cM_conversion.php: No information for chromosome '$chr'.</p>\n";
-		return (-2);
+		//echo "<p>pb2cM_conversion.php: No information for chromosome '$chr'.</p>\n";
+		return (NULL);
 	} elseif (!is_array($chrconv)) {
 		echo "<p>pb2cM_conversion.php: Internal error. (chr '$chr').</p>\n";
 		return (-3);
@@ -528,8 +535,8 @@ function bp2cM($chr,$bpInput=0,$species_name) {
 	$prevcM=$secondCM=-1;
 	$prevbp=$secondBP=-1;
 	if (empty($chrconv)) {
-		echo "<p>marker.php: No information for chromosome '$chr'.</p>\n";
-		return (-2);
+		//echo "<p>marker.php: No information for chromosome '$chr'.</p>\n";
+		return (NULL);
 	} elseif (!is_array($chrconv)) {
 		echo "<p>func_conversion_55.php: Internal error. (chr '$chr').</p>\n";
 		return (-3);

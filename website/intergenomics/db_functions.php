@@ -488,9 +488,15 @@ function getGroupSyntenyIDs($db, $bp, $dnafrag, $dnafrag2name, $species_name){
 	$i=0;
 	while ($row = $fragQuery->fetch_assoc()) {
 		$chr = $dnafrag2name[$row['dnafrag_id']];
-		$regions[$i]['chr'] = $chr;
-		$regions[$i]['start'] = bp2cM($chr, $row['dnafrag_start'], $species_name);
-		$regions[$i++]['end'] = bp2cM($chr, $row['dnafrag_end'], $species_name);
+		$tempChr = $chr;
+		$tempStart = bp2cM($chr, $row['dnafrag_start'], $species_name);
+		$tempEnd = bp2cM($chr, $row['dnafrag_end'], $species_name);
+		if (($tempStart != NULL) || ($tempEnd != NULL)) {
+			$regions[$i]['chr'] = $tempChr;
+			$regions[$i]['start'] = $tempStart;
+			$regions[$i]['end'] = $tempEnd;
+			$i++;
+		}
 	}
 	return $regions;
 }
@@ -521,13 +527,13 @@ function getSyntenyGroups($qtldb, $comparadb, $groups1, $groups2, $species_names
 	$bps2 = groups2bps($qtldb, $groups2, $species_names[1]);
 
 	$dnafragids1 = get_dnafragids($comparadb, $genome_db_ids[0], get_chromo_names_from_group($groups1));
-
 	$dnafrag2name = get_all_dnafragids($comparadb, $genome_db_ids[1]);
 
 	$group2region = array();
 	for ($i = 0; $i < sizeof($bps1); $i++) {
 		$group2region[$i] = getGroupSyntenyIDs($comparadb, $bps1[$i],$dnafragids1[$groups1[$i]['Chr']], $dnafrag2name,$species_names[1]);
 	}
+
 	$synteny1to2 = array();
 	foreach ($group2region as $group1nr => $regions) {
 		$synteny1to2[$group1nr] = array();
