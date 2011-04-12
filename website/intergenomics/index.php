@@ -244,8 +244,7 @@ if(isset($args['err'])){
 </p>
 <p>
   &nbsp;&nbsp;<input type="button" onclick="submit_page('overview')"
-    value="Overview" /> &nbsp;&nbsp; <input type="button"
-    onclick="submit_page('all')" value="Display all" />
+    value="show Synteny" />
 </p>
     <?php
     endPage();

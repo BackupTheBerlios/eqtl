@@ -107,6 +107,7 @@ for ($i = 0; $i < sizeof($regionChr); $i++) {
 	$intervalEnd[$i] = bp2cM($regionChr[$i], (int)$regionEnd[$i],$experiment1['species']);
 }
 $chromosomsEx1 = $regionChr;
+
 $ex1 =  get_loci_from_sql($database1, $experiment1['connection'], 'userinterval', $chromosomsEx1, $confidence_int, $group2region, $intervalStart, $intervalEnd);
 if (!empty($ex1)) {
 	// converts $ex1 in 2 arrays: $groups1 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end', 'Chr') $mapEx1 = index -> (locus,groupNr)
@@ -119,6 +120,10 @@ if (!empty($ex1)) {
 // generates an arrays with index -> locinames
 // $loci_ex1 = array_map('current',$mapEx1);
 $chromosomsEx2 = getChromosoms($compara, $experiment2['genome_db_id']);
+//filter compara chromosoms for existing chromosoms in QTL-database
+$chromosomsEx2 = filter_chromos($experiment2['connection'], array_flip($chromosomsEx2));
+$chromosomsEx2 = array_flip($chromosomsEx2);
+
 $ex2 =  get_loci_from_sql($database2, $experiment2['connection'], 'wholeGenome', $chromosomsEx2, $confidence_int, $group2region2);
 // converts $ex2 in 2 arrays: $groups2 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end') $mapEx2 = index -> (locus,groupNr)
 list($groups2, $mapEx2) = $ex2;

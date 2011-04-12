@@ -42,14 +42,6 @@ function connectToQtlDBs($project_names) {
 
 }
 
-function connectToQtlDB($port = '3306') {
-	$targetdb = @new mysqli('127.0.0.1', 'anonymous', 'no', '', $port);
-	if (mysqli_connect_errno()) {
-		fatal_error('Could not connect to database: '.mysqli_connect_error().'('.mysqli_connect_errno().')');
-	}
-	return $targetdb;
-}
-
 /**
  * fill the correlation array with default values, if a correlation between an
  * trait and lous not exists.
@@ -191,6 +183,7 @@ function filter_chromos($targetdb, $chromos, $debug=FALSE) {
 	}
 	return $qtl_chromos ;
 }
+
 
 /**
  * Get the union of the value-arrays from a 2d array.
