@@ -92,7 +92,7 @@ window.onscroll = function () { parent.scrollen (); };
 	  <div class="hidebox">
       	<label for="check1">hide empty collumns </label> 
       	<input type="checkbox" id="check1" onclick="javascript:parent.refresh(this)"
-      		'.((1 & $hide)? " checked=\"checked\"":"").'>
+      		'.((1 & $hide)? " checked=\"checked\"":"").'/>
       </div></div>
       
             
@@ -100,7 +100,7 @@ window.onscroll = function () { parent.scrollen (); };
       '.$proj2.' ('.$species2.')
       <div class="hidebox">
       <input type="checkbox" id="check2" onclick="javascript:parent.refresh(this)"
-      	'.((2 & $hide)? " checked=\"checked\"":"").'> hide empty rows
+      	'.((2 & $hide)? " checked=\"checked\"":"").'/> hide empty rows
       </div></div>
 	  
       </div>

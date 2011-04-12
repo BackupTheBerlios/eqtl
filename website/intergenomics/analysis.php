@@ -213,10 +213,10 @@ Causing loci ex. 2: $n_loci_ex2 / syntenic: $cnt_syn2</p>
 
 Ex 1:
 END;
-
+/*
 cnt_locus_per_chromo($groups1,$chromosomsEx1);
 echo '<br> Ex 2: <br>';
 cnt_locus_per_chromo($groups2,$chromosomsEx2);
-
+*/
 include 'html/footer.html';
 ?>
