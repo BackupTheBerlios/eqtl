@@ -68,6 +68,16 @@
 	font-weight: bold;
 }
 
+.paralog {
+	color: green;
+	font-weight: bold;
+}
+
+.ortholog {
+	color: red;
+	font-weight: bold;
+}
+
 .syn {
 	background-color: #ddd;
 }
