@@ -117,15 +117,15 @@ $unique_ens_ids_ex2 = get_unique_vals_from_2d_array($loci2stable_ids_ex2[0]);
 $n_ens_ids_ex1 = sizeof($unique_ens_ids_ex1);
 $n_ens_ids_ex2 = sizeof($unique_ens_ids_ex2);
 $traits12traits2 = array();
-if($n_ens_ids_ex1 < $n_ens_ids_ex2){
+if($n_ens_ids_ex1 < $n_ens_ids_ex2){// homology on experiment 1
 	$homology_ex1 = get_homologue_ens_ids($compara,$unique_ens_ids_ex1,$genome_id2);
 	//intersection
-	foreach ($homology_ex1 as $unique_id_ex1 => $corr_homologue_ens_ids_ex1) {
-		$intersect = array_intersect(array_keys($corr_homologue_ens_ids_ex1),
+	foreach ($homology_ex1 as $unique_id_ex1 => $corr_homologue_ens_ids_ex2) {
+		$intersect = array_intersect(array_keys($corr_homologue_ens_ids_ex2),
 		$unique_ens_ids_ex2);
 		foreach ($intersect as $id_ex2){
-			$traits12traits2[$unique_id_ex1][$id_ex2] = $corr_homologue_ens_ids_ex1[$id_ex2];
-		} 
+			$traits12traits2[$unique_id_ex1][$id_ex2] = $corr_homologue_ens_ids_ex2[$id_ex2];
+		}
 	}
 }else{
 	$homology_ex2 = get_homologue_ens_ids($compara,$unique_ens_ids_ex2,$genome_id1);
@@ -134,10 +134,10 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){
 	foreach ($unique_ens_ids_ex1 as $id_ex1){
 		$traits12traits2[$id_ex1] = array();
 	}
-	foreach ($homology_ex2 as $unique_id_ex2 => $corr_homologue_ens_ids_ex2) {
-		$intersect = array_intersect(array_keys($corr_homologue_ens_ids_ex2), $unique_ens_ids_ex1);
+	foreach ($homology_ex2 as $unique_id_ex2 => $corr_homologue_ens_ids_ex1) {
+		$intersect = array_intersect(array_keys($corr_homologue_ens_ids_ex1), $unique_ens_ids_ex1);
 		foreach ($intersect as $id_ex1){
-			$traits12traits2[$id_ex1][$unique_id_ex2] = $corr_homologue_ens_ids_ex2[$id_ex1];
+			$traits12traits2[$id_ex1][$unique_id_ex2] = $corr_homologue_ens_ids_ex1[$id_ex1];
 		}
 	}
 }
@@ -246,8 +246,7 @@ echo '<?xml version="2.0" encoding="iso-8859-1"?>';
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
 <script type="text/javascript"
 	src="js/table-scroll.php?cols=<?php echo $cols.'&rows='.$rows;?>"></script>
-<script type="text/javascript"
-	src="js/homology.js"></script>
+<script type="text/javascript" src="js/homology.js"></script>
 </head>
 <frameset onload="init()" framespacing="0" frameborder="0"
 	cols="<?php echo $cols;?>,*">

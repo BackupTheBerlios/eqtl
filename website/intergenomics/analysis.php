@@ -99,7 +99,26 @@ $loci_ex2 = array_map('current',$mapEx2);
 
 
 // SYNTENY
+
 $groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
+/*
+ $syn_groups2 = get_unique_vals_from_2d_array($groupSynteny_ex12ex2);
+ $groupnrs2 = array_keys($groups2);
+ $non_syn2 = array_diff($groupnrs2, $syn_groups2);
+
+ $cnt_syn2 = 0;
+ foreach ($non_syn2 as $group2nr) {
+ $cnt_syn2 += count($groups1[$group2nr]['loci']);
+ }
+ echo $cnt_syn2;
+ /*$cnt_syn1 = 0;
+ foreach ($groupSynteny_ex12ex2 as $groupnr1 => $syn_group2) {
+ if (empty($syn_group2)){
+ warn(count($groups1[$groupnr1]['loci']));
+ }
+ }*/
+//echo count($groups2).'  '.count(get_unique_vals_from_2d_array($groupSynteny_ex12ex2));
+//echo count($groups1).'  '.$cnt_syn1;
 
 
 // homo
@@ -107,7 +126,7 @@ $groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$gr
 useDB($database1,$experiment1['connection']);
 $loci2stable_ids_ex1 = loci2stable_ids($loci_ex1,$experiment1['connection']);
 $n_qtls1 = 0;
-$unique_ens_ids_ex1 = get_unique_vals_from_2d_array($loci2stable_ids_ex1[0],$n_qtls1);
+$unique_ens_ids_ex1 = get_unique_vals_from_2d_array($loci2stable_ids_ex1[0], $n_qtls1);
 
 
 useDB($database2,$experiment2['connection']);
@@ -120,44 +139,58 @@ $unique_ens_ids_ex2 = get_unique_vals_from_2d_array($loci2stable_ids_ex2[0],$n_q
 $n_ens_ids_ex1 = sizeof($unique_ens_ids_ex1);
 $n_ens_ids_ex2 = sizeof($unique_ens_ids_ex2);
 $traits12traits2 = array();
-if($n_ens_ids_ex1 < $n_ens_ids_ex2){
-	$homology_ex1 = get_homologue_ens_ids($compara, $unique_ens_ids_ex1, $genome_id2);
+//$cnt_homo = array();
+if($n_ens_ids_ex1 < $n_ens_ids_ex2){// homology on experiment 1
+	$homology_ex1 = get_homologue_ens_ids($compara,$unique_ens_ids_ex1,$genome_id2);
 	//intersection
-	foreach ($homology_ex1 as $unique_id_ex1 => $corr_homologue_ens_ids_ex1) {
-		$traits12traits2[$unique_id_ex1] = array_intersect($corr_homologue_ens_ids_ex1,
+	foreach ($homology_ex1 as $unique_id_ex1 => $corr_homologue_ens_ids_ex2) {
+		$intersect = array_intersect(array_keys($corr_homologue_ens_ids_ex2),
 		$unique_ens_ids_ex2);
+		foreach ($intersect as $id_ex2){
+			$traits12traits2[$unique_id_ex1][$id_ex2] = $corr_homologue_ens_ids_ex2[$id_ex2];
+			//$cnt_homo[$corr_homologue_ens_ids_ex2[$id_ex2]]++;
+		}
 	}
 }else{
-	$homology_ex2 = get_homologue_ens_ids($compara, $unique_ens_ids_ex2, $genome_id1);
+	$homology_ex2 = get_homologue_ens_ids($compara,$unique_ens_ids_ex2,$genome_id1);
 	//intersection
 
 	foreach ($unique_ens_ids_ex1 as $id_ex1){
 		$traits12traits2[$id_ex1] = array();
 	}
-	foreach ($homology_ex2 as $unique_id_ex2 => $corr_homologue_ens_ids_ex2) {
-		$intersect = array_intersect($corr_homologue_ens_ids_ex2, $unique_ens_ids_ex1);
+	foreach ($homology_ex2 as $unique_id_ex2 => $corr_homologue_ens_ids_ex1) {
+		$intersect = array_intersect(array_keys($corr_homologue_ens_ids_ex1), $unique_ens_ids_ex1);
 		foreach ($intersect as $id_ex1){
-			$traits12traits2[$id_ex1][] = $unique_id_ex2;
+			$traits12traits2[$id_ex1][$unique_id_ex2] = $corr_homologue_ens_ids_ex1[$id_ex1];
+			//$cnt_homo[$corr_homologue_ens_ids_ex1[$id_ex1]]++;
 		}
 	}
 }
+/*
+ $cnt_all_homo = 0;
+ foreach ($traits12traits2 as $trait2traits2){
+ if(!empty($intersect)){
+ $cnt_all_homo += count($intersect);
+ }
+ }*/
+/*
+ echo <<<END
+ <p>
+ Ratte: 29215 Genes on chip; eQTLs: $n_ens_ids_ex1<br>
+ Maus: 1031 Genes on chip; eQTLs : $n_ens_ids_ex2</p>
 
-$cnt_all_homo = 0;
-foreach ($traits12traits2 as $trait2traits2){
-	if(!empty($intersect)){
-		$cnt_all_homo += count($intersect);
-	}
-}
+ END;
+ print_r($cnt_homo);
+ */
 
-$cnt_homo = 0;
-$cnt_syn1 = 0;
-$cnt_syn2 = 0;
+$qtl_sh1 = array();
+$qtl_sh2 = array();
 foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 	$loci1 = $groups1[$group1]['loci'];
-	$cnt_syn1 +=count($loci1);
+	//$cnt_syn1 +=count($loci1);
 	foreach ($syn_group2 as $group2){
 		$loci2 = $groups2[$group2]['loci'];
-		$cnt_syn2 +=count($loci2);
+		//$cnt_syn2 +=count($loci2);
 
 
 		foreach ($loci1 as $locus1){
@@ -166,9 +199,11 @@ foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 
 				$traits1 = $loci2stable_ids_ex1[0][$locus1];
 				foreach ($traits1 as $trait1){
-					$intersect = array_intersect($traits12traits2[$trait1],$loci2stable_ids_ex2[0][$locus2]);
+					$intersect = array_intersect(array_keys($traits12traits2[$trait1]),$loci2stable_ids_ex2[0][$locus2]);
 					if(!empty($intersect)){
-						$cnt_homo += count($intersect);
+						$trait2 = current($intersect);
+						$qtl_sh1[$locus1][$trait1] = $traits12traits2[$trait1][$trait2];
+						$qtl_sh2[$locus2][$trait2] = $traits12traits2[$trait1][$trait2];
 					}
 				}
 			}
@@ -176,18 +211,26 @@ foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 
 	}
 }
-function cnt_locus_per_chromo($groups, $chromosomsEx) {
-	$chr2n_loci = array_combine($chromosomsEx, array_fill(0, count($chromosomsEx), 0));
-	foreach ($groups as $group){
-		$chr2n_loci[$group['Chr']] += count($group['loci']);
-	}
 
-	echo "<table border=\"1\"><tr><td>";
-	echo implode("</td><td>", array_keys($chr2n_loci));
-	echo "</td></tr><tr><td>";
-	echo implode("</td><td>", array_values($chr2n_loci));
-	echo "</td></tr></table>";
+function count_syn_homos($qtl_sh) {
+	$cnt_homo = array();
+	foreach ($qtl_sh as $traits) {
+		foreach ($traits as $homo_val) {
+			if (isset($cnt_homo[$homo_val])){
+				$cnt_homo[$homo_val]++;
+			}else{
+				$cnt_homo[$homo_val] = 0;
+			}
+		};
+	};
+	print_r($cnt_homo);
+	echo "<br>";
+	echo "<br>";
 }
+
+count_syn_homos($qtl_sh1);
+echo "ex 2";
+count_syn_homos($qtl_sh2);
 
 
 $n_loci_ex1 = count($loci_ex1);
@@ -199,24 +242,34 @@ ex. 1: $projects[0]<br>
 ex. 2: $projects[1]</p>
 
 <p> 
-ex. 1: 29215 Genes on chip; eQTLs: $n_ens_ids_ex1 / homologue: $cnt_homo1 <br>
-ex. 2: 1031 Genes on chip; eQTLs : $n_ens_ids_ex2 / homologue: $cnt_homo2 </p>
+ex. 1: 29215 Genes on chip; eQTLs: $n_ens_ids_ex1<br>
+ex. 2: 1031 Genes on chip; eQTLs : $n_ens_ids_ex2</p>
 
 <p> 
-all homologies: $cnt_homo1 <br>
-ex. 2: 1031 Genes on chip; eQTLs : $n_ens_ids_ex2 / homologue: $cnt_homo2 </p>
-$cnt_all_homo
+all homologies: $cnt_all_homo </p>
 
-<p> 
-Causing loci ex. 1: $n_loci_ex1 / syntenic: $cnt_syn1<br>
-Causing loci ex. 2: $n_loci_ex2 / syntenic: $cnt_syn2</p>
-
-Ex 1:
 END;
-/*
-cnt_locus_per_chromo($groups1,$chromosomsEx1);
-echo '<br> Ex 2: <br>';
-cnt_locus_per_chromo($groups2,$chromosomsEx2);
-*/
+
+/*print_r($qtl_sh1);
+ echo "<br><br>";
+ print_r($qtl_sh1);
+
+ /*
+ function cnt_locus_per_chromo($groups, $chromosomsEx) {
+ $chr2n_loci = array_combine($chromosomsEx, array_fill(0, count($chromosomsEx), 0));
+ foreach ($groups as $group){
+ $chr2n_loci[$group['Chr']] += count($group['loci']);
+ }
+
+ echo "<table border=\"1\"><tr><td>";
+ echo implode("</td><td>", array_keys($chr2n_loci));
+ echo "</td></tr><tr><td>";
+ echo implode("</td><td>", array_values($chr2n_loci));
+ echo "</td></tr></table>";
+ }
+ cnt_locus_per_chromo($groups1,$chromosomsEx1);
+ echo '<br> Ex 2: <br>';
+ cnt_locus_per_chromo($groups2,$chromosomsEx2);
+ */
 include 'html/footer.html';
 ?>
