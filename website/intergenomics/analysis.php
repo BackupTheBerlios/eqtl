@@ -99,9 +99,9 @@ $loci_ex2 = array_map('current',$mapEx2);
 
 
 // SYNTENY
-
-$groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
 /*
+$groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
+
  $syn_groups2 = get_unique_vals_from_2d_array($groupSynteny_ex12ex2);
  $groupnrs2 = array_keys($groups2);
  $non_syn2 = array_diff($groupnrs2, $syn_groups2);
@@ -134,6 +134,14 @@ $loci2stable_ids_ex2 = loci2stable_ids($loci_ex2,$experiment2['connection']);
 $n_qtls2 = 0;
 $unique_ens_ids_ex2 = get_unique_vals_from_2d_array($loci2stable_ids_ex2[0],$n_qtls2);
 
+echo <<<END
+
+<p> 
+ex. 1:  eQTLs: $n_qtls1<br>
+ex. 2:  eQTLs : $n_qtls2</p>
+
+END;
+exit();
 
 // HOMOLOGY => do it on the fewer genes
 $n_ens_ids_ex1 = sizeof($unique_ens_ids_ex1);
