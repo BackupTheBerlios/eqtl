@@ -58,13 +58,6 @@ function showProjectList($projects, $isSource){
 
 function endPage(){
 	include '../eqtl/footer.php';
-    echo <<<END
-    <script type="text/javascript" charset="utf-8">
-		$(document).ready(function(){
-			$("a[rel^='prettyPhoto']").prettyPhoto({animationSpeed:'slow',theme:'facebook',slideshow:6000});
-		});
-	</script>
-END;
     include 'html/footer.html';
 }
 
