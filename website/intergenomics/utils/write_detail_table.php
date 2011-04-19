@@ -95,8 +95,8 @@ window.onscroll = function () { parent.scrollen (); };
       		'.((1 & $hide)? " checked=\"checked\"":"").'/>
       </div></div>
       <br />
-      <a href="img/detail_homology_l.png" rel="prettyPhoto" 
-      title="Homologue genes in in the detail view.">KEY</a>
+      <a href="../img/detail_homology_l.png" rel="prettyPhoto" 
+      title="Homologue genes in in the detail view.">LEGEND</a>
       
       <div class="bottomleft">
       '.$proj2.' ('.$species2.')

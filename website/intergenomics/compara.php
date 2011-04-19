@@ -137,9 +137,9 @@ $groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$gr
 // display -----------------------
 include 'display_table.php';
 ?>
-<a href="img/synteny_l.png" rel="prettyPhoto" title="Syntenic regions view for the selected chromosomes.">KEY</a>
+<a href="img/synteny_l.png" rel="prettyPhoto" title="Syntenic regions view for the selected chromosomes.">LEGEND</a>
 <br />
 <?php
-toc($start,'everything');
+toc($start,'Synteny search');
 include 'html/footer.html';
 ?>
