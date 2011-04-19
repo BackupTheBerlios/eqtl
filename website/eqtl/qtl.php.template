@@ -175,6 +175,7 @@ ENDOFDOCUMENTATION
 		array(
 			"traits",
 			"traitlist",
+			"gene_name",	
 			"limit","order"
 		),
 		
@@ -214,7 +215,7 @@ ENDOFDOCUMENTATION
 				$covariates=array('');
 			}
 			else {
-				$covariates=preg_split("/,/",$covariates);
+				$covariates=preg_split("/[, ;]+/",$covariates);
 			}
 		}
 	}
@@ -452,7 +453,8 @@ ENDOFDOCUMENTATION
 		if (!(empty($show_LocusOfGene) and empty($show_Chromosome)
 			and empty($MeanMin) and empty($MeanMax)
 			and empty($SdMin) and empty($SdMax) and empty($show_ExpressionOfGene)
-			and empty($show_gene_assignment) ))
+			and empty($show_gene_assignment)
+			and empty($gene_name)))
 		{
 			$query .= " join trait on Trait=trait.trait_id ";
 		}
@@ -551,12 +553,17 @@ ENDOFDOCUMENTATION
 		if (!empty($chrlist)) {
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " qtl.Chromosome";
-			$where .= " in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
+			$where .= " in ('".join("','",preg_split("/[, ;]+/",$chrlist))."') ";
 		}
 
                 if (!empty($traitlist)) {
 			if ("WHERE " != $where) $where .= " AND ";
-			$where .= " Trait in ('".join("','",preg_split("/[, ;]/",$traitlist))."') ";
+			$where .= " Trait in ('".join("','",preg_split("/[, ;]+/",$traitlist))."') ";
+		}
+
+		if (!empty($gene_name)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " trait.gene_name in ('".join("','",preg_split("/[, ;]+/",$gene_name))."') ";
 		}
 
 		#

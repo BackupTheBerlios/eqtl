@@ -18,10 +18,20 @@ SQL statements and already within the script forwarded to a
 mysql client. The number of the analysis is passed as a
 command line parameter.
 
+The script regularExpressionAnalyses.R will output several
+test results as a table. For the time speaking, those values
+should be uploaded individually - for every phenotype:
+
+  tail -n +2 tests_AUC.tsv | cut -f 1,3 | ./regularExpressionAnalyses_add.sh I<some number>
+
 =head1 SEE ALSO
 
 regularExpressionAnalyses_list.sh, 
 regularExpressionAnalyses_add.sh
+
+=head1 ENVIRONMENT
+
+Set DEBUG=1 to avoid direct upload to database and instead see the SQL dumped to stdout.
 
 =head1 AUTHOR
 
@@ -57,5 +67,9 @@ fi
 
 echo "Adding data for analysis $1"
 
-sed -e "s/^\([^\t]*\)\t\(.*\)\$/INSERT INTO trait_phen_analysis_value SET trait_phen_analysis_id='$1', trait_id='\\1', value=\\2;/g" | sed -e 's/NA/NULL/g' | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+if [ -z "$DEBUG" ]; then
+	sed -e "s/^\([^\t]*\)\t\(.*\)\$/INSERT INTO trait_phen_analysis_value SET trait_phen_analysis_id='$1', trait_id='\\1', value=\\2;/g" | sed -e 's/NA/NULL/g' | mysql -h DATABASEHOSTLOCAL -u DATABASEEQTLUSER DATABASEEQTLNAME
+else
+	sed -e "s/^\([^\t]*\)\t\(.*\)\$/INSERT INTO trait_phen_analysis_value SET trait_phen_analysis_id='$1', trait_id='\\1', value=\\2;/g" | sed -e 's/NA/NULL/g'
+fi
 
