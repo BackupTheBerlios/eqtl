@@ -99,13 +99,14 @@ $loci_ex2 = array_map('current',$mapEx2);
 
 
 // SYNTENY
-/*
+
  $groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
 
  $syn_groups2 = get_unique_vals_from_2d_array($groupSynteny_ex12ex2);
  $groupnrs2 = array_keys($groups2);
  $non_syn2 = array_diff($groupnrs2, $syn_groups2);
 
+ /*
  $cnt_syn2 = 0;
  foreach ($non_syn2 as $group2nr) {
  $cnt_syn2 += count($groups1[$group2nr]['loci']);
@@ -171,8 +172,8 @@ $hom = array('between_species_paralog', 'ortholog_one2one', 'ortholog_many2many'
 
 
 // cnt homologue QTLs
-
 $cnt_hom1 = array_combine($hom, array_fill(0, 4, 0));
+/*
 $cnt_non1 = 0;
 foreach ($loci2stable_ids_ex1[0] as $ens_ids1) {
 	foreach ($ens_ids1 as $ens_id1) {
@@ -183,6 +184,7 @@ foreach ($loci2stable_ids_ex1[0] as $ens_ids1) {
 		}
 	}
 }
+*/
 
 // REVERSE lookup
 $traits22traits1 = array_combine($unique_ens_ids_ex2, array_fill(0, $n_ens_ids_ex2, array()));
@@ -195,7 +197,7 @@ foreach ($traits12traits2 as $trait1 => $traits2){
 
 // cnt homologue QTLs
 $cnt_hom2 = array_combine($hom, array_fill(0, 4, 0));
-$cnt_non2 = 0;
+/*$cnt_non2 = 0;
 foreach ($loci2stable_ids_ex2[0] as $ens_ids2) {
 	foreach ($ens_ids2 as $ens_id2) {
 		if (!empty($traits22traits1[$ens_id2])) {
@@ -215,7 +217,7 @@ ex. 2:  homo eQTLs : $cnt_hom2 non: $cnt_non2</p>
 
 END;
 exit();
-
+*/
 /*
  $cnt_all_homo = 0;
  foreach ($traits12traits2 as $trait2traits2){
@@ -234,19 +236,23 @@ exit();
  */
 
 $qtl_sh1 = array();
+$qtl_s1 = array();
+$qtl_h1 = array();
+$qtl_n1 = array();
+
 $qtl_sh2 = array();
+$qtl_s2 = array();
+$qtl_h2 = array();
+$qtl_n2 = array();
+
 foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 	$loci1 = $groups1[$group1]['loci'];
-	//$cnt_syn1 +=count($loci1);
 	foreach ($syn_group2 as $group2){
 		$loci2 = $groups2[$group2]['loci'];
-		//$cnt_syn2 +=count($loci2);
-
-
 		foreach ($loci1 as $locus1){
-
 			foreach ($loci2 as $locus2){
-
+				
+				// LOCUS 1
 				$traits1 = $loci2stable_ids_ex1[0][$locus1];
 				foreach ($traits1 as $trait1){
 					$intersect = array_intersect(array_keys($traits12traits2[$trait1]),$loci2stable_ids_ex2[0][$locus2]);
@@ -254,8 +260,24 @@ foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 						$trait2 = current($intersect);
 						$qtl_sh1[$locus1][$trait1] = $traits12traits2[$trait1][$trait2];
 						$qtl_sh2[$locus2][$trait2] = $traits12traits2[$trait1][$trait2];
+					} else {
+						$qtl_s1[$locus1][$trait1] = true;
 					}
 				}
+				
+				// LOCUS 2
+				$traits2 = $loci2stable_ids_ex2[0][$locus2];
+				foreach ($traits2 as $trait2){
+					$intersect = array_intersect(array_keys($traits22traits1[$trait2]),$loci2stable_ids_ex1[0][$locus1]);
+					if(!empty($intersect)){
+						$trait1 = current($intersect);
+						$qtl_sh1[$locus1][$trait1] = $traits12traits2[$trait1][$trait2];
+						$qtl_sh2[$locus2][$trait2] = $traits12traits2[$trait1][$trait2];
+					} else {
+						$qtl_s2[$locus2][$trait2] = true;
+					}
+				}
+				
 			}
 		}
 
@@ -288,7 +310,7 @@ $n_loci_ex2 = count($loci_ex2);
 // DISPLAY
 echo <<<END
 <p> 
-ex. 1: $projects[0]<br>
+ex. 2: $projects[0]<br>
 ex. 2: $projects[1]</p>
 
 <p> 
