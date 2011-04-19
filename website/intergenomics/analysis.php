@@ -173,6 +173,7 @@ $hom = array('between_species_paralog', 'ortholog_one2one', 'ortholog_many2many'
 
 // cnt homologue QTLs
 $cnt_hom1 = array_combine($hom, array_fill(0, 4, 0));
+/*
 $cnt_non1 = 0;
 foreach ($loci2stable_ids_ex1[0] as $ens_ids1) {
 	foreach ($ens_ids1 as $ens_id1) {
@@ -183,6 +184,7 @@ foreach ($loci2stable_ids_ex1[0] as $ens_ids1) {
 		}
 	}
 }
+*/
 
 // REVERSE lookup
 $traits22traits1 = array_combine($unique_ens_ids_ex2, array_fill(0, $n_ens_ids_ex2, array()));
@@ -195,7 +197,7 @@ foreach ($traits12traits2 as $trait1 => $traits2){
 
 // cnt homologue QTLs
 $cnt_hom2 = array_combine($hom, array_fill(0, 4, 0));
-$cnt_non2 = 0;
+/*$cnt_non2 = 0;
 foreach ($loci2stable_ids_ex2[0] as $ens_ids2) {
 	foreach ($ens_ids2 as $ens_id2) {
 		if (!empty($traits22traits1[$ens_id2])) {
@@ -215,7 +217,7 @@ ex. 2:  homo eQTLs : $cnt_hom2 non: $cnt_non2</p>
 
 END;
 exit();
-
+*/
 /*
  $cnt_all_homo = 0;
  foreach ($traits12traits2 as $trait2traits2){

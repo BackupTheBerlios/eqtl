@@ -244,6 +244,13 @@ echo '<?xml version="2.0" encoding="iso-8859-1"?>';
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
+<link type="text/css" rel="stylesheet" media="all" href="css/prettyPhoto.css" />
+
+<script
+  src="js/jquery-1.4.4.min.js" type="text/javascript" charset="utf-8"></script>
+<script
+  src="js/jquery.prettyPhoto.js" type="text/javascript" charset="utf-8"></script>
+
 <script type="text/javascript"
 	src="js/table-scroll.php?cols=<?php echo $cols.'&rows='.$rows;?>"></script>
 <script type="text/javascript" src="js/homology.js"></script>

@@ -72,7 +72,8 @@ require_once 'utils.php';
 require_once 'fill_related_projects.php';
 fill_compara_array();
 require_once '../eqtl/header.php';
-show_large_header("Intergenomics",true,"Ensembl Compara interface for Expression QTL",
+$upper_tit = "<b>Ensembl Compara interface for Expression QTL</b>";
+show_large_header("Intergenomics",true,$upper_tit,
 	'../eqtl/', array('css/style.css','css/prettyPhoto.css'));
 global $compara_array;
 

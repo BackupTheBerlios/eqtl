@@ -36,8 +36,6 @@ prepareColors($groups1,$groups2);
 
 <script
   src="js/mouseposition.js" type="text/javascript"></script>
-<script
-  src="js/jquery-1.4.4.min.js" type="text/javascript"></script>
 
 <p>
   Experiment 1 (species name) over the columns: <span id="species1"
