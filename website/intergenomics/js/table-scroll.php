@@ -18,6 +18,8 @@ var offLeft = "-225px";
 }
 ?>
 
+
+
 var aktFrame = "untRe";
 //var offAbove = "-135px";
 //var offLeft = "-225px";
@@ -133,6 +135,5 @@ function scrollen() {
 }
 
 window.onresize = function() {
-	window.document.onclick = call_detail_view;
 	balken();
 };
