@@ -94,10 +94,10 @@ window.onscroll = function () { parent.scrollen (); };
       	<input type="checkbox" id="check1" onclick="javascript:parent.refresh(this)"
       		'.((1 & $hide)? " checked=\"checked\"":"").'/>
       </div></div>
+      <br />
       <a href="img/detail_homology_l.png" rel="prettyPhoto" 
-      title="Homologue genes in in the detail view.">key</a>
+      title="Homologue genes in in the detail view.">KEY</a>
       
-            
       <div class="bottomleft">
       '.$proj2.' ('.$species2.')
       <div class="hidebox">
@@ -107,7 +107,6 @@ window.onscroll = function () { parent.scrollen (); };
 	  
       </div>
      </th>';
-
 fwrite($fptr, $str);
 $str = "";
 $tmpIDs = "";
