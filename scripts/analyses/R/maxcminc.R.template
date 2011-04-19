@@ -39,8 +39,12 @@ maxc <- function(v, num=1) {
   maxind <- 0
   for (i in 1:num) {
     maxind <- which.max(v)
-    res[i] <- maxind
-    v[maxind] = NA
+    if (0 == length(maxind)) {
+       res[i] <- NA
+    } else {
+       res[i] <- maxind
+       v[maxind] = NA
+    }
   }
   return(res)
 }
@@ -65,8 +69,12 @@ minc <- function(v, num=1) {
   minind <- 0
   for (i in 1:num) {
     minind <- which.min(v)
-    res[i] <- minind
-    v[minind] = NA
+    if (0 == length(minind)) {
+       res[i] <- NA
+    } else {
+       res[i] <- minind
+       v[minind] = NA
+    }
   }
   return(res)
 }

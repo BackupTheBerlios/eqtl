@@ -1,35 +1,21 @@
-<?php
+<?php 
 
-/**
-STARTOFDOCUMENTATION
+include 'html/header.html';
 
-=pod
-
-=head1 NAME
-
-test.php - 
-
-=head1 SYNOPSIS
-
-=head1 DESCRIPTION
-
-=head1 AUTHOR
-
-Michael Brehler <brehler@informatik.uni-luebeck.de>,
-Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
-
-=head1 COPYRIGHT
-
-University of LE<uuml>beck, Germany, 2011
-
-=cut
-
-ENDOFDOCUMENTATION
-*/
-
-include 'fill_related_projects.php';
-global $compara_array;
+require_once 'db_functions.php';
+require_once 'qtl_functions.php';
+require_once 'utils.php';
+require_once 'fill_related_projects.php';
 fill_compara_array();
 
-var_export($compara_array);
+$compara = connectToCompara(3306);
+
+get_homologue_ens_ids_opt($compara,array('ENSMUSG00000017146','ENSMUSG00000068240'),3);
+
+$t = tic();
+print_r(get_homologue_ens_ids_opt($compara,array('ENSMUSG00000017146','ENSMUSG00000068240'),3));
+toc($t, 'opt');
+$t = tic();
+print_r(get_homologue_ens_ids($compara,array('ENSMUSG00000017146','ENSMUSG00000068240'),3));
+toc($t, 'normal');
 ?>
