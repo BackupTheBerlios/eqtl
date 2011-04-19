@@ -1,31 +1,31 @@
 <?php
 
 /**
-STARTOFDOCUMENTATION
+ STARTOFDOCUMENTATION
 
-=pod
+ =pod
 
-=head1 NAME
+ =head1 NAME
 
-qtl_functions.php - 
+ qtl_functions.php -
 
-=head1 SYNOPSIS
+ =head1 SYNOPSIS
 
-=head1 DESCRIPTION
+ =head1 DESCRIPTION
 
-=head1 AUTHOR
+ =head1 AUTHOR
 
-Michael Brehler <brehler@informatik.uni-luebeck.de>,
-Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
+ Michael Brehler <brehler@informatik.uni-luebeck.de>,
+ Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
 
-=head1 COPYRIGHT
+ =head1 COPYRIGHT
 
-University of LE<uuml>beck, Germany, 2011
+ University of LE<uuml>beck, Germany, 2011
 
-=cut
+ =cut
 
-ENDOFDOCUMENTATION
-*/
+ ENDOFDOCUMENTATION
+ */
 
 require_once 'utils.php';
 
@@ -37,7 +37,7 @@ function connectToQtlDBs($project_names) {
 		if (mysqli_connect_errno()) {
 			fatal_error('Could not connect to database: '.mysqli_connect_error().'('.mysqli_connect_errno().')');
 		}
-		$compara_array[$project_name]['connection'] = $targetdb; 
+		$compara_array[$project_name]['connection'] = $targetdb;
 	}
 
 }
@@ -62,6 +62,7 @@ function fillDefaults(&$storage,$allTraits) {
 
 }
 
+
 /**
  * Get ensembls stable gene ids to a set of traits associated with the parameter-loci.
  *
@@ -71,8 +72,38 @@ function fillDefaults(&$storage,$allTraits) {
  *
  * @param $loci e.g. array('c9.loc48', 'c9.loc43', 'c9.loc40' , 'c9.loc39');
  * @param $targetdb the dbms WITH SELECTED DEFAULT DATABASE
+ * @author Georg 2011.04.18 optimization
  */
 function loci2stable_ids($loci, $targetdb){
+	$storage = array();
+	
+	$sql = 'select qtl.Locus, qtl.Chromosome, t.ensembl_stable_gene_id, t.chromosome
+	from Trait as t inner join qtl on
+		(t.trait_id = qtl.Trait AND qtl.Locus in (\''.implode("', '",$loci).'\') 
+	    and t.ensembl_stable_gene_id is not null
+	    and length(t.ensembl_stable_gene_id) > 15 ) 
+	    group by qtl.Locus, t.ensembl_stable_gene_id;';
+	//echo $sql;
+	$result = $targetdb->query($sql) or fatal_error('loci2stable_ids(); Query failed: '.$targetdb->error);
+	while ($row = $result->fetch_row()) {
+		$storage[0][$row[0]][] = $row[2];
+		$storage[1][$row[0]][] = $row[1]==$row[3];
+	}
+	return $storage;
+}
+
+/**
+ * @deprecated optimization
+ * Get ensembls stable gene ids to a set of traits associated with the parameter-loci.
+ *
+ * supported target species are:
+ * rat: stockholm "Rattus norvegicus"
+ * mus: rostock "Mus musculus"
+ *
+ * @param $loci e.g. array('c9.loc48', 'c9.loc43', 'c9.loc40' , 'c9.loc39');
+ * @param $targetdb the dbms WITH SELECTED DEFAULT DATABASE
+ */
+function loci2stable_ids_old($loci, $targetdb){
 	$storage = array();
 	$lociChromos = array();
 	$sql = 'select Chr, Name from locus where Name in	(\''.implode("', '",$loci).'\');';
@@ -104,22 +135,6 @@ function loci2stable_ids($loci, $targetdb){
 }
 
 
-
-function group2stable_ids($mapEx,$loci2stable_ids_ex){
-	$lastElement = end($mapEx);
-	for ($i = 0; $i <= $lastElement[1]; $i++) {
-		$group2stable_ids_ex[$i] = array();
-	}
-	foreach ($mapEx as $lociArray) {
-		$tempLocus = $lociArray[0];
-		$tempGroupNr = $lociArray[1];
-		$group2stable_ids_ex[$tempGroupNr] = array_merge($group2stable_ids_ex[$tempGroupNr],$loci2stable_ids_ex[0][$tempLocus]);
-	}
-	for ($i = 0; $i <= $lastElement[1]; $i++) {
-		$group2stable_ids_ex[$i] = array_unique($group2stable_ids_ex[$i]);
-	}
-	return $group2stable_ids_ex;
-}
 
 /**
  * Get ensembls stable gene ids to a set of traits associated with the parameter-locus.
@@ -155,6 +170,22 @@ function locus2stable_ids($targetdb, $locus, &$chromos, $debug=FALSE) {
 		}*/
 	}
 	return $ids;
+}
+
+function group2stable_ids($mapEx,$loci2stable_ids_ex){
+	$lastElement = end($mapEx);
+	for ($i = 0; $i <= $lastElement[1]; $i++) {
+		$group2stable_ids_ex[$i] = array();
+	}
+	foreach ($mapEx as $lociArray) {
+		$tempLocus = $lociArray[0];
+		$tempGroupNr = $lociArray[1];
+		$group2stable_ids_ex[$tempGroupNr] = array_merge($group2stable_ids_ex[$tempGroupNr],$loci2stable_ids_ex[0][$tempLocus]);
+	}
+	for ($i = 0; $i <= $lastElement[1]; $i++) {
+		$group2stable_ids_ex[$i] = array_unique($group2stable_ids_ex[$i]);
+	}
+	return $group2stable_ids_ex;
 }
 
 /**
@@ -229,7 +260,7 @@ function get_loci_from_sql($databaseTable, $qtldb, $searchType, $chromosomNo, $c
 	if ($searchType == 'wholeGenome'){
 		$sql = 'SELECT q.Chromosome, q.locus, l.cMorgan FROM '.$databaseTable.'.qtl as q inner join '.$databaseTable.'.locus as l on
 		(q.Chromosome in ("'.implode('","', $chromosomNo).'") AND q.locus = l.name) GROUP BY q.locus ORDER BY q.Chromosome, l.cMorgan;';
-		
+
 		$res = $qtldb->query($sql) or fatal_error('Query failed: '.$qtldb->error);
 		$lociArray[0] = $res->fetch_all();
 	}elseif($searchType == 'userinterval'){

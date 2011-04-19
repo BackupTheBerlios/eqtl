@@ -100,7 +100,7 @@ $loci_ex2 = array_map('current',$mapEx2);
 
 // SYNTENY
 /*
-$groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
+ $groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
 
  $syn_groups2 = get_unique_vals_from_2d_array($groupSynteny_ex12ex2);
  $groupnrs2 = array_keys($groups2);
@@ -134,14 +134,7 @@ $loci2stable_ids_ex2 = loci2stable_ids($loci_ex2,$experiment2['connection']);
 $n_qtls2 = 0;
 $unique_ens_ids_ex2 = get_unique_vals_from_2d_array($loci2stable_ids_ex2[0],$n_qtls2);
 
-echo <<<END
 
-<p> 
-ex. 1:  eQTLs: $n_qtls1<br>
-ex. 2:  eQTLs : $n_qtls2</p>
-
-END;
-exit();
 
 // HOMOLOGY => do it on the fewer genes
 $n_ens_ids_ex1 = sizeof($unique_ens_ids_ex1);
@@ -174,6 +167,55 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){// homology on experiment 1
 		}
 	}
 }
+$hom = array('between_species_paralog', 'ortholog_one2one', 'ortholog_many2many', 'ortholog_one2many');
+
+
+// cnt homologue QTLs
+
+$cnt_hom1 = array_combine($hom, array_fill(0, 4, 0));
+$cnt_non1 = 0;
+foreach ($loci2stable_ids_ex1[0] as $ens_ids1) {
+	foreach ($ens_ids1 as $ens_id1) {
+		if (!empty($traits12traits2[$ens_id1])) {
+			$cnt_hom1[current($traits12traits2[$ens_id1])]++;
+		}else{
+			$cnt_non1++;
+		}
+	}
+}
+
+// REVERSE lookup
+$traits22traits1 = array_combine($unique_ens_ids_ex2, array_fill(0, $n_ens_ids_ex2, array()));
+foreach ($traits12traits2 as $trait1 => $traits2){
+	foreach ($traits2 as $trait2 => $homotype) {
+		$traits22traits1[$trait2][$trait1] = $homotype;
+	}
+}
+
+
+// cnt homologue QTLs
+$cnt_hom2 = array_combine($hom, array_fill(0, 4, 0));
+$cnt_non2 = 0;
+foreach ($loci2stable_ids_ex2[0] as $ens_ids2) {
+	foreach ($ens_ids2 as $ens_id2) {
+		if (!empty($traits22traits1[$ens_id2])) {
+			$cnt_hom2[current($traits22traits1[$ens_id2])]++;
+		}else {
+			$cnt_non2++;
+		}
+	}
+}
+warn($cnt_hom1);
+warn($cnt_hom2);
+echo <<<END
+
+<p> 
+ex. 1:  homo eQTLs: $cnt_hom1 non: $cnt_non1<br>
+ex. 2:  homo eQTLs : $cnt_hom2 non: $cnt_non2</p>
+
+END;
+exit();
+
 /*
  $cnt_all_homo = 0;
  foreach ($traits12traits2 as $trait2traits2){
