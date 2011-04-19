@@ -337,7 +337,7 @@ function get_homologue_ens_ids($compara, $unique_ids, $target_genome_db_id) {
 }
 
 /**
- * get the homologue ensemble ids to a given set of ensebl ids.
+ * get the homologue ensemble ids to a given set of ensembl ids.
  *
  * @param $compara
  * @param $unique_ids

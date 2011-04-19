@@ -139,7 +139,7 @@ function loci2stable_ids_old($loci, $targetdb){
 /**
  * Get ensembls stable gene ids to a set of traits associated with the parameter-locus.
  *
- * FIXME GZ: We filter out ensemble-ids, that are to short.
+ * FIXME GZ: We filter out ensembl-ids, that are to short.
  * The normal length of a ensemble stable gene id is 18.
  * Our minimum expected id-size is 16.
  *
