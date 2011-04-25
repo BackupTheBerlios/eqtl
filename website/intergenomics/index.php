@@ -155,14 +155,14 @@ if(isset($args['err'])){
     $src_proj = $projects[0];
     connectToQtlDBs(array($src_proj));
     $qtldb = $compara_array[$src_proj]['connection'];
-    $compara = connectToCompara(3306);
+    $compara = connectToCompara(3306,true);
 
 
     // region selection
 
     // fetch chromosomes to species id
-    $genome_db_id = $compara_array[$src_proj]['genome_db_id'];
-    $chrs = getChromosomsAndLengths($compara,$genome_db_id);
+    $ens_species = $compara_array[$src_proj]['ensembl_species'];
+    $chrs = getChromosomesAndLengths($compara,$ens_species);
     // additional filtering
     $chrs = filter_chromos($qtldb, $chrs);
 

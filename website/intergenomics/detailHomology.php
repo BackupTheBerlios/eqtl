@@ -56,12 +56,6 @@ $experiment2 = $compara_array[$proj2];
 
 $species1 = $experiment1['species'];
 $species2 = $experiment2['species'];
-$genome_db_ids = array($experiment1['genome_db_id'],$experiment2['genome_db_id']);
-$speciesArray = array($species1,$species2);
-$species2genome_db_ids = array($species1 => $experiment1['genome_db_id'],$species2=>$experiment2['genome_db_id']);
-$genome_ids2dbs = array($experiment2['genome_db_id'] => $experiment2['db_name'], $experiment1['genome_db_id'] =>$experiment1['db_name']);
-$num_species = sizeof($speciesArray);
-
 
 function getReg($str, &$chr,&$start,&$end) {
 	$pos = strpos($str, ":");
@@ -88,16 +82,14 @@ $start1 = $end1 = $chr1 = $start2 = $end2 = $chr2 = 0;
 getReg($region1,$chr1,$start1,$end1);
 getReg($region2,$chr2,$start2,$end2);
 //  fetch loci
-$genome_id1 = $species2genome_db_ids[$species1];
-$db1 = $genome_ids2dbs[$genome_id1];
+$db1 = $experiment1["db_name"];
 $sql = 'select Name from '.$db1.'.Locus
 where Chr = '.$chr1.' 
 and cMorgan >= '.$start1.' 
 and cMorgan <= '.$end1.';';
 $loci_ex1 = get_only_loci_from_sql($sql, $experiment1['connection']);
 
-$genome_id2 = $species2genome_db_ids[$species2];
-$db2 = $genome_ids2dbs[$genome_id2];
+$db2 = $experiment2["db_name"];
 $sql = 'select Name from '.$db2.'.Locus
 where Chr = '.$chr2.' 
 and cMorgan >= '.$start2.' 
@@ -118,7 +110,7 @@ $n_ens_ids_ex1 = sizeof($unique_ens_ids_ex1);
 $n_ens_ids_ex2 = sizeof($unique_ens_ids_ex2);
 $traits12traits2 = array();
 if($n_ens_ids_ex1 < $n_ens_ids_ex2){// homology on experiment 1
-	$homology_ex1 = get_homologue_ens_ids($compara,$unique_ens_ids_ex1,$genome_id2);
+	$homology_ex1 = get_homologue_ens_ids($compara,$unique_ens_ids_ex1,$experiment2['ensembl_species']);
 	//intersection
 	foreach ($homology_ex1 as $unique_id_ex1 => $corr_homologue_ens_ids_ex2) {
 		$intersect = array_intersect(array_keys($corr_homologue_ens_ids_ex2),
@@ -128,7 +120,7 @@ if($n_ens_ids_ex1 < $n_ens_ids_ex2){// homology on experiment 1
 		}
 	}
 }else{
-	$homology_ex2 = get_homologue_ens_ids($compara,$unique_ens_ids_ex2,$genome_id1);
+	$homology_ex2 = get_homologue_ens_ids($compara,$unique_ens_ids_ex2,$experiment1['ensembl_species']);
 	//intersection
 
 	foreach ($unique_ens_ids_ex1 as $id_ex1){
@@ -286,4 +278,10 @@ echo '<?xml version="2.0" encoding="iso-8859-1"?>';
 			src="html/table.html" />
 	</frameset>
 </frameset>
+<script type="text/javascript" charset="utf-8">
+	$(document).ready(function(){
+		$("a[rel^='prettyPhoto']").prettyPhoto({animationSpeed:'slow',theme:'facebook',slideshow:6000});
+	});
+</script>
+
 </html>

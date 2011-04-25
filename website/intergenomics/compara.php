@@ -7,7 +7,7 @@
 
  =head1 NAME
 
- compara.php -
+ compara.php - Overview on a syntenic regions of a selected set of regions
 
  =head1 SYNOPSIS
 
@@ -119,7 +119,7 @@ if (!empty($ex1)) {
 }
 // generates an arrays with index -> locinames
 // $loci_ex1 = array_map('current',$mapEx1);
-$chromosomsEx2 = getChromosoms($compara, $experiment2['genome_db_id']);
+$chromosomsEx2 = getChromosomes($compara, $experiment2['ensembl_species']);
 //filter compara chromosoms for existing chromosoms in QTL-database
 $chromosomsEx2 = filter_chromos($experiment2['connection'], array_flip($chromosomsEx2));
 $chromosomsEx2 = array_flip($chromosomsEx2);
