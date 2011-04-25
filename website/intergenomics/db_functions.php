@@ -29,6 +29,35 @@
 
 require_once 'bp2cM_conversion.php';
 
+/**
+ *
+ * Select the genome db ids to ensembl species names.
+ * 
+ * @param unknown_type $compara
+ * @param unknown_type $ens_species
+ * @author Georg 2011.04.25
+ */
+function getGenomeDBIDs($compara,$ens_species) {
+	$sql = 'select name, genome_db_id from genome_db where name in ("'.implode('","', $ens_species).'");';
+	$result =  $compara->query($sql)or fatal_error($db->error);
+	if(!$result->num_rows){
+		warn('No genome db ids found to species with names: '.implode('","', $ens_species).'!<br />
+		Maybe the ensemble version is too old?');
+		return array();
+	}
+	$ids = array();
+	while ($row = $result->fetch_row()){
+		$ids[$row[0]] = $row[1];
+	}
+	$res = array();
+	foreach ($ens_species as $species) {
+		if (!isset($ids[$species])) {
+			fatal_error($species." has no geneome db id in Ensembl!");
+		}
+		$res[] = $ids[$species];
+	}
+	return $res;
+}
 
 /**
  *
@@ -251,11 +280,12 @@ function get_homologue_ens_ids_slow($compara, $unique_ids, $target_genome_db_id)
 function get_homologue_ens_ids($compara, $unique_ids, $target_species_name) {
 	$homology = array();
 
-	$sql = 'select m.stable_id, m2.stable_id, hom.description 
-		from homology as hom, member as m inner join homology_member as h
+	$sql = 'select m.stable_id, m2.stable_id, hom.description
+		from homology as hom, member as m 
+		inner join homology_member as h
 		on (m.member_id = h.member_id
 			and h.homology_id = hom.homology_id 
-			and m.genome_db_id = (select genome_db_id from genome_db where name="'.$target_species_name.') 
+			and m.genome_db_id = (select genome_db_id from genome_db where name="'.$target_species_name.'") 
 		) inner join homology_member as h2
 		on h.homology_id = h2.homology_id
 		inner join member as m2
