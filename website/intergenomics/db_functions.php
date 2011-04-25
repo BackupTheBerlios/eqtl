@@ -111,7 +111,7 @@ function getChromosomes($db, $species_name){
 	$sqlChromosoms = 'select d.name from dnafrag as d
 	inner join genome_db as g on(
 		g.genome_db_id = d.genome_db_id 
-		and g.genome_db_id = (select genome_db_id from genome_db where name="'.$species_name.')  
+		and g.genome_db_id = (select genome_db_id from genome_db where name="'.$species_name.'")  
 		AND d.coord_system_name = "chromosome");';
 	$resultChromosoms =  $db->query($sqlChromosoms)or trigger_error('Query failed: '.$db->error);
 	if(!$resultChromosoms->num_rows){
@@ -134,7 +134,7 @@ function getChromosomesAndLengths($db, $species_name){
 	$sqlChromosoms = 'select d.name, d.length from dnafrag as d
 	inner join genome_db as g on(
 		g.genome_db_id = d.genome_db_id 
-		and g.genome_db_id = (select genome_db_id from genome_db where name="'.$species_name.')  
+		and g.genome_db_id = (select genome_db_id from genome_db where name = "'.$species_name.'")  
 		AND d.coord_system_name = "chromosome");';
 	$resultChromosoms =  $db->query($sqlChromosoms)or trigger_error('Query failed: '.$db->error);
 	if(!$resultChromosoms->num_rows){

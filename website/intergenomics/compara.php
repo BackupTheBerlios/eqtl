@@ -40,7 +40,7 @@ $start = tic();
 
 $args = $_GET;
 
-$compara = connectToCompara(3306);
+$compara = connectToCompara(3306,true);
 
 $proj_str = 'projects';
 if(!isset($args[$proj_str])){
@@ -67,8 +67,6 @@ $experiment2 = $compara_array[$projects[1]];
 
 $reg_str = 'regions';
 $chr2reg = array();
-$species2genome_db_ids = array($experiment1['species'] => $experiment1['genome_db_id'],$experiment2['species']=>$experiment2['genome_db_id']);
-$genome_ids2dbs = array($experiment2['genome_db_id'] => $experiment2['db_name'], $experiment1['genome_db_id'] =>$experiment1['db_name']);
 
 //get confidence interval from GET
 if(isset($args['confidence_int'])){
@@ -93,7 +91,7 @@ $group2region = array();
 $group2region2 = array();
 
 //load informations of experiment1 (database and so on...)
-$genome_db_ids = array($experiment1['genome_db_id'],$experiment2['genome_db_id']);
+//$genome_db_ids = array($experiment1['genome_db_id'],$experiment2['genome_db_id']);
 $species_names = array($experiment1['species'],$experiment2['species']);
 $database1 = $experiment1['db_name'];
 $database2 = $experiment2['db_name'];
