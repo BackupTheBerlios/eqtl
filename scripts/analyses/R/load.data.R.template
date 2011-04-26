@@ -42,6 +42,10 @@ the genotypes for all the individuals, returned as individualsxmarker table
 
 =back
 
+=item 'scores'
+
+Return the clinical scores, be they shipped as a separate file or together with the genotypes.
+
 =back
 
 To use this function, until the library has been formed, run
@@ -103,19 +107,36 @@ load.data <- function(data.type,verbose=FALSE) {
     if (verbose) {
     	cat("ColClasses: "); print(colClasses)
     }
-    d<-read.table(filename, header=T, dec="PHENOFIELDDEC", sep="PHENOFIELDSEP", row.names=PHENOROWNAMES, skip=PHENOLINESSKIPNO, stringsAsFactors=F, colClasses=colClasses)
+    d<-read.table(filename, header=T, dec="PHENOFIELDDEC", sep="PHENOFIELDSEP",
+   	          row.names=PHENOROWNAMES, skip=PHENOLINESSKIPNO, stringsAsFactors=F, colClasses=colClasses)
 
+    # Allowing colnames to start with numbers
     d.numeric<-d[,col.numeric,drop=F]
+    d.numeric.colnames<-colnames(d.numeric)
+    d.numeric.colnames.orig<-d.numeric.colnames
+    d.numeric.colnames.grep<-grep("^X[0-9]",d.numeric.colnames)
+    d.numeric.colnames[d.numeric.colnames.grep]<-sub("^X","",d.numeric.colnames[d.numeric.colnames.grep])
+
+    # 
+    if ("INDIVIDUALIDPREFIX" != "") {
+	    cat("Removing prefix 'INDIVIDUALIDPREFIX' from column names.\n")
+	    d.numeric.colnames<-sub("^INDIVIDUALIDPREFIX","",d.numeric.colnames)
+    }
+    if ("INDIVIDUALIDSUFFIX" != "") {
+	    cat("Removing suffix 'INDIVIDUALIDSUFFIX' from column names.\n")
+	    d.numeric.colnames<-sub("INDIVIDUALIDSUFFIX$","",d.numeric.colnames)
+    }
+    colnames(d.numeric) <- d.numeric.colnames
+
     d.character<-NULL
     if (any(!col.numeric)) {
     	d.character<-d[,!col.numeric,drop=FALSE]
     }
     cat(" [read.table ok]\n")
     cat(paste(" [ok]  dimension is [",paste(dim(d.numeric),collapse=",",sep=""),"]\n",sep=""),sep="")
-    rm("d.prime")
-    d<-list("numeric"=d.numeric,"character"=d.character);
-    rm("d.character")
-    rm("d.numeric")
+    rm(d.prime)
+    d<-list("numeric"=d.numeric,"character"=d.character,"colnames.orig"=d.numeric.colnames.orig);
+    rm(d.character, d.numeric, d.numeric.colnames)
     return(d)
   } else if ("genotypes" == data.type) {
     d <- read.table(filename, header=T, sep="GENOFIELDSEP", skip=GENOLINESSKIPNO, na.strings=RQTLREADCROSSNASTRINGS, stringsAsFactors=F)
