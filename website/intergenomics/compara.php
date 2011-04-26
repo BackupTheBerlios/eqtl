@@ -40,7 +40,7 @@ $start = tic();
 
 $args = $_GET;
 
-$compara = connectToCompara(3306,true);
+$compara = connectToCompara();
 
 $proj_str = 'projects';
 if(!isset($args[$proj_str])){

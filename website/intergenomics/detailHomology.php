@@ -48,7 +48,7 @@ if(isset($args[$proj_str])&&(count($args[$proj_str])==2)){
 	fatal_error('No projects found or wrong number of projects!');
 }
 
-$compara = connectToCompara(3306,true);
+$compara = connectToCompara();
 $proj1 = $args[$proj_str][0];
 $proj2 = $args[$proj_str][1];
 $experiment1 = $compara_array[$proj1];

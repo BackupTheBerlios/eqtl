@@ -209,7 +209,7 @@ function connectToCompara($port = '5306', $local=false) {
 		$db = @new mysqli('127.0.0.1', 'anonymous', 'no', 'ensembl_compara_59', $port);
 	}else{
 		if($port == '5306'){
-			$database = 'ensembl_compara_57';
+			$database = 'ensembl_compara_62';
 		}else{
 			$database = 'ensembl_compara_47';
 		}
@@ -276,21 +276,23 @@ function get_homologue_ens_ids_slow($compara, $unique_ids, $target_genome_db_id)
  * @param unknown_type $compara
  * @param unknown_type $unique_ids
  * @param $target_species_name the name of the target species for filtering (speed up)
+ * @author g 2011.04.26
  */
 function get_homologue_ens_ids($compara, $unique_ids, $target_species_name) {
 	$homology = array();
 
 	$sql = 'select m.stable_id, m2.stable_id, hom.description
-		from homology as hom, member as m 
-		inner join homology_member as h
-		on (m.member_id = h.member_id
-			and h.homology_id = hom.homology_id 
+		from member as m 
+		inner join homology_member as h on (
+			m.member_id = h.member_id
 			and m.genome_db_id = (select genome_db_id from genome_db where name="'.$target_species_name.'") 
-		) inner join homology_member as h2
-		on h.homology_id = h2.homology_id
-		inner join member as m2
-		on m2.member_id = h2.member_id and m2.stable_id in ("'.implode('","', $unique_ids).'")
-		group by m.stable_id, m2.stable_id;';
+		) inner join homology as hom on (
+			h.homology_id = hom.homology_id 
+		) inner join homology_member as h2 on (
+			h.homology_id = h2.homology_id
+		) inner join member as m2 on (
+			m2.member_id = h2.member_id and m2.stable_id in ("'.implode('","', $unique_ids).'")
+		) group by m.stable_id, m2.stable_id;';
 	$result = $compara->query($sql) or fatal_error($compara->error);
 
 	$homology = array_combine($unique_ids, array_fill(0,count($unique_ids),array()));

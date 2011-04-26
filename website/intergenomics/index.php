@@ -155,7 +155,7 @@ if(isset($args['err'])){
     $src_proj = $projects[0];
     connectToQtlDBs(array($src_proj));
     $qtldb = $compara_array[$src_proj]['connection'];
-    $compara = connectToCompara(3306,true);
+    $compara = connectToCompara();
 
 
     // region selection
