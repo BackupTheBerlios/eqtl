@@ -7,7 +7,8 @@
 #  C O N T R O L
 
 # say what project to be actually working on
-project.name<-"baines"
+#project.name<-"baines"
+project.name<-"mohan"
 #project.name<-NULL
 
 # set to TRUE if data needs to be prepared, too
@@ -196,14 +197,28 @@ phenotypes.victimised.3m[is.na(phenotypes.victimised.3m)]<-F
 
 phenotypes.extra <- NULL
 phenotypes.baines<- NULL
+phenotypes.mohan<- NULL
 
-if ("baines"==project.name) {
+if ("baines" %in% project.name) {
 	cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
 	r<-read.table("data/baines/otu_table/otu_table.txt",sep="\t",header=F,row.names=1,stringsAsFactors=F,colClasses=integer())
 	phenotypes.baines<-t(r[-1,])
 	rownames(phenotypes.baines)<-as.character(r[1,])
 	rm(r)
 }
+
+if ("mohan" %in% project.name) {
+	cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
+	r<-read.table("data/mohan/mohan_all_phenotypes.tsv",sep="\t",header=T,stringsAsFactors=F,colClasses=integer())
+	r.good<-(!is.na(r[,2])) & !duplicated(r[,2])
+	r2 <- r[r.good,]
+	r2.good<-(!is.na(r2[,1])) & !duplicated(r2[,1])
+	r3 <- r2[r2.good,]
+	phenotypes.mohan<-r3[,grep("rank$",colnames(r2))]
+	rownames(phenotypes.mohan)<-r3[,1]
+	rm(r,r2,r3,r2.good,r.good)
+}
+
 
 
 # C H E C K   F O R   C O N S I S T E N C Y
@@ -212,7 +227,7 @@ if (!all(rownames(read.table.phenotypes) %in% rownames(read.table.snps))) {
 	stop("Found some individuals of the phenotypes not to be available in genotypes table.\n")
 }
 
-if ("baines"==project.name) {
+if ("baines" %in% project.name) {
 	if (!all(rownames(phenotypes.baines) %in% rownames(read.table.snps))) {
 		"%w/o%" <- function(x, y) x[!x %in% y]
 		unknown.individuals <- rownames(phenotypes.baines) %w/o% rownames(read.table.snps)
@@ -229,6 +244,14 @@ if ("baines"==project.name) {
 	a<-which(number.of.individuals.affected.per.phenotype>=30)
 	phenotypes.baines<-phenotypes.baines[,a]
 
+}
+
+if ("mohan" %in% project.name) {
+	if (!all(rownames(phenotypes.mohan) %in% rownames(read.table.snps))) {
+		stop("The following some individuals of the phenotypes are not found in genotypes table:\n",
+			paste(rownames(phenotypes.mohan)[!rownames(phenotypes.mohan) %in% rownames(read.table.snps)],collapse=",",sep=""))
+	}
+	phenotypes.mohan<-phenotypes.mohan[rownames(phenotypes.mohan) %in% rownames(read.table.snps),]
 }
 
 # P R E P A R A T I O N   O F   H A P P Y   I N P U T  F I L E S
@@ -331,7 +354,7 @@ if (data.prepare) {
 	}
 
 	# Continuing for other projects
-	if ("baines"==project.name) {
+	if ("baines" %in% project.name) {
 		snps.baines<-merged2happy(read.table.snps.selected,selected.rows=rownames(phenotypes.baines))
 		if (!file.exists(inputdir)) {
 			if (!dir.create(inputdir)) {
@@ -346,6 +369,30 @@ if (data.prepare) {
 				cat("Creating file '",ifile,"'.\n",sep="")
 				input.baines.all<-cbind(rownames(phenotypes.baines),phens.baines.all,snps.baines)
 				write.table(file=ifile, input.baines.all[!is.na(phens.baines.all),], col.names=F, row.names=F, quote=F, sep="\t")
+				written.act <- written.act+1
+			} else {
+				stop(paste("Too many NA values for phenotype '",phen,"' of project '",project.name,"'.\n",sep=""))
+			}
+		}
+		cat("Created input files for ",written.act," of ",written.max," phenotypes.\n",sep="")
+	}
+
+	if ("mohan" %in% project.name) {
+		snps.mohan<-merged2happy(read.table.snps.selected,selected.rows=rownames(phenotypes.mohan))
+		if (!file.exists(inputdir)) {
+			if (!dir.create(inputdir)) {
+				stop(paste("Could not create directory '",inputdir,"'.\n",sep=""))
+			}
+		}
+		written.act<-0;written.max<-ncol(phenotypes.mohan)
+		for (phen in colnames(phenotypes.mohan)) {
+			ifile<-paste(inputdir,"/happy_project_",project.name,"_all_", phen,".input",sep="")
+			phens.mohan.all<-phenotypes.mohan[,phen]
+			if (sum(!is.na(phens.mohan.all))>100) {
+				cat("Creating file '",ifile,"'.\n",sep="")
+				input.mohan.all<-cbind(rownames(phenotypes.mohan),phens.mohan.all,snps.mohan)
+				write.table(file=ifile, input.mohan.all[!is.na(phens.mohan.all),], col.names=F, row.names=F, quote=F, sep="\t")
+				written.act <- written.act+1
 			} else {
 				stop(paste("Too many NA values for phenotype '",phen,"' of project '",project.name,"'.\n",sep=""))
 			}
@@ -558,7 +605,7 @@ if (!split.chromosomes) {
 	cat("\n")
 	cat("\n")
 	cat("-------------------------------------------------------------------------------------\n")
-	cat("               Analysis on all chromosomes together"                                    )
+	cat("               Analysis on all chromosomes together for project ", project.name,    "\n")
 	cat("-------------------------------------------------------------------------------------\n")
 
 	if (!file.exists(markers.filename)) {
@@ -567,6 +614,16 @@ if (!split.chromosomes) {
 
 	if ("baines"==project.name) {
 		for(phen in colnames(phenotypes.baines)) {
+			ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset="all",data.covariates=data.covariates,
+							     name.suffix=name.suffix,project.name=project.name,overwrite=overwrite)
+			if (!ok) {
+				stop(paste("Problem occurred for phen '",phen,"'.\n",sep=""))
+			} else {
+				cat("[",phen,"]\n")
+			}
+		}
+	} else if ("mohan"==project.name) {
+		for(phen in colnames(phenotypes.mohan)) {
 			ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset="all",data.covariates=data.covariates,
 							     name.suffix=name.suffix,project.name=project.name,overwrite=overwrite)
 			if (!ok) {
