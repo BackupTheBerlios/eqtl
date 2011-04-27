@@ -78,8 +78,8 @@ function loci2stable_ids($loci, $targetdb){
 	$storage = array();
 	
 	$sql = 'select qtl.locus, qtl.Chromosome, t.ensembl_stable_gene_id, t.chromosome
-	from Trait as t inner join qtl on
-		(t.trait_id = qtl.Trait AND qtl.locus in (\''.implode("', '",$loci).'\') 
+	from trait as t inner join qtl on
+		(t.trait_id = qtl.trait AND qtl.locus in (\''.implode("', '",$loci).'\') 
 	    and t.ensembl_stable_gene_id is not null
 	    and length(t.ensembl_stable_gene_id) > 15 ) 
 	    group by qtl.locus, t.ensembl_stable_gene_id;';
@@ -148,8 +148,8 @@ function loci2stable_ids_old($loci, $targetdb){
  * @param $chromos
  */
 function locus2stable_ids($targetdb, $locus, &$chromos, $debug=FALSE) {
-	$sql = 'select t.ensembl_stable_gene_id, t.chromosome from Trait as t inner join qtl on
-	(t.trait_id = qtl.Trait AND qtl.locus = "'.$locus.'") group by ensembl_stable_gene_id;';
+	$sql = 'select t.ensembl_stable_gene_id, t.chromosome from trait as t inner join qtl on
+	(t.trait_id = qtl.trait AND qtl.locus = "'.$locus.'") group by ensembl_stable_gene_id;';
 	$result = $targetdb->query($sql) or fatal_error('Query failed: '.$targetdb->error);
 	if(!$result->num_rows && $debug){
 		error("qtl_functions.php locus2stable_ids():<br />No stable ids found for ".$locus);
