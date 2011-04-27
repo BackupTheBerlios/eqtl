@@ -105,7 +105,7 @@ for ($i = 0; $i < sizeof($regionChr); $i++) {
 	$intervalEnd[$i] = bp2cM($regionChr[$i], (int)$regionEnd[$i],$experiment1['species']);
 }
 $chromosomsEx1 = $regionChr;
-
+warn("davor");
 $ex1 =  get_loci_from_sql($database1, $experiment1['connection'], 'userinterval', $chromosomsEx1, $confidence_int, $group2region, $intervalStart, $intervalEnd);
 if (!empty($ex1)) {
 	// converts $ex1 in 2 arrays: $groups1 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end', 'Chr') $mapEx1 = index -> (locus,groupNr)
@@ -115,7 +115,7 @@ if (!empty($ex1)) {
 	echo '<br />';
 	fatal_error('nothing found for the given region(-s)');
 }
-warn($ex1);
+
 // generates an arrays with index -> locinames
 // $loci_ex1 = array_map('current',$mapEx1);
 $chromosomsEx2 = getChromosomes($compara, $experiment2['ensembl_species']);
