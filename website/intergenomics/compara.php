@@ -65,6 +65,9 @@ switch ($n_proj) {
 $experiment1 = $compara_array[$projects[0]];
 $experiment2 = $compara_array[$projects[1]];
 
+warn($projects);
+warn($experiment1['db_name']);
+
 $reg_str = 'regions';
 $chr2reg = array();
 

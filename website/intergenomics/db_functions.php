@@ -206,7 +206,7 @@ function useDB($name, $db){
  */
 function connectToCompara($port = '5306', $local=false) {
 	if ($local) {
-		$db = @new mysqli('127.0.0.1', 'anonymous', 'no', 'ensembl_compara_59', $port);
+		$db = @new mysqli('127.0.0.1', 'anonymous', 'no', 'ensembl_compara_59', '3306');
 	}else{
 		if($port == '5306'){
 			$database = 'ensembl_compara_62';
@@ -279,7 +279,6 @@ function get_homologue_ens_ids_slow($compara, $unique_ids, $target_genome_db_id)
  * @author g 2011.04.26
  */
 function get_homologue_ens_ids($compara, $unique_ids, $target_species_name) {
-	$homology = array();
 
 	$sql = 'select m.stable_id, m2.stable_id, hom.description
 		from member as m 

@@ -212,5 +212,6 @@ foreach ($loci2stable_ids_ex1 as $locus1 => $stables1) {
 		}
 	}
 }
+
 include 'html/footer.html';
 ?>
