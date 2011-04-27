@@ -35,9 +35,9 @@ require_once 'fill_related_projects.php';
 fill_compara_array();
 
 $compara = connectToCompara();
-
+global $compara_array;
 // args
-$projects = array('Ratte', 'Maus');
+$projects = array_keys($compara_array);
 $confidence_int = 1;
 
 
@@ -101,7 +101,7 @@ $loci_ex2 = array_map('current',$mapEx2);
 
 // SYNTENY
 $genome_db_ids = getGenomeDBIDs($compara, array($experiment1['ensembl_species'], $experiment2['ensembl_species']));
-$groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
+$groupSynteny_ex12ex2 = getSyntenyGroups(array($experiment1['connection'], $experiment2['connection']),$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
 
 // homo
 

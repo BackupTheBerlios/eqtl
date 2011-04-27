@@ -470,13 +470,13 @@ function getGroupSyntenyIDs($db, $bp, $dnafrag, $dnafrag2name, $species_name){
  * 		at pos. 0 is database of species one, at pos 1 is database of species 2
  *
  */
-function getSyntenyGroups($qtldb, $comparadb, $groups1, $groups2, $species_names, $genome_db_ids, $databases){
+function getSyntenyGroups($qtldbs, $comparadb, $groups1, $groups2, $species_names, $genome_db_ids, $databases){
 	$synteny_ex1 = array();
 	$result = array();
-	useDB($databases[0],$qtldb);
-	$bps1 = groups2bps($qtldb, $groups1, $species_names[0]);
-	useDB($databases[1],$qtldb);
-	$bps2 = groups2bps($qtldb, $groups2, $species_names[1]);
+	useDB($databases[0],$qtldbs[0]);
+	$bps1 = groups2bps($qtldbs[0], $groups1, $species_names[0]);
+	useDB($databases[1],$qtldbs[1]);
+	$bps2 = groups2bps($qtldbs[1], $groups2, $species_names[1]);
 
 	$dnafragids1 = get_dnafragids($comparadb, $genome_db_ids[0], get_chromo_names_from_group($groups1));
 	$dnafrag2name = get_all_dnafragids($comparadb, $genome_db_ids[1]);

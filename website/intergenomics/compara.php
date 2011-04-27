@@ -132,7 +132,7 @@ list($groups2, $mapEx2) = $ex2;
 // SYNTENY
 $genome_db_ids = getGenomeDBIDs($compara,array($experiment1['ensembl_species'], $experiment2['ensembl_species']));
 $dbs = array($database1,$database2);
-$groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
+$groupSynteny_ex12ex2 = getSyntenyGroups(array($experiment1['connection'], $experiment2['connection']),$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
 
 // display -----------------------
 include 'display_table.php';
