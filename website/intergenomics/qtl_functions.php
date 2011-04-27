@@ -77,12 +77,12 @@ function fillDefaults(&$storage,$allTraits) {
 function loci2stable_ids($loci, $targetdb){
 	$storage = array();
 	
-	$sql = 'select qtl.Locus, qtl.Chromosome, t.ensembl_stable_gene_id, t.chromosome
+	$sql = 'select qtl.locus, qtl.Chromosome, t.ensembl_stable_gene_id, t.chromosome
 	from Trait as t inner join qtl on
-		(t.trait_id = qtl.Trait AND qtl.Locus in (\''.implode("', '",$loci).'\') 
+		(t.trait_id = qtl.Trait AND qtl.locus in (\''.implode("', '",$loci).'\') 
 	    and t.ensembl_stable_gene_id is not null
 	    and length(t.ensembl_stable_gene_id) > 15 ) 
-	    group by qtl.Locus, t.ensembl_stable_gene_id;';
+	    group by qtl.locus, t.ensembl_stable_gene_id;';
 	//echo $sql;
 	$result = $targetdb->query($sql) or fatal_error('loci2stable_ids(); Query failed: '.$targetdb->error);
 	while ($row = $result->fetch_row()) {
