@@ -40,11 +40,10 @@ global $compara_array;
 $projects = array_keys($compara_array);
 $confidence_int = 1;
 
-
 connectToQtlDBs($projects);
 
-$experiment1 = $compara_array[$projects[0]];
-$experiment2 = $compara_array[$projects[1]];
+$experiment1 = $compara_array[$projects[1]];
+$experiment2 = $compara_array[$projects[0]];
 
 
 // $reg_str = 'regions';
@@ -169,7 +168,7 @@ $qtl_h1 = 0;
 $qtl_n1 = 0;
 
 
-foreach ($loci2stable_ids_ex1 as $locus1 => $stables1) {
+foreach ($loci2stable_ids_ex1[0] as $locus1 => $stables1) {
 	if(empty($groupSynteny_ex12ex2[$loci2group1[$locus1]])){
 		// not syntenic
 		foreach ($stables1 as $stable1) {
@@ -212,11 +211,11 @@ foreach ($loci2stable_ids_ex1 as $locus1 => $stables1) {
 	}
 }
 echo <<<END
-$qtl_sh1 <br>
-$qtlsh1 <br>
-$qtl_s1 <br>
-$qtl_h1 <br>
-$qtl_n1 <br>
+gut $qtl_sh1 <br>
+synhom $qtlsh1 <br>
+syn $qtl_s1 <br>
+hom $qtl_h1 <br>
+non $qtl_n1 <br>
 END;
 include 'html/footer.html';
 ?>

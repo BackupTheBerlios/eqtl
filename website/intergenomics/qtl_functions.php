@@ -247,6 +247,14 @@ function get_only_loci_from_sql($sql, $qtldb){
 	}
 	return $loci;
 }
+
+function fetch_all($res) {
+	$r = array();
+	while ($row = $res->fetch_row()){
+		$r[] = $row;
+	}
+	return $r;
+}
 /**
  * Returns an grouped array of loci from a sql statement.
  * Returns also an array with every loci and its groupnumber.
@@ -262,14 +270,14 @@ function get_loci_from_sql($databaseTable, $qtldb, $searchType, $chromosomNo, $c
 		(q.Chromosome in ("'.implode('","', $chromosomNo).'") AND q.locus = l.name) GROUP BY q.locus ORDER BY q.Chromosome, l.cMorgan;';
 
 		$res = $qtldb->query($sql) or fatal_error('Query failed: '.$qtldb->error);
-		$lociArray[0] = $res->fetch_all();
+		$lociArray[0] = fetch_all($res);
 	}elseif($searchType == 'userinterval'){
 		for ($i = 0; $i < sizeof($chromosomNo); $i++) {
 			$sql = 'SELECT q.Chromosome, q.locus, l.cMorgan FROM '.$databaseTable.'.qtl as q inner join '.$databaseTable.'.locus as l on
 		(q.Chromosome = "'.$chromosomNo[$i].'" AND l.cMorgan >='.$intervalStart[$i].' AND l.cMorgan <='.$intervalEnd[$i].' AND
 		q.locus = l.name) GROUP BY q.locus ORDER BY q.Chromosome, l.cMorgan;';	
 			$res = $qtldb->query($sql) or fatal_error('Query failed: '.$qtldb->error);
-			$lociArray[$i] = $res->fetch_all();
+			$lociArray[$i] = fetch_all($res);
 		}
 
 	}else{
