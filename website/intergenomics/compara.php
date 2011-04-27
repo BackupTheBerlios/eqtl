@@ -65,9 +65,6 @@ switch ($n_proj) {
 $experiment1 = $compara_array[$projects[0]];
 $experiment2 = $compara_array[$projects[1]];
 
-warn($projects);
-warn($experiment1['db_name']);
-
 $reg_str = 'regions';
 $chr2reg = array();
 
@@ -118,6 +115,7 @@ if (!empty($ex1)) {
 	echo '<br />';
 	fatal_error('nothing found for the given region(-s)');
 }
+warn($ex1);
 // generates an arrays with index -> locinames
 // $loci_ex1 = array_map('current',$mapEx1);
 $chromosomsEx2 = getChromosomes($compara, $experiment2['ensembl_species']);
