@@ -83,14 +83,14 @@ getReg($region1,$chr1,$start1,$end1);
 getReg($region2,$chr2,$start2,$end2);
 //  fetch loci
 $db1 = $experiment1["db_name"];
-$sql = 'select Name from '.$db1.'.Locus
+$sql = 'select Name from '.$db1.'.locus
 where Chr = '.$chr1.' 
 and cMorgan >= '.$start1.' 
 and cMorgan <= '.$end1.';';
 $loci_ex1 = get_only_loci_from_sql($sql, $experiment1['connection']);
 
 $db2 = $experiment2["db_name"];
-$sql = 'select Name from '.$db2.'.Locus
+$sql = 'select Name from '.$db2.'.locus
 where Chr = '.$chr2.' 
 and cMorgan >= '.$start2.' 
 and cMorgan <= '.$end2.';';

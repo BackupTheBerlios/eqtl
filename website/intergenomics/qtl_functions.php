@@ -149,7 +149,7 @@ function loci2stable_ids_old($loci, $targetdb){
  */
 function locus2stable_ids($targetdb, $locus, &$chromos, $debug=FALSE) {
 	$sql = 'select t.ensembl_stable_gene_id, t.chromosome from Trait as t inner join qtl on
-	(t.trait_id = qtl.Trait AND qtl.Locus = "'.$locus.'") group by ensembl_stable_gene_id;';
+	(t.trait_id = qtl.Trait AND qtl.locus = "'.$locus.'") group by ensembl_stable_gene_id;';
 	$result = $targetdb->query($sql) or fatal_error('Query failed: '.$targetdb->error);
 	if(!$result->num_rows && $debug){
 		error("qtl_functions.php locus2stable_ids():<br />No stable ids found for ".$locus);
