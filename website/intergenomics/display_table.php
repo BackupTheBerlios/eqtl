@@ -42,7 +42,7 @@ prepareColors($groups1,$groups2);
     class="display_species"><?php echo $projects[0]." (".$species_names[0].")";?>
   </span>; Experiment 2 (species name) over the rows: <span
     id="species2" class="display_species"><?php echo $projects[1]." (".$species_names[1].")";?>
-  </span>.<br />click on a synthenic region for details.
+  </span>.<br />click on a synthenic region for details or click <a href="img/synteny_l.png" rel="prettyPhoto" title="Syntenic regions view for the selected chromosomes.">HERE</a> for legend.
 </p>
 <div style="display: none;">
   <div id="exp1">
