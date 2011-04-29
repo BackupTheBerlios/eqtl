@@ -61,6 +61,7 @@ $str = '
 <!--IE7 in Quirksmode bitte-->
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
+
 <script type="text/javascript">
 if (document.layers) {
  window.location.replace("leer.html");
@@ -95,8 +96,8 @@ window.onscroll = function () { parent.scrollen (); };
       		'.((1 & $hide)? " checked=\"checked\"":"").'/>
       </div></div>
       <br />
-      <a href="../img/detail_homology_l.png" rel="prettyPhoto" 
-      title="Homologue genes in in the detail view.">LEGEND</a>
+      <a href="../img/detail_homology_l.png" target="_blank"
+      title="Show legend of detailview in new Tab">LEGEND</a>
       
       <div class="bottomleft">
       '.$proj2.' ('.$species2.')

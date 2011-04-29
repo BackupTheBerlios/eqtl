@@ -283,7 +283,7 @@ foreach ($groupSynteny_ex12ex2 as $group1 => $syn_group2){
 
 	}
 }
-
+/*
 function count_syn_homos($qtl_sh) {
 	$cnt_homo = array();
 	foreach ($qtl_sh as $traits) {
@@ -321,7 +321,7 @@ ex. 2: 1031 Genes on chip; eQTLs : $n_ens_ids_ex2</p>
 all homologies: $cnt_all_homo </p>
 
 END;
-
+*/
 /*print_r($qtl_sh1);
  echo "<br><br>";
  print_r($qtl_sh1);

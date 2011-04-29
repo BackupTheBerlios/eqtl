@@ -29,6 +29,35 @@
 
 require_once 'bp2cM_conversion.php';
 
+/**
+ *
+ * Select the genome db ids to ensembl species names.
+ * 
+ * @param unknown_type $compara
+ * @param unknown_type $ens_species
+ * @author Georg 2011.04.25
+ */
+function getGenomeDBIDs($compara,$ens_species) {
+	$sql = 'select name, genome_db_id from genome_db where name in ("'.implode('","', $ens_species).'");';
+	$result =  $compara->query($sql)or fatal_error($db->error);
+	if(!$result->num_rows){
+		warn('No genome db ids found to species with names: '.implode('","', $ens_species).'!<br />
+		Maybe the ensemble version is too old?');
+		return array();
+	}
+	$ids = array();
+	while ($row = $result->fetch_row()){
+		$ids[$row[0]] = $row[1];
+	}
+	$res = array();
+	foreach ($ens_species as $species) {
+		if (!isset($ids[$species])) {
+			fatal_error($species." has no geneome db id in Ensembl!");
+		}
+		$res[] = $ids[$species];
+	}
+	return $res;
+}
 
 /**
  *
@@ -105,17 +134,17 @@ function getDnafragParameter($db,$id){
  * Get an array with the Chromosomes to a species. Used by compara.php.
  *
  * @param $db compara
- * @param $genome_db_id species compara id
+ * @param $species_name species name in compara syntax eg. rattus_norvegicus
  */
-function getChromosoms($db, $genome_db_id){
+function getChromosomes($db, $species_name){
 	$sqlChromosoms = 'select d.name from dnafrag as d
 	inner join genome_db as g on(
 		g.genome_db_id = d.genome_db_id 
-		and g.genome_db_id = "'.$genome_db_id.'"  
+		and g.genome_db_id = (select genome_db_id from genome_db where name="'.$species_name.'")  
 		AND d.coord_system_name = "chromosome");';
 	$resultChromosoms =  $db->query($sqlChromosoms)or trigger_error('Query failed: '.$db->error);
 	if(!$resultChromosoms->num_rows){
-		warn('getChromosoms(): No cromosomes found to species with id: '.$genome_db_id.'!');
+		warn('getChromosomes(): No cromosomes found to species with name: '.$species_name.'!');
 		return array();
 	}
 	$chrs = array();
@@ -128,17 +157,17 @@ function getChromosoms($db, $genome_db_id){
 /**
  * Get an assoziative array [Chromosome] => [length]. Used by regions.php.
  * @param $db compara
- * @param $genome_db_id species compara id
+ * @param $species_name species name in compara syntax eg. rattus_norvegicus
  */
-function getChromosomsAndLengths($db, $genome_db_id){
+function getChromosomesAndLengths($db, $species_name){
 	$sqlChromosoms = 'select d.name, d.length from dnafrag as d
 	inner join genome_db as g on(
 		g.genome_db_id = d.genome_db_id 
-		and g.genome_db_id = "'.$genome_db_id.'"  
+		and g.genome_db_id = (select genome_db_id from genome_db where name = "'.$species_name.'")  
 		AND d.coord_system_name = "chromosome");';
 	$resultChromosoms =  $db->query($sqlChromosoms)or trigger_error('Query failed: '.$db->error);
 	if(!$resultChromosoms->num_rows){
-		warn('getChromosoms(): No cromosomes found to species with id: '.$genome_db_id.'!');
+		warn('getChromosomesAndLengths(): No cromosomes found to species with name: '.$species_name.'!');
 		return array();
 	}
 	$chrs = array();
@@ -146,13 +175,6 @@ function getChromosomsAndLengths($db, $genome_db_id){
 		$chrs[$row['name']] = $row['length'];
 	}
 	return $chrs;
-}
-
-function getChromosoms_old($db,$name){
-	$sqlChromosoms = 'select name from dnafrag where genome_db_id =(select genome_db_id from genome_db where name="'.$name.') AND CHAR_LENGTH(name) < 3;';
-	$resultChromosoms =  $db->query($sqlChromosoms)or trigger_error('Query failed: '.$db->error);
-	$rowsChromosoms = $resultChromosoms->fetch_all();
-	return $rowsChromosoms;
 }
 
 /**
@@ -180,13 +202,14 @@ function useDB($name, $db){
 /**
  * returns a connection to the compara database (default Port: 3306)
  * @param $port (default 5306)
+ * @param $local default false
  */
-function connectToCompara($port = '3306', $local=false) {
+function connectToCompara($port = '5306', $local=false) {
 	if ($local) {
-		$db = @new mysqli('127.0.0.1', 'anonymous', 'no', 'ensembl_compara_59', $port);
+		$db = @new mysqli('127.0.0.1', 'anonymous', 'no', 'ensembl_compara_59', '3306');
 	}else{
-		if($port=='5306'){
-			$database = 'ensembl_compara_57';
+		if($port == '5306'){
+			$database = 'ensembl_compara_62';
 		}else{
 			$database = 'ensembl_compara_47';
 		}
@@ -199,66 +222,6 @@ function connectToCompara($port = '3306', $local=false) {
 	return $db;
 }
 
-function member2homology($db, $stable_ids) {
-	//$stableCount = sizeof($stable_ids);
-	foreach ($stable_ids as $stable_id) {
-		$sqlHomology = 'select homology_id
-		from homology_member 
-		where member_id = (select member_id from member where stable_id = "'.$stable_id.'");';
-		//warn($sqlHomology);
-		$homologyQuery = $db->query($sqlHomology) or
-		trigger_error('Query failed: '.$db->error);
-		$homology = $homologyQuery->fetch_all();
-		//var_dump($homology);
-		if($homologyQuery->num_rows == 0){
-			//echo "empty!!!<br />\n";
-			$result[$stable_id] = array();
-		}else{
-			//echo "not empty!!!<br />\n";
-			$homologies = array_map("current", $homology);
-			$result[$stable_id] = $homologies;
-		}
-	}
-	return $result;
-}
-
-
-function homology2member($db, $homology_id) {
-	$sql = 'select distinct stable_id from member as m inner join homology_member as h
-	on (m.member_id = h.member_id
-	and h.homology_id IN ('.implode(',', $homology_id).'));';
-	$result = $db->query($sql) or fatal_error('Query failed: '.$db->error);
-	//var_export($member_ids);
-	if(!$result->num_rows){
-		warn('No genes are homologue to'.$homology_id.'!');
-		return array();
-	}
-	$members = array();
-	while ($row = $result->fetch_assoc()){
-		$members[] = $row['stable_id'];
-	}
-	return $members;
-}
-
-function homology2member_old($db, $homology_id) {
-	$searchString = implode('","', $homology_id);
-	$sqlMember = 'select member_id from homology_member where homology_id IN ("'.$searchString.'") group by member_id;';
-	$memberQuery = $db->query($sqlMember) or trigger_error('Query failed: '.$db->error);
-	$member_ids = $memberQuery->fetch_all();
-	//var_export($member_ids);
-	if(empty($member_ids)){
-		warn('member_ids empty!!');
-		return array();
-	}else{
-		$members = array_map("current", $member_ids);
-		$searchString = implode('","', $members);
-		$sqlMember = 'select stable_id from member where member_id IN ("'.$searchString.'") group by stable_id;';
-		$memberQuery = $db->query($sqlMember) or trigger_error('Query failed: '.$db->error);
-		$member_ids = $memberQuery->fetch_all();
-		$members = array_map("current", $member_ids);
-		return $members;
-	}
-}
 
 /**
  * get the homologue ensemble ids of the target species to a given set of ensebl ids.
@@ -312,44 +275,33 @@ function get_homologue_ens_ids_slow($compara, $unique_ids, $target_genome_db_id)
  *
  * @param unknown_type $compara
  * @param unknown_type $unique_ids
- * @param target_genome_db_id the genome of the target species for filtering (speed up)
+ * @param $target_species_name the name of the target species for filtering (speed up)
+ * @author g 2011.04.26
  */
-function get_homologue_ens_ids($compara, $unique_ids, $target_genome_db_id) {
-	$homology = array();
+function get_homologue_ens_ids($compara, $unique_ids, $target_species_name) {
 
-	$sql = 'select m.stable_id, m2.stable_id, hom.description from homology as hom, member as m inner join homology_member as h
-		on (m.member_id = h.member_id
-		and h.homology_id = hom.homology_id 
-		and m.genome_db_id = '.$target_genome_db_id.')
-		inner join homology_member as h2
-		on h.homology_id = h2.homology_id
-		inner join member as m2
-		on m2.member_id = h2.member_id and m2.stable_id in ("'.implode('","', $unique_ids).'")
-		group by m.stable_id, m2.stable_id;';
+	$sql = 'select m.stable_id, m2.stable_id, hom.description
+		from member as m 
+		inner join homology_member as h on (
+			m.member_id = h.member_id
+			and m.genome_db_id = (select genome_db_id from genome_db where name="'.$target_species_name.'") 
+		) inner join homology as hom on (
+			h.homology_id = hom.homology_id 
+		) inner join homology_member as h2 on (
+			h.homology_id = h2.homology_id
+		) inner join member as m2 on (
+			m2.member_id = h2.member_id and m2.stable_id in ("'.implode('","', $unique_ids).'")
+		) group by m.stable_id, m2.stable_id;';
 	$result = $compara->query($sql) or fatal_error($compara->error);
-	
+
 	$homology = array_combine($unique_ids, array_fill(0,count($unique_ids),array()));
 	while ($row = $result->fetch_row()) {
-		$homology[$row[1]][$row[0]] = $row[2]; 
+		$homology[$row[1]][$row[0]] = $row[2];
 	}
-	
+
 	return $homology;
 }
 
-/**
- * get the homologue ensemble ids to a given set of ensembl ids.
- *
- * @param $compara
- * @param $unique_ids
- */
-function get_homologue_ens_ids_old($compara,$unique_ids,$dummy) {
-	$homology_ids = member2homology($compara, $unique_ids);
-	foreach ($unique_ids as $unique_id) {
-		$members = homology2member($compara, $homology_ids[$unique_id]);
-		$homology[$unique_id] = $members;
-	}
-	return $homology;
-}
 
 function locus2bp($qtl_db, $locus_name, $species){
 	$sqlChromo = 'select Chr, cMorgan from locus where name = "'.$locus_name.'";';
@@ -518,13 +470,13 @@ function getGroupSyntenyIDs($db, $bp, $dnafrag, $dnafrag2name, $species_name){
  * 		at pos. 0 is database of species one, at pos 1 is database of species 2
  *
  */
-function getSyntenyGroups($qtldb, $comparadb, $groups1, $groups2, $species_names, $genome_db_ids, $databases){
+function getSyntenyGroups($qtldbs, $comparadb, $groups1, $groups2, $species_names, $genome_db_ids, $databases){
 	$synteny_ex1 = array();
 	$result = array();
-	useDB($databases[0],$qtldb);
-	$bps1 = groups2bps($qtldb, $groups1, $species_names[0]);
-	useDB($databases[1],$qtldb);
-	$bps2 = groups2bps($qtldb, $groups2, $species_names[1]);
+	useDB($databases[0],$qtldbs[0]);
+	$bps1 = groups2bps($qtldbs[0], $groups1, $species_names[0]);
+	useDB($databases[1],$qtldbs[1]);
+	$bps2 = groups2bps($qtldbs[1], $groups2, $species_names[1]);
 
 	$dnafragids1 = get_dnafragids($comparadb, $genome_db_ids[0], get_chromo_names_from_group($groups1));
 	$dnafrag2name = get_all_dnafragids($comparadb, $genome_db_ids[1]);
