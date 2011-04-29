@@ -115,14 +115,17 @@ if(isset($args['err'])){
     your choice. 
     <ul>
     <li><a href="img/regions_l.png" rel="prettyPhoto[a]"
-      title="Region selection on the start page."><img src="img/regions_s.png" width="100"
-      height="65" alt="Step 1: Region selection on the start page." /> </a></li>
+           title="Region selection on the start page."><img src="img/regions_s.png" width="100"
+                                                            height="65" alt="Step 1: Region selection on the start page."
+                                                       /> </a></li>
     <li><a href="img/synteny_l.png" rel="prettyPhoto[a]"
-      title="Syntenic regions view for the selected chromosomes."><img src="img/synteny_s.png" width="49"
-      height="65" alt="Step 2: syntenic regions for the selected chromosomes" /> </a></li>
+           title="Syntenic regions view for the selected chromosomes."><img src="img/synteny_s.png" width="49"
+                                                                            height="65" alt="Step 2: syntenic regions for the selected chromosomes"
+								       /> </a></li>
       <li><a href="img/detail_homology_l.png" rel="prettyPhoto[a]"
-      title="Homologue genes in in the detail view."><img src="img/detail_homology_s.png" width="119"
-      height="65" alt="Step 3: Homologue genes in in the detail view." /> </a></li>
+             title="Homologue genes in in the detail view."><img src="img/detail_homology_s.png" width="119"
+                                                                 height="65" alt="Step 3: Homologue genes in in the detail view."
+                                                            /> </a></li>
     </ul>
 
   </div>
