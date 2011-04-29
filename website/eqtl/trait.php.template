@@ -1039,5 +1039,3 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 	}
 	include("footer.php");
 ?>
-    </body>
-</html>
