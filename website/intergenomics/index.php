@@ -194,6 +194,7 @@ if(isset($args['err'])){
     Add regions for species
     <?php echo $species;?>
   </h3>
+  <center>
   <table border="1" cellpadding="3" cellspacing="0">
     <tr>
       <th>Chromosome</th>
@@ -233,6 +234,7 @@ if(isset($args['err'])){
     }
     ?>
   </table>
+  </center>
 </div>
 <p>
   <label for="conf">Length of confidence intervall around each locus: </label><input
