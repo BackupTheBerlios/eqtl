@@ -41,8 +41,8 @@ function getGenomeDBIDs($compara,$ens_species) {
 	$sql = 'select name, genome_db_id from genome_db where name in ("'.implode('","', $ens_species).'");';
 	$result =  $compara->query($sql)or fatal_error($db->error);
 	if(!$result->num_rows){
-		warn('No genome db ids found to species with names: '.implode('","', $ens_species).'!<br />
-		Maybe the ensemble version is too old?');
+		warn('No genome db ids found to species with names: '.implode('","', $ens_species)."!<br />\n"
+		    ."Maybe the ensemble version is too old?");
 		return array();
 	}
 	$ids = array();
@@ -73,8 +73,8 @@ function getGenomeDBIDs($compara,$ens_species) {
  * @author Georg
  */
 function get_dnafragids($db, $genome_db_id, $chromosomes) {
-	$sql = 'select name, dnafrag_id from dnafrag where name in("'.implode('","', $chromosomes).'")
-	and genome_db_id = '.$genome_db_id.';';
+	$sql = 'select name, dnafrag_id from dnafrag where name in("'.implode('","', $chromosomes).'") '
+	      .'and genome_db_id = '.$genome_db_id.';';
 
 	$query = $db->query($sql) or fatal_error('Query failed: '.$db->error);
 
@@ -86,8 +86,7 @@ function get_dnafragids($db, $genome_db_id, $chromosomes) {
 }
 
 function get_all_dnafragids($db, $genome_db_id) {
-	$sql = 'select name, dnafrag_id from dnafrag
-	where genome_db_id = '.$genome_db_id.';';
+	$sql = 'select name, dnafrag_id from dnafrag where genome_db_id = '.$genome_db_id.';';
 
 	$query = $db->query($sql) or fatal_error('Query failed: '.$db->error);
 
@@ -105,13 +104,12 @@ function get_all_dnafragids($db, $genome_db_id) {
  * @param unknown_type $id dnafrag_id
  */
 function getSpeciesName($db,$id) {
-	$sqlSpeciesName = 'select name
-	from genome_db 
-	where genome_db_id =(
-		select genome_db_id 
-		from dnafrag 
-		where dnafrag_id='.$id.');';
-	$resultSpeciesName =  $db->query($sqlSpeciesName)or trigger_error('Query failed: '.$db->error);
+	$sqlSpeciesName = 'select name from genome_db '
+                         .'where genome_db_id = ('
+			 .		'select genome_db_id '
+			 .		'from dnafrag '
+			 .		'where dnafrag_id='.$id.');';
+	$resultSpeciesName =  $db->query($sqlSpeciesName) or trigger_error('Query failed: '.$db->error);
 	$rowsSpeciesName = $resultSpeciesName->fetch_all();
 	return $rowsSpeciesName[0][0];
 }
@@ -125,7 +123,7 @@ function getSpeciesName($db,$id) {
  */
 function getDnafragParameter($db,$id){
 	$sqlSpeciesPara = 'select coord_system_name, name,length from dnafrag where dnafrag_id ='.$id.';';
-	$resultSpeciesPara =  $db->query($sqlSpeciesPara)or trigger_error('Query failed: '.$db->error);
+	$resultSpeciesPara =  $db->query($sqlSpeciesPara) or trigger_error('Query failed: '.$db->error);
 	$rowsSpeciesPara = $resultSpeciesPara->fetch_assoc();
 	return $rowsSpeciesPara;
 }
@@ -137,12 +135,12 @@ function getDnafragParameter($db,$id){
  * @param $species_name species name in compara syntax eg. rattus_norvegicus
  */
 function getChromosomes($db, $species_name){
-	$sqlChromosoms = 'select d.name from dnafrag as d
-	inner join genome_db as g on(
-		g.genome_db_id = d.genome_db_id 
-		and g.genome_db_id = (select genome_db_id from genome_db where name="'.$species_name.'")  
-		AND d.coord_system_name = "chromosome");';
-	$resultChromosoms =  $db->query($sqlChromosoms)or trigger_error('Query failed: '.$db->error);
+	$sqlChromosoms = 'select d.name from dnafrag as d inner join genome_db as g on ( '
+                                         . ' g.genome_db_id = d.genome_db_id  '
+		                         . ' g.genome_db_id = (SELECT genome_db_id FROM genome_db WHERE name="'.$species_name.'") '
+                                         .                                                       'AND   d.coord_system_name = "chromosome"'
+					 . ');';
+	$resultChromosoms =  $db->query($sqlChromosoms) or trigger_error('Query failed: '.$db->error);
 	if(!$resultChromosoms->num_rows){
 		warn('getChromosomes(): No cromosomes found to species with name: '.$species_name.'!');
 		return array();
@@ -160,14 +158,18 @@ function getChromosomes($db, $species_name){
  * @param $species_name species name in compara syntax eg. rattus_norvegicus
  */
 function getChromosomesAndLengths($db, $species_name){
-	$sqlChromosoms = 'select d.name, d.length from dnafrag as d
-	inner join genome_db as g on(
-		g.genome_db_id = d.genome_db_id 
-		and g.genome_db_id = (select genome_db_id from genome_db where name = "'.$species_name.'")  
-		AND d.coord_system_name = "chromosome");';
-	$resultChromosoms =  $db->query($sqlChromosoms)or trigger_error('Query failed: '.$db->error);
+	$sqlChromosoms = 'SELECT d.name, d.length '
+	                .'FROM            dnafrag as d '
+                        .    ' inner join genome_db as g on ( '
+                        .                                   '      g.genome_db_id = d.genome_db_id  '
+		        .                                   '  AND g.genome_db_id = (select genome_db_id from genome_db where name = "'.$species_name.'") '
+		        .                                   '  AND d.coord_system_name = "chromosome"'
+			.                                  ')'
+		#	.'ORDER BY d.length DESC;' # irrelevant because of return as hash
+			;
+	$resultChromosoms =  $db->query($sqlChromosoms) or trigger_error('Query failed: '.$db->error);
 	if(!$resultChromosoms->num_rows){
-		warn('getChromosomesAndLengths(): No cromosomes found to species with name: '.$species_name.'!');
+		warn('getChromosomesAndLengths(): No cromosomes found to species with name: "'.$species_name.'"!');
 		return array();
 	}
 	$chrs = array();
