@@ -208,7 +208,7 @@ switch ($hide) {
 if(!$homos_exist){
 	// no homologies found
 	require_once '../eqtl/header.php';
-	show_large_header("Intergenomics",true,"Ensembl Compara interface for Expression QTL",
+	show_large_header("Intergenomics - Details",true,"Ensembl Compara interface for Expression QTL",
 	'../eqtl/', array('css/style.css','css/prettyPhoto.css'));
 	warn("Sorry, no homologies found for the given region.");
 	echo <<<END
