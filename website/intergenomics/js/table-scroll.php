@@ -1,5 +1,5 @@
 /**
- * Stolen from:
+ * Adjusted from:
  * http://aktuell.de.selfhtml.org/artikel/javascript/scrolltabelle/index.htm
  * 
  * @author Georg
