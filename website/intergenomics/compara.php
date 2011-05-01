@@ -32,6 +32,16 @@ $upper_tit = "<b>Ensembl Compara interface for Expression QTL</b>";
 show_large_header("Intergenomics - Syntenies for selected regions",true,$upper_tit,
 	'../eqtl/', array('css/style.css','css/prettyPhoto.css'));
 
+?>
+
+<script
+	src="js/jquery-1.4.4.min.js" type="text/javascript" charset="utf-8"></script>
+<script
+	src="js/jquery.prettyPhoto.js" type="text/javascript" charset="utf-8"></script>
+<script
+	src="js/mouseposition.js" type="text/javascript"></script>
+
+<?php
 require_once 'qtl_functions.php';
 require_once 'db_functions.php';
 require_once 'utils.php';

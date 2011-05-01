@@ -163,7 +163,7 @@ function getChromosomes($db, $species_name){
  * @param $species_name species name in compara syntax eg. rattus_norvegicus
  */
 function getChromosomesAndLengths($db, $species_name){
-	$sqlChromosoms = 'SELECT d.name, d.length '
+	$sqlChromosomes = 'SELECT d.name, d.length '
 	                .'FROM            dnafrag as d '
                         .    ' INNER JOIN genome_db as g on ( '
                         .                                   '      g.genome_db_id = d.genome_db_id  '
@@ -172,17 +172,17 @@ function getChromosomesAndLengths($db, $species_name){
 			.                                  ')'
 		#	.'ORDER BY d.length DESC;' # irrelevant because of return as hash
 			;
-	$resultChromosoms =  $db->query($sqlChromosoms) or trigger_error('Query failed: '.$db->error);
-	if(!$resultChromosoms->num_rows){
+	$resultChromosomes =  $db->query($sqlChromosomes) or trigger_error('Query failed: '.$db->error);
+	if(!$resultChromosomes->num_rows){
 		warn('getChromosomesAndLengths(): No cromosomes found to species with name: "'.$species_name.'"!');
 		return array();
 	}
 	$chrs = array();
-	while ($row = $resultChromosoms->fetch_assoc()){
+	while ($row = $resultChromosomes->fetch_assoc()){
 		$n=$row['name'];
 		$chrs["$n"] = $row['length'];
 	}
-	$resultChromosoms->close();
+	$resultChromosomes->close();
 	return $chrs;
 }
 
