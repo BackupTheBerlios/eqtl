@@ -208,9 +208,10 @@ function physicalMarkerPosition($marker) {
 				.$line["marker"].": "
 				.mysql_error($linkEnsembl)."<br>"
 				."ensemblversion: $ensemblversion, ensemblhost: $ensemblhost, ensembldatabase: $ensembldatabase");
-			echo "</tr></table></body></html>";
+			echo "</tr></table>";
 			@mysql_close($linkEnsembl);
 			@mysql_close($linkLocal);
+			include("footer.php");
 			exit;
 		}
 	//  	echo "LineInner: for marker '$marker'";
@@ -309,7 +310,7 @@ if (empty($submitted)) {
 		}
 		if (count($errs)>0) {
 			echo "<p>Missing data for the following fields:<br><i>".implode($errs,",")."</p>\n";
-			echo "</body></html>\n";
+			include("footer.php");
 			exit;
 		}
 
@@ -369,7 +370,7 @@ if (empty($submitted)) {
 		if (empty($linkLocal)) {
 			echo "<p>Could not create link to database on '$markerhost'. ";
 			echo "Please report to <a href=\"$maintainerEmail\">$maintainerEmail</a></p>";
-			echo "</body></html>";
+			include("footer.php");
 			exit;
 		}
 
@@ -380,7 +381,7 @@ if (empty($submitted)) {
 				echo "<p>Could not create link to Ensembl database on ".martdbhost($ensemblversion)." as $ensembluser.<br> ";
 				echo "Please report to <a href=\"$maintainerEmail\">$maintainerEmail</a></p>";
 				mysql_close($linkLocal);
-				echo "</body></html>";
+				include("footer.php");
 				exit;
 			}
 		}
@@ -860,9 +861,6 @@ function bp2cM($chr,$bpInput=0) {
 			}
 		}
 	}
-?>
-<?php
+
 	include_once("footer.php");
 ?>
-</body>
-</html>

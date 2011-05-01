@@ -42,6 +42,8 @@ are available at <a href="URLSCMPROJECT">URLSCMPROJECT</a>.
 <h2>Expression QTLs for EAE</h2>
 INTROSYNOPSIS
 
+<h3>Search forms - Tabular results</h3>
+
 <p class=BLOCK>Several web query forms have been created to help browsing through the
 QTLs. A "trait" is referred to as a property measured and
 investigated for a correlation with a particular genotype. For
@@ -83,7 +85,7 @@ foreach($forms as $f) {
 echo "</table>\n";
 ?>
 
-<h2>Analyses</h2>
+<h3>Analyses - Graphical display</h3>
 <?php
 $analyses=array();
 $analyses[]=array("href"=>"scatter.php",       "title"=>"Cause-vs-Effect Location Scatter Plot",
