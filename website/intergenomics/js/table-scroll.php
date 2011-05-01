@@ -9,11 +9,13 @@
 $args = $_GET;
 if(isset($args['cols'])){
 	echo 'var offAbove = "-'.$args['rows'].'px";
-var offLeft = "-'.($args['cols']-5).'px";
+var offLeft = "-'.($args['cols']).'px";
+var offLeft2 = "-'.($args['cols']-10).'px";
 	';
 }else{
 	echo 'var offAbove = "-138px";
 var offLeft = "-225px";
+var offLeft2 = "-215px";
 	';
 }
 ?>
@@ -26,10 +28,11 @@ var aktFrame = "untRe";
 //var offAbove = "-138px";
 //var offLeft = "-218px";
 
+
 function init() {
 	untLi.document.getElementById('cont').style.top = offAbove;
-	obRe.document.getElementById('cont').style.left = offLeft;
-	untRe.document.getElementById('cont').style.left = offLeft;
+	obRe.document.getElementById('cont').style.left = offLeft2;
+	untRe.document.getElementById('cont').style.left = offLeft2;
 	untRe.document.getElementById('cont').style.top = offAbove;
 	balken();
 	scrollen();

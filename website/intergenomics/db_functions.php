@@ -49,6 +49,7 @@ function getGenomeDBIDs($compara,$ens_species) {
 	while ($row = $result->fetch_row()){
 		$ids[$row[0]] = $row[1];
 	}
+	$result->close();
 	$res = array();
 	foreach ($ens_species as $species) {
 		if (!isset($ids[$species])) {
@@ -82,6 +83,7 @@ function get_dnafragids($db, $genome_db_id, $chromosomes) {
 	while ($row = $query->fetch_assoc()) {
 		$frag_ids[$row['name']] = $row['dnafrag_id'];
 	}
+	$query->close();
 	return $frag_ids;
 }
 
@@ -95,6 +97,7 @@ function get_all_dnafragids($db, $genome_db_id) {
 	while ($row = $query->fetch_assoc()) {
 		$frag_ids[$row['dnafrag_id']] = $row['name'];
 	}
+	$query->close();
 	return $frag_ids;
 }
 
@@ -151,6 +154,7 @@ function getChromosomes($db, $species_name){
 	while ($row = $resultChromosoms->fetch_assoc()){
 		$chrs[] = $row['name'];
 	}
+	$resultChromosoms->close();
 	return $chrs;
 }
 
@@ -174,6 +178,7 @@ function getChromosomesAndLengths($db, $species_name){
 	while ($row = $resultChromosoms->fetch_assoc()){
 		$chrs[$row['name']] = $row['length'];
 	}
+	$resultChromosoms->close();
 	return $chrs;
 }
 
@@ -298,7 +303,8 @@ function get_homologue_ens_ids($compara, $unique_ids, $target_species_name) {
 	while ($row = $result->fetch_row()) {
 		$homology[$row[1]][$row[0]] = $row[2];
 	}
-
+	$result->close();
+	
 	return $homology;
 }
 
@@ -310,6 +316,7 @@ function locus2bp($qtl_db, $locus_name, $species){
 	if($row = $chromoQuery->fetch_assoc()){
 		$bp = cM2bp($row['Chr'], $row['cMorgan'], $species);
 	}
+	$chromoQuery->close();
 	return $bp;
 }
 
@@ -322,6 +329,7 @@ function loci2bps($qtl_db, $loci, $species){
 	while($row = $chromoQuery->fetch_assoc()){
 		$bp[$row['Name']] = cM2bp($row['Chr'], $row['cMorgan'], $species);
 	}
+	$chromoQuery->close();
 	return $bp;
 }
 
@@ -369,6 +377,7 @@ function getGroupSyntenyIDs_old($db, $bp, $genome_db_id){
 	while ($row = $fragQuery->fetch_assoc()) {
 		$frag_ids[] = $row['synteny_region_id'];
 	}
+	$fragQuery->close();
 	return $frag_ids;
 }
 

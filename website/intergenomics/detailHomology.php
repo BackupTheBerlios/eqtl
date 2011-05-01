@@ -221,8 +221,8 @@ END;
 
 //warn($traits12traits2);
 // display -----------------------
-$cols = 227; // width of left offset
-$rows = 138; // heigth of above offset
+$cols = 234; // width of left offset
+$rows = 140; // heigth of above offset
 
 include 'utils/write_detail_table.php';
 
