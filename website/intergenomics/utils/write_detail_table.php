@@ -72,7 +72,7 @@ if (document.layers) {
 }
 window.onscroll = function () { parent.scrollen (); };
 </script>
-<link href="/css/style.css" rel="stylesheet" type="text/css" />
+<link href="../css/style.css" rel="stylesheet" type="text/css" />
 
 </head>
 
