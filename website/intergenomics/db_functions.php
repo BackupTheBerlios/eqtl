@@ -153,7 +153,7 @@ function getChromosomes($db, $species_name){
 	while ($row = $resultChromosomes->fetch_assoc()){
 		$chrs[] = $row['name'];
 	}
-	$resultChromosoms->close();
+	$resultChromosomes->close();
 	return $chrs;
 }
 

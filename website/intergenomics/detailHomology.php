@@ -219,7 +219,6 @@ END;
 	exit();
 }
 
-//warn($traits12traits2);
 // display -----------------------
 $cols = 234; // width of left offset
 $rows = 140; // heigth of above offset
