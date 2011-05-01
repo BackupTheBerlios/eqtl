@@ -8,7 +8,7 @@
 
 var aktFrame = "untRe";
 var offAbove = "-140px";
-var offLeft = "-251px";
+var offLeft = "-224px";
 //var offAbove = "-138px";
 //var offLeft = "-218px";
 
