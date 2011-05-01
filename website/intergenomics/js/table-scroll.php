@@ -24,7 +24,7 @@ var offLeft2 = "-215px";
 
 var aktFrame = "untRe";
 //var offAbove = "-135px";
-//var offLeft = "-225px";
+var offLeft = "-251px";
 //var offAbove = "-138px";
 //var offLeft = "-218px";
 
