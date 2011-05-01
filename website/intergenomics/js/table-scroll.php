@@ -31,8 +31,8 @@ var aktFrame = "untRe";
 
 function init() {
 	untLi.document.getElementById('cont').style.top = offAbove;
-	obRe.document.getElementById('cont').style.left = offLeft2;
-	untRe.document.getElementById('cont').style.left = offLeft2;
+	obRe.document.getElementById('cont').style.left = offLeft;
+	untRe.document.getElementById('cont').style.left = offLeft;
 	untRe.document.getElementById('cont').style.top = offAbove;
 	balken();
 	scrollen();
