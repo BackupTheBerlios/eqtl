@@ -441,7 +441,8 @@ function get_chromo_names_from_group($groups){
 
 function getGroupSyntenyIDs($db, $bp, $dnafrag, $dnafrag2name, $species_name){
 	$sqlDnafrag = 'SELECT r2.dnafrag_start, r2.dnafrag_end, r2.dnafrag_id '
-	             .'  FROM dnafrag_region AS r2 INNER JOIN dnafrag_region as r1 '
+	             .'  FROM dnafrag_region AS r2 
+	             INNER JOIN dnafrag_region as r1 '
 	             .                           ' ON (    r1.synteny_region_id = r2.synteny_region_id '
 	             .                               ' AND r1.dnafrag_start <='.$bp['end'].'  '
 	             .                               ' AND r1.dnafrag_end >= '.$bp['start'].'  '

@@ -110,6 +110,8 @@ window.onscroll = function () { parent.scrollen (); };
       </div>
      </th>';
 fwrite($fptr, $str);
+$ens_img = '<img src="../img/ensembl.gif" width="16" heigth="16" />';
+
 $str = "";
 $tmpIDs = "";
 $showNotEx1 = false;
@@ -124,9 +126,8 @@ foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 	$tmp = $ens_ids_ex1;
 
 	array_walk($tmp, "split_and_ciss", $loci2stable_ids_ex1[1][$locus_ex1]);
-	$tmpIDs.= implode('</th>',$tmp)."</th>\n";
+	$tmpIDs.= implode($ens_img.'</th>',$tmp).$ens_img."</th>\n";
 }
-
 fwrite($fptr, $str."</tr><tr>".$tmpIDs."</tr></thead><tbody>");
 
 //initialize mapping array for homology descriptions
@@ -153,11 +154,13 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 	$str = "";
 	foreach ($ens_ids_ex2 as $ens_id_ex2) {
 		if($loci2stable_ids_ex2[1][$locus_ex2][$i++]){
-			$rowString = '<th class="ciss" title="ciss">';
+			$rowString = '<th nowrap class="ciss" title="ciss">';
 		}else{
-			$rowString = '<th title="trans">';
+			$rowString = '<th nowrap title="trans">';
 		}
-		$rowString.= $ens_id_ex2."</th>";
+		$rowString.= "<a target=\"_blank\" href=\"http://www.ensembl.org/"
+			.$experiment2['ensembl_species']."/Gene/Summary?db=core;g="
+			.$ens_id_ex2.'">'.$ens_id_ex2.$ens_img.'</a></th>';
 		foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1) {
 			foreach ($ens_ids_ex1 as $ens_id_ex1){
 				if(in_array($ens_id_ex2, array_keys($traits12traits2[$ens_id_ex1]))){
@@ -169,19 +172,19 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 		}
 		$rowString.= "</tr>\n";
 
-			if($firstrow){
-				$firstrow = false;
-				$str .= $rowString;
-			}else{
-				$rowString = "<tr>".$rowString;
-				$str .= $rowString;
-			}
+		if($firstrow){
+			$firstrow = false;
+			$str .= $rowString;
+		}else{
+			$rowString = "<tr>".$rowString;
+			$str .= $rowString;
+		}
 
 	}
 
 	$str = '<tr><th rowspan="'.count($ens_ids_ex2).'" title="locus of species '.$species2.'">'.$locus_ex2.'</th>'.$str;
 
-		fwrite($fptr, $str);
+	fwrite($fptr, $str);
 
 }
 
