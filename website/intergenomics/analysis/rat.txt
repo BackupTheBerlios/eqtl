@@ -1,0 +1,1 @@
+Locus	chr	group	start	stop	Trait	Status	Syngroup		chr	start	end	Trait
