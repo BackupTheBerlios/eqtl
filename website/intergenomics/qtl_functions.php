@@ -81,8 +81,9 @@ function loci2stable_ids($loci, $targetdb){
 	from trait as t inner join qtl on
 		(t.trait_id = qtl.trait AND qtl.locus in (\''.implode("', '",$loci).'\') 
 	    and t.ensembl_stable_gene_id is not null
-	    and length(t.ensembl_stable_gene_id) > 15 ) 
+	    and length(t.ensembl_stable_gene_id) > 15 )
 	    group by qtl.locus, t.ensembl_stable_gene_id;';
+	//
 	//echo $sql;
 	$result = $targetdb->query($sql) or fatal_error('loci2stable_ids(); Query failed: '.$targetdb->error);
 	while ($row = $result->fetch_row()) {
