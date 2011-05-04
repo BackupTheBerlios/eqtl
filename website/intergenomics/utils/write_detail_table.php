@@ -50,7 +50,7 @@ function split_and_ciss(&$ens_id,$key,$cis_lookup){
 	}else{
 		$prefix .= ' title="trans">';
 	}
-	$ens_id = $prefix."<a tarbbet=\"_blank\" href=\"http://www.ensembl.org/".$experiment1['ensembl_species']."/Gene/Summary?db=core;g=".$ens_id."\">".chunk_split($ens_id,3,"<br />").'</a>';
+	$ens_id = $prefix."<a target=\"_blank\" href=\"http://www.ensembl.org/".$experiment1['ensembl_species']."/Gene/Summary?db=core;g=".$ens_id."\">".chunk_split($ens_id,3,"<br />").'</a>';
 }
 
 $refargs = $proj_str.'[]='.implode("+", explode(" ", $proj1)).'&amp;'.$proj_str.'[]='.implode("+", explode(" ", $proj2)).'&amp;region1='.$args[$region_str.'1'].'&amp;region2='.$args[$region_str.'2'];
