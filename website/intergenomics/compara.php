@@ -27,8 +27,21 @@
  ENDOFDOCUMENTATION
  */
 
-include 'html/header.html';
+require_once '../eqtl/header.php';
+$upper_tit = "<b>Ensembl Compara interface for Expression QTL</b>";
+show_large_header("Intergenomics - Syntenies for selected regions",true,$upper_tit,
+	'../eqtl/', array('css/style.css','css/prettyPhoto.css'));
 
+?>
+
+<script
+	src="js/jquery-1.4.4.min.js" type="text/javascript" charset="utf-8"></script>
+<script
+	src="js/jquery.prettyPhoto.js" type="text/javascript" charset="utf-8"></script>
+<script
+	src="js/mouseposition.js" type="text/javascript"></script>
+
+<?php
 require_once 'qtl_functions.php';
 require_once 'db_functions.php';
 require_once 'utils.php';
@@ -105,7 +118,6 @@ for ($i = 0; $i < sizeof($regionChr); $i++) {
 	$intervalEnd[$i] = bp2cM($regionChr[$i], (int)$regionEnd[$i],$experiment1['species']);
 }
 $chromosomsEx1 = $regionChr;
-warn("davor");
 $ex1 =  get_loci_from_sql($database1, $experiment1['connection'], 'userinterval', $chromosomsEx1, $confidence_int, $group2region, $intervalStart, $intervalEnd);
 if (!empty($ex1)) {
 	// converts $ex1 in 2 arrays: $groups1 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end', 'Chr') $mapEx1 = index -> (locus,groupNr)
@@ -132,10 +144,10 @@ list($groups2, $mapEx2) = $ex2;
 // SYNTENY
 $genome_db_ids = getGenomeDBIDs($compara,array($experiment1['ensembl_species'], $experiment2['ensembl_species']));
 $dbs = array($database1,$database2);
-$groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
+$groupSynteny_ex12ex2 = getSyntenyGroups(array($experiment1['connection'], $experiment2['connection']),$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
 
 // display -----------------------
 include 'display_table.php';
 toc($start,'Synteny search');
-include 'html/footer.html';
+require_once("../eqtl/footer.php");
 ?>

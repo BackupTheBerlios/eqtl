@@ -83,14 +83,14 @@ getReg($region1,$chr1,$start1,$end1);
 getReg($region2,$chr2,$start2,$end2);
 //  fetch loci
 $db1 = $experiment1["db_name"];
-$sql = 'select Name from '.$db1.'.Locus
+$sql = 'select Name from '.$db1.'.locus
 where Chr = '.$chr1.' 
 and cMorgan >= '.$start1.' 
 and cMorgan <= '.$end1.';';
 $loci_ex1 = get_only_loci_from_sql($sql, $experiment1['connection']);
 
 $db2 = $experiment2["db_name"];
-$sql = 'select Name from '.$db2.'.Locus
+$sql = 'select Name from '.$db2.'.locus
 where Chr = '.$chr2.' 
 and cMorgan >= '.$start2.' 
 and cMorgan <= '.$end2.';';
@@ -208,7 +208,7 @@ switch ($hide) {
 if(!$homos_exist){
 	// no homologies found
 	require_once '../eqtl/header.php';
-	show_large_header("Intergenomics",true,"Ensembl Compara interface for Expression QTL",
+	show_large_header("Intergenomics - Details",true,"Ensembl Compara interface for Expression QTL",
 	'../eqtl/', array('css/style.css','css/prettyPhoto.css'));
 	warn("Sorry, no homologies found for the given region.");
 	echo <<<END
@@ -219,10 +219,9 @@ END;
 	exit();
 }
 
-//warn($traits12traits2);
 // display -----------------------
-$cols = 227; // width of left offset
-$rows = 138; // heigth of above offset
+$cols = 250; // width of left offset
+$rows = 157; // heigth of above offset
 
 include 'utils/write_detail_table.php';
 
@@ -236,16 +235,14 @@ echo '<?xml version="2.0" encoding="iso-8859-1"?>';
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
-<link type="text/css" rel="stylesheet" media="all" href="css/prettyPhoto.css" />
 
-<script
-  src="js/jquery-1.4.4.min.js" type="text/javascript" charset="utf-8"></script>
-<script
-  src="js/jquery.prettyPhoto.js" type="text/javascript" charset="utf-8"></script>
-
-<script type="text/javascript"
-	src="js/table-scroll.php?cols=<?php echo $cols.'&rows='.$rows;?>"></script>
+<script src="js/jquery-1.4.4.min.js" type="text/javascript"
+	charset="utf-8"></script>
+<script src="js/jquery.prettyPhoto.js" type="text/javascript"
+	charset="utf-8"></script>
+<script type="text/javascript" src="js/table-scroll.js"></script>
 <script type="text/javascript" src="js/homology.js"></script>
+
 </head>
 <frameset onload="init()" framespacing="0" frameborder="0"
 	cols="<?php echo $cols;?>,*">

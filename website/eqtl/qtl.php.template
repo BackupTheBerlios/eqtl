@@ -1152,5 +1152,3 @@ ENDOFDOCUMENTATION
 	}
 	include("footer.php");
 ?>
-</body>
-</html>

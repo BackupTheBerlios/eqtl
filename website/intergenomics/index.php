@@ -56,12 +56,6 @@ function showProjectList($projects, $isSource){
 	echo '</select>';
 }
 
-function endPage(){
-	include '../eqtl/footer.php';
-    include 'html/footer.html';
-}
-
-
 $species_str = 'species';
 $reg_str = 'regions';
 $args = $_GET;
@@ -115,14 +109,17 @@ if(isset($args['err'])){
     your choice. 
     <ul>
     <li><a href="img/regions_l.png" rel="prettyPhoto[a]"
-      title="Region selection on the start page."><img src="img/regions_s.png" width="100"
-      height="65" alt="Step 1: Region selection on the start page." /> </a></li>
+           title="Region selection on the start page."><img src="img/regions_s.png" width="100"
+                                                            height="65" alt="Step 1: Region selection on the start page."
+                                                       /> </a></li>
     <li><a href="img/synteny_l.png" rel="prettyPhoto[a]"
-      title="Syntenic regions view for the selected chromosomes."><img src="img/synteny_s.png" width="49"
-      height="65" alt="Step 2: syntenic regions for the selected chromosomes" /> </a></li>
+           title="Syntenic regions view for the selected chromosomes."><img src="img/synteny_s.png" width="49"
+                                                                            height="65" alt="Step 2: syntenic regions for the selected chromosomes"
+								       /> </a></li>
       <li><a href="img/detail_homology_l.png" rel="prettyPhoto[a]"
-      title="Homologue genes in in the detail view."><img src="img/detail_homology_s.png" width="119"
-      height="65" alt="Step 3: Homologue genes in in the detail view." /> </a></li>
+             title="Homologue genes in in the detail view."><img src="img/detail_homology_s.png" width="119"
+                                                                 height="65" alt="Step 3: Homologue genes in in the detail view."
+                                                            /> </a></li>
     </ul>
 
   </div>
@@ -147,7 +144,7 @@ if(isset($args['err'])){
     <?php
 
     if($projects[0]==NULL || $projects[0]=="NULL"){
-    	endPage();
+	include "../eqtl/footer.php";
     	exit();
     }
 
@@ -191,6 +188,7 @@ if(isset($args['err'])){
     Add regions for species
     <?php echo $species;?>
   </h3>
+  <center>
   <table border="1" cellpadding="3" cellspacing="0">
     <tr>
       <th>Chromosome</th>
@@ -199,19 +197,25 @@ if(isset($args['err'])){
       <th>selected regions</th>
     </tr>
     <?php
-    foreach ($chrs as $chr => $length){
+function printRowChromTable ($chr) {
+	global $chrs;
+	global $chr2reg;
+	global $reg_str;
+
+	$length=$chrs[$chr];
     	// name and length
-    	echo "<tr><th>".$chr."</th>";
+    	echo "<tr>";
+	echo "<th>".$chr."</th>";
     	echo "<td>".$length."</td>";
 
     	// add region column
-    	echo '<td>
-  	<label for="start'.$chr.'">start </label><input
-  id="start'.$chr.'" type="text" size="10" value="1" /> <label
-  for="end'.$chr.'">end </label><input id="end'.$chr.'" type="text"
-  size="10" value="'.$length.'" />
-  <input type="button" value="add" onclick="addRegion(\''.$chr.'\')"/>
-  	</td>';
+    	echo '<td>';
+  	echo '<label for="start'.$chr.'">start </label>';
+	echo '<input id="start'.$chr.'" type="text" size="10" value="1" />';
+	echo '<label for="end'.$chr.'">end </label>';
+	echo '<input id="end'.$chr.'" type="text" size="10" value="'.$length.'" />';
+	echo '<input type="button" value="add" onclick="addRegion(\''.$chr.'\')"/>';
+  	echo '</td>';
     	// selected regions
     	if(isset($chr2reg[$chr])){
     		echo '<td>';
@@ -222,14 +226,20 @@ if(isset($args['err'])){
     		}
     		echo '</td>';
     	}else{
-    		echo '<td>
-  		<input type="text" id="'.$chr.'"/>
-  		</td>';
+    		echo '<td><input type="text" id="'.$chr.'"/></td>';
     	}
     	echo "</tr>\n";
+}
+    #print_r($chrs);
+    #foreach ($chrs as $chr => $length)
+    for ($chr=1; array_key_exists("$chr",$chrs) and $chr<100; $chr++) {
+    	printRowChromTable("$chr");
     }
+    if (array_key_exists("X",$chrs)) printRowChromTable("X");
+    if (array_key_exists("Y",$chrs)) printRowChromTable("Y");
     ?>
   </table>
+  </center>
 </div>
 <p>
   <label for="conf">Length of confidence intervall around each locus: </label><input
@@ -241,5 +251,5 @@ if(isset($args['err'])){
     value="show Synteny" />
 </p>
     <?php
-    endPage();
+	include '../eqtl/footer.php';
     ?>

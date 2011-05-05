@@ -23,6 +23,7 @@ Universities of Rostock and LE<uuml>beck, Germany, 2003-2009
 
 */
 
+	require_once("func_dbconfig.php"); // for $htmlroot
 	require_once("header.php");
 	show_large_header("PROJECTLONGTITLE",true,'INTROPREFIX');
 ?>
@@ -41,6 +42,8 @@ are available at <a href="URLSCMPROJECT">URLSCMPROJECT</a>.
 </td><td valign=top>
 <h2>Expression QTLs for EAE</h2>
 INTROSYNOPSIS
+
+<h3>Search forms - Tabular results</h3>
 
 <p class=BLOCK>Several web query forms have been created to help browsing through the
 QTLs. A "trait" is referred to as a property measured and
@@ -83,7 +86,7 @@ foreach($forms as $f) {
 echo "</table>\n";
 ?>
 
-<h2>Analyses</h2>
+<h3>Analyses - Graphical display</h3>
 <?php
 $analyses=array();
 $analyses[]=array("href"=>"scatter.php",       "title"=>"Cause-vs-Effect Location Scatter Plot",
@@ -96,8 +99,8 @@ $analyses[]=array("href"=>"overview.php",      "title"=>"Tabular presentation of
 		"description" => "The number of QTL per chromosome is shown for multiple covariates in separate columns.");
 $analyses[]=array("href"=>"trait_summary.php", "title"=>"Differential analysis of covariates for single trait",
 		"description" => "The researcher is presented all the combinatons of covariates for a given trait. This allows for a comparative analysis of the change in the LOD score that the addition of an additive or interacting covariate brings.");
-$analyses[]=array("href"=>"xyplot.php",        "title"=>"Plotting two traits/phenotypes against each other",
-		"description" => "");
+$analyses[]=array("href"=>"xyplot.php",        "title"=>"Two traits/phenotypes plotted against each other",
+		"description" => "Investigation for loci that influence the correlation of two traits.");
 $analyses[]=array("href"=>"modules.php",      "title"=>"Networks",       
                "description"=>"Specification of modules and their significance based on co-expression analysis by WGCNA");
 echo "<table>\n";

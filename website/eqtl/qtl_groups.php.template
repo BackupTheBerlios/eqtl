@@ -394,5 +394,3 @@ ENDOFDOCUMENTATION
 	mysql_close($linkLocal);
 	include("footer.php");
 ?>
-</body>
-</html>
