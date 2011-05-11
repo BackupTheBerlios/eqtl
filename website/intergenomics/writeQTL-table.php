@@ -50,14 +50,20 @@ function get_all_QTL($db) {
 }
 
 function getSyntenyRegionIDs($db, $bp){
-	$sqlDnafrag = 'SELECT dfr.synteny_region_id '
-	.'  FROM dnafrag_region as dfr  '
-	.        'INNER JOIN dnafrag as df  '
-	.               ' ON (    dfr.dnafrag_start <='.$bp[1]
-	.                   ' AND dfr.dnafrag_end >= '.$bp[0]
-	.                   ' AND dfr.dnafrag_id = df.dnafrag_id '
-	.                   ' AND df.name = "'.$bp[2].'" 
-						  AND df.genome_db_id IN ("3","57","90") );';
+	if ($bp[3] == 'Mus_musculus') {
+		$genome_db_id = 57;
+	}elseif ($bp[3] == 'Rattus_norvegicus'){
+		$genome_db_id = 3;
+	}elseif ($bp[3] == 'Homo_sapiens') {
+		$genome_db_id = 90;
+	}
+
+	$sqlDnafrag = 'SELECT dfr.synteny_region_id FROM dnafrag_region as dfr INNER JOIN 
+	dnafrag as df ON (dfr.dnafrag_start <= '.$bp[1].' AND 
+	dfr.dnafrag_end >= '.$bp[0].' AND 
+	dfr.dnafrag_id = df.dnafrag_id AND 
+	df.name = "'.$bp[2].'" AND 
+	df.genome_db_id = '.$genome_db_id.');';
 
 	$fragQuery = $db->query($sqlDnafrag) or fatal_error('Query failed: '.$db->error);
 
