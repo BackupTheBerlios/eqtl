@@ -94,13 +94,6 @@ if(isset($args['err'])){
 
 ?>
 
-<script
-  src="js/jquery-1.4.4.min.js" type="text/javascript" charset="utf-8"></script>
-<script
-  src="js/jquery.prettyPhoto.js" type="text/javascript" charset="utf-8"></script>
-<script
-  type="text/javascript" src="js/regions.js"></script>
-
 <div class="lr" style="width: 30%;">
   <div class="prettybox">
     <h3>Description</h3>
@@ -250,6 +243,9 @@ function printRowChromTable ($chr) {
   &nbsp;&nbsp;<input type="button" onclick="submit_page('overview')"
     value="show Synteny" />
 </p>
+<script type="text/javascript">
+  ResetScrollPosition();
+</script>
     <?php
 	include '../eqtl/footer.php';
     ?>

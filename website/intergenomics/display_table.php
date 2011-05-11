@@ -60,7 +60,7 @@ prepareColors($groups1,$groups2);
       <tr>
         <th>syntenic <br /> loci <br /> groupnumbers</th>
         <?php
-        $colorArray = array("#BDB76B","#B8860B","#DAA520","#FFD700");
+        $colorArray = array("#C4C4C4","#999999");
         $colIndex = 0;
         $regionNo = $group2region[0];
         for ($i = 0; $i < sizeof($groups1); $i++) {
