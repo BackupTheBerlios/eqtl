@@ -45,7 +45,7 @@ function showProjectList($projects, $isSource){
 
 	$index = $isSource ? 0 : 1;
 
-	echo'<select onclick="submit_page(\'this\')" id="projects'.$index.'" size="'.
+	echo'<select onclick="submit_page(this)" id="projects'.$index.'" size="'.
 	count($compara_array).'">';
 
 	foreach ($compara_array as $project_name => $project_info) {
@@ -87,7 +87,7 @@ while ($n<2) {
 if(isset($args['err'])){
 	if($args['err']=='src'){
 		warn('Please select the source project first.');
-	}else{
+	}else if(isset($args[$reg_str])){
 		warn('Please select the target project first.');
 	}
 }

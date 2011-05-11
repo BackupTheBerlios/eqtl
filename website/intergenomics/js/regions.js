@@ -31,12 +31,12 @@ function prepareSpecies(site) {
 		var tar_val = "NULL";
 	}
 
-//	if (site == null) {
-//		error = "";
-//		site = "index.php";
-//	} else if (error != "") {// error
-//		site = "index.php";
-//	}
+// if (site == null) {
+// error = "";
+// site = "index.php";
+// } else if (error != "") {// error
+// site = "index.php";
+// }
 	var proj_arg = project_str + "[]=";
 	return site + "?" + proj_arg + src_val + "&" + proj_arg + tar_val + error;
 
@@ -81,7 +81,7 @@ function addRegion(chr) {
 		else
 			ScrollTop = (document.body.parentElement) ? document.body.parentElement.scrollTop : 0;
 	}
-	window.location.href = prepareGetString() + str + "&scrollY=" + ScrollTop;
+	window.location.href = prepareGetString("index.php") + str + "&scrollY=" + ScrollTop;
 }
 
 /**
@@ -90,7 +90,7 @@ function addRegion(chr) {
  */
 function deleteRegion(chr) {
 	document.getElementById(chr).removeAttribute("name");
-	window.location.href = prepareGetString();
+	window.location.href = prepareGetString("index.php");
 }
 
 /**
@@ -100,12 +100,17 @@ function deleteRegion(chr) {
  *            modus, either 'overview' or all
  */
 function submit_page(target) {
-	if (target == 'overview') {
-		window.location.href = prepareGetString("compara.php");
-	} else if (target == 'all') {
-		window.location.href = prepareGetString("display_all.php");
+	if(typeof(target)=='string'){
+		if (target == 'overview') {
+			window.location.href = prepareGetString("compara.php");
+		} else if (target == 'all') {
+			window.location.href = prepareGetString("display_all.php");
+		}
 	} else {// this
-		window.location.href = prepareGetString("index.php");
+		if(target.id = "projects0")
+			window.location.href = prepareSpecies("index.php");
+		else
+			window.location.href = prepareGetString("index.php");
 	}
 }
 
