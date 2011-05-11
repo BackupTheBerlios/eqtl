@@ -177,19 +177,16 @@ if(isset($args['err'])){
     }
     ?>
 <div class="prettybox">
-  <h3>
-    Add regions for species
-    <?php echo $species;?>
-  </h3>
-  <center>
-  <table border="1" cellpadding="3" cellspacing="0">
-    <tr>
-      <th>Chromosome</th>
-      <th>length (bp)</th>
-      <th>add region</th>
-      <th>selected regions</th>
-    </tr>
-    <?php
+<h3>Add regions for species <?php echo $species;?></h3>
+<center>
+<table border="1" cellpadding="3" cellspacing="0">
+	<tr>
+		<th>Chromosome</th>
+		<th>length (bp)</th>
+		<th>add region</th>
+		<th>selected regions</th>
+	</tr>
+	<?php
 function printRowChromTable ($chr) {
 	global $chrs;
 	global $chr2reg;
@@ -231,21 +228,24 @@ function printRowChromTable ($chr) {
     if (array_key_exists("X",$chrs)) printRowChromTable("X");
     if (array_key_exists("Y",$chrs)) printRowChromTable("Y");
     ?>
-  </table>
-  </center>
+</table>
+</center>
 </div>
-<p>
-  <label for="conf">Length of confidence intervall around each locus: </label><input
-    id="conf" type="text" size="4"
-    value="<?php echo $confidence_int_len; ?>" /> cM
-</p>
+<p><label for="conf">Length of confidence intervall around each locus: </label><input
+	id="conf" type="text" size="4"
+	value="<?php echo $confidence_int_len; ?>" /> cM</p>
 <p>
   &nbsp;&nbsp;<input type="button" onclick="submit_page('overview')"
     value="show Synteny" />
 </p>
-<script type="text/javascript">
-  ResetScrollPosition();
-</script>
     <?php
 	include '../eqtl/footer.php';
     ?>
+<script type="text/javascript">
+function ResetScrollPosition() {
+    var hidy;
+    hidy = <?php if (isset($args['scrollY'])){ echo $args['scrollY']; }else{ echo 0;} ?>;
+    window.scrollTo(0,hidy);
+}
+  ResetScrollPosition();
+</script>

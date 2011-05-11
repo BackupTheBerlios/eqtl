@@ -71,15 +71,21 @@ function addRegion(chr) {
 	var str = "&regions[]=" + chr + ":"
 			+ document.getElementById("start" + chr).value + "-"
 			+ document.getElementById("end" + chr).value;
+	var ScrollTop = getScrollTop();
+	window.location.href = prepareGetString() + str + "&scrollY=" + ScrollTop;
+}
+
+
+function getScrollTop() {
 	var ScrollTop = document.body.scrollTop;
-	if (ScrollTop == 0)
-	{
+	if (ScrollTop == 0) {
 		if (window.pageYOffset)
 			ScrollTop = window.pageYOffset;
 		else
-			ScrollTop = (document.body.parentElement) ? document.body.parentElement.scrollTop : 0;
+			ScrollTop = (document.body.parentElement) ? document.body.parentElement.scrollTop
+					: 0;
 	}
-	window.location.href = prepareGetString() + str + "&scrollY=" + ScrollTop;
+	return ScrollTop;
 }
 
 /**
@@ -88,7 +94,8 @@ function addRegion(chr) {
  */
 function deleteRegion(chr) {
 	document.getElementById(chr).removeAttribute("name");
-	window.location.href = prepareGetString();
+	var ScrollTop = getScrollTop();	
+	window.location.href = prepareGetString() + "&scrollY=" + ScrollTop;
 }
 
 /**
@@ -106,9 +113,3 @@ function submit_page(target) {
 		window.location.href = prepareSpecies();
 	}
 }
-
-function ResetScrollPosition() {
-    var hidy;
-    hidy = <?php if (isset($args['scrollY'])){ echo $args['scrollY']; }else{ echo 0;} ?>;
-    window.scrollTo(0,hidy);
-  }
