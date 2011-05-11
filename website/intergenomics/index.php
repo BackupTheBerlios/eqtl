@@ -42,9 +42,10 @@
  */
 function showProjectList($projects, $isSource){
 	global $compara_array;
-
+	echo "<br>".$isSource."<br><br>";
 	$index = $isSource ? 0 : 1;
-
+	echo "<br>".$index."<br><br>";
+	
 	echo'<select onclick="submit_page(this)" id="projects'.$index.'" size="'.
 	count($compara_array).'">';
 
@@ -95,152 +96,158 @@ if(isset($args['err'])){
 ?>
 
 <div class="lr" style="width: 30%;">
-  <div class="prettybox">
-    <h3>Description</h3>
-    The intergenomics page allows you to search for syntenies and
-    homologies in the genome of another species with a set of regions of
-    your choice. 
-    <ul>
-    <li><a href="img/regions_l.png" rel="prettyPhoto[a]"
-           title="Region selection on the start page."><img src="img/regions_s.png" width="100"
-                                                            height="65" alt="Step 1: Region selection on the start page."
-                                                       /> </a></li>
-    <li><a href="img/synteny_l.png" rel="prettyPhoto[a]"
-           title="Syntenic regions view for the selected chromosomes."><img src="img/synteny_s.png" width="49"
-                                                                            height="65" alt="Step 2: syntenic regions for the selected chromosomes"
-								       /> </a></li>
-      <li><a href="img/detail_homology_l.png" rel="prettyPhoto[a]"
-             title="Homologue genes in in the detail view."><img src="img/detail_homology_s.png" width="119"
-                                                                 height="65" alt="Step 3: Homologue genes in in the detail view."
-                                                            /> </a></li>
-    </ul>
+	<div class="prettybox">
+		<h3>Description</h3>
+		The intergenomics page allows you to search for syntenies and
+		homologies in the genome of another species with a set of regions of
+		your choice.
+		<ul>
+			<li><a href="img/regions_l.png" rel="prettyPhoto[a]"
+				title="Region selection on the start page."><img
+					src="img/regions_s.png" width="100" height="65"
+					alt="Step 1: Region selection on the start page." /> </a></li>
+			<li><a href="img/synteny_l.png" rel="prettyPhoto[a]"
+				title="Syntenic regions view for the selected chromosomes."><img
+					src="img/synteny_s.png" width="49" height="65"
+					alt="Step 2: syntenic regions for the selected chromosomes" /> </a>
+			</li>
+			<li><a href="img/detail_homology_l.png" rel="prettyPhoto[a]"
+				title="Homologue genes in in the detail view."><img
+					src="img/detail_homology_s.png" width="119" height="65"
+					alt="Step 3: Homologue genes in in the detail view." /> </a></li>
+		</ul>
 
-  </div>
+	</div>
 </div>
 <div class="lr">
-  <div class="prettybox">
-    <h3>Compare source project</h3>
-    <?php
-    showProjectList($projects,true);
-    ?>
-  </div>
+	<div class="prettybox">
+		<h3>Compare source project</h3>
+		<?php
+		showProjectList($projects,true);
+		?>
+	</div>
 </div>
 <div class="lr">
-  <div class="prettybox">
-    <h3>...with target project</h3>
-    <?php
-    showProjectList($projects,false);
-    ?>
-  </div>
+	<div class="prettybox">
+		<h3>...with target project</h3>
+		<?php
+		showProjectList($projects,false);
+		?>
+	</div>
 </div>
 <br style="clear: both;" />
-    <?php
+		<?php
 
-    if($projects[0]==NULL || $projects[0]=="NULL"){
-	include "../eqtl/footer.php";
-    	exit();
-    }
+		if($projects[0]==NULL || $projects[0]=="NULL"){
+			include "../eqtl/footer.php";
+			exit();
+		}
 
-    // only the database of the source project needs to be opened
-    $src_proj = $projects[0];
-    connectToQtlDBs(array($src_proj));
-    $qtldb = $compara_array[$src_proj]['connection'];
-    $compara = connectToCompara();
+		// only the database of the source project needs to be opened
+		$src_proj = $projects[0];
+		connectToQtlDBs(array($src_proj));
+		$qtldb = $compara_array[$src_proj]['connection'];
+		$compara = connectToCompara();
 
 
-    // region selection
+		// region selection
 
-    // fetch chromosomes to species id
-    $ens_species = $compara_array[$src_proj]['ensembl_species'];
-    $chrs = getChromosomesAndLengths($compara,$ens_species);
-    // additional filtering
-    $chrs = filter_chromos($qtldb, $chrs);
+		// fetch chromosomes to species id
+		$ens_species = $compara_array[$src_proj]['ensembl_species'];
+		$chrs = getChromosomesAndLengths($compara,$ens_species);
+		// additional filtering
+		$chrs = filter_chromos($qtldb, $chrs);
 
-    $species = $compara_array[$src_proj]['species'];
+		$species = $compara_array[$src_proj]['species'];
 
-    // get selected regions
-    $chr2reg = array();
-    if(isset($args[$reg_str])){
-    	$regs = $args[$reg_str];
-    	foreach ($regs as $reg){
-    		$pos = strpos ($reg, ":");
-    		$chr2reg[substr($reg,0,$pos)][] = substr($reg,$pos+1);
-    	}
-    }
+		// get selected regions
+		$chr2reg = array();
+		if(isset($args[$reg_str])){
+			$regs = $args[$reg_str];
+			foreach ($regs as $reg){
+				$pos = strpos ($reg, ":");
+				$chr2reg[substr($reg,0,$pos)][] = substr($reg,$pos+1);
+			}
+		}
 
-    //confidence intervall
-    $confidence_int_str = 'confidence_int';
-    if(isset($args[$confidence_int_str])){
-    	$confidence_int_len = $args[$confidence_int_str];
-    }else{// default
-    	$confidence_int_len = 1;
-    }
-    ?>
+		//confidence intervall
+		$confidence_int_str = 'confidence_int';
+		if(isset($args[$confidence_int_str])){
+			$confidence_int_len = $args[$confidence_int_str];
+		}else{// default
+			$confidence_int_len = 1;
+		}
+		?>
 <div class="prettybox">
-<h3>Add regions for species <?php echo $species;?></h3>
-<center>
-<table border="1" cellpadding="3" cellspacing="0">
-	<tr>
-		<th>Chromosome</th>
-		<th>length (bp)</th>
-		<th>add region</th>
-		<th>selected regions</th>
-	</tr>
-	<?php
-function printRowChromTable ($chr) {
-	global $chrs;
-	global $chr2reg;
-	global $reg_str;
+	<h3>
+		Add regions for species
+		<?php echo $species;?>
+	</h3>
+	<center>
+		<table border="1" cellpadding="3" cellspacing="0">
+			<tr>
+				<th>Chromosome</th>
+				<th>length (bp)</th>
+				<th>add region</th>
+				<th>selected regions</th>
+			</tr>
+			<?php
+			function printRowChromTable ($chr) {
+				global $chrs;
+				global $chr2reg;
+				global $reg_str;
 
-	$length=$chrs[$chr];
-    	// name and length
-    	echo "<tr>";
-	echo "<th>".$chr."</th>";
-    	echo "<td>".$length."</td>";
+				$length=$chrs[$chr];
+				// name and length
+				echo "<tr>";
+				echo "<th>".$chr."</th>";
+				echo "<td>".$length."</td>";
 
-    	// add region column
-    	echo '<td>';
-  	echo '<label for="start'.$chr.'">start </label>';
-	echo '<input id="start'.$chr.'" type="text" size="10" value="1" />';
-	echo '<label for="end'.$chr.'">end </label>';
-	echo '<input id="end'.$chr.'" type="text" size="10" value="'.$length.'" />';
-	echo '<input type="button" value="add" onclick="addRegion(\''.$chr.'\')"/>';
-  	echo '</td>';
-    	// selected regions
-    	if(isset($chr2reg[$chr])){
-    		echo '<td>';
-    		foreach ($chr2reg[$chr] as $i => $reg){
-    			//id="'.$chr.'-'.$i.'" href="noJS.php"
-    			echo '<input name="'.$reg_str.'[]" id="'.$chr.'-'.$i.'" type="text"  value="'.$reg.'" size="'.(strlen($reg)).'"/>
+				// add region column
+				echo '<td>';
+				echo '<label for="start'.$chr.'">start </label>';
+				echo '<input id="start'.$chr.'" type="text" size="10" value="1" />';
+				echo '<label for="end'.$chr.'">end </label>';
+				echo '<input id="end'.$chr.'" type="text" size="10" value="'.$length.'" />';
+				echo '<input type="button" value="add" onclick="addRegion(\''.$chr.'\')"/>';
+				echo '</td>';
+				// selected regions
+				if(isset($chr2reg[$chr])){
+					echo '<td>';
+					foreach ($chr2reg[$chr] as $i => $reg){
+						//id="'.$chr.'-'.$i.'" href="noJS.php"
+						echo '<input name="'.$reg_str.'[]" id="'.$chr.'-'.$i.'" type="text"  value="'.$reg.'" size="'.(strlen($reg)).'"/>
   				<a href="javascript:deleteRegion(\''.$chr.'-'.$i.'\')"><sup class="close">X</sup></a>&nbsp;';
-    		}
-    		echo '</td>';
-    	}else{
-    		echo '<td><input type="text" id="'.$chr.'"/></td>';
-    	}
-    	echo "</tr>\n";
-}
-    #print_r($chrs);
-    #foreach ($chrs as $chr => $length)
-    for ($chr=1; array_key_exists("$chr",$chrs) and $chr<100; $chr++) {
-    	printRowChromTable("$chr");
-    }
-    if (array_key_exists("X",$chrs)) printRowChromTable("X");
-    if (array_key_exists("Y",$chrs)) printRowChromTable("Y");
-    ?>
-</table>
-</center>
+					}
+					echo '</td>';
+				}else{
+					echo '<td><input type="text" id="'.$chr.'"/></td>';
+				}
+				echo "</tr>\n";
+			}
+			#print_r($chrs);
+			#foreach ($chrs as $chr => $length)
+			for ($chr=1; array_key_exists("$chr",$chrs) and $chr<100; $chr++) {
+				printRowChromTable("$chr");
+			}
+			if (array_key_exists("X",$chrs)) printRowChromTable("X");
+			if (array_key_exists("Y",$chrs)) printRowChromTable("Y");
+			?>
+		</table>
+	</center>
 </div>
-<p><label for="conf">Length of confidence intervall around each locus: </label><input
-	id="conf" type="text" size="4"
-	value="<?php echo $confidence_int_len; ?>" /> cM</p>
 <p>
-  &nbsp;&nbsp;<input type="button" onclick="submit_page('overview')"
-    value="show Synteny" />
+	<label for="conf">Length of confidence intervall around each locus: </label><input
+		id="conf" type="text" size="4"
+		value="<?php echo $confidence_int_len; ?>" /> cM
 </p>
-    <?php
-	include '../eqtl/footer.php';
-    ?>
+<p>
+	&nbsp;&nbsp;<input type="button" onclick="submit_page('overview')"
+		value="show Synteny" />
+</p>
+			<?php
+			include '../eqtl/footer.php';
+			?>
 <script type="text/javascript">
 function ResetScrollPosition() {
     var hidy;
