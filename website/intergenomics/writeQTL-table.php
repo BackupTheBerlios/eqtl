@@ -59,7 +59,7 @@ function getSyntenyRegionIDs($db, $bp){
 	.                   ' AND df.name = "'.$bp[2].'" 
 						  AND df.genome_db_id IN ("3","57","90") );';
 
-	$fragQuery = $db->query($sqlDnafrag) or trigger_error('Query failed: '.$db->error);
+	$fragQuery = $db->query($sqlDnafrag) or fatal_error('Query failed: '.$db->error);
 
 	//$frag_table = $fragQuery->fetch_all();
 	$str = "";
