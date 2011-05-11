@@ -42,11 +42,9 @@
  */
 function showProjectList($projects, $isSource){
 	global $compara_array;
-	echo "<br>".$isSource."<br><br>";
 	$index = $isSource ? 0 : 1;
-	echo "<br>".$index."<br><br>";
 	
-	echo'<select onclick="submit_page(this)" id="projects'.$index.'" size="'.
+	echo'<select onclick="submit_page(\''.$index.'\')" id="projects'.$index.'" size="'.
 	count($compara_array).'">';
 
 	foreach ($compara_array as $project_name => $project_info) {

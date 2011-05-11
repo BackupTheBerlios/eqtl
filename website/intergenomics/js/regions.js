@@ -31,12 +31,11 @@ function prepareSpecies(site) {
 		var tar_val = "NULL";
 	}
 
-// if (site == null) {
-// error = "";
-// site = "index.php";
-// } else if (error != "") {// error
-// site = "index.php";
-// }
+	if (site == null) {
+		site = "index.php";
+	} else if (error != "") {// error
+		site = "index.php";
+	}
 	var proj_arg = project_str + "[]=";
 	return site + "?" + proj_arg + src_val + "&" + proj_arg + tar_val + error;
 
@@ -47,6 +46,9 @@ function prepareSpecies(site) {
  * regions[].
  */
 function prepareGetString(site) {
+	if (site == null) {
+		site = "index.php";
+	}
 	// prepare species
 	var str = prepareSpecies(site);
 
@@ -77,7 +79,6 @@ function addRegion(chr) {
 	window.location.href = prepareGetString() + str + "&scrollY=" + ScrollTop;
 }
 
-
 function getScrollTop() {
 	var ScrollTop = document.body.scrollTop;
 	if (ScrollTop == 0) {
@@ -96,8 +97,8 @@ function getScrollTop() {
  */
 function deleteRegion(chr) {
 	document.getElementById(chr).removeAttribute("name");
-	var ScrollTop = getScrollTop();	
-	window.location.href = prepareGetString("index.php") + "&scrollY=" + ScrollTop;
+	var ScrollTop = getScrollTop();
+	window.location.href = prepareGetString() + "&scrollY=" + ScrollTop;
 }
 
 /**
@@ -107,16 +108,13 @@ function deleteRegion(chr) {
  *            modus, either 'overview' or all
  */
 function submit_page(target) {
-	if(typeof(target)=='string'){
-		if (target == 'overview') {
-			window.location.href = prepareGetString("compara.php");
-		} else if (target == 'all') {
-			window.location.href = prepareGetString("display_all.php");
-		}
-	} else {// this
-		if(target.id = "projects0")
-			window.location.href = prepareSpecies("index.php");
-		else
-			window.location.href = prepareGetString("index.php");
+	if (target == 'overview') {
+		window.location.href = prepareGetString("compara.php");
+	} else if (target == 'all') {
+		window.location.href = prepareGetString("display_all.php");
+	} else if (target = "0") {
+		window.location.href = prepareSpecies();
+	} else {
+		window.location.href = prepareGetString();
 	}
 }
