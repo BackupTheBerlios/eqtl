@@ -42,8 +42,8 @@ $confidence_int = 1;
 
 connectToQtlDBs($projects);
 
-$experiment1 = $compara_array[$projects[1]];
-$experiment2 = $compara_array[$projects[0]];
+$experiment1 = $compara_array[$projects[0]];
+$experiment2 = $compara_array[$projects[1]];
 
 
 // $reg_str = 'regions';
@@ -167,15 +167,27 @@ $qtl_s1 = 0;
 $qtl_h1 = 0;
 $qtl_n1 = 0;
 
+$fptr = fopen('analysis/rat.txt', 'w');
+
+$str = "Locus\tgroup\tchr\tstart\tstop\tTrait\tStatus\tSyngroup\tchr\tstart\tend\tTrait\thomotype";
+fwrite($fptr, $str);
 
 foreach ($loci2stable_ids_ex1[0] as $locus1 => $stables1) {
-	if(empty($groupSynteny_ex12ex2[$loci2group1[$locus1]])){
+	$groupnr = $loci2group1[$locus1];
+	$group = $groups1[$groupnr];
+	$chr = $group['Chr'];
+	$start = $group['start'];
+	$end = $group['end'];
+	$locusStr = $locus1."\t".$groupnr."\t".$chr."\t".$start."\t".$end."\t";
+	if(empty($groupSynteny_ex12ex2[$groupnr])){
 		// not syntenic
 		foreach ($stables1 as $stable1) {
 			if (empty($traits12traits2[$stable1])) {
 				// not homologue
+				//fwrite($fptr, $locusStr.$stable1."\tunique\r\n");
 				$qtl_n1++;
 			}else{
+				//fwrite($fptr, $locusStr.$stable1."\thomologue\t\t\t\t".array_keys($traits12traits2[$stable1])."\t".current($traits12traits2[$stable1])."\r\n");
 				$qtl_h1++;
 			}
 		}
@@ -184,6 +196,15 @@ foreach ($loci2stable_ids_ex1[0] as $locus1 => $stables1) {
 		foreach ($stables1 as $stable1) {
 			if (empty($traits12traits2[$stable1])) {
 				// not homologue
+				/*$syngroups = $groupSynteny_ex12ex2[$group];
+				foreach ($syngroups as $groupnr){
+					$group = $groups2[$groupnr];
+					$chr = $group['Chr'];
+					$start = $group['start'];
+					$end = $group['end'];
+					$groupStr2 = $groupnr."\t".$chr."\t".$start."\t".$end."\t";
+					fwrite($fptr, $locusStr.$stable1."\tsyntenic\t".$groupStr2."\r\n");
+				}*/
 				$qtl_s1++;
 			}else{
 				$traits2 = array_keys($traits12traits2[$stable1]);
@@ -198,9 +219,25 @@ foreach ($loci2stable_ids_ex1[0] as $locus1 => $stables1) {
 						$intersect = array_intersect($loci2stable_ids_ex2[0][$synlocus2], $traits2);
 						if (!empty($intersect)) {
 							$done = true;
+							
+							$group = $groups2[$syngroup2];
+							$chr = $group['Chr'];
+							$start = $group['start'];
+							$end = $group['end'];
+							$groupStr2 = $syngroup2."\t".$chr."\t".$start."\t".$end."\t".current($intersect)."\t".$traits12traits2[$stable1][current($intersect)];
+							fwrite($fptr, $locusStr.$stable1."\tsynhomsame\t".$groupStr2."\r\n");
+							
 							$qtl_sh1++;
 							break;
-						}
+						}/*else{
+							$group = $groups2[$syngroup2];
+							$chr = $group['Chr'];
+							$start = $group['start'];
+							$end = $group['end'];
+							$groupStr2 = $syngroup2."\t".$chr."\t".$start."\t".$end."\t";
+							fwrite($fptr, $locusStr.$stable1."\tsynhomdif\t".$groupStr2."\r\n");
+							
+						}**/
 					}
 				}
 				if(!$done){
@@ -210,6 +247,8 @@ foreach ($loci2stable_ids_ex1[0] as $locus1 => $stables1) {
 		}
 	}
 }
+fclose($fptr);
+
 echo <<<END
 gut $qtl_sh1 <br>
 synhom $qtlsh1 <br>

@@ -32,7 +32,6 @@ function prepareSpecies(site) {
 	}
 
 	if (site == null) {
-		error = "";
 		site = "index.php";
 	} else if (error != "") {// error
 		site = "index.php";
@@ -47,6 +46,9 @@ function prepareSpecies(site) {
  * regions[].
  */
 function prepareGetString(site) {
+	if (site == null) {
+		site = "index.php";
+	}
 	// prepare species
 	var str = prepareSpecies(site);
 
@@ -56,11 +58,13 @@ function prepareGetString(site) {
 	for ( var i = 0; i < ele.length; i++) {
 		var region = ele[i];
 		if (region.value != '') {
-			str += "&regions[]=" + region.id.substring(0, region.id.indexOf("-"))
-					+ ":" + region.value;
+			str += "&regions[]="
+					+ region.id.substring(0, region.id.indexOf("-")) + ":"
+					+ region.value;
 		}
 	}
-	str += '&confidence_int=' + document.getElementById('conf').value;
+	if (document.getElementById('conf') != null)
+		str += '&confidence_int=' + document.getElementById('conf').value;
 	return str;
 }
 /**
@@ -71,7 +75,20 @@ function addRegion(chr) {
 	var str = "&regions[]=" + chr + ":"
 			+ document.getElementById("start" + chr).value + "-"
 			+ document.getElementById("end" + chr).value;
-	window.location.href = prepareGetString() + str;
+	var ScrollTop = getScrollTop();
+	window.location.href = prepareGetString() + str + "&scrollY=" + ScrollTop;
+}
+
+function getScrollTop() {
+	var ScrollTop = document.body.scrollTop;
+	if (ScrollTop == 0) {
+		if (window.pageYOffset)
+			ScrollTop = window.pageYOffset;
+		else
+			ScrollTop = (document.body.parentElement) ? document.body.parentElement.scrollTop
+					: 0;
+	}
+	return ScrollTop;
 }
 
 /**
@@ -80,22 +97,24 @@ function addRegion(chr) {
  */
 function deleteRegion(chr) {
 	document.getElementById(chr).removeAttribute("name");
-	window.location.href = prepareGetString();
+	var ScrollTop = getScrollTop();
+	window.location.href = prepareGetString() + "&scrollY=" + ScrollTop;
 }
 
 /**
  * Called to go to the next page.
  * 
  * @param target
- *          modus, either 'overview' or all
+ *            modus, either 'overview' or all
  */
 function submit_page(target) {
 	if (target == 'overview') {
 		window.location.href = prepareGetString("compara.php");
 	} else if (target == 'all') {
 		window.location.href = prepareGetString("display_all.php");
-	} else {// this
+	} else if (target = "0") {
 		window.location.href = prepareSpecies();
+	} else {
+		window.location.href = prepareGetString();
 	}
-
 }

@@ -220,8 +220,8 @@ END;
 }
 
 // display -----------------------
-$cols = 234; // width of left offset
-$rows = 140; // heigth of above offset
+$cols = 250; // width of left offset
+$rows = 157; // heigth of above offset
 
 include 'utils/write_detail_table.php';
 
