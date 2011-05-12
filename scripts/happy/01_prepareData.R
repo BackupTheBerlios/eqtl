@@ -7,15 +7,15 @@
 #  C O N T R O L
 
 # say what project to be actually working on
-project.name<-"baines"
-project.name<-"baines.relative.otu"
-project.name<-"baines.phylum"
-project.name<-"baines.genus"
-project.name<-"baines.unique.otu"
+#project.name<-"baines"
+#project.name<-"baines.relative.otu"
+#project.name<-"baines.phylum"
+#project.name<-"baines.genus"
+#project.name<-"baines.unique.otu"
 project.name<-"baines.selected.above.90"
 #project.name<-"mohan"
 #project.name<-"susen"
-project.name<-"susen.details"
+#project.name<-"susen.details"
 #project.name<-NULL
 
 # set to TRUE if data needs to be prepared, too
@@ -48,8 +48,8 @@ if (!file.exists(outputdir)) {
 	dir.create(outputdir,recursive=T)
 }
 
-#permute<-1000
-permute<-0
+permute<-1000
+#permute<-0
 
 verbose<-F
 
@@ -109,52 +109,7 @@ snps.selected.cM<-bp2cM(as.integer(snps.selected.bp))
 
 if (data.prepare) {
 
-    happy.prepare.marker.file <- function(file="", genotype.matrix=NULL) {
-
-	genotype.matrix.parentals<-as.matrix(genotype.matrix[parental.strains,])
-	genotype.matrix.parentals.distribution<-apply(genotype.matrix.parentals,2,function(X){
-		if (any(is.na(X))) stop("Found NA in parental strains' genotyping")
-		alleles_concatenated<-paste(X,collapse="",sep="");
-		#print(alleles_concatenated)
-		alleles_table<-table(unlist(strsplit(split="",x=alleles_concatenated)))
-		#print(alleles_table)
-	})
-
-	if (!is.matrix(genotype.matrix.parentals.distribution)) {
-		stop("Every SNP was supposed to have exactly to possible values.")
-	}
-
-	cat(file=file,"markers ",ncol(genotype.matrix.parentals.distribution),
-		      " strains ",length(parental.strains),"\n",append=F,sep="")
-	cat(file=file,"strain_names ",paste(parental.strains,collapse=" ",sep=""),
-			"\n",append=T,sep="")
-	for(n in colnames(genotype.matrix.parentals.distribution)) {
-		d<-genotype.matrix.parentals.distribution[,n]
-		chr<-as.character(genotype.matrix["Chr",n])
-		pos<-as.numeric(as.character(genotype.matrix["Position",n]))
-		#cat("chr",chr,", pos",pos,"\n"); print(d)
-		cat(file=file,"marker ",n," ",(length(d)+1)," ",
-				chr," ",bp2cM(pos),"\n",sep="",append=T)
-		cat(file=file,paste("allele ",
-				    missing.code,
-		 	            paste(rep(1/length(parental.strains),length(parental.strains)),
-				          collapse=" ",sep=""),"\n"),append=T)
-		for(nucleotide in names(d)) {	
-			cat(file=file,"allele ",nucleotide,sep="",append=T)
-			for(s in parental.strains) {
-				#print(s); print(n)
-				nn<-unlist(strsplit(split="",x=as.character(genotype.matrix.parentals[s,n])))
-				#print(nn)
-				nn.matching.num<-sum(nn==nucleotide)
-				#print(nn.matching.num)
-				nn.total<-d[[nucleotide]]
-				#print(nn.total)
-				cat(file=file," ",nn.matching.num/nn.total,sep="",append=T)
-			}
-			cat(file=file,"\n",append=T)
-		}
-	}
-    }
+    source("01_func_write_marker_file.R")
 
     if (!split.chromosomes) {
 	# A single file for everything
@@ -215,39 +170,39 @@ phenotypes.baines.genus<- NULL
 phenotypes.baines.otu.unique<- NULL
 phenotypesbaines.selected.above.90<- NULL
 
-if ("baines"==project.name) {
+if ("baines" %in% project.name) {
 	cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
 	r<-read.table("data/baines/otu_table/otu_table.txt",sep="\t",header=F,row.names=1,stringsAsFactors=F,colClasses=integer())
 	phenotypes.baines<-t(r[-1,])
 	rownames(phenotypes.baines)<-as.character(r[1,])
 	rm(r)
-} else if ("baines.relative.otu" == project.name) {
+} else if ("baines.relative.otu"  %in%  project.name) {
 	cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
 	r<-read.table("data/baines/relative_values/otu_table.txt",sep="\t",header=F,row.names=1,stringsAsFactors=F,colClasses=integer())
 	phenotypes.baines.relative.otu<-t(r[-1,])
 	rownames(phenotypes.baines.otu.relative)<-as.character(r[1,])
 	rm(r)
-} else if ("baines.phylum" == project.name) {
+} else if ("baines.phylum"  %in%  project.name) {
 	cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
 	r<-read.delim("data/baines/taxon/phylum_code.txt",sep="\t",header=F,row.names=1,stringsAsFactors=F,colClasses=integer())
 	phenotypes.baines.phylum<-t(r[-1,])
 	rownames(phenotypes.baines.phylum)<-as.character(r[1,])
 	rm(r)
-} else if ("baines.genus" == project.name) {
+} else if ("baines.genus"  %in%  project.name) {
 	cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
 	r<-read.delim("data/baines/taxon/genus_code.txt",sep="\t",header=F,row.names=1,stringsAsFactors=F,colClasses=integer())
 	phenotypes.baines.genus<-t(r[-1,])
 	rownames(phenotypes.baines.genus)<-as.character(r[1,])
 	rm(r)
-} else if ("baines.unique.otu" == project.name) {
+} else if ("baines.unique.otu"  %in%  project.name) {
 	cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
 	r<-read.delim("data/baines/otu_unique_selected/otu_unique.txt",sep="\t",header=F,row.names=1,stringsAsFactors=F,colClasses=integer())
 	phenotypes.baines.otu.unique<-t(r[-1,])
 	rownames(phenotypes.baines.otu.unique)<-as.character(r[1,])
 	rm(r)
-} else if ("baines.selected.above.90" == project.name) {
+} else if ("baines.selected.above.90"  %in%  project.name) {
 	cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
-	r<-read.delim("data/baines/selected_90_percentage_above/selected_90_percent_above.txt",sep="\t",header=F,row.names=1,stringsAsFactors=F,colClasses=integer())
+	r<-read.delim("data/baines/selected_taxon/selected_taxon.txt",sep="\t",header=F,row.names=1,stringsAsFactors=F,colClasses=integer())
 	phenotypes.baines.selected.above.90<-t(r[-1,])
 	rownames(phenotypes.baines.selected.above.90)<-as.character(r[1,])
 	rm(r)
@@ -289,7 +244,7 @@ if (!all(rownames(read.table.phenotypes) %in% rownames(read.table.snps))) {
 	stop("Found some individuals of the phenotypes not to be available in genotypes table.\n")
 }
 
-if ("baines"==project.name) {
+if ("baines" %in% project.name) {
 	if (!all(rownames(phenotypes.baines) %in% rownames(read.table.snps))) {
 		"%w/o%" <- function(x, y) x[!x %in% y]
 		unknown.individuals <- rownames(phenotypes.baines) %w/o% rownames(read.table.snps)
@@ -306,8 +261,7 @@ if ("baines"==project.name) {
 	phenotypes.baines<-phenotypes.baines[,a]
 }
 
-
-if ("baines.relative.otu"==project.name) {
+if ("baines.relative.otu" %in% project.name) {
 	if (!all(rownames(phenotypes.baines.otu.relative) %in% rownames(read.table.snps))) {
 		"%w/o%" <- function(x, y) x[!x %in% y]
 		unknown.individuals <- rownames(phenotypes.baines.otu.relative) %w/o% rownames(read.table.snps)
@@ -320,8 +274,7 @@ if ("baines.relative.otu"==project.name) {
 	}
 }
 
-
-if ("baines.phylum"==project.name) {
+if ("baines.phylum" %in% project.name) {
 	if (!all(rownames(phenotypes.baines.phylum) %in% rownames(read.table.snps))) {
 		"%w/o%" <- function(x, y) x[!x %in% y]
 		unknown.individuals <- rownames(phenotypes.baines.phylum) %w/o% rownames(read.table.snps)
@@ -334,7 +287,7 @@ if ("baines.phylum"==project.name) {
 	}
 }
 
-if ("baines.genus"==project.name) {
+if ("baines.genus" %in% project.name) {
 	if (!all(rownames(phenotypes.baines.genus) %in% rownames(read.table.snps))) {
 		"%w/o%" <- function(x, y) x[!x %in% y]
 		unknown.individuals <- rownames(phenotypes.baines.genus) %w/o% rownames(read.table.snps)
@@ -354,7 +307,7 @@ if ("baines.genus"==project.name) {
 	phenotypes.baines.genus<-phenotypes.baines.genus[,a]
 }
 
-if ("baines.unique.otu"==project.name) {
+if ("baines.unique.otu" %in% project.name) {
 	if (!all(rownames(phenotypes.baines.otu.unique) %in% rownames(read.table.snps))) {
 		"%w/o%" <- function(x, y) x[!x %in% y]
 		unknown.individuals <- rownames(phenotypes.baines.otu.unique) %w/o% rownames(read.table.snps)
@@ -368,7 +321,7 @@ if ("baines.unique.otu"==project.name) {
 }
 
 
-if ("baines.selected.above.90"==project.name) {
+if ("baines.selected.above.90" %in% project.name) {
 	if (!all(rownames(phenotypes.baines.selected.above.90) %in% rownames(read.table.snps))) {
 		"%w/o%" <- function(x, y) x[!x %in% y]
 		unknown.individuals <- rownames(phenotypes.baines.selected.above.90) %w/o% rownames(read.table.snps)
@@ -408,11 +361,12 @@ if ("susen.details" %in% project.name) {
 
 # P R E P A R A T I O N   O F   H A P P Y   I N P U T  F I L E S
 
-individuals.3m <-rownames(read.table.phenotypes)[phenotypes.victimised.3m]
-individuals.6m <-rownames(read.table.phenotypes)[phenotypes.victimised.6m]
-individuals.all<-rownames(read.table.phenotypes)[phenotypes.not.parental]
-
 if (data.prepare) {
+
+    individuals.3m <-rownames(read.table.phenotypes)[phenotypes.victimised.3m]
+    individuals.6m <-rownames(read.table.phenotypes)[phenotypes.victimised.6m]
+    individuals.all<-rownames(read.table.phenotypes)[phenotypes.not.parental]
+
     # the individuals.* are names of columns, so one needs now to think about 
     # sets, not about binary vectors any more. This has advantages when
     # using the vectors on data of varying dimensions.
@@ -506,7 +460,7 @@ if (data.prepare) {
 	}
 
 	# Continuing for other projects
-	if ("baines"==project.name) {
+	if ("baines" %in% project.name) {
 		snps.baines<-merged2happy(read.table.snps.selected,selected.rows=rownames(phenotypes.baines))
 		if (!file.exists(inputdir)) {
 			if (!dir.create(inputdir)) {
@@ -528,7 +482,7 @@ if (data.prepare) {
 		cat("Created input files for ",written.act," of ",written.max," phenotypes.\n",sep="")
 	}
 
-        if ("baines.relative.otu"==project.name) {
+        if ("baines.relative.otu" %in% project.name) {
 		snps.baines<-merged2happy(read.table.snps.selected,selected.rows=rownames(phenotypes.baines.otu.relative))
 		if (!file.exists(inputdir)) {
 			if (!dir.create(inputdir)) {
@@ -550,7 +504,7 @@ if (data.prepare) {
 		cat("Created input files for ",written.act," of ",written.max," phenotypes.\n",sep="")
 	}
 
-        if ("baines.phylum"==project.name) {
+        if ("baines.phylum" %in% project.name) {
 		snps.baines<-merged2happy(read.table.snps.selected,selected.rows=rownames(phenotypes.baines.phylum))
 		if (!file.exists(inputdir)) {
 			if (!dir.create(inputdir)) {
@@ -572,7 +526,7 @@ if (data.prepare) {
 		cat("Created input files for ",written.act," of ",written.max," phenotypes.\n",sep="")
 	}
 
-        if ("baines.genus"==project.name) {
+        if ("baines.genus" %in% project.name) {
 		snps.baines<-merged2happy(read.table.snps.selected,selected.rows=rownames(phenotypes.baines.genus))
 		if (!file.exists(inputdir)) {
 			if (!dir.create(inputdir)) {
@@ -594,7 +548,7 @@ if (data.prepare) {
 		cat("Created input files for ",written.act," of ",written.max," phenotypes.\n",sep="")
 	}
 
-	if ("baines.unique.otu"==project.name) {
+	if ("baines.unique.otu" %in% project.name) {
 		snps.baines<-merged2happy(read.table.snps.selected,selected.rows=rownames(phenotypes.baines.otu.unique))
 		if (!file.exists(inputdir)) {
 			if (!dir.create(inputdir)) {
@@ -616,7 +570,8 @@ if (data.prepare) {
 		cat("Created input files for ",written.act," of ",written.max," phenotypes.\n",sep="")
 	}
 
-	if ("baines.selected.above.90"==project.name) {
+	p.n <- "baines.selected.above.90"
+	if (p.n %in% project.name) {
 		snps.baines<-merged2happy(read.table.snps.selected,selected.rows=rownames(phenotypes.baines.selected.above.90))
 		if (!file.exists(inputdir)) {
 			if (!dir.create(inputdir)) {
@@ -625,21 +580,22 @@ if (data.prepare) {
 		}
 		written.act<-0;written.max<-ncol(phenotypes.baines.selected.above.90)
 		for (phen in colnames(phenotypes.baines.selected.above.90)) {
-			ifile<-paste(inputdir,"/happy_project_",project.name,"_all_", phen,".input",sep="")
+			ifile<-paste(inputdir,"/happy_project_",p.n,"_all_", phen,".input",sep="")
 			phenotypes.baines.selected.above.90.all<-phenotypes.baines.selected.above.90[,phen]
 			if (sum(!is.na(phenotypes.baines.selected.above.90.all))>100) {
 				cat("Creating file '",ifile,"'.\n",sep="") ; written.act <- written.act+1
 				input.baines.selected.above.90.all<-cbind(rownames(phenotypes.baines.selected.above.90),phenotypes.baines.selected.above.90.all,snps.baines)
 				write.table(file=ifile, input.baines.selected.above.90.all[!is.na(phenotypes.baines.selected.above.90.all),], col.names=F, row.names=F, quote=F, sep="\t")
 			} else {
-				stop(paste("Too many NA values for phenotype '",phen,"' of project '",project.name,"'.\n",sep=""))
+				stop(paste("Too many NA values for phenotype '",phen,"' of project '",p.n,"'.\n",sep=""))
 			}
 		}
 		cat("Created input files for ",written.act," of ",written.max," phenotypes.\n",sep="")
 	}
 
 
-	if ("mohan" %in% project.name) {
+	p.n <- "mohan"
+	if (p.n %in% project.name) {
 		snps.mohan<-merged2happy(read.table.snps.selected,selected.rows=rownames(phenotypes.mohan))
 		if (!file.exists(inputdir)) {
 			if (!dir.create(inputdir)) {
@@ -648,7 +604,7 @@ if (data.prepare) {
 		}
 		written.act<-0;written.max<-ncol(phenotypes.mohan)
 		for (phen in colnames(phenotypes.mohan)) {
-			ifile<-paste(inputdir,"/happy_project_",project.name,"_all_", phen,".input",sep="")
+			ifile<-paste(inputdir,"/happy_project_",p.n,"_all_", phen,".input",sep="")
 			phens.mohan.all<-phenotypes.mohan[,phen]
 			if (sum(!is.na(phens.mohan.all))>100) {
 				cat("Creating file '",ifile,"'.\n",sep="")
@@ -656,7 +612,7 @@ if (data.prepare) {
 				write.table(file=ifile, input.mohan.all[!is.na(phens.mohan.all),], col.names=F, row.names=F, quote=F, sep="\t")
 				written.act <- written.act+1
 			} else {
-				stop(paste("Too many NA values for phenotype '",phen,"' of project '",project.name,"'.\n",sep=""))
+				stop(paste("Too many NA values for phenotype '",phen,"' of project '",p.n,"'.\n",sep=""))
 			}
 		}
 		cat("Created input files for ",written.act," of ",written.max," phenotypes.\n",sep="")
@@ -780,132 +736,7 @@ if (data.prepare) {
     }
 }
 
-
-
-analyse.split.chromosomes<-function(phen,chr) {
-	markers.filename.chr<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
-	if (!file.exists(markers.filename.chr)) stop(paste("Cannot find marker file for chromosome",chr,"\n",sep=""))
-
-	for (individuals.subset in c("3m","6m","all")) {
-							# covariates do not influence parameters stored
-		fname<-paste(inputdir,"/","happy_project_",project.name,"_",individuals.subset,"_",phen,name.suffix,"_chr_",chr,".input",sep="")
-		if (!file.exists(fname)) {
-			cat("  cannot find input file expected at '",fname,"'\n",sep="") ; next
-		}
-
-		cat("\n\nWorking on '",fname,"'\n\n",sep="")
-		a<-grep(pattern="^h$",x=ls(),value=TRUE) ; b<-grep(pattern="^fit",x=ls(),value=TRUE)
-		if(!is.null(a)) rm(list=c(a,b))
-
-		h<-happy(datafile=fname,allelesfile=markers.filename.chr,generations=4,phase="unknown",
-			file.format="happy",missing.code="NA")
-		if(0 == var(h$phenotypes)) {
-			cat("W: 0 == var(h$phenotypes) for phen '",phen,name.suffix,covariates.suffix," on chr ",chr,".  Skipping.\n")
-			next
-		}
-
-		# Every chromosome may have a different set of individuals
-		if(!is.null(data.covariates)) {
-			covariatematrix<-as.matrix(read.table.phenotypes[h$subjects,data.covariates,drop=FALSE])
-		}
-
-		fit.0<-hfit(h, permute=0,verbose=TRUE,model=model,covariatematrix=covariatematrix)
-		cat("\n",phen,name.suffix,covariates.suffix,"@",chr," fit.0$mapx: ",fit.0$maxp,"\n",sep="")
-		fit.permute<-hfit(h, permute=permute,verbose=TRUE,model=model,covariatematrix=covariatematrix)
-		cat("\n",phen,name.suffix,covariates.suffix,"@",chr," fit.permute$permdata$p01: ",fit.permute$permdata$p01,"\n",sep="")
-		cat(     phen,name.suffix,covariates.suffix,"@",chr," fit.permute$permdata$p05: ",fit.permute$permdata$p05,"\n",sep="")
-
-		columns.selected= (snps.selected.chromosomes==chr)
-		l<-list(POSITION=snps.selected.cM[columns.selected],
-			text=snps.selected.names[columns.selected])
-
-		# Plot of F statistics
-		happyplot(fit.0,
-			main=paste(individuals.subset,": ",phen,name.suffix,covariates.suffix,"@chr",chr,sep=""),
-			sub=paste("p01:",round(fit.permute$permdata$p01,2)," ",
-				  "p05:",round(fit.permute$permdata$p05,2)," ",
-					date(),
-			     sep=""), pch=3
-		)
-		abline(fit.permute$permdata$p05,0,col="green",lty=3)
-		abline(fit.permute$permdata$p01,0,col="green",lty=2)
-
-		# Empirical significance
-		happyplot(fit.permute, labels=l, pch=3,
-			sub=paste(individuals.subset,":",phen,name.suffix,covariates.suffix,"@chr",chr))
-		write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen, name.suffix,
-			covariates.suffix,"_chr_",chr,"_maxLodP_",fit.0$maxp,".csv",sep=""), x=fit.0$table)
-		if(permute>0) {
-			write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen,
-						name.suffix,covariates.suffix,"_chr_",chr,"_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
-				  x=fit.permute$permdata$permutation.pval)
-		}
-	}
-}
-
-analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariates,name.suffix="",verbose=FALSE,vlines.chr.col="darkgreen",project.name="",overwrite=TRUE) {
-	covariates.suffix<-paste("_covars_",ifelse(is.null(data.covariates),"none",paste(data.covariates,collapse=",",sep="")),sep="")
-	cat("\n"); cat("Investigating",phen,name.suffix,"at times",individuals.subset,"and",covariates.suffix,"\n")
-
-	if ("weight.6m" %in% data.covariates && "6m" != individuals.subset) {
-		cat("weight.6m specified as covariate, need to work also with that subset.\n")
-		return(FALSE);
-	}
-	if ("weight.3m" %in% data.covariates && "3m" != individuals.subset) {
-		cat("weight.3m specified as covariate, need to work also with that subset.\n")
-		return(FALSE);
-	}
-
-	fname<-paste(inputdir,"/","happy_project_",project.name,"_",individuals.subset,"_",phen,name.suffix,".input",sep="")
-	if (!file.exists(fname)) {
-		cat("  cannot find input file expected at '",fname,"\n")
-		return(FALSE);
-	}
-
-	ofile.pdf<-paste(outputdir,"/","analysis_happy_project_",project.name,"phen_",phen,name.suffix,"_subset_",
-				individuals.subset,covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".pdf",sep="")
-	ofile.csv<-paste(outputdir,"/","analysis_happy_project_",project.name,"_phen_",phen,name.suffix,"_subset_",
-				individuals.subset, covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".csv",sep="")
-	if (overwrite && file.exists(ofile.pdf) && file.exists(ofile.csv)) {
-		cat("\nSkipping: Results are already existing: ",ofile.pdf,", ",ofile.csv,"\n",sep="")
-		return(TRUE)
-	}
-
-	h<-happy(datafile=fname,allelesfile=markers.filename,generations=generations,phase="unknown",file.format="happy",missing.code=missing.code)
-
-
-	# Every chromosome may have a different set of individuals
-	covariatematrix<-NULL
-	if(!is.null(data.covariates)) {
-		covariatematrix<-as.matrix(read.table.phenotypes[h$subjects,data.covariates,drop=FALSE])
-	}
-
-	fit.0<-hfit(h, permute=0, verbose=verbose, model=model, covariatematrix=covariatematrix)
-	cat("\n",phen,name.suffix,covariates.suffix,"@","all"," fit.0$mapx: ",fit.0$maxp,"\n",sep="")
-
-	fit.permute<-NULL
-	if (permute > 0) {
-		fit.permute<-hfit(h, permute=permute,verbose=TRUE,model=model,covariatematrix=covariatematrix)
-		cat("\n",phen,name.suffix,covariates.suffix,"@","all"," fit.permute$permdata$p01: ",fit.permute$permdata$p01,"\n",sep="")
-		cat(     phen,name.suffix,covariates.suffix,"@","all"," fit.permute$permdata$p05: ",fit.permute$permdata$p05,"\n",sep="")
-	}
-
-	cat("Writing PDF to file '",ofile.pdf,"'\n") ; pdf(ofile.pdf,width=50,height=9)
-	happyplot(fit.0,labels=T,together=TRUE,vlines.chr.lwd=3,vlines.chr.col=vlines.chr.col,
-		main=paste("AIL for phenotype '",phen,"' on subset '",individuals.subset,"'",sep=""),
-		sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
-	write.csv(file=ofile.csv, x=fit.0$table)
-	if (!is.null(fit.permute)) {
-		happyplot(fit.permute,labels=TRUE,together=TRUE,
-			main=paste("Permutation data for AIL phenotype",phen),sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
-		write.csv(file=paste(outputdir,"/","happy_project_",project.name,"_subset_",individuals.subset,"_phen_",phen,
-				name.suffix,covariates.suffix,"_chr_","together","_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
-			  x=fit.permute$permdata$permutation.pval)
-	}
-	dev.off() ; cat("Created figure at '",ofile.pdf,"'\n",sep="")
-	return(TRUE);
-}
-
+source("01_func_analyse.R")
 
 name.suffix<-ifelse(data.binary,".binary","")
 
@@ -919,29 +750,41 @@ if (!split.chromosomes) {
 	if (!file.exists(markers.filename)) {
 		stop("Cannot find markers file expected at '",markers.filename,"\n")
 	}
-	if (project.name %in% c("baines","baines.relative.otu","baines.phylum","baines.genus","baines.unique.otu")) {
+	if (project.name %in% c("baines","baines.relative.otu","baines.phylum","baines.genus","baines.unique.otu","baines.selected.above.90")) {
 		phens<-NULL
-		if ("baines" == project.name) {
+		if ("baines" %in% project.name) {
 			phens <- colnames(phenotypes.baines)
-		} else if ("baines.relative.otu" == project.name) {
+		} else if ("baines.relative.otu" %in% project.name) {
 			phens <- colnames(phenotypes.baines.relative.otu)
-		} else if ("baines.phylum" == project.name) {
+		} else if ("baines.phylum" %in% project.name) {
 			phens <- colnames(phenotypes.baines.phylum)
-		} else if ("baines.genus" == project.name) {
+		} else if ("baines.genus" %in% project.name) {
 			phens <- colnames(phenotypes.baines.genus)
-		}else if ("baines.unique.otu" == project.name) {
+		}else if ("baines.unique.otu" %in% project.name) {
 			phens <- colnames(phenotypes.baines.otu.unique)
-		}else if ("baines.selected.above.90" == project.name) {
+		}else if ("baines.selected.above.90" %in% project.name) {
 			phens <- colnames(phenotypes.baines.selected.above.90)
 		}else stop("This program is inconsistent.")
 
-		for(phen in phens) {
+		current.cpu<-0
+		number.of.cpus<-1
+		for(phen.pos in 1:length(phens)) {
+			phen<-phens[phen.pos]
+			cat("\n"                                                                        )
+			cat(      "**********************************************************\n"        )
+			cat(paste("****** ",                        phen,            " ******\n",sep=""))
+			cat(      "**********************************************************\n"        )
+			cat("\n"                                                                        )
+			if (current.cpu != phen.pos %% number.of.cpus) {
+				cat(paste("skipped: ",phen.pos, "-> ",phen,"\n",sep=""))
+				next;
+			}
 			ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset="all",data.covariates=data.covariates,
 							     name.suffix=name.suffix,project.name=project.name,overwrite=overwrite)
 			if (!ok) {
 				stop(paste("Problem occurred for phen '",phen,"'.\n",sep=""))
 			} else {
-				cat("[",phen,"]\n")
+				cat(paste("[",phen.pos,":",phen,"]\n",sep=""))
 			}
 		}
 	} else if ("mohan" %in% project.name) {
