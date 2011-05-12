@@ -5,13 +5,11 @@
  * @author Georg
  */
 
-
 var aktFrame = "untRe";
 var offAbove = "-157px";
 var offLeft = "-240px";
-//var offAbove = "-138px";
-//var offLeft = "-218px";
-
+// var offAbove = "-138px";
+// var offLeft = "-218px";
 
 function init() {
 	untLi.document.getElementById('cont').style.top = offAbove;
@@ -84,7 +82,7 @@ function ver(MyFrame) {
 var sc; // Deklaration nur bei Mozilla-Workaround erforderlich (optional)
 
 function scrollen() {
-//	window.document.onclick = call_detail_view;
+	// window.document.onclick = call_detail_view;
 	switch (aktFrame) {
 
 	case "untRe":
@@ -121,6 +119,8 @@ function scrollen() {
 	// Ende Mozilla Workaround Teil2
 }
 
-window.onresize = function() {
-	balken();
-};
+//window.VARIABLENNAME === 
+if (!(window.untRe === undefined))//fix for other pages, cause of all js included
+	window.onresize = function() {
+		balken();
+	};

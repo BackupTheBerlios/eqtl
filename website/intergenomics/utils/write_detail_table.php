@@ -50,7 +50,9 @@ function split_and_ciss(&$ens_id,$key,$cis_lookup){
 	}else{
 		$prefix .= ' title="trans">';
 	}
-	$ens_id = $prefix."<a target=\"_blank\" href=\"http://www.ensembl.org/".$experiment1['ensembl_species']."/Gene/Summary?db=core;g=".$ens_id."\">".chunk_split($ens_id,3,"<br />").'</a>';
+	$ens_id = $prefix."<a target=\"_blank\" href=\"http://www.ensembl.org/"
+		.$experiment1['ensembl_species']."/Gene/Summary?db=core;g="
+		.$ens_id."\">".chunk_split($ens_id,3,"<br />");
 }
 
 $refargs = $proj_str.'[]='.implode("+", explode(" ", $proj1)).'&amp;'.$proj_str.'[]='.implode("+", explode(" ", $proj2)).'&amp;region1='.$args[$region_str.'1'].'&amp;region2='.$args[$region_str.'2'];
@@ -110,7 +112,7 @@ window.onscroll = function () { parent.scrollen (); };
       </div>
      </th>';
 fwrite($fptr, $str);
-$ens_img = '<img src="../img/ensembl.gif" width="16" heigth="16" />';
+$ens_img = '<img src="../img/ensembl.gif" width="16" heigth="16" /></a>';
 
 $str = "";
 $tmpIDs = "";
@@ -160,7 +162,7 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 		}
 		$rowString.= "<a target=\"_blank\" href=\"http://www.ensembl.org/"
 			.$experiment2['ensembl_species']."/Gene/Summary?db=core;g="
-			.$ens_id_ex2.'">'.$ens_id_ex2.$ens_img.'</a></th>';
+			.$ens_id_ex2.'">'.$ens_id_ex2.$ens_img.'</th>';
 		foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1) {
 			foreach ($ens_ids_ex1 as $ens_id_ex1){
 				if(in_array($ens_id_ex2, array_keys($traits12traits2[$ens_id_ex1]))){
@@ -182,7 +184,8 @@ foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 
 	}
 
-	$str = '<tr><th rowspan="'.count($ens_ids_ex2).'" title="locus of species '.$species2.'">'.$locus_ex2.'</th>'.$str;
+	$str = '<tr><th rowspan="'.count($ens_ids_ex2).
+		'" title="locus of species '.$species2.'">'.$locus_ex2.'</th>'.$str;
 
 	fwrite($fptr, $str);
 

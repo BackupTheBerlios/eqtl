@@ -43,7 +43,7 @@
 function showProjectList($projects, $isSource){
 	global $compara_array;
 	$index = $isSource ? 0 : 1;
-	
+
 	echo'<select onclick="submit_page(\''.$index.'\')" id="projects'.$index.'" size="'.
 	count($compara_array).'">';
 
@@ -65,7 +65,7 @@ require_once 'utils.php';
 require_once 'fill_related_projects.php';
 fill_compara_array();
 require_once '../eqtl/header.php';
-$upper_tit = "<b>Ensembl Compara interface for Expression QTL</b>";
+$upper_tit = '<div id="headline"><b>Ensembl Compara interface for Expression QTL</b></div>';
 show_large_header("Intergenomics",true,$upper_tit,
 	'../eqtl/', array('css/style.css','css/prettyPhoto.css'));
 global $compara_array;
