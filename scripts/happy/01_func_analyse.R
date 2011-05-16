@@ -1,4 +1,4 @@
-analyse.split.chromosomes<-function(phen,chr) {
+analyse.split.chromosomes<-function(phen,chr,generations,model,inputdir="./",outputdir="./", missing.code="NA") {
 	markers.filename.chr<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
 	if (!file.exists(markers.filename.chr)) stop(paste("Cannot find marker file for chromosome",chr,"\n",sep=""))
 
@@ -59,7 +59,7 @@ analyse.split.chromosomes<-function(phen,chr) {
 	}
 }
 
-analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariates,name.suffix="",verbose=FALSE,vlines.chr.col="darkgreen",project.name="",overwrite=TRUE) {
+analyse.all.chromosomes.together<-function(phen,individuals.subset,generations,model,data.covariates,name.suffix="",verbose=FALSE,vlines.chr.col="darkgreen",project.name="",overwrite=TRUE, inputdir="./",outputdir="./", missing.code="NA") {
 	covariates.suffix<-paste("_covars_",ifelse(is.null(data.covariates),"none",paste(data.covariates,collapse=",",sep="")),sep="")
 	cat("\n"); cat("Investigating",phen,name.suffix,"at times",individuals.subset,"and",covariates.suffix,"\n")
 
@@ -82,7 +82,7 @@ analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariat
 				individuals.subset,covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".pdf",sep="")
 	ofile.csv<-paste(outputdir,"/","analysis_happy_project_",project.name,"_phen_",phen,name.suffix,"_subset_",
 				individuals.subset, covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".csv",sep="")
-	if (overwrite && file.exists(ofile.pdf) && file.exists(ofile.csv)) {
+	if ( (!overwrite) && file.exists(ofile.pdf) && file.exists(ofile.csv)) {
 		cat("\nSkipping: Results are already existing: ",ofile.pdf,", ",ofile.csv,"\n",sep="")
 		return(TRUE)
 	}
