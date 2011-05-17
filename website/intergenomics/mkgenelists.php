@@ -169,7 +169,7 @@ $qtl_n1 = 0;
 
 $fptr = fopen('analysis/rat.txt', 'w');
 
-$str = "Locus\tchr\tgroup\tstart\tstop\tTrait\tStatus\tSyngroup\t\tchr\tstart\tend\tTrait\thomotype";
+$str = "Locus\tgroup\tchr\tstart\tstop\tTrait\tStatus\tSyngroup\tchr\tstart\tend\tTrait\thomotype";
 fwrite($fptr, $str);
 
 foreach ($loci2stable_ids_ex1[0] as $locus1 => $stables1) {

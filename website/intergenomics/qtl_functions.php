@@ -35,7 +35,7 @@ function connectToQtlDBs($project_names) {
 		$proj = $compara_array[$project_name];
 		$targetdb = @new mysqli($proj['db_host'], $proj['db_user'], $proj['db_pass'], $proj['db_name'], $proj['db_port']);
 		if (mysqli_connect_errno()) {
-			fatal_error('Could not connect to database: '.mysqli_connect_error().'('.mysqli_connect_errno().')');
+			fatal_error('Could not connect to QTL-db '.$proj['db_host'].' Error: '.mysqli_connect_error().'('.mysqli_connect_errno().')');
 		}
 		$compara_array[$project_name]['connection'] = $targetdb;
 	}

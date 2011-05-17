@@ -1,4 +1,5 @@
-Locus	chr	group	start	stop	Trait	Status	Syngroup		chr	start	end	Trait	homotypec1.loc100	0	1	-0.59999999	208	ENSRNOG00000003476	synhomsame	152	7	77	83	ENSMUSG00000020838	ortholog_one2one
+Locus	group	chr	start	stop	Trait	Status	Syngroup	chr	start	end	Trait	homotype
+c1.loc100	0	1	-0.59999999	208	ENSRNOG00000003476	synhomsame	152	7	77	83	ENSMUSG00000020838	ortholog_one2one
 c1.loc101	0	1	-0.59999999	208	ENSRNOG00000003476	synhomsame	152	7	77	83	ENSMUSG00000020838	ortholog_one2one
 c1.loc101	0	1	-0.59999999	208	ENSRNOG00000008428	synhomsame	152	7	77	83	ENSMUSG00000032259	ortholog_one2one
 c1.loc101	0	1	-0.59999999	208	ENSRNOG00000018521	synhomsame	12	10	-1	3	ENSMUSG00000026237	ortholog_one2one

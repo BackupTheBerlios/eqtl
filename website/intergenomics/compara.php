@@ -28,7 +28,7 @@
  */
 
 require_once '../eqtl/header.php';
-$upper_tit = "<b>Ensembl Compara interface for Expression QTL</b>";
+$upper_tit = '<div id="headline">Ensembl Compara interface for Expression QTL</div>';
 show_large_header("Intergenomics - Syntenies for selected regions",true,$upper_tit,
 	'../eqtl/', array('css/style.css','css/prettyPhoto.css'));
 

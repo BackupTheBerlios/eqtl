@@ -225,7 +225,7 @@ function connectToCompara($port = '5306', $local=false) {
 		$db = @new mysqli('ensembldb.ensembl.org', 'anonymous', '', $database, $port);
 	}
 	if (mysqli_connect_errno()) {
-		trigger_error('Could not connect to database: '.mysqli_connect_error().'('.
+		trigger_error('Could not connect to compara: '.mysqli_connect_error().'('.
 		mysqli_connect_errno().')', E_USER_ERROR);
 	}
 	return $db;

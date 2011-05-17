@@ -21,6 +21,11 @@
 	height: 8em;
 }
 
+#headline {
+	text-align: center;
+	font-weight: bold;
+}
+
 .bottomleft {
 	margin-top: 0.8em;
 	text-align: left;
@@ -61,8 +66,7 @@
 	border-color: black;
 }
 
-.homologue {
-	/*background: url("arrow-right.png") no-repeat left center;
+.homologue { /*background: url("arrow-right.png") no-repeat left center;
 	padding-left: 13px;*/
 	color: red;
 	font-weight: bold;
