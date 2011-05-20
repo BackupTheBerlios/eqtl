@@ -214,7 +214,7 @@ function useDB($name, $db){
  * @param $local default false
  */
 function connectToCompara($port = '5306', $local=false) {
-	$server = true;
+	$server = false;
 	if($server){
 		$db = @new mysqli('127.0.0.1', 'rostock_eae', '', 'ensembl_compara_62_small', '3306');
 	}else if ($local) {
