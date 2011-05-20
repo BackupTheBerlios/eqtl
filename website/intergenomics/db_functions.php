@@ -203,9 +203,8 @@ function getAllSpeciesNames($db){
  * @param $db
  */
 function useDB($name, $db){
-	$sql = 'use '.$name.';';
-	$db->query($sql)or
-	trigger_error('Could not use database '.$name.' ('.$db->error.')');
+	$sql = 'use `'.$name.'`;';
+	$db->query($sql) or fatal_error('Could not use database '.$name.' ('.$db->error.')');
 }
 
 /**

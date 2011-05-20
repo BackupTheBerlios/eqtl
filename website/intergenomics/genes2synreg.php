@@ -72,6 +72,7 @@ $size = count($genelist);
 for($i=1; $i<$size; $i++) {// skip header
 	$entry = explode("\t", $genelist[$i]);
 	$chr = $entry[2];
+	//echo $chr;
 	$start = cM2bp($chr, $entry[3], $species1);
 	$end = cM2bp($chr, $entry[4], $species1);
 	$str = getSyntenyRegionIDs($compara, array($start,$end,$chr,$ens_species1));
