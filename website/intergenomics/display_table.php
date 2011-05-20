@@ -71,7 +71,7 @@ prepareColors($groups1,$groups2);
         	if ($colIndex >= sizeof($colorArray)) {
         		$colIndex =0;
         	}
-        	echo '<th style="background-color:'.$colorArray[$colIndex].'" title="region '.($group2region[$i]+1).'">'.$groups1[$i]['Chr'].'<br />'.round($groups1[$i]['start']).' - '.round($groups1[$i]['end']).'</th>';
+        	echo '<th style="background-color:'.$colorArray[$colIndex].'" title="region '.($group2region[$i]+1).'" align="center">'.$groups1[$i]['Chr'].'<br />'.round($groups1[$i]['start']).' - '.round($groups1[$i]['end']).'</th>';
         }
         ?>
       </tr>
