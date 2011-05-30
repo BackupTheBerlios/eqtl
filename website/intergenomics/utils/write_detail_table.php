@@ -135,11 +135,15 @@ fwrite($fptr, $str."</tr><tr>".$tmpIDs."</tr></thead><tbody>");
 //initialize mapping array for homology descriptions
 $descript = array(
 	'within_species_paralog'=>'<td class="paralog" title="homology">paralog</td>',
+	'other_paralog'=>'<td class="paralog" title="homology">paralog</td>',
 	'ortholog_one2one'=>'<td class="ortholog" title="homology">ortholog</td>',
 	'ortholog_one2many'=>'<td class="ortholog" title="homology">ortholog</td>',
 	'between_species_paralog'=>'<td class="paralog" title="homology">paralog</td>',
 	'ortholog_many2many'=>'<td class="ortholog" title="homology">ortholog</td>',
-	'apparent_ortholog_one2one'=>'<td class="ortholog" title="homology">apparent ortholog</td>');
+	'apparent_ortholog_one2one'=>'<td class="ortholog" title="homology">apparent ortholog</td>',
+	'putative_gene_split'=>'<td class="ortholog" title="homology">putative_gene_split</td>',
+	'contiguous_gene_split'=>'<td class="ortholog" title="homology">contiguous_gene_split</td>',
+	'possible_ortholog'=>'<td class="paralog" title="homology">possible<br />ortholog</td>');
 
 
 //iterate over locinames

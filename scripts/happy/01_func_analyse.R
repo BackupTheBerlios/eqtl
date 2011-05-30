@@ -1,0 +1,123 @@
+analyse.split.chromosomes<-function(phen,chr) {
+	markers.filename.chr<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
+	if (!file.exists(markers.filename.chr)) stop(paste("Cannot find marker file for chromosome",chr,"\n",sep=""))
+
+	for (individuals.subset in c("3m","6m","all")) {
+							# covariates do not influence parameters stored
+		fname<-paste(inputdir,"/","happy_project_",project.name,"_",individuals.subset,"_",phen,name.suffix,"_chr_",chr,".input",sep="")
+		if (!file.exists(fname)) {
+			cat("  cannot find input file expected at '",fname,"'\n",sep="") ; next
+		}
+
+		cat("\n\nWorking on '",fname,"'\n\n",sep="")
+		a<-grep(pattern="^h$",x=ls(),value=TRUE) ; b<-grep(pattern="^fit",x=ls(),value=TRUE)
+		if(!is.null(a)) rm(list=c(a,b))
+
+		h<-happy(datafile=fname,allelesfile=markers.filename.chr,generations=4,phase="unknown",
+			file.format="happy",missing.code="NA")
+		if(0 == var(h$phenotypes)) {
+			cat("W: 0 == var(h$phenotypes) for phen '",phen,name.suffix,covariates.suffix," on chr ",chr,".  Skipping.\n")
+			next
+		}
+
+		# Every chromosome may have a different set of individuals
+		if(!is.null(data.covariates)) {
+			covariatematrix<-as.matrix(read.table.phenotypes[h$subjects,data.covariates,drop=FALSE])
+		}
+
+		fit.0<-hfit(h, permute=0,verbose=TRUE,model=model,covariatematrix=covariatematrix)
+		cat("\n",phen,name.suffix,covariates.suffix,"@",chr," fit.0$mapx: ",fit.0$maxp,"\n",sep="")
+		fit.permute<-hfit(h, permute=permute,verbose=TRUE,model=model,covariatematrix=covariatematrix)
+		cat("\n",phen,name.suffix,covariates.suffix,"@",chr," fit.permute$permdata$p01: ",fit.permute$permdata$p01,"\n",sep="")
+		cat(     phen,name.suffix,covariates.suffix,"@",chr," fit.permute$permdata$p05: ",fit.permute$permdata$p05,"\n",sep="")
+
+		columns.selected= (snps.selected.chromosomes==chr)
+		l<-list(POSITION=snps.selected.cM[columns.selected],
+			text=snps.selected.names[columns.selected])
+
+		# Plot of F statistics
+		happyplot(fit.0,
+			main=paste(individuals.subset,": ",phen,name.suffix,covariates.suffix,"@chr",chr,sep=""),
+			sub=paste("p01:",round(fit.permute$permdata$p01,2)," ",
+				  "p05:",round(fit.permute$permdata$p05,2)," ",
+					date(),
+			     sep=""), pch=3
+		)
+		abline(fit.permute$permdata$p05,0,col="green",lty=3)
+		abline(fit.permute$permdata$p01,0,col="green",lty=2)
+
+		# Empirical significance
+		happyplot(fit.permute, labels=l, pch=3,
+			sub=paste(individuals.subset,":",phen,name.suffix,covariates.suffix,"@chr",chr))
+		write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen, name.suffix,
+			covariates.suffix,"_chr_",chr,"_maxLodP_",fit.0$maxp,".csv",sep=""), x=fit.0$table)
+		if(permute>0) {
+			write.csv(file=paste(outputdir,"/","happy_",individuals.subset,"_",phen,
+						name.suffix,covariates.suffix,"_chr_",chr,"_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
+				  x=fit.permute$permdata$permutation.pval)
+		}
+	}
+}
+
+analyse.all.chromosomes.together<-function(phen,individuals.subset,data.covariates,name.suffix="",verbose=FALSE,vlines.chr.col="darkgreen",project.name="",overwrite=TRUE) {
+	covariates.suffix<-paste("_covars_",ifelse(is.null(data.covariates),"none",paste(data.covariates,collapse=",",sep="")),sep="")
+	cat("\n"); cat("Investigating",phen,name.suffix,"at times",individuals.subset,"and",covariates.suffix,"\n")
+
+	if ("weight.6m" %in% data.covariates && "6m" != individuals.subset) {
+		cat("weight.6m specified as covariate, need to work also with that subset.\n")
+		return(FALSE);
+	}
+	if ("weight.3m" %in% data.covariates && "3m" != individuals.subset) {
+		cat("weight.3m specified as covariate, need to work also with that subset.\n")
+		return(FALSE);
+	}
+
+	fname<-paste(inputdir,"/","happy_project_",project.name,"_",individuals.subset,"_",phen,name.suffix,".input",sep="")
+	if (!file.exists(fname)) {
+		cat("  cannot find input file expected at '",fname,"\n")
+		return(FALSE);
+	}
+
+	ofile.pdf<-paste(outputdir,"/","analysis_happy_project_",project.name,"phen_",phen,name.suffix,"_subset_",
+				individuals.subset,covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".pdf",sep="")
+	ofile.csv<-paste(outputdir,"/","analysis_happy_project_",project.name,"_phen_",phen,name.suffix,"_subset_",
+				individuals.subset, covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".csv",sep="")
+	if (overwrite && file.exists(ofile.pdf) && file.exists(ofile.csv)) {
+		cat("\nSkipping: Results are already existing: ",ofile.pdf,", ",ofile.csv,"\n",sep="")
+		return(TRUE)
+	}
+
+	h<-happy(datafile=fname,allelesfile=markers.filename,generations=generations,phase="unknown",file.format="happy",missing.code=missing.code)
+
+
+	# Every chromosome may have a different set of individuals
+	covariatematrix<-NULL
+	if(!is.null(data.covariates)) {
+		covariatematrix<-as.matrix(read.table.phenotypes[h$subjects,data.covariates,drop=FALSE])
+	}
+
+	fit.0<-hfit(h, permute=0, verbose=verbose, model=model, covariatematrix=covariatematrix)
+	cat("\n",phen,name.suffix,covariates.suffix,"@","all"," fit.0$mapx: ",fit.0$maxp,"\n",sep="")
+
+	fit.permute<-NULL
+	if (permute > 0) {
+		fit.permute<-hfit(h, permute=permute,verbose=TRUE,model=model,covariatematrix=covariatematrix)
+		cat("\n",phen,name.suffix,covariates.suffix,"@","all"," fit.permute$permdata$p01: ",fit.permute$permdata$p01,"\n",sep="")
+		cat(     phen,name.suffix,covariates.suffix,"@","all"," fit.permute$permdata$p05: ",fit.permute$permdata$p05,"\n",sep="")
+	}
+
+	cat("Writing PDF to file '",ofile.pdf,"'\n") ; pdf(ofile.pdf,width=50,height=9)
+	happyplot(fit.0,labels=T,together=TRUE,vlines.chr.lwd=3,vlines.chr.col=vlines.chr.col,
+		main=paste("AIL for phenotype '",phen,"' on subset '",individuals.subset,"'",sep=""),
+		sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
+	write.csv(file=ofile.csv, x=fit.0$table)
+	if (!is.null(fit.permute)) {
+		happyplot(fit.permute,labels=TRUE,together=TRUE,
+			main=paste("Permutation data for AIL phenotype",phen),sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
+		write.csv(file=paste(outputdir,"/","happy_project_",project.name,"_subset_",individuals.subset,"_phen_",phen,
+				name.suffix,covariates.suffix,"_chr_","together","_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
+			  x=fit.permute$permdata$permutation.pval)
+	}
+	dev.off() ; cat("Created figure at '",ofile.pdf,"'\n",sep="")
+	return(TRUE);
+}
