@@ -61,21 +61,50 @@ $species2 = $experiment2['species'];
 $ens_species1 = $experiment1['ensembl_species'];
 $ens_species2 = $experiment2['ensembl_species'];
 
-$genelist = file("analysis/rat.txt",FILE_IGNORE_NEW_LINES);
+$genelist = file("analysis/rat_out.txt",FILE_IGNORE_NEW_LINES);
+$diseaselist = file("analysis/QTL.txt",FILE_IGNORE_NEW_LINES);
 
-$fptr = fopen("analysis/rat_out.txt", 'w');
-fwrite($fptr, $genelist[0]."\t syn_reg_ids\r\n");
+$fptr = fopen("analysis/rat_diseas.txt", 'w');
+fwrite($fptr, $genelist[0]."\r\n");
 
 # $keys = explode("\t", $genelist[0]);
-#Locus	group	chr	start	stop	Trait	Status	Syngroup	chr	start	end	Trait	homotype
+# QTL
+#start_bps		stop_bps		Chr		species		syntenyID
+
+/**
+ *
+ * Copy syn_ids of the QTL-Table in array
+ */
+$species_d = array();
+$synIDs_d = array();
+$size_d = count($diseaselist);
+for($i=1; $i<$size_d; $i++) {// skip header
+	$entry = explode("\t\t", $diseaselist[$i]);
+	$species_d[] = $entry[3];
+	$synIDs_d[] = explode(",", $entry[4]);
+}
+
+# synreg
+#Locus	group	chr	start	stop	Trait	Status	Syngroup	chr	start	end	Trait	homotype syn_ids
+
 $size = count($genelist);
 for($i=1; $i<$size; $i++) {// skip header
 	$entry = explode("\t", $genelist[$i]);
+	$syn_list = explode(",", $entry[13]);
+	
+	$tmp_species = array();
+	for($i=0; $i<$size_d-1; $i++) {// skip header
+		$intersect = array_intersect($syn_list, $synIDs_d[$i]);
+		if(!empty($intersect)){
+			// synteny
+			
+		}
+	}
 	$chr = $entry[2];
 	$start = cM2bp($chr, $entry[3], $species1);
 	$end = cM2bp($chr, $entry[4], $species1);
 	$str = getSyntenyRegionIDs($compara, array($start,$end,$chr,$ens_species1));
-	fwrite($fptr, $genelist[$i]."\t".$str."\r\n");	
+	fwrite($fptr, $genelist[$i]."\t".$str."\r\n");
 }
 
 fclose($fptr);

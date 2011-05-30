@@ -139,11 +139,10 @@ function getDnafragParameter($db,$id){
  */
 function getChromosomes($db, $species_name){
 	$sqlChromosomes = 'SELECT d.name FROM dnafrag as d INNER JOIN genome_db AS g ON ( '
-		                         . '     g.genome_db_id = (SELECT genome_db_id FROM genome_db WHERE name="'.$species_name.'") '
-                                         .                                                       'AND   d.coord_system_name = "chromosome"'
-					 . ' AND g.genome_db_id = d.genome_db_id  '
-					 . ')'
-					 .';';
+					. '     g.genome_db_id = (SELECT genome_db_id FROM genome_db WHERE name="'.$species_name.'") '
+                    . ' AND d.coord_system_name = "chromosome"'
+					. ' AND g.genome_db_id = d.genome_db_id  '
+					. ');';
 	$resultChromosomes =  $db->query($sqlChromosomes) or trigger_error('Query failed: '.$db->error);
 	if(!$resultChromosomes->num_rows){
 		warn('getChromosomes(): No chromosomes found for species with name: "'.$species_name.'", query executed was "'.$sqlChromosomes.'"');

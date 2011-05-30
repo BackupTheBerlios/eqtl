@@ -1,0 +1,1 @@
+Locus	group	chr	start	stop	Trait	Status	Syngroup	chr	start	end	Trait	homotype	 syn_reg_ids
