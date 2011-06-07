@@ -1,10 +1,10 @@
-analyse.split.chromosomes<-function(phen,chr,generations,model,inputdir="./",outputdir="./", missing.code="NA") {
+analyse.split.chromosomes<-function(phen,chr,read.table.phenotypes,generations,model,inputdir="./",outputdir="./", missing.code="NA") {
 	markers.filename.chr<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
 	if (!file.exists(markers.filename.chr)) stop(paste("Cannot find marker file for chromosome",chr,"\n",sep=""))
 
 	for (individuals.subset in c("3m","6m","all")) {
 							# covariates do not influence parameters stored
-		fname<-paste(inputdir,"/","happy_project_",project.name,"_",individuals.subset,"_",phen,name.suffix,"_chr_",chr,".input",sep="")
+		fname<-paste(inputdir,"/","happy_project_",simpler.name(project.name),"_",individuals.subset,"_",phen,name.suffix,"_chr_",chr,".input",sep="")
 		if (!file.exists(fname)) {
 			cat("  cannot find input file expected at '",fname,"'\n",sep="") ; next
 		}
@@ -59,7 +59,12 @@ analyse.split.chromosomes<-function(phen,chr,generations,model,inputdir="./",out
 	}
 }
 
-analyse.all.chromosomes.together<-function(phen,individuals.subset,generations,model,data.covariates,name.suffix="",verbose=FALSE,vlines.chr.col="darkgreen",project.name="",overwrite=TRUE, inputdir="./",outputdir="./", missing.code="NA") {
+analyse.all.chromosomes.together<-function(phen,individuals.subset,read.table.phenotypes,
+		generations,model,data.covariates,name.suffix="",verbose=FALSE,
+		vlines.chr.col="darkgreen",
+		project.name="",
+		overwrite=TRUE,
+		inputdir="./",outputdir="./", missing.code="NA") {
 	covariates.suffix<-paste("_covars_",ifelse(is.null(data.covariates),"none",paste(data.covariates,collapse=",",sep="")),sep="")
 	cat("\n"); cat("Investigating",phen,name.suffix,"at times",individuals.subset,"and",covariates.suffix,"\n")
 
@@ -72,15 +77,15 @@ analyse.all.chromosomes.together<-function(phen,individuals.subset,generations,m
 		return(FALSE);
 	}
 
-	fname<-paste(inputdir,"/","happy_project_",project.name,"_",individuals.subset,"_",phen,name.suffix,".input",sep="")
+	fname<-paste(inputdir,"/","happy_project_",simpler.name(project.name),"_",individuals.subset,"_",phen,name.suffix,".input",sep="")
 	if (!file.exists(fname)) {
 		cat("  cannot find input file expected at '",fname,"\n")
 		return(FALSE);
 	}
 
-	ofile.pdf<-paste(outputdir,"/","analysis_happy_project_",project.name,"phen_",phen,name.suffix,"_subset_",
+	ofile.pdf<-paste(outputdir,"/","analysis_happy_project_",simpler.name(project.name),"phen_",phen,name.suffix,"_subset_",
 				individuals.subset,covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".pdf",sep="")
-	ofile.csv<-paste(outputdir,"/","analysis_happy_project_",project.name,"_phen_",phen,name.suffix,"_subset_",
+	ofile.csv<-paste(outputdir,"/","analysis_happy_project_",simpler.name(project.name),"_phen_",phen,name.suffix,"_subset_",
 				individuals.subset, covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".csv",sep="")
 	if ( (!overwrite) && file.exists(ofile.pdf) && file.exists(ofile.csv)) {
 		cat("\nSkipping: Results are already existing: ",ofile.pdf,", ",ofile.csv,"\n",sep="")
@@ -114,7 +119,7 @@ analyse.all.chromosomes.together<-function(phen,individuals.subset,generations,m
 	if (!is.null(fit.permute)) {
 		happyplot(fit.permute,labels=TRUE,together=TRUE,
 			main=paste("Permutation data for AIL phenotype",phen),sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
-		write.csv(file=paste(outputdir,"/","happy_project_",project.name,"_subset_",individuals.subset,"_phen_",phen,
+		write.csv(file=paste(outputdir,"/","happy_project_",simpler.name(project.name),"_subset_",individuals.subset,"_phen_",phen,
 				name.suffix,covariates.suffix,"_chr_","together","_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
 			  x=fit.permute$permdata$permutation.pval)
 	}

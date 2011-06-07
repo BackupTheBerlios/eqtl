@@ -14,13 +14,22 @@
 #project.name<-"baines.unique.otu"
 #project.name<-"baines.selected.above.90"
 #project.name<-"mohan"
-project.name<-"susen"
+#project.name<-"susen"
 #project.name<-"susen.details"
+project.name<-c("basic","susen.details")
 #project.name<-NULL
 
 # set to TRUE if data needs to be prepared, too
-data.covariates<-NULL
+#data.covariates<-NULL
 #data.covariates<-c("sex","weight.6m")
+#data.covariates<-c("sex")
+#data.covariates<-c("eba.max.score")
+#data.covariates<-c("eba.onset.week")
+subset.phenotype<-NULL
+subset.phenotype<-c("eba.max.score")
+
+# Global variable to hold all phenotypes
+phenotypes.collection <- list()
 
 
 #  P A R A M E T E R S
@@ -31,8 +40,8 @@ markers.filename<-"markers.txt"
 #missing.code="NA"
 #missing.code="ND"
 
-permute<-1000
-#permute<-0
+#permute<-1000
+permute<-0
 
 verbose<-F
 
@@ -41,6 +50,7 @@ overwrite<-F
 
 # set to true if existing files should be recreated for runs of happy
 data.prepare<-F
+data.prepare.marker<-F
 
 # set if the data investigates has only two possible phenotypes
 # but inspect the code again before doing so
@@ -50,6 +60,11 @@ model="additive"
 
 generations=4
 
+# Give extra summary statement
+info <- TRUE
+
+perform.singular.analysis <- F
+
 source("01_func_happy_start.R")
 happy.start(project.name=project.name,
 	generations=generations,
@@ -58,6 +73,7 @@ happy.start(project.name=project.name,
 	data.covariates=data.covariates,
 	data.prepare=data.prepare,
 	data.binary=data.binary,
+	subset.phenotype=subset.phenotype,
 	split.chromosomes=F,
 	overwrite=overwrite,
 	verbose=verbose
