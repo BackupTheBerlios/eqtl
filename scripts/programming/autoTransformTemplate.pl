@@ -92,6 +92,7 @@ foreach my $c (glob("$configdir/*.conf")) {
 		my ($name,$val);
 		chomp;
 		if (($name,$val)=/([^\t]+)\t(.*)/) {
+			$val =~ s/[\r\n\m]*$//;
 			$vars{$name}=$val;
 		}
 		else {

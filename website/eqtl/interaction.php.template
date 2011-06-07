@@ -200,7 +200,7 @@ set in the configuration.
 						<option value=A>1st locus</option>
 						<option value=B>2nd locus</option>
 						<option value="lod_full DESC" selected>LOD score</option>
-<!--						<option value="LODdiff DESC">LOD-Quantile diff</option>
+<!--						<option value="LODdiff DESC">LOD-Quantile diff</option> -->
 						<option value="cis ASC">cis (ascending)</option>
 						<option value="cis DESC">cis (descending)</option>
 						</select>
@@ -743,5 +743,3 @@ Universities of Rostock and LE<uuml>beck, Germany, 2003-2009
 */
 
 ?>
-</body>
-</html>

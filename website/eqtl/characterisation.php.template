@@ -131,5 +131,3 @@ echo "</table>\n";
 echo "<p><a href=db_characterisation.php>Show overview on characteristics.</a><p>\n";
 include("footer.php");
 ?>
-</body>
-</html>

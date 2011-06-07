@@ -11,9 +11,12 @@ scripts/analyses/regularExpressionAnalyses_delete.sh
 scripts/analyses/regularExpressionAnalyses_list.sh
 scripts/analyses/regularExpressionAnalyses.R
 scripts/analyses/regularExpressionAnalyses_upload.sh
+scripts/analyses/R/analyseCorrelationForAllMarkers.R
+scripts/analyses/R/analyseCorrelationForMarkers.R
+scripts/analyses/R/load.data.R
+scripts/analyses/R/maxcminc.R
 scripts/analyses/scatter_all.R
 scripts/analyses/showQtlDensity.R
-scripts/db_management/checkIfUploaded.pl
 scripts/db_management/database_dump.sh
 scripts/db_management/database_upload.sh
 scripts/db_management/reprocessing.sh
@@ -60,6 +63,7 @@ website/eqtl/trait.php
 website/eqtl/trait_summary.php
 website/eqtl/venn.php
 website/eqtl/xyplot.php
+website/eqtl/locus.php
 website/evaluateQuery.R
 website/executeQuery.sh
 website/getRscript.pl
@@ -74,10 +78,12 @@ website/showSRC.pl
 website/status.txt
 *.swp
 *~
-scripts/analyses/R/analyseCorrelationForAllMarkers.R
-scripts/analyses/R/analyseCorrelationForMarkers.R
-scripts/analyses/R/load.data.R
-scripts/analyses/R/maxcminc.R
-
-eqtl/individuals_group.php
-eqtl/func_edit.php
+# Intergenomics stuff
+website/intergenomics/compara_config.php
+website/intergenomics/fill_related_projects.php
+website/intergenomics/html/table.html
+website/intergenomics/html/table_all.html
+# local install for testing
+conf_Maus
+conf_Ratte
+scripts/analyses/regularExpressionAnalyses.R

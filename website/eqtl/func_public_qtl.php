@@ -168,18 +168,23 @@ the list of QTLs from which the fitting ones shall be selected
 
  */
 
-	function withinthefollowingqtls($chr,$peakbp,$qtlsSelection) {
-
+	function withinthefollowingqtls($chr,$peakbp,$qtlsSelection,$verbose=FALSE) {
+		$e = array();
 		if (!is_array($qtlsSelection)) {
-			errorMessage("withinthefollowingqtls: qtlsSelection is not an array: '$qtlsSelection'.\n");
+			$e[] = "qtlsSelection is not an array: '$qtlsSelection'.";
 		}
 
 		if (empty($chr)) {
-			echo "<p>withinthefollowingqtls: first argument is empty</p>";
+			$e[] = "first argument 'chr' is empty.";
 		}
 		if (empty($peakbp)) {
-			echo "<p>withinthefollowingqtls: second argument is empty</p>";
+			$e[] = "second argument 'bp' is empty.";
 		}
+		
+		if (count($e)>0) {
+			errorMessage($e,TRUE,"func_public_qtl.php/withinthefollowingqtls");
+		}
+
 		$qs=array();
 		foreach($qtlsSelection as $n=>$q) {
 			$chrqtl=$q["chr"];
@@ -197,7 +202,6 @@ the list of QTLs from which the fitting ones shall be selected
 /*
 
 =head2 select_from_public_qtls
-
 Prepares the table to collect QTLs from in the various input forms to specify filter attributes.
 
 =cut

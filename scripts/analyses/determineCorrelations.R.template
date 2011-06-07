@@ -47,15 +47,24 @@ TEMPLATEWARNINGHASH
 # read in data after conversion with OpenOffice from xls
 # further abstractions are required to adapt for multiple
 # organisms.
-d<-read.delim(file="CSVDATABASE/PHENOFILE",dec=",",sep="PHENOFIELDSEP",row.names=1,skip=1)
+fname<-"CSVDATABASE/PHENOFILE"
+if (!file.exists(fname)) {
+	stop(paste("Could not find file '",fname,"'.\n",sep=""))
+}
+d<-read.delim(file=fname,dec="PHENOFIELDDEC",sep="PHENOFIELDSEP",row.names=1,skip=PHENOLINESSKIPNO)
 
 # columns with expression data
-p<-grep("^MT",colnames(d))
+p<-grep("INDIVIDUALIDREGEXP",colnames(d))
 
 # convert to (numerical) matrix
 # selecting mouse-columns,
 # transposing since genes are the observations that shall be compared
-m<-t(as.matrix(d[,p]))
+#m<-t(as.matrix(d[,p])) # did not work for me any more
+m<-as.numeric(as.matrix(d[,p]))
+dim(m)<-c(length(m)/length(p),length(p))
+m<-t(m)
+rownames(m)<-colnames(d)[p]
+colnames(m)<-rownames(d)
 # freeing some memory
 rm("d")
 
@@ -64,7 +73,11 @@ if (TRUE) {
 
 	# recieving all-against-all matrix or for all genes
 	m.cor<-cor(m,method="spearman")
-	con.out<-file("trait_trait_cor.sql","w")
+	con.out.fname<-"trait_trait_cor.sql"
+	if (file.exists(con.out.fname)) {
+		unlink(con.out.fname)
+	}
+	con.out<-file(description=con.out.fname,open="w")
 	n.row<-nrow(m.cor)
 	num.shown<-300
 	# writing best and worst for every gene into traits table
@@ -97,10 +110,15 @@ if (TRUE) {
 else {
 
 	# read in phenotypes
-	d<-read.table(file="CSVDATABASE/GENOFILE",dec=".",sep=",",header=TRUE,na.strings=c("-"))
-	d.cols<-is.na(d[1,]) | ""==d[1,]
-	d.rows<-!(is.na(d[,1]) | ""==d[,1])
-	d.m<-as.matrix(d[d.rows,d.cols])
+	if (CLINICALPHENOTYPESWITHGENOTYPES) {
+		d<-read.table(file="CSVDATABASE/GENOFILE",dec="GENOFIELDDEC",sep="GENOFIELDSEP",header=TRUE,na.strings=c("-"),skip=GENOLINESSKIPNO)
+		d.cols<-is.na(d[1,]) | ""==d[1,]
+		d.rows<-!(is.na(d[,1]) | ""==d[,1])
+		d.m<-as.matrix(d[d.rows,d.cols])
+	} else {
+		# expecting a separate file only for the phenotypes
+		d.m<-read.table(file="CSVDATABASE/SCOREFILE",dec="SCOREFIELDDEC",sep="SCOREFIELDSEP",header=TRUE,skip=SCORELINESSKIPNO,row.names=1,na.strings=c("-","X","x"))
+	}
 
 	# perform 
 	testfunction<-function(X,Y,method="spearman") {
@@ -108,8 +126,47 @@ else {
 		return(c(rho=r[["estimate"]],p.value=r[["p.value"]]))
 	}
 
+	# retrieve individuals names from m (rows) and d.m (rows)
+	retrieveIndividualIds<-function(IndividualIds) {
+		re<-regexpr(text=IndividualIds,pattern="[0-9]+",perl=TRUE)
+		re.2<-rbind(text=IndividualIds,re,attr(re,"match.length"))
+		r<-apply(re.2,2,function(X) {
+			substr(X[1],
+			      start=as.numeric(X[2]),
+			      stop=as.numeric(X[2])+as.numeric(X[3])-1)
+		})
+		return(r)
+	}
 
-	# perform over all phenotypes
+	# these may be redundant (e.g. copy)
+	expresssion.data.individuals<-retrieveIndividualIds(rownames(m))
+	# these must be unique
+	clinical.score.individuals<-retrieveIndividualIds(rownames(d.m))
+	if (any(duplicated(clinical.score.individuals))) {
+		stop(paste("Found duplicated identifiers for individuals: ",
+		           paste(clinical.score.individuals[!duplicated(clinical.score.individuals)],collapse=","),
+			   "\n",sep=""))
+	}
+
+	ids.shared<-clinical.score.individuals[clinical.score.individuals%in%expresssion.data.individuals]
+	d.m.assigned<-d.m[retrieveIndividualIds(rownames(d.m)) %in% ids.shared,]
+	rownames(d.m.assigned)<-retrieveIndividualIds(rownames(d.m.assigned))
+	d.m.assigned.rownames<-rownames(d.m.assigned)
+
+	m.assigned<-m[retrieveIndividualIds(rownames(m)) %in% ids.shared,]
+	m.assigned.individuals<-retrieveIndividualIds(rownames(m.assigned))
+
+	find.position.of<-function(what,in.where) {
+		if(any(duplicated(in.where))) stop(paste("find.position.of: found duplicates: ",
+							  paste(in.where[duplicated(in.where)],collapse=",",sep=""),
+							  "\n",sep=""))
+		sapply(what,function(X){
+			which(X==in.where)
+		})
+	}
+
+
+	# perform over all clinical phenotypes - this number will be small
 
 	#p.no<-1
 	for(p.no in 1:ncol(d.m)) {
@@ -117,21 +174,32 @@ else {
 		p.name<-tolower(colnames(d.m)[p.no])
 		cat(p.name,"\n")
 
-		d.m.curr<-d.m[,p.no]
+		d.m.curr<-d.m.assigned[,p.no]
 		d.m.curr.index<-!is.na(d.m.curr)
 		d.m.curr.takeme<-d.m.curr[d.m.curr.index]
 
 		if (10>=sum(d.m.curr.index)) {
-			cat("skipping: too few values left after NA-check\n")
-		} else if (0 == sd(d.m.curr.takeme)) {
-			cat("skipping: sd of phen is 0\n")
+			cat("skipping clinical phen ",p.name,": too few values left after NA-check\n",sep="")
+		} else if (0 == sd(d.m.curr.takeme,na.rm=TRUE)) {
+			cat("skipping clinical phen ",p.name,": sd is 0\n",sep="")
 		} else {
 			# create outputfile, one per phen
-			con.out<-file(paste("trait_phen_",p.name,"_cor.sql",sep=""),"w")
+			con.out.fname<-paste("trait_phen_",p.name,"_cor.sql",sep="")
+			if (file.exists(con.out.fname)) {
+				cat("Removing existing file ",con.out.fname,"\n",sep="")
+				unlink(con.out.fname)
+			}
+			con.out<-file(con.out.fname,"w")
 
-			v<-apply(m,2,function(Expression){
-				Expression.not.paired.with.na<-Expression[d.m.curr.index]
-				testfunction(Expression.not.paired.with.na,d.m.curr.takeme)
+			expression.data.take.these<-m.assigned.individuals %in% d.m.assigned.rownames[d.m.curr.index]
+			d.m.curr.takeme.positions<-find.position.of(m.assigned.individuals[expression.data.take.these],
+								     d.m.assigned.rownames[d.m.curr.index])
+			d.m.curr.takeme.adjusted<-d.m.curr.takeme[d.m.curr.takeme.positions]
+			v<-apply(m.assigned,2,function(Expression){
+				# find those rows
+				Expression.not.paired.with.na<-Expression[expression.data.take.these]
+				testfunction(Expression.not.paired.with.na,
+					     d.m.curr.takeme.adjusted)
 			})
 
 			for(i in 1:ncol(v)) {

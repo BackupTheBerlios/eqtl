@@ -94,10 +94,10 @@ University of LE<uuml>beck, Germany, 2010
 	#print_r($_GET);
         global $constraintList;
 	$constraintList=array(
-		array(id=>"sick1Rat",name=>"once sick",phen=>"EAE",relation=>"=",value=>"1"),
-		array(id=>"lateOnsetRat",name=>"late onset",phen=>"ONS",relation=>">=",value=>"20"),
-		array(id=>"lateOnsetMouse",name=>"late onset mouse",phen=>"onset",relation=>">=",value=>"20"),
-		array(id=>"sick1Mouse",name=>"once sick mouse",phen=>"AUC",relation=>">",value=>"0")
+		array("id"=>"sick1Rat",      "name"=>"once sick",        "phen"=>"EAE",  "relation"=>"=",  "value"=>"1"),
+		array("id"=>"lateOnsetRat",  "name"=>"late onset",       "phen"=>"ONS",  "relation"=>">=", "value"=>"20"),
+		array("id"=>"lateOnsetMouse","name"=>"late onset mouse", "phen"=>"onset","relation"=>">=", "value"=>"20"),
+		array("id"=>"sick1Mouse",    "name"=>"once sick mouse",  "phen"=>"AUC",  "relation"=>">",  "value"=>"0")
 	);
 
 	$accessible_fields_in_POST_or_GET = array_merge (

@@ -5,7 +5,7 @@ doc<-"
 
 =head1 NAME
 
-load.data(type)
+load.data(data.type)
 
 =head1 DESCRIPTION
 
@@ -42,6 +42,10 @@ the genotypes for all the individuals, returned as individualsxmarker table
 
 =back
 
+=item 'scores'
+
+Return the clinical scores, be they shipped as a separate file or together with the genotypes.
+
 =back
 
 To use this function, until the library has been formed, run
@@ -52,50 +56,102 @@ source('BASEDIR/scripts/analyses/R/load.data.R')
 
 "
 
-load.data <- function(type) {
-  cat("Reading ",type," data\t",sep="")
+# This routine assigns the clinical scores to the individuals
+# listed with the expression data
+
+retrieveIndividualIds<-function(IndividualIds) {
+      re<-regexpr(text=IndividualIds,pattern="[0-9]+",perl=TRUE)
+      re.2<-rbind(text=IndividualIds,re,attr(re,"match.length"))
+      r<-apply(re.2,2,function(X) {
+		substr(X[1],
+		start=as.numeric(X[2]),
+		stop=as.numeric(X[2])+as.numeric(X[3])-1)
+      })
+      return(r)
+}
+
+
+load.data <- function(data.type,verbose=FALSE) {
+  cat("load.data.R: Reading ",data.type," data\t",sep="")
   rootdir <- paste("BASEDIR","CSVDATABASE",sep="/")
-  if ("expression" == type) {
+  if ("expression" == data.type) {
     filename <- paste(rootdir, "PHENOFILE", sep="/")
-  } else if ("genotypes" == type) {
+  } else if ("genotypes" == data.type) {
     filename <- paste(rootdir, "GENOFILE", sep="/")
+  } else if ("scores" == data.type) {
+    filename <- paste(rootdir, "SCOREFILE", sep="/")
   } else {
     cat(" [failed]\n",sep="")
-    stop(paste("Don't know how to read data of type '",type,"'.\n",sep=""))
+    stop(paste("Don't know how to read data of type '",data.type,"'.\n",sep=""))
   }
   if (!file.exists(filename)) {
     cat(" [failed]\n",sep="")
-    stop(paste("Failed to find file '",filename,"' to read ",type," data.\n",sep=""))
+    stop(paste("load.data.R: Failed to find file '",filename,"' to read ",data.type," data.\n",sep=""))
   }
   cat("Filename: ",filename,"\n")
   d<-NULL
-  if ("expression" == type) {
-    d.prime<-read.table(filename, header=T, sep="PHENOFIELDSEP", row.names=1, skip=PHENOLINESSKIPNO,nrows=5)
-    col.numeric<-apply(d.prime,2,function(X){return(sum(!is.na(as.numeric(X)))>=4)})
+  if ("expression" == data.type) {
+
+    d.prime<-read.table(filename, dec="PHENOFIELDDEC", header=T, sep="PHENOFIELDSEP", row.names=PHENOROWNAMES, skip=PHENOLINESSKIPNO,nrows=5)
+    #col.numeric<-apply(d.prime,2,function(X){return(sum(!is.na(as.numeric(X)))>=4)})
+    # this version does not report "NA" conversions
+    col.numeric<-apply(d.prime,2,function(X){length(grep("^ *-?[0-9]+(\\.[0-9]+)? *$",X))>4})
+    if (0 == sum(col.numeric)) stop("load.data.R: exected some numeric columns. The format is not understood.\n")
+
     colClasses=rep("character",times=ncol(d.prime))
     colClasses[col.numeric]<-"numeric"
-    if (any(!col.numeric)) {
-	col.char.min<-min(which(!col.numeric))
-	colClasses[col.char.min:ncol(d.prime)]<-"character"
+    if ("PHENOROWNAMES" != "FALSE") {
+	# the first column is the character forming the rowname
+	colClasses<-c("character",colClasses)
     }
-    colClasses<-c("character",colClasses)
-    d<-read.table(filename, header=T, sep="PHENOFIELDSEP", row.names=1, skip=(1+PHENOLINESSKIPNO), stringsAsFactors=F,colClasses=colClasses)
-    cat(" [read.table ok] ")
-    if (any(!col.numeric)) {
-        d<-d[,1:col.char.min]
+    if (verbose) {
+    	cat("ColClasses: "); print(colClasses)
     }
-    #nonsense# This needs to be helped, somehow
-    #nonsense#d<-d[,1:150]
-    cat(paste(" [ok]  dimension is [",paste(dim(d),collapse=",",sep=""),"]\n",sep=""),sep="")
+    d<-read.table(filename, header=T, dec="PHENOFIELDDEC", sep="PHENOFIELDSEP",
+   	          row.names=PHENOROWNAMES, skip=PHENOLINESSKIPNO, stringsAsFactors=F, colClasses=colClasses)
+
+    # Allowing colnames to start with numbers
+    d.numeric<-d[,col.numeric,drop=F]
+    d.numeric.colnames<-colnames(d.numeric)
+    d.numeric.colnames.orig<-d.numeric.colnames
+    d.numeric.colnames.grep<-grep("^X[0-9]",d.numeric.colnames)
+    d.numeric.colnames[d.numeric.colnames.grep]<-sub("^X","",d.numeric.colnames[d.numeric.colnames.grep])
+
+    # 
+    if ("INDIVIDUALIDPREFIX" != "") {
+	    cat("Removing prefix 'INDIVIDUALIDPREFIX' from column names.\n")
+	    d.numeric.colnames<-sub("^INDIVIDUALIDPREFIX","",d.numeric.colnames)
+    }
+    if ("INDIVIDUALIDSUFFIX" != "") {
+	    cat("Removing suffix 'INDIVIDUALIDSUFFIX' from column names.\n")
+	    d.numeric.colnames<-sub("INDIVIDUALIDSUFFIX$","",d.numeric.colnames)
+    }
+    colnames(d.numeric) <- d.numeric.colnames
+
+    d.character<-NULL
+    if (any(!col.numeric)) {
+    	d.character<-d[,!col.numeric,drop=FALSE]
+    }
+    cat(" [read.table ok]\n")
+    cat(paste(" [ok]  dimension is [",paste(dim(d.numeric),collapse=",",sep=""),"]\n",sep=""),sep="")
+    rm(d.prime)
+    d<-list("numeric"=d.numeric,"character"=d.character,"colnames.orig"=d.numeric.colnames.orig);
+    rm(d.character, d.numeric, d.numeric.colnames)
     return(d)
-  } else if ("genotypes" == type) {
-    d <- read.table(filename, header=T, sep=",", skip=0, stringsAsFactors=F)
+  } else if ("genotypes" == data.type) {
+    d <- read.table(filename, header=T, sep="GENOFIELDSEP", skip=GENOLINESSKIPNO, na.strings=RQTLREADCROSSNASTRINGS, stringsAsFactors=F)
     d.chr<-d[1,]
-    d.chr.first<-min(which(!is.na(as.numeric(d.chr))))
+    if (!is.na(d[1,1])) stop("load.data.R: Expected some individual identifier or ",
+                             "something like it that does not have a chromosome assigned ",
+			     "on the first line. This file is not formatted in a ",
+			     "compatible manner for this analysis.\n")
+    d.chr.first<-min(which(!is.na(d.chr)))
     d.chr<-as.character(d[1,d.chr.first:ncol(d)])
-    d.morgan<-as.numeric(d[2,d.chr.first:ncol(d)])
-    d.clinical<-d[3:nrow(d),1:(d.chr.first-1)]
-    d.genotypes<-d[3:nrow(d),d.chr.first:ncol(d)]
+    d.morgan<-rep(NA,length(d.chr))
+    if (is.na(d[2,1])) d.morgan<-as.numeric(d[2,d.chr.first:ncol(d),drop=F])
+    d.clinical<-rep(NA,length(d.chr))
+    if ((d.chr.first-1)>0) d.clinical<-d[3:nrow(d),1:(d.chr.first-1),drop=F]
+    d.genotypes<-d[3:nrow(d),d.chr.first:ncol(d),drop=F]
     cat(paste(" [ok]  Read ",ncol(d.clinical)," classical phenotypes ",
               "and ", ncol(d.genotypes)," genotypes for ",
 	      nrow(d.genotypes), " individuals.\n",sep=""),sep="")
@@ -105,8 +161,31 @@ load.data <- function(type) {
     l[["clinical"]]<-d.clinical
     l[["genotypes"]]<-d.genotypes
     return(l)
+  } else if ("scores" == data.type) {
+
+    if (CLINICALPHENOTYPESWITHGENOTYPES) {
+       # Well, the data should be checked against the IDs in the
+       # expression data, but it is not for the moment, presuming
+       # them already ordered accordingly
+       l.genotypes<-load.data("genotypes")
+       return(l.genotypes[["clinical"]])
+    }
+
+    # expecting a separate file only for the phenotypes
+    d.m<-read.table(file=filename,dec="SCOREFIELDDEC",sep="SCOREFIELDSEP",header=TRUE,
+    		    skip=SCORELINESSKIPNO,row.names=SCOREROWNAMES,na.strings=c("-","X","x"))
+   
+    clinical.score.individuals<-retrieveIndividualIds(rownames(d.m))
+    if (any(duplicated(clinical.score.individuals))) {
+        stop(paste("Found duplicated identifiers for individuals: ",
+                    paste(clinical.score.individuals[!duplicated(clinical.score.individuals)],collapse=","),
+			   "\n",sep=""))
+    }
+    return(d.m)
+
+
   } else {
-    stop(paste("Don't know how to read data of type '",type,"'.\n",sep=""))
+    stop(paste("Don't know how to read data of type '",data.type,"'.\n",sep=""))
   }
 
 }

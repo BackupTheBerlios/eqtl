@@ -44,10 +44,14 @@ my (@experiments,$geneid,$probeid);
 my @vals;
 my $sep=",";
 my $test=0;
+my $debug=1;
 # uncomment for debugging:
 #$test=1;
 
-open(GENO, $base."/".$database."/".$data{'genofile'}) || open(GENO,$database."/".$data{'genofile'}) || open(GENO,$data{'genofile'}) || die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;               #open the file wich contains probe-data
+open(GENO, $base."/".$database."/".$data{'genofile'})
+        || open(GENO,$database."/".$data{'genofile'})
+	|| open(GENO,$data{'genofile'})
+	|| die "No such gene-file at ".$database.$data{'genofile'}.": ".$@;               #open the file wich contains probe-data
 
 $markers=readline(GENO);
 my $new=undef;
@@ -81,7 +85,10 @@ while(<GENO>) {
 }
 close(GENO);
 
-open(EXPR, $base."/".$database."/".$data{'phenofile'}) || open(EXPR,$database."/".$data{'phenofile'}) || open(EXPR,$data{'phenofile'}) || die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";            #insert-file will  be expaneded by probe-column
+open(EXPR, $base."/".$database."/".$data{'phenofile'})
+        || open(EXPR,$database."/".$data{'phenofile'})
+	|| open(EXPR,$data{'phenofile'})
+	|| die "No such pheno-file at $database$data{'phenofile'}, executed from ".cwd().": $@";            #insert-file will  be expaneded by probe-column
 
                 #
                 # read in conversion table for new and old identifiers - the new ones count
@@ -160,7 +167,10 @@ while(<EXPR>) {
 }
 close(EXPR);
 
-open(SCORE, $base."/".$database."/".$data{'scorefile'}) || open(SCORE,$database."/".$data{'scorefile'}) || open(SCORE,$data{'scorefile'}) || die "No such score-file at ".$database.$data{'scorefile'}.": ".$@;               #open the file wich contains score-data
+open(SCORE, $base."/".$database."/".$data{'scorefile'})
+        || open(SCORE,$database."/".$data{'scorefile'})
+	|| open(SCORE,$data{'scorefile'})
+	|| die "No such score-file at ".$database.$data{'scorefile'}.": ".$@;               #open the file wich contains score-data
 
 my $scoreline=readline(SCORE);
 chomp $scoreline;
@@ -210,15 +220,20 @@ while (FCGI::accept >= 0) {
         #check if argument has been given and read parameters from the website
         if (exists($ENV{'QUERY_STRING'})) {
 	        my @params = split(/&/, $ENV{'QUERY_STRING'});
-		foreach my $key (@params){
-			my @tmp = split(/=/,$key);
-			if( $tmp[0] =~ m/probesetid/ ){
-				$probeID = $tmp[1];
+		foreach my $param (@params){
+			my @keyval = split(/=/,$param);
+			if ($#keyval!=1) {
+				print STDOUT "# Could not parse parameters from\n#" . $ENV{'QUERY_STRING'} . "\n";
+				print STDOUT "# Paramer '$param' could not be splitted by character '='.\n";
+				print STDOUT "# keyval = '".join("','",@keyval)."'\n";
 			}
-			elsif( $tmp[0] =~ m/score/ ){
+			elsif( $keyval[0] =~ m/probesetid/ ){
+				$probeID = $keyval[1];
+			}
+			elsif( $keyval[0] =~ m/score/ ){
 				# commonly, score selections are passed as comma-separated list
-				my @ts=split(/,/,$tmp[1]);
-				# making sure that every score is added
+				my @ts=split(/,/,$keyval[1]);
+				# making sure that every score is added only once
 				foreach my $t (@ts) {
 					my $found=0;
 					# after being tested for redundancy (e.g. sex)
@@ -229,7 +244,7 @@ while (FCGI::accept >= 0) {
 						}
 					}
 					if (0 == $found){
-						push(@scoreselection,$t);
+						push(@scoreselection,lc($t));
 					}
 				}
 			}
@@ -241,6 +256,32 @@ while (FCGI::accept >= 0) {
 		@scoreselection=('sex','severity');
 		$probeID=31;
 	}
+
+	#
+	# Testing for the selected clinical scores to indeed exist
+	#
+	my @err;
+	foreach my $t (@scoreselection) {
+		my $existing=0;
+		foreach my $offeredScore (@scoreline) {
+			print STDERR "Comparing '$offeredScore' eq '$t'\n" if $test;
+			if (lc($offeredScore) eq lc($t)) {
+				print STDERR "found\n" if $test;
+				$existing=1;
+				last;
+			}
+		}
+		if (0 == $existing) {
+			push(@err,"# Cannot locate score '$t' in data files. Please check for a typo.\n");
+		}
+	}
+	if (-1 != $#err) {
+		print STDOUT "# Ran into the following issues:\n" . join("<br>\n",@err);
+		next; # going to next request
+	}
+	else {
+		print STDOUT "# All is fine.\n" if $debug;
+	}
 	
 
 	#
@@ -250,6 +291,7 @@ while (FCGI::accept >= 0) {
 	my @index;
 	my $k;
 	for ($k=0;$k<=$#scoreline;$k++) {
+		print STDOUT "# All is fine 1.3.\n" if $debug;
 		my $j;
 		for ($j=0;$j<=$#scoreselection;$j++) {
 			if (lc($scoreline[$k]) eq lc($scoreselection[$j])) {
@@ -258,7 +300,10 @@ while (FCGI::accept >= 0) {
 			}
 		}
 	}
+	print STDOUT "# All is fine 1.4.\n" if $debug;
 	@vals=@vals[@index];
+
+	print STDOUT "# All is fine 1.5.\n" if $debug;
 
         if( !defined( $probeID ) && $#ARGV == 2 ){
                 $probeID = $ARGV[2];                            #id of probset to insert
@@ -266,19 +311,30 @@ while (FCGI::accept >= 0) {
                 $probeID = $ARGV[0];                            #id of probset to insert
         }
 
+	print STDOUT "# All is fine 1.8.\n" if $debug;
+
 	if( !defined( $probeID) ){
-                print "Usage when accessed via web address :\t<url>?probesetid=\"probesetid\"\n",
-                      "      When accessed via command line:\tinsertProbe_online.pl gene-file pheno-file probesetid\n";
-                exit(-1);
-        }
-	
-	if (exists($expressiondata{$probeID})) {
-                print "Expressiondata($probeID): ". $expressiondata{$probeID}."\n" if ($test);
-        }
-        else {
-                print STDERR "Ignoring unique gene id '$probeID', no expression data available\n" if ($test);
+		my $err = "Usage when accessed via web address :\t<url>?probesetid=\"probesetid\"\n"
+                        . "      When accessed via command line:\tinsertProbe_online.pl gene-file pheno-file probesetid\n";
+                print STDOUT $err;
+                print STDERR $err;
                 next;
         }
+	print STDOUT "# All is fine 2.\n" if $debug;
+	
+	if (exists($expressiondata{$probeID})) {
+		print STDOUT "# All is fine 2.5\n" if $debug;
+                print STDERR "Expressiondata($probeID): ". $expressiondata{$probeID}."\n" if ($test);
+        }
+        else {
+		my $err = "# Ignoring unique gene id '$probeID', no expression data available. Known are:\n"
+		        . "# " . join("\n# ",sort keys(%expressiondata))."\n";
+		print STDOUT $err;
+                print STDERR $err;
+                next;
+        }
+
+	print STDOUT "# All is fine 3.\n" if $debug;
 
         my $ret;
 
@@ -287,6 +343,7 @@ while (FCGI::accept >= 0) {
 
 	my @expressionlevels;
 	@expressionlevels=split(/[\t,]/,$expressiondata{$probeID});
+	print STDOUT "# All is fine 4.\n" if $debug;
 
 	my $offset;
 	if ($expressionHasName) {
@@ -303,13 +360,14 @@ while (FCGI::accept >= 0) {
 	my %expseen;
 	my $i=0;
 
-	print "Experiment_position: " . join("\t",keys %experiment_position) . "\n" if ($test);
+	print STDERR "Experiment_position: " . join("\t",keys %experiment_position) . "\n" if ($test);
 
 
 	#
 	# Going through each mouse.
 	#
 
+	print STDOUT "# All is fine 5.\n" if $debug;
 	foreach my $exp (keys %experiment_position) {
 
                 next unless $exp =~ /[A-Za-z0-9]/;
@@ -322,7 +380,8 @@ while (FCGI::accept >= 0) {
                 }
 
                 if (exists($expseen{$exp})) {
-                        print STDERR "Mouse '$exp' for experiment $numExperiments of ".($i+1)." was already used.\n" if ($test);
+                        print STDERR "Mouse '$exp' for experiment $numExperiments of "
+					.($i+1)." was already used. Skipping.\n" if ($test);
                 }
                 else {
                         $expseen{$exp}=1;
@@ -364,6 +423,8 @@ while (FCGI::accept >= 0) {
                 $i++;
         }
 
+	print STDOUT "# All is fine 100.\n" if $debug;
+
 	print $ret;
 }
 
@@ -377,7 +438,7 @@ Benedikt Bauer <bauer@cls.uni-luebeck.de>
 
 =head1 COPYRIGHT
 
-University of LE<uuml>beck, Germany, 2009
+University of LE<uuml>beck, Germany, 2009-2010
 
 =cut
 

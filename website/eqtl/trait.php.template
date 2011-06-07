@@ -82,6 +82,7 @@ ENDOFDOCUMENTATION
 			"PvalueMin","PvalueMax",
 			"SdMin","SdMax",
 			"traitlist", "traits",
+			"gene_name",
 			"limit","order","innerOrder") as $vname)
 	{
 		if (isset($_POST[$vname])) {
@@ -488,9 +489,14 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 		}
 
 		if (!empty($traits)) {
-			$traitsArray=preg_split("/[, \t\n]+/",$traits);
+			$traitsArray=preg_split("/[, ;\t\n]+/",$traits);
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " trait_id IN ('".join("','",$traitsArray)."') ";
+		}
+
+		if (!empty($gene_name)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " gene_name IN ('".join("','",preg_split("/[, ;\t\n]+/",$gene_name))."') ";
 		}
 
 		if( !empty($NumberChromosomesPerTraitMin) ) {
@@ -1033,5 +1039,3 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 	}
 	include("footer.php");
 ?>
-    </body>
-</html>

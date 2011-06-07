@@ -30,11 +30,18 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2010
 
   //phpinfo();
   require_once("func_relatedProjects.php");
+  require_once("header.php");
 
+  global $urlLogoLeft2,$urlLogoLeft, $urlLogoRight, $urlLogoRightLarge;
+
+  // basepth to all links
+  $basepath = "URLEQTL";
+  // ensure basepath ends with '/'
+  $basepath = $basepath.((substr($basepath,-1) === '/')?'':'/');
   echo "<HR>\n";
   echo "<table border=0 width=100%>\n";
   require_once("func_dbconfig.php");
-  echo "<tr><td align = center>";
+  echo "<tr><td align = center nowrap>";
   echo FOOTERLOGOLEFT;
   echo '</td><td align=center>';
   foreach (array(
@@ -46,7 +53,9 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2010
 		 array("Overview"=>"overview.php",
 			"Scatter"=>"scatter.php", "Venn"=>"venn.php",
 			"EffectPlot"=>"effectplot.php",
-			"Manual-Groups"=>"db_characterisation.php"),
+			"Manual-Groups"=>"db_characterisation.php",
+			"Intergenomics"=>"../intergenomics/index.php"
+		 ),
 		 array("Home"=>"index.php", "Help"=>"help.php", "Contact"=>"mailto:MAINTAINEREMAIL")
 	   ) as $n => $block)
    {
@@ -54,7 +63,7 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2010
 	$m=0;
 	foreach ($block as $a=>$b) {
 		if (!empty($m)) echo "&nbsp;|&nbsp;";
-		echo "<a href=\"$b\">$a</a>";
+		echo "<a href=\"$basepath$b\">$a</a>";
 		$m++;
 	}
   }
@@ -66,3 +75,11 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2010
   echo FOOTERLOGORIGHT;
   echo "</td></tr></table>\n";
 ?>
+
+<script type="text/javascript" charset="utf-8">
+	$(document).ready(function(){
+		$("a[rel^='prettyPhoto']").prettyPhoto({animationSpeed:'slow',theme:'facebook',slideshow:6000});
+	});
+</script>
+</body>
+</html>

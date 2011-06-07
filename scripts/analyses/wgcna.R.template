@@ -1,0 +1,221 @@
+#!/usr/bin/env r
+
+doc<-"
+
+=head1 NAME
+
+Yask, please complete as much of the documentation as you possibly can.
+Think about it as a preparation for the paper. This usually helps :)
+
+wgcna.R - prepare Network diagram
+
+=head1 SYNOPSIS
+
+createVenn.R [options]
+
+or to be sourced from within an R shell
+
+=head1 DESCRIPTION
+
+=head1 OPTIONS
+
+=over 4
+
+=item verbose
+
+=item help
+
+this describes the help attribute
+
+=back
+
+
+=head1 AUTHORS
+
+Yask Gupta <yask.gupta87@gmail.com>,
+Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
+
+=head1 COPYRIGHT
+
+University Clinics Schleswig-Holstein, LE<uuml>Germany, 2011
+
+=cut
+
+"
+
+# Yask, Steffen: Add getopt, read in parameter for module colour.
+# If set, all the temporary files need to be also available,
+# otherwise the colours might mean something very different :)
+# Bail out if module colour is set but files or not available.
+
+library(WGCNA);
+
+# The following setting is important, do not omit.
+options(stringsAsFactors = FALSE);
+#Read in the female liver data set
+mouseData = read.csv("CSVDATABASE/PHENOFILE",sep="\t");
+	# STEFFEN YASK
+	# check that you really work on the same file
+	# i.e. take care of the renumbering of individuals etc
+	# and prepare some extra function that is taking 
+	# care of that
+	# also look at dermineCorrelations.R.template
+	# and at R/load*.R to come up with a decent merger
+# Take a quick look at what is in the data set:
+dim(mouseData);
+names(mouseData)
+datExpr0 = as.data.frame(t(mouseData[, -c(1)]));
+names(datExpr0) = mouseData$GeneID;
+rownames(datExpr0) = names(mouseData)[-c(1)];
+gsg = goodSamplesGenes(datExpr0, verbose = 3);
+gsg$allOK
+if (!gsg$allOK)
+{
+# Optionally, print the gene and sample names that were removed:
+if (sum(!gsg$goodGenes)>0)
+printFlush(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")));
+if (sum(!gsg$goodSamples)>0)
+printFlush(paste("Removing samples:", paste(rownames(datExpr0)[!gsg$goodSamples], collapse = ", ")));
+# Remove the offending genes and samples from the data:
+datExpr0 = datExpr0[gsg$goodSamples, gsg$goodGenes]
+}
+sampleTree = flashClust(dist(datExpr0), method = "average");
+# Plot the sample tree: Open a graphic output window of size 12 by 9 inches
+# The user should change the dimensions if the window is too large or too small.
+sizeGrWindow(12,9)
+
+tmp.folder="tmp_images"
+if (!file.exists(tmp.folder)) stop("Cannot find directory tmp_images in directory ",getwd(),"\n")
+
+#
+# Preparation of Clustering of Individuals
+#
+
+individuals.clustering.filename <- paste(tmp.folder,"/sampleClustering.pdf",sep="")
+if (!file.exists(individuals.clustering.filename)) {
+	pdf(file = individuals.clustering.filename, width = 12, height = 9);
+	par(cex = 0.6);
+	par(mar = c(0,4,2,0))
+	plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
+	cex.axis = 1.5, cex.main = 2)
+
+	#Use this piece of code if you find any outliers in clustering if not then datExpr=datExpr0
+	# Plot a line to show the cut
+	abline(h = 15, col = "red");
+	# Determine cluster under the line
+	clust = cutreeStatic(sampleTree, cutHeight = 15, minSize = 10)
+	table(clust)
+	# clust 1 contains the samples we want to keep.
+	keepSamples = (clust==1)
+	datExpr = datExpr0[keepSamples, ]
+	#---------------------------------
+	nGenes = ncol(datExpr)
+	nSamples = nrow(datExpr)
+}
+
+#
+# Preparing Input Data
+#
+
+input.data.filename <- paste(tmp.folder,"/wgcna-01-dataInput.RData",sep="")
+if (!file.exists(input.data.filename)) {
+
+	traitData = read.csv("CSVDATABASE/SCOREFILE", \
+			dec="SCOREFIELDDEC",\
+			sep="SCOREFIELDSEP",\
+			header=TRUE,\
+			skip=SCORELINESSKIPNO,\
+			row.names=1,\
+			na.strings=c("-","X","x"));
+			
+	dim(traitData)
+	names(traitData)
+	# remove columns that hold information we do not need.
+	allTraits = allTraits[, c(2:5) ];
+	dim(allTraits)
+	names(allTraits)
+	# Form a data frame analogous to expression data that will hold the clinical traits.
+	mouseSamples = rownames(datExpr);
+	traitRows = match(mouseSamples, allTraits$SampleID);
+	datTraits = allTraits[traitRows, -1];
+	rownames(datTraits) = allTraits[traitRows, 1];
+	collectGarbage();
+	save(datExpr, datTraits, file = input.data.filename)
+} else {
+	load(input.data.filename)
+}
+
+
+#                          #
+#  The real WGCNA starts   #
+#                          #
+
+#----------------------
+
+network.construction.filename <- paste(tmp.folder,"/wgcna-02-networkConstruction-auto.RData",sep="")
+if (!file.exists(network.construction.filename)) {
+	# Choose a set of soft-thresholding powers
+	powers = c(c(1:10), seq(from = 12, to=20, by=2))
+	# Call the network topology analysis function
+	sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)
+	# Plot the results:
+	sizeGrWindow(9, 5)
+	par(mfrow = c(1,2));
+	cex1 = 0.9;
+	# Scale-free topology fit index as a function of the soft-thresholding power
+	plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+	xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+	main = paste("Scale independence"));
+	text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+	labels=powers,cex=cex1,col="red");
+	# Mean connectivity as a function of the soft-thresholding power
+	plot(sft$fitIndices[,1], sft$fitIndices[,5],
+	     xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+	     main = paste("Mean connectivity"))
+	text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+	net = blockwiseModules(datExpr, power = NETWORKWCGNAPOWER, minModuleSize = NETWORKMINMODULESIZE,
+	                       reassignThreshold = 0, mergeCutHeight = 0.10,
+                               numericLabels = TRUE, pamRespectsDendro = FALSE,
+	                       saveTOMs = TRUE,
+	                       saveTOMFileBase = "MouseTOM",
+	                       verbose = 3)
+	# open a graphics window
+	sizeGrWindow(12, 9)
+	# Convert labels to colors for plotting
+	mergedColors = labels2colors(net$colors)
+	# Plot the dendrogram and the module colors underneath
+	plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]],
+	                    "Module colors",
+	                    dendroLabels = FALSE, hang = 0.03,
+	                    addGuide = TRUE, guideHang = 0.05)
+	                    moduleLabels = net$colors
+	                    moduleColors = labels2colors(net$colors)
+	                    MEs = net$MEs;
+	                    geneTree = net$dendrograms[[1]];
+	save(MEs, moduleLabels, moduleColors, geneTree, file=network.construction.filename)
+} else {
+	load(network.construction.filename)
+}
+
+# Recalculate topological overlap
+TOM = TOMsimilarityFromExpr(datExpr, power = 6);
+# Read in the annotation file
+annot = read.csv(file = "GeneAnnotation.csv");
+# Select module
+module = "brown";
+# Select module probes
+probes = names(datExpr)
+inModule = (moduleColors==module);
+modProbes = probes[inModule];
+# Select the corresponding Topological Overlap
+modTOM = TOM[inModule, inModule];
+dimnames(modTOM) = list(modProbes, modProbes)
+
+# Export the network into an edge list file VisANT can read
+vis = exportNetworkToVisANT(modTOM,
+                            file = paste("VisANTInput-", module, ".txt", sep=""),
+                            weighted = TRUE,
+                            threshold = 0,
+                            probeToGene = data.frame(annot$GeneID, annot$gene_symbol) )
+
+

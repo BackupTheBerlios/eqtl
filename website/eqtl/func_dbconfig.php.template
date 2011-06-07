@@ -24,6 +24,7 @@ i.e.  with Ensembl in its various versions.
 The documentation does not end here but is dispersed throughout the file.
 */
 
+require_once("func_error.php");
 
 global $verbose;
 $verbose=VERBOSEPHP;
@@ -92,25 +93,25 @@ Returns the page with results from a search for a
 =cut
 
 */
-function probe2ensemblUrl($id,$species="Rattus_norvegicus"){
+function probe2ensemblUrl($id,$species="ENSEMBLSPECIESSEARCHURL"){
 	global $ensemblversionEnsembl;
 	#return "http://www.ensembl.org/$species/Location/Genome?ftype=OligoFeature;id=".$id; # version 45?
 	return "http://www.ensembl.org/$species/Location/Genome?ftype=ProbeFeature;fdb=funcgen;ptype=pset;id=".$id;
-	#return "http://www.ensembl.org/$species/Search/Summary?species=Rattus_norvegicus;idx=;q=".$id;
+	#return "http://www.ensembl.org/$species/Search/Summary?species=$species;idx=;q=".$id;
 }
 
 /**
  * Returns URL of page summarising entries with a similar external ID
  */
-function probe2ensemblSearchUrl($id,$species="Rattus_norvegicus"){
+function probe2ensemblSearchUrl($id,$species="ENSEMBLSPECIESSEARCHURL"){
 	global $ensemblversionEnsembl;
-	return "http://www.ensembl.org/$species/Search/Summary?species=Rattus_norvegicus;idx=;q=".$id;
+	return "http://www.ensembl.org/$species/Search/Summary?species=$species;idx=;q=".$id;
 }
 
 /**
  * Returns URL of page summarising a particular gene.
  */
-function gene2ensemblUrl($id,$species="Rattus_norvegicus"){
+function gene2ensemblUrl($id,$species="ENSEMBLSPECIESSEARCHURL"){
 	global $ensemblversionEnsembl;
 	return "http://www.ensembl.org/".$species."/Gene/Summary?g=".$id;
 }
@@ -118,7 +119,7 @@ function gene2ensemblUrl($id,$species="Rattus_norvegicus"){
 /**
  * Returns URL of page summarising a particular transcript.
  */
-function transcript2ensemblUrl($id,$species="Rattus_norvegicus"){
+function transcript2ensemblUrl($id,$species="ENSEMBLSPECIESSEARCHURL"){
 	global $ensemblversionEnsembl;
 	return "http://www.ensembl.org/".$species."/Transcript/Summary?t=".$id;
 }
@@ -127,7 +128,7 @@ function transcript2ensemblUrl($id,$species="Rattus_norvegicus"){
  * Returns the page with results from a search for a
  * gene with that ID in Ensembl.
  */
-function transcript2ensemblSearchUrl($id,$species="Rattus_norvegicus"){
+function transcript2ensemblSearchUrl($id,$species="ENSEMBLSPECIESSEARCHURL"){
 	global $ensemblversionEnsembl;
 	return "http://www.ensembl.org/".$species."/Search/Summary?species="
 		.$species.";idx=;q=".$id;
@@ -135,12 +136,6 @@ function transcript2ensemblSearchUrl($id,$species="Rattus_norvegicus"){
 
 
 global $hostname,$username,$database,$ensemblversion,$ensemblversionLocal;
-
-global $urlLogoLeft2,$urlLogoLeft, $urlLogoRight, $urlLogoRightLarge;
-$urlLogoLeft2="PATHLOGOLEFT2";
-$urlLogoLeft="PATHLOGOLEFTNORMAL";
-$urlLogoRight="PATHLOGORIGHTNORMAL";
-$urlLogoRightLarge="PATHLOGORIGHTLARGE";
 
 $hostname=`hostname --long`;
 $htmlroot="URLEQTL";
@@ -222,14 +217,6 @@ $markerpassword=$passwordeqtl;
 $markerdatabase=$databaseeqtl;
 
 $debug=TRUE;
-
-function errorMessage ($text,$maintainerEmail="") {
-	if (empty($maintainerEmail)) {
-		$maintainerEmail="MAINTAINEREMAIL";
-	}
-	echo "<p>$text</p>";
-	echo "<p>Please report to <a href=\"mailto:$maintainerEmail\">$maintainerEmail</a>.</p>";
-}
 
 function show_config() {
 	global $hostnameEnsembl, $usernameEnsembl,
