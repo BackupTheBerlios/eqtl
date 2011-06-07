@@ -46,8 +46,8 @@ $confidence_int = 1;
 connectToQtlDBs($projects);
 
 # if ex1 is 0 the use the rat
-$experiment1 = $compara_array[$projects[0]];
-$experiment2 = $compara_array[$projects[1]];
+$experiment1 = $compara_array[$projects[1]];
+$experiment2 = $compara_array[$projects[0]];
 
 //load informations (database and so on...)
 $species_names = array($experiment1['species'],$experiment2['species']);
@@ -61,9 +61,9 @@ $species2 = $experiment2['species'];
 $ens_species1 = $experiment1['ensembl_species'];
 $ens_species2 = $experiment2['ensembl_species'];
 
-$genelist = file("analysis/rat.txt",FILE_IGNORE_NEW_LINES);
+$genelist = file("analysis/mus.txt",FILE_IGNORE_NEW_LINES);
 
-$fptr = fopen("analysis/rat_out.txt", 'w');
+$fptr = fopen("analysis/mus_out.txt", 'w');
 fwrite($fptr, $genelist[0]."\t syn_reg_ids\r\n");
 
 # $keys = explode("\t", $genelist[0]);
@@ -72,11 +72,14 @@ $size = count($genelist);
 for($i=1; $i<$size; $i++) {// skip header
 	$entry = explode("\t", $genelist[$i]);
 	$chr = $entry[2];
+	//echo $chr;
 	$start = cM2bp($chr, $entry[3], $species1);
 	$end = cM2bp($chr, $entry[4], $species1);
 	$str = getSyntenyRegionIDs($compara, array($start,$end,$chr,$ens_species1));
 	fwrite($fptr, $genelist[$i]."\t".$str."\r\n");	
 }
+
+
 
 fclose($fptr);
 echo "done";

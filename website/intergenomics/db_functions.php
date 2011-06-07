@@ -139,11 +139,10 @@ function getDnafragParameter($db,$id){
  */
 function getChromosomes($db, $species_name){
 	$sqlChromosomes = 'SELECT d.name FROM dnafrag as d INNER JOIN genome_db AS g ON ( '
-		                         . '     g.genome_db_id = (SELECT genome_db_id FROM genome_db WHERE name="'.$species_name.'") '
-                                         .                                                       'AND   d.coord_system_name = "chromosome"'
-					 . ' AND g.genome_db_id = d.genome_db_id  '
-					 . ')'
-					 .';';
+					. '     g.genome_db_id = (SELECT genome_db_id FROM genome_db WHERE name="'.$species_name.'") '
+                    . ' AND d.coord_system_name = "chromosome"'
+					. ' AND g.genome_db_id = d.genome_db_id  '
+					. ');';
 	$resultChromosomes =  $db->query($sqlChromosomes) or trigger_error('Query failed: '.$db->error);
 	if(!$resultChromosomes->num_rows){
 		warn('getChromosomes(): No chromosomes found for species with name: "'.$species_name.'", query executed was "'.$sqlChromosomes.'"');
@@ -203,9 +202,8 @@ function getAllSpeciesNames($db){
  * @param $db
  */
 function useDB($name, $db){
-	$sql = 'use '.$name.';';
-	$db->query($sql)or
-	trigger_error('Could not use database '.$name.' ('.$db->error.')');
+	$sql = 'use `'.$name.'`;';
+	$db->query($sql) or fatal_error('Could not use database '.$name.' ('.$db->error.')');
 }
 
 /**
@@ -214,7 +212,10 @@ function useDB($name, $db){
  * @param $local default false
  */
 function connectToCompara($port = '5306', $local=false) {
-	if ($local) {
+	$server = false;
+	if($server){
+		$db = @new mysqli('127.0.0.1', 'rostock_eae', '', 'ensembl_compara_62_small', '3306');
+	}else if ($local) {
 		$db = @new mysqli('127.0.0.1', 'anonymous', 'no', 'ensembl_compara_59', '3306');
 	}else{
 		if($port == '5306'){
