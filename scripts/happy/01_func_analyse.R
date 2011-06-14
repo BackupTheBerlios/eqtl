@@ -59,12 +59,23 @@ analyse.split.chromosomes<-function(phen,chr,read.table.phenotypes,generations,m
 	}
 }
 
-analyse.all.chromosomes.together<-function(phen,individuals.subset,read.table.phenotypes,
-		generations,model,data.covariates,name.suffix="",verbose=FALSE,
+analyse.all.chromosomes.together<-function(
+		phen,individuals.subset,
+		read.table.phenotypes,
+		generations,model,
+		data.covariates.source,data.covariates,
+		name.suffix="",verbose=FALSE,
 		vlines.chr.col="darkgreen",
 		project.name="",
 		overwrite=TRUE,
 		inputdir="./",outputdir="./", missing.code="NA") {
+
+	if (!is.null(data.covariates)) {
+		if (length(data.covariates) != length(data.covariates.source)) {
+			stop("Length of covariate-names differs from length of sources for covariates.\n")
+		}
+	}
+
 	covariates.suffix<-paste("_covars_",ifelse(is.null(data.covariates),"none",paste(data.covariates,collapse=",",sep="")),sep="")
 	cat("\n"); cat("Investigating",phen,name.suffix,"at times",individuals.subset,"and",covariates.suffix,"\n")
 
@@ -96,9 +107,28 @@ analyse.all.chromosomes.together<-function(phen,individuals.subset,read.table.ph
 
 
 	# Every chromosome may have a different set of individuals
-	covariatematrix<-NULL
-	if(!is.null(data.covariates)) {
-		covariatematrix<-as.matrix(read.table.phenotypes[h$subjects,data.covariates,drop=FALSE])
+	covariatematrix.raw<-NULL
+	for(d.pos in 1:length(data.covariates)) {
+		d       <-data.covariates[d.pos]
+		d.source<-data.covariates.source[d.pos]
+		pc<-phenotypes.collection[[d.source]]
+		if (is.null(pc)) stop("Could not retrieve phenotype source '",d.source,"'.\n")
+		if (! d %in% colnames(pc)) stop("Could not find colname ",d," for source ",d.source,". Available: ",colnames(pc),".\n")
+		covariatematrix.raw<-cbind(pc[h$subjects,d,drop=FALSE])
+	}
+
+	covariatematrix<-as.matrix(covariatematrix.raw)
+
+	cat("Raw covariate matrix:\n")
+	print(covariatematrix.raw[1:10,])
+	cat("Covariate matrix:\n")
+	print(covariatematrix[1:10,])
+
+	if (!is.numeric(covariatematrix)) {
+		stop("The covariatematrix is not numeric! for covariates ",
+			paste(data.covariates,collapse=","),
+			" from ",
+			paste(data.covariates.source,collapse="",sep=""),".\n",sep="")
 	}
 
 	fit.0<-hfit(h, permute=0, verbose=verbose, model=model, covariatematrix=covariatematrix)

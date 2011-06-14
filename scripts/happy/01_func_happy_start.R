@@ -163,7 +163,7 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 	"susen.details"="data/susen/Immu_mColVIIc_IgG_C3_details_data.csv"
     )
 
-    possible.projects <- c(union(names(baines.project.filenames),names(simple.reads)),"mohan")
+    possible.projects <- c(union(names(baines.project.filenames),names(simple.reads.filenames)),"mohan")
 
     for (p.n in intersect(possible.projects,project.name)) {
        if (!is.null(baines.project.filenames[[p.n]])) {
@@ -563,19 +563,24 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 
 				for(p.outer in phens.outer) {
 					if (p.outer == "basic" && p.outer %in% c("sex","color")) next;
-					if (p.outer == "basic" && p.outer %in% c("sex","color")) next;
 					for(p.inner in phens.inner) {
+						if (p.inner == "basic" && p.inner %in% c("sex","color")) next;
 						cat("Running outer (",p.outer,") against inner (",p.inner,").\n")
-						#ok<-analyse.all.chromosomes.together(phen=p.outer,
-						#     individuals.subset="all",
-						#     read.table.phenotypes=project.name,
-						#     generations=generations, model=model,
-						#     data.covariates=p.inner,
-						#     name.suffix=name.suffix,
-						#     project.name=project.name,
-						#     overwrite=overwrite,
-						#     inputdir=inputdir, outputdir=outputdir, missing.code=missing.code)
+
+						ok<-analyse.all.chromosomes.together(phen=p.outer,
+						     individuals.subset="all",
+						     read.table.phenotypes=project.name,
+						     generations=generations, model=model,
+						     data.covariates.source=p.n.inner,
+						     data.covariates=p.inner,
+						     name.suffix=name.suffix,
+						     project.name=project.name,
+						     overwrite=overwrite,
+						     inputdir=inputdir, outputdir=outputdir, missing.code=missing.code)
+
+						break;
 					}
+					break;
 				}
 			}
 		}
