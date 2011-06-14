@@ -1,10 +1,17 @@
-analyse.split.chromosomes<-function(phen,chr,read.table.phenotypes,generations,model,inputdir="./",outputdir="./", missing.code="NA") {
+analyse.split.chromosomes<-function(phen,chr,data.phenotype.source,phenotypes.collection,
+                                    generations,model,inputdir="./",outputdir="./", missing.code="NA") {
+	if (! data.phenotype.source %in% names(phenotypes.collection)) {
+		stop("Specification of data.phenotype.source (",data.phenotype.source,") not found. ",
+		     "It should be one of ",paste(names(phenotypes.collection),collapse=", ",sep=""),".\n")
+	}
+	read.table.phenotypes <- phenotypes.collection[[data.phenotype.source]]
 	markers.filename.chr<-paste(inputdir,"/","markers_chr_",chr,".input",sep="")
 	if (!file.exists(markers.filename.chr)) stop(paste("Cannot find marker file for chromosome",chr,"\n",sep=""))
 
 	for (individuals.subset in c("3m","6m","all")) {
 							# covariates do not influence parameters stored
-		fname<-paste(inputdir,"/","happy_project_",simpler.name(project.name),"_",individuals.subset,"_",phen,name.suffix,"_chr_",chr,".input",sep="")
+		fname<-paste(inputdir,"/","happy_project_",simpler.name(project.name),"_",
+		             individuals.subset,"_",phen,name.suffix,"_chr_",chr,".input",sep="")
 		if (!file.exists(fname)) {
 			cat("  cannot find input file expected at '",fname,"'\n",sep="") ; next
 		}
@@ -61,7 +68,8 @@ analyse.split.chromosomes<-function(phen,chr,read.table.phenotypes,generations,m
 
 analyse.all.chromosomes.together<-function(
 		phen,individuals.subset,
-		read.table.phenotypes,
+		data.phenotypes.source,
+		phenotypes.collection,
 		generations,model,
 		data.covariates.source,data.covariates,
 		name.suffix="",verbose=FALSE,
@@ -70,6 +78,15 @@ analyse.all.chromosomes.together<-function(
 		overwrite=TRUE,
 		inputdir="./",outputdir="./", missing.code="NA") {
 
+	if (! data.phenotypes.source %in% names(phenotypes.collection)) {
+		stop("Specification of data.phenotype.source (",data.phenotypes.source,") not found. ",
+		     "It should be one of {",paste(names(phenotypes.collection),collapse=", ",sep=""),"}.\n")
+	}
+	read.table.phenotypes <- phenotypes.collection[[data.phenotypes.source]]
+	if (is.null(read.table.phenotypes)) {
+		stop("Could not retrieve sensible phenotypes from phenotypes.collection[[",data.phenotypes.source,"]] .\n")
+	}
+
 	if (!is.null(data.covariates)) {
 		if (length(data.covariates) != length(data.covariates.source)) {
 			stop("Length of covariate-names differs from length of sources for covariates.\n")
@@ -77,7 +94,7 @@ analyse.all.chromosomes.together<-function(
 	}
 
 	covariates.suffix<-paste("_covars_",ifelse(is.null(data.covariates),"none",paste(data.covariates,collapse=",",sep="")),sep="")
-	cat("\n"); cat("Investigating",phen,name.suffix,"at times",individuals.subset,"and",covariates.suffix,"\n")
+	cat("\n"); cat("Investigating",data.phenotypes.source,"[,",phen,"]",name.suffix,"at times",individuals.subset,"and",covariates.suffix,"\n")
 
 	if ("weight.6m" %in% data.covariates && "6m" != individuals.subset) {
 		cat("weight.6m specified as covariate, need to work also with that subset.\n")
@@ -88,7 +105,8 @@ analyse.all.chromosomes.together<-function(
 		return(FALSE);
 	}
 
-	fname<-paste(inputdir,"/","happy_project_",simpler.name(project.name),"_",individuals.subset,"_",phen,name.suffix,".input",sep="")
+	# The input file is the same as for single and multiple covariates
+	fname<-paste(inputdir,"/","happy_project_",data.phenotypes.source,"_",individuals.subset,"_",phen,name.suffix,".input",sep="")
 	if (!file.exists(fname)) {
 		cat("  cannot find input file expected at '",fname,"\n")
 		return(FALSE);
@@ -114,15 +132,30 @@ analyse.all.chromosomes.together<-function(
 		pc<-phenotypes.collection[[d.source]]
 		if (is.null(pc)) stop("Could not retrieve phenotype source '",d.source,"'.\n")
 		if (! d %in% colnames(pc)) stop("Could not find colname ",d," for source ",d.source,". Available: ",colnames(pc),".\n")
-		covariatematrix.raw<-cbind(pc[h$subjects,d,drop=FALSE])
+		pc.cov<-pc[h$subjects,d,drop=FALSE]
+		if (sum(is.na(pc.cov))>0.7*nrow(pc.cov)) {
+			cat("W: too many covariates ",d.source,"[,",d,"] are NA. (",sum(!is.na(pc.cov))," of ",nrow(pc.cov),").\n",sep="")
+			cat("   h$subjects: ");print(h$subjects)
+			cat("   rownames(pc.cov): ");print(rownames(pc.cov))
+			return(FALSE);
+		} else {
+			cat("I: acceptably many covariates of ",d.source,"[,",d,"] are NA. (",sum(!is.na(pc.cov))," of ",nrow(pc.cov),").\n",sep="")
+			cat("Covariates: "); print(pc.cov)
+		}
+		cat("dimnames(pc.cov)):"); print(dimnames(pc.cov))
+		if (is.null(covariatematrix.raw)) {
+			covariatematrix.raw<-pc.cov
+		} else {
+			covariatematrix.raw<-cbind(covariatematrix.raw,pc.cov)
+		}
 	}
 
 	covariatematrix<-as.matrix(covariatematrix.raw)
 
-	cat("Raw covariate matrix:\n")
+	cat("For phen '",phen,"': Raw covariate matrix for {",paste(data.covariates,collapse=", ",sep=""),"} of source '",data.covariates.source,"':\n",sep="")
 	print(covariatematrix.raw[1:10,])
-	cat("Covariate matrix:\n")
-	print(covariatematrix[1:10,])
+	cat("For phen '",phen,"': Covariate matrix for {",paste(data.covariates,collapse=", ",sep=""),"} of source '",data.covariates.source,"':\n",sep="")
+	print(covariatematrix[1:30,])
 
 	if (!is.numeric(covariatematrix)) {
 		stop("The covariatematrix is not numeric! for covariates ",
@@ -148,7 +181,8 @@ analyse.all.chromosomes.together<-function(
 	write.csv(file=ofile.csv, x=fit.0$table)
 	if (!is.null(fit.permute)) {
 		happyplot(fit.permute,labels=TRUE,together=TRUE,
-			main=paste("Permutation data for AIL phenotype",phen),sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
+			main=paste("Permutation data for AIL phenotype",phen),
+			sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
 		write.csv(file=paste(outputdir,"/","happy_project_",simpler.name(project.name),"_subset_",individuals.subset,"_phen_",phen,
 				name.suffix,covariates.suffix,"_chr_","together","_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
 			  x=fit.permute$permdata$permutation.pval)

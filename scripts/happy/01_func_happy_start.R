@@ -14,7 +14,7 @@ require(happy.hbrem)
 "%w/o%" <- function(x, y) x[!x %in% y]
 
 simpler.name<-function(n) { paste(n,collapse="W",sep="") }
-debug <- T
+debug <- F
 
 happy.start <- function(project.name,generations=4,model="additive", permute=0,
                         data.covariates=NULL, data.binary=F, data.prepare=F, subset.phenotype=NULL,
@@ -90,7 +90,7 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 	if (data.prepare & data.prepare.marker) {
 		cat("Preparing Marker Files\n")
 
-		source("01_func_write_marker_file.R")
+		source("01_func_write_marker_file.R",local=FALSE)
 
 		if (!split.chromosomes) {
 		     # A single file for everything
@@ -445,7 +445,7 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
         }
     }
 
-    source("01_func_analyse.R")
+    source("01_func_analyse.R",local=FALSE)
 
 
     if (info) {
@@ -500,7 +500,8 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 			}
 
 			ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset="all",
-							     read.table.phenotypes=read.table.phenotypes,
+							     data.phenotypes.source=project.name,
+							     phenotypes.collection=phenotypes.collection,
 							     generations=generations, model=model,
 							     data.covariates=data.covariates,
 							     name.suffix=name.suffix,project.name=project.name,overwrite=overwrite,
@@ -521,7 +522,8 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 					next
 				}
 				ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset=individuals.subset,
-							             read.table.phenotypes=read.table.phenotypes,
+							             data.phenotypes.source=project.name,
+							     	     phenotypes.collection=phenotypes.collection,
 								     generations=generations, model=model.el,
 								     data.covariates=data.covariates,name.suffix=name.suffix,overwrite=overwrite,
 								     inputdir=inputdir, outputdir=outputdir, missing.code=missing.code)
@@ -544,7 +546,8 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 				cat("               phen '",p,"'.\n",sep="")
 				ok<-analyse.all.chromosomes.together(phen=p,
 				     individuals.subset="all",
-				     read.table.phenotypes=p.n,
+				     data.phenotypes.source=p.n,
+				     phenotypes.collection=phenotypes.collection,
 				     generations=generations, model=model,
 				     data.covariates=NULL,
 				     name.suffix=name.suffix,project.name=p.n,overwrite=overwrite,
@@ -571,7 +574,9 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 						cat("Running outer (",p.outer,") against inner (",p.inner,").\n")
 						ok<-analyse.all.chromosomes.together(phen=p.outer,
 						     individuals.subset="all",
-						     read.table.phenotypes=project.name,
+						     #read.table.phenotypes=project.name,
+						     data.phenotypes.source=p.n.outer,
+				     		     phenotypes.collection=phenotypes.collection,
 						     generations=generations, model=model,
 						     data.covariates.source=p.n.inner,
 						     data.covariates=p.inner,
@@ -620,5 +625,7 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 		dev.off()
 	}
     }
+
+    return(list("phenotypes.colletion"=phenotypes.collection))
 
 }
