@@ -14,6 +14,7 @@ require(happy.hbrem)
 "%w/o%" <- function(x, y) x[!x %in% y]
 
 simpler.name<-function(n) { paste(n,collapse="W",sep="") }
+debug <- T
 
 happy.start <- function(project.name,generations=4,model="additive", permute=0,
                         data.covariates=NULL, data.binary=F, data.prepare=F, subset.phenotype=NULL,
@@ -529,7 +530,9 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 		}
 	    }
 	} else {
-		cat("Here should be the combinatorical analyses.\n")
+		cat("*******************************\n")
+		cat("*** combinatorical analyses ***\n")
+		cat("*******************************\n")
 
 		# Calculate all the single effects
 
@@ -566,7 +569,6 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 					for(p.inner in phens.inner) {
 						if (p.inner == "basic" && p.inner %in% c("sex","color")) next;
 						cat("Running outer (",p.outer,") against inner (",p.inner,").\n")
-
 						ok<-analyse.all.chromosomes.together(phen=p.outer,
 						     individuals.subset="all",
 						     read.table.phenotypes=project.name,
@@ -577,8 +579,14 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 						     project.name=project.name,
 						     overwrite=overwrite,
 						     inputdir=inputdir, outputdir=outputdir, missing.code=missing.code)
-
-						break;
+						if (debug) {
+						     cat("BREAK inner\n")
+						     break
+						}
+					}
+					if (debug) {
+					     cat("BREAK outer\n")
+					     break
 					}
 					break;
 				}
