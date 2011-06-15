@@ -7,7 +7,7 @@
 
  =head1 NAME
 
- compara.php -
+ compara.php - Overview on a syntenic regions of a selected set of regions
 
  =head1 SYNOPSIS
 
@@ -27,8 +27,21 @@
  ENDOFDOCUMENTATION
  */
 
-include 'html/header.html';
+require_once '../eqtl/header.php';
+$upper_tit = '<div id="headline">Ensembl Compara interface for Expression QTL</div>';
+show_large_header("Intergenomics - Syntenies for selected regions",true,$upper_tit,
+	'../eqtl/', array('css/style.css','css/prettyPhoto.css'));
 
+?>
+
+<script
+	src="js/jquery-1.4.4.min.js" type="text/javascript" charset="utf-8"></script>
+<script
+	src="js/jquery.prettyPhoto.js" type="text/javascript" charset="utf-8"></script>
+<script
+	src="js/mouseposition.js" type="text/javascript"></script>
+
+<?php
 require_once 'qtl_functions.php';
 require_once 'db_functions.php';
 require_once 'utils.php';
@@ -40,7 +53,7 @@ $start = tic();
 
 $args = $_GET;
 
-$compara = connectToCompara(3306);
+$compara = connectToCompara();
 
 $proj_str = 'projects';
 if(!isset($args[$proj_str])){
@@ -67,8 +80,6 @@ $experiment2 = $compara_array[$projects[1]];
 
 $reg_str = 'regions';
 $chr2reg = array();
-$species2genome_db_ids = array($experiment1['species'] => $experiment1['genome_db_id'],$experiment2['species']=>$experiment2['genome_db_id']);
-$genome_ids2dbs = array($experiment2['genome_db_id'] => $experiment2['db_name'], $experiment1['genome_db_id'] =>$experiment1['db_name']);
 
 //get confidence interval from GET
 if(isset($args['confidence_int'])){
@@ -93,7 +104,7 @@ $group2region = array();
 $group2region2 = array();
 
 //load informations of experiment1 (database and so on...)
-$genome_db_ids = array($experiment1['genome_db_id'],$experiment2['genome_db_id']);
+//$genome_db_ids = array($experiment1['genome_db_id'],$experiment2['genome_db_id']);
 $species_names = array($experiment1['species'],$experiment2['species']);
 $database1 = $experiment1['db_name'];
 $database2 = $experiment2['db_name'];
@@ -116,21 +127,27 @@ if (!empty($ex1)) {
 	echo '<br />';
 	fatal_error('nothing found for the given region(-s)');
 }
+
 // generates an arrays with index -> locinames
-$loci_ex1 = array_map('current',$mapEx1);
-$chromosomsEx2 = getChromosoms($compara, $experiment2['genome_db_id']);
+// $loci_ex1 = array_map('current',$mapEx1);
+$chromosomsEx2 = getChromosomes($compara, $experiment2['ensembl_species']);
+//filter compara chromosoms for existing chromosoms in QTL-database
+$chromosomsEx2 = filter_chromos($experiment2['connection'], array_flip($chromosomsEx2));
+$chromosomsEx2 = array_flip($chromosomsEx2);
+
 $ex2 =  get_loci_from_sql($database2, $experiment2['connection'], 'wholeGenome', $chromosomsEx2, $confidence_int, $group2region2);
 // converts $ex2 in 2 arrays: $groups2 = groupnr -> ('loci' -> lociOfGroup, 'start', 'end') $mapEx2 = index -> (locus,groupNr)
 list($groups2, $mapEx2) = $ex2;
 // generates an arrays with index -> locinames
-$loci_ex2 = array_map('current',$mapEx2);
+// $loci_ex2 = array_map('current',$mapEx2);
 
 // SYNTENY
+$genome_db_ids = getGenomeDBIDs($compara,array($experiment1['ensembl_species'], $experiment2['ensembl_species']));
 $dbs = array($database1,$database2);
-$groupSynteny_ex12ex2 = getSyntenyGroups($experiment1['connection'],$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
+$groupSynteny_ex12ex2 = getSyntenyGroups(array($experiment1['connection'], $experiment2['connection']),$compara,$groups1,$groups2,$species_names,$genome_db_ids,$dbs);
 
 // display -----------------------
 include 'display_table.php';
-toc($start,'everything');
-include 'html/footer.html';
+toc($start,'Synteny search');
+require_once("../eqtl/footer.php");
 ?>

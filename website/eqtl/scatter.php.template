@@ -251,6 +251,7 @@ University of LE<uuml>beck, Germany, 2009
 			}
 
 			$outputfilename .= ".$format";
+			$outputfilename = preg_replace('/\s+/', '_', $outputfilename);
 
 			$cmd .= " --output $outputfilename";
 			array_push($attributes,"--output",$outputfilename);

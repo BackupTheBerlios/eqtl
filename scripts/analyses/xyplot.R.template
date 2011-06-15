@@ -1,159 +1,168 @@
-	#!/usr/bin/env r
+#!/usr/bin/env r
 
-	doc<-"
+doc<-"
 
-	=head1 NAME
+=head1 NAME
 
-	xyplot.R - prepare scatter plots for traits and phens
+xyplot.R - prepare scatter plots for traits and phens
 
-	=head1 SYNOPSIS
+=head1 SYNOPSIS
 
-	xyplot.R [options]
+xyplot.R [options]
 
-	=head1 DESCRIPTION
+=head1 DESCRIPTION
 
-	This script provides scatter plots, but other than scatter_all.R
-	it does not plot the chromosomal locations of the traits, but
-	plots several such traits against each other.
+This script provides scatter plots, but other than scatter_all.R
+it does not plot the chromosomal locations of the traits, but
+plots several such traits against each other.
 
-	=over 4
+=over 4
 
-	=item verbose <level>
+=item verbose <level>
 
-	adds status reports - possibly insightful to interpret problems from users. A distinction between levels is not made.
+adds status reports - possibly insightful to interpret problems from users. A distinction between levels is not made.
 
-	=item help
+=item help
 
-	instructions to use pod2man for seeing this documentation.
+instructions to use pod2man for seeing this documentation.
 
-	=item interactive
+=item interactive
 
-	to be set if the user shall be interactively working with the R shell rather than preparing an image file or a PDF.
+to be set if the user shall be interactively working with the R shell rather than preparing an image file or a PDF.
 
-	=item format
+=item format
 
-	the format in which the image is to be saved - pdf, jpeg, png are currently supported.
+the format in which the image is to be saved - pdf, jpeg, png are currently supported.
 
-	=item output
+=item output
 
-	the output file to which to write - if there is a file to write to.
+the output file to which to write - if there is a file to write to.
 
-	=item selection_(xaxis|yaxis|colour|symbol)  (trait|phen|marker)
+=item selection_(xaxis|yaxis|colour|symbol)  (trait|phen|marker)
 
-	only one parameter can be shown for every dimension, and these selection_xaxis or selection_colour etc. specify where to look for every axis. Only exactly one of the strings 'trait','phen' or 'marker' shall be given as an argument.
+only one parameter can be shown for every dimension, and these selection_xaxis or selection_colour etc. specify where to look for every axis. Only exactly one of the strings 'trait','phen' or 'marker' shall be given as an argument.
 
-	For the time speaking this is not implemented. 
+For the time speaking this is not implemented. 
 
-	=item value_(xaxis|yaxis|colour|symbol) value
+=item value_(xaxis|yaxis|colour|symbol) value
 
-	For every axis / dimension, three different values can be specified for the selecion of a molecular trait, a classical phenotype or a genetic marker. But only one of those is read, as determined by the selection_X parameter.
+For every axis / dimension, three different values can be specified for the selecion of a molecular trait, a classical phenotype or a genetic marker. But only one of those is read, as determined by the selection_X parameter.
 
-	=item graphical parameters:
+=item graphical parameters:
 
-	=over 8
+=over 8
 
-	=item --linecolour I<string>
+=item --linecolour I<string>
 
-	name of colour of lines to separate the chromosomes
+name of colour of lines to separate the chromosomes
 
-	=item --linewidth I<number>
+=item --linewidth I<number>
 
-	width of lines separating the chromosomes
+width of lines separating the chromosomes
 
-	=item --linetype 0-5
+=item --linetype 0-5
 
-	specification of the type of lines tha shall be separating the chromosomes, defaults to 3 (dotted)
+specification of the type of lines tha shall be separating the chromosomes, defaults to 3 (dotted)
 
-	=item --axescolour I<string>
+=item --axescolour I<string>
 
-	colour of axes
+colour of axes
 
-	=item --axeswidth I<number>
+=item --axeswidth I<number>
 
-	width of axes
+width of axes
 
-	=item --axestype I<number>
+=item --axestype I<number>
 
-	type of axes
+type of axes
 
-	=item --imagewidth I<number>
+=item --imagewidth I<number>
 
-	width of image, the units depend on the format of the image, png needs the number of pixels, pdf needs inches.
+width of image, the units depend on the format of the image, png needs the number of pixels, pdf needs inches.
 
-	=back
+=back
 
-	=back
+=back
 
-	=head1 AUTHORS
+=head1 AUTHORS
 
-	Steffen Moeller <steffen.moeller@uk-sh.de>
+Steffen Moeller <steffen.moeller@uk-sh.de>
 
-	=head1 COPYRIGHT
+=head1 COPYRIGHT
 
-	(C) 2009 University of LE<uuml>beck, Germany
-	(C) 2010 University Clinics Schleswig-Holstein
+(C) 2009    University of LE<uuml>beck, Germany
+(C) 2010-11 University Clinics Schleswig-Holstein
 
-	=cut
+=cut
 
-	"
+"
 
-	width.pixel<-3*480
-	width.inch<-11
-	height.pixel<-width.pixel
-	height.inch<-width.inch
-	bp.offset.extra<-0.15*10^8
-	cM.offset.extra<-8
+width.pixel<-3*480
+width.inch<-11
+height.pixel<-width.pixel
+height.inch<-width.inch
+bp.offset.extra<-0.15*10^8
+cM.offset.extra<-8
 
-	# indication of percentage separation betweeen
-	# chromosomes
-	offset.percent<-2
+# indication of percentage separation betweeen
+# chromosomes
+offset.percent<-2
 
-	library(RMySQL)
-	library(getopt)
+library(RMySQL)
+library(getopt)
 
-	# cat("I was here 0.\n")
+# cat("I was here 0.\n")
 
-	opt = getopt(matrix(c(                                            
-	   'verbose'         , 'v', 2, "integer"  , "gives information on the internal status of program",
-	   'help'            , 'h', 0, "logical"  , "gives instructions on how to retrieve information on how to use the program",
-	   'interactive'     , 'i', 0, "logical"  , "indication that this script is run from the UNIX shell",
-	   'selection_xaxis' , 'X', 0, "character", "parameter to display for X axis, defaults to 'trait'",
-	   'selection_yaxis' , 'Y', 0, "character", "parameter to display for Y axis, defaults to 'trait'",
-	   'selection_colour', 'D', 0, "character", "parameter to show as colour, defaults to 'none'",
-	   'selection_symbol', 'G', 0, "character", "parameter to show as symbol (gestalt), defaults to 'none'",
-	   'value_xaxis'     , 'C', 0, "character", "parameter to display for X axis, defaults to 'trait'",
-	   'value_yaxis'     , 'V', 0, "character", "parameter to display for Y axis, defaults to 'trait'",
-	   'value_colour'    , 'B', 0, "character", "parameter to show as colour, defaults to 'none'",
-	   'value_symbol'    , 'N', 0, "character", "parameter to show as symbol (gestalt), defaults to 'none'",
-	   'format'          , 'f', 1, "character", "the format of the image that should present the plot",
-	   'output'          , 'o', 1, "character", "name of output file",
-	   'display'         , 'd', 2, "character", "defaults to lod, alternatives are rank and p.value",
-	   'main'            , 'M', 1, "character", "main title of the plot",
-	   'sub'             , 'S', 1, "character", "sub title of the plot",
-	   'imagewidth'      , 'W', 1, "integer"  , "width of image, represented in dependency on the format",
-	   'imageheight'     , 'H', 1, "integer"  , "height of image, represented in dependency on the format",
-	   'linecolour'      , 'a', 1, "character", "colour of lines separating the chromosomes",
-	   'linewidth'       , 'w', 1, "double"   , "width of lines separating the chromosomes",
-	   'linetype'        , 't', 1, "integer"  , "type of lines separating the chromosomes",
-	   'axescolour'      , 'b', 1, "character", "colour of axes",
-	   'axeswidth'       , 'x', 1, "double"   , "width of axes",
-	   'axestype'        , 'y', 1, "integer"  , "line type of axes",
-	   'legend'          , 'e', 2, "logical"  , "set to add a legend"
-	   ),ncol=5,byrow=TRUE),
-	   debug=TRUE)
+opt = getopt(matrix(c(                                            
+   'verbose'         , 'v', 2, "integer"  , "gives information on the internal status of program",
+   'help'            , 'h', 0, "logical"  , "gives instructions on how to retrieve information on how to use the program",
+   'interactive'     , 'i', 0, "logical"  , "indication that this script is run from the UNIX shell",
+   'selection_xaxis' , 'X', 0, "character", "parameter to display for X axis, defaults to 'trait'",
+   'selection_yaxis' , 'Y', 0, "character", "parameter to display for Y axis, defaults to 'trait'",
+   'selection_colour', 'D', 0, "character", "parameter to show as colour, defaults to 'none'",
+   'selection_symbol', 'G', 0, "character", "parameter to show as symbol (gestalt), defaults to 'none'",
+   'value_xaxis'     , 'C', 0, "character", "parameter to display for X axis, defaults to 'trait'",
+   'value_yaxis'     , 'V', 0, "character", "parameter to display for Y axis, defaults to 'trait'",
+   'value_colour'    , 'B', 0, "character", "parameter to show as colour, defaults to 'none'",
+   'value_symbol'    , 'N', 0, "character", "parameter to show as symbol (gestalt), defaults to 'none'",
+   'format'          , 'f', 1, "character", "the format of the image that should present the plot",
+   'output'          , 'o', 1, "character", "name of output file",
+   'display'         , 'd', 2, "character", "defaults to lod, alternatives are rank and p.value",
+   'main'            , 'M', 1, "character", "main title of the plot",
+   'sub'             , 'S', 1, "character", "sub title of the plot",
+   'imagewidth'      , 'W', 1, "integer"  , "width of image, represented in dependency on the format",
+   'imageheight'     , 'H', 1, "integer"  , "height of image, represented in dependency on the format",
+   'linecolour'      , 'a', 1, "character", "colour of lines separating the chromosomes",
+   'linewidth'       , 'w', 1, "double"   , "width of lines separating the chromosomes",
+   'linetype'        , 't', 1, "integer"  , "type of lines separating the chromosomes",
+   'axescolour'      , 'b', 1, "character", "colour of axes",
+   'axeswidth'       , 'x', 1, "double"   , "width of axes",
+   'axestype'        , 'y', 1, "integer"  , "line type of axes",
+   'legend'          , 'e', 2, "logical"  , "set to add a legend"
+   ),ncol=5,byrow=TRUE),
+   debug=TRUE)
 
-	if (!is.null(opt$verbose)) cat("I was here 1.\n")
+if (!is.null(opt$verbose)) cat("I was here 1.\n")
 
-	if ( !is.null(opt$help) ) {
-	   cat("Please run 'pod2man scatter_all.R | nroff -man | less' on this script to gain more insights.\n");
-	   cat(paste("Output can be expected at file '",opt$output,"'.\n",sep=""))
-	   q(status=1);
-	}
+if ( !is.null(opt$help) ) {
+   cat("Please run 'pod2man scatter_all.R | nroff -man | less' on this script to gain more insights.\n");
+   cat(paste("Output can be expected at file '",opt$output,"'.\n",sep=""))
+   q(status=1);
+}
+
+if (FALSE) {
+	# set some default values
+	opt$selection_xaxis<-"trait"
+	opt$selection_yaxis<-"trait"
+	example.traits<-strsplit(x="EXAMPLE_TRAITS",split=",")
+	opt$value_xaxis<-example.traits[[1]][1]
+	opt$value_yaxis<-example.traits[[1]][2]
+}
 
 
-	mandatory.attributes<-c('selection_xaxis', 'selection_yaxis', 'value_xaxis', 'value_yaxis'
-				 # ,'selection_colour', 'selection_symbol', 'value_colour', 'value_symbol' 
-	)
+mandatory.attributes<-c('selection_xaxis', 'selection_yaxis', 'value_xaxis', 'value_yaxis'
+			 # ,'selection_colour', 'selection_symbol', 'value_colour', 'value_symbol' 
+)
 
 mandatory.attributes.missing<-NULL
 for(ma in mandatory.attributes) {
@@ -264,13 +273,15 @@ if (is.null(opt$interactive)) {
 
 source('BASEDIR/scripts/analyses/R/maxcminc.R')
 source('BASEDIR/scripts/analyses/R/load.data.R')
-source('BASEDIR/scripts/analyses/R/analyseCorrelationForMarkers.R')
+#source('BASEDIR/scripts/analyses/R/analyseCorrelationForMarkers.R')
+source('BASEDIR/scripts/analyses/R/analyseCorrelationForAllMarkers.R')
 
-a<-analyzeclusters(opt$selection_xaxis,  opt$value_xaxis,
-		   opt$selection_yaxis,  opt$value_yaxis,
-		   opt$selection_symbol, opt$value_symbol,
-		   opt$selection_colour, opt$value_colour,
-		   draw=T)
+a<-analyzeclusters(e1=opt$value_xaxis, e2=opt$value_yaxis, m=NULL, draw=T, verbose=opt$verbose)
+#a<-analyzeclusters(opt$selection_xaxis,  opt$value_xaxis,
+#		   opt$selection_yaxis,  opt$value_yaxis,
+#		   opt$selection_symbol, opt$value_symbol,
+#		   opt$selection_colour, opt$value_colour,
+#		   draw=T)
 
 cat("<pre>")
 print(a)

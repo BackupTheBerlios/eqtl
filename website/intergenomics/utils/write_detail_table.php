@@ -1,31 +1,31 @@
 <?php
 
 /**
-STARTOFDOCUMENTATION
+ STARTOFDOCUMENTATION
 
-=pod
+ =pod
 
-=head1 NAME
+ =head1 NAME
 
-utils/write_detail_table.php - 
+ utils/write_detail_table.php -
 
-=head1 SYNOPSIS
+ =head1 SYNOPSIS
 
-=head1 DESCRIPTION
+ =head1 DESCRIPTION
 
-=head1 AUTHOR
+ =head1 AUTHOR
 
-Michael Brehler <brehler@informatik.uni-luebeck.de>,
-Georg Zeplin <zeplin@informatik.uni-luebeck.de>
+ Michael Brehler <brehler@informatik.uni-luebeck.de>,
+ Georg Zeplin <zeplin@informatik.uni-luebeck.de>
 
-=head1 COPYRIGHT
+ =head1 COPYRIGHT
 
-University of LE<uuml>beck, Germany, 2011
+ University of LE<uuml>beck, Germany, 2011
 
-=cut
+ =cut
 
-ENDOFDOCUMENTATION
-*/
+ ENDOFDOCUMENTATION
+ */
 
 // $ Id: 2010-12-19 gz exp$
 // displays detailed homology information for two loci groups from different experiments
@@ -43,18 +43,20 @@ ENDOFDOCUMENTATION
  * 	if($cis_lookup[$key]) the header cell gets the class "ciss".
  */
 function split_and_ciss(&$ens_id,$key,$cis_lookup){
-	$prefix = '<th rowspan="5"';
+	global $experiment1;
+	$prefix = '<th';
 	if($cis_lookup[$key]){
 		$prefix .= ' class="ciss" title="ciss">';
 	}else{
-		$prefix .= 'title="trans">';
+		$prefix .= ' title="trans">';
 	}
-	$ens_id = $prefix.chunk_split($ens_id,3,"<br />\n");
+	$ens_id = $prefix."<a target=\"_blank\" href=\"http://www.ensembl.org/"
+		.$experiment1['ensembl_species']."/Gene/Summary?db=core;g="
+		.$ens_id."\">".chunk_split($ens_id,3,"<br />");
 }
 
-
+$refargs = $proj_str.'[]='.implode("+", explode(" ", $proj1)).'&amp;'.$proj_str.'[]='.implode("+", explode(" ", $proj2)).'&amp;region1='.$args[$region_str.'1'].'&amp;region2='.$args[$region_str.'2'];
 $fptr = fopen('html/table.html', 'w');
-
 
 $str = '
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -62,6 +64,7 @@ $str = '
 <!--IE7 in Quirksmode bitte-->
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
+
 <script type="text/javascript">
 if (document.layers) {
  window.location.replace("leer.html");
@@ -72,85 +75,124 @@ if (document.layers) {
 }
 window.onscroll = function () { parent.scrollen (); };
 </script>
+<link href="../css/style.css" rel="stylesheet" type="text/css" />
 
-<link href="/css/style.css" rel="stylesheet" type="text/css" />
-</head><body onmouseover="parent.aktFrame=window.name;">
+</head>
 
+<body onmouseover="parent.aktFrame=window.name;">
 <div id="cont" style="font-size: small;"><!-- the display table -->
 <table border="1" cellpadding="5" cellspacing="0">
   <thead>
     <tr>
-      <!-- THIS IS ASCII-ART! -->
-      <th rowspan="6">\ Ex. 1<br />
-      \&nbsp;&nbsp;&nbsp;&nbsp;<br />
-      \<br />
-      &nbsp;&nbsp;&nbsp;&nbsp;\<br />
-      Ex. 2 \</th>
       <!-- ID-column header -->
-      <th rowspan="6">homologue <br />
-      Ensembl <br />
-      stable <br />
-      IDs</th>';
+      <th rowspan="2" colspan="2">
+      <div class="enclose">
+		<div id="refargs" style="display: none;">
+      		'.$refargs.'
+	  	</div>
+      
+	  <div align="right">
+	  '.$proj1.' ('.$species1.')
+	  <div class="hidebox">
+      	<label for="check1">hide empty collumns </label> 
+      	<input type="checkbox" id="check1" onclick="javascript:parent.refresh(this)"
+      		'.((1 & $hide)? " checked=\"checked\"":"").'/>
+      </div></div>
+      <br />
+      <a href="../img/detail_homology_l.png" target="_blank"
+      title="Show legend of detailview in new Tab">LEGEND</a>
+      
+      <div class="bottomleft">
+      '.$proj2.' ('.$species2.')
+      <div class="hidebox">
+      <input type="checkbox" id="check2" onclick="javascript:parent.refresh(this)"
+      	'.((2 & $hide)? " checked=\"checked\"":"").'/> hide empty rows
+      </div></div>
+	  
+      </div>
+     </th>';
 fwrite($fptr, $str);
+$ens_img = '<img src="../img/ensembl.gif" width="16" heigth="16" /></a>';
+
 $str = "";
+$tmpIDs = "";
+$showNotEx1 = false;
 foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
 	if(empty($ens_ids_ex1)){
 		// FIXME: If a locus does not affect any genes
 		// we skip it here.
 		continue;
 	}
-	$str.= '<th colspan="'.sizeof($ens_ids_ex1).'" title="locus of species 1">'.$locus_ex1.'</th>';
-}
+	$str.= '<th colspan="'.sizeof($ens_ids_ex1).'" title="locus of species '.$species1.'">'.$locus_ex1.'</th>';
 
-fwrite($fptr, $str."</tr><tr>");
-
-foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1){
-	if(empty($ens_ids_ex1)){
-		// FIXME: If a locus does not affect any genes
-		// we skip it here.
-		continue;
-	}
 	$tmp = $ens_ids_ex1;
+
 	array_walk($tmp, "split_and_ciss", $loci2stable_ids_ex1[1][$locus_ex1]);
-	fwrite($fptr, implode('</th>',$tmp)."</th>\n");
+	$tmpIDs.= implode($ens_img.'</th>',$tmp).$ens_img."</th>\n";
 }
-fwrite($fptr, "</tr>
-</thead>
-<tbody>");
+fwrite($fptr, $str."</tr><tr>".$tmpIDs."</tr></thead><tbody>");
+
+//initialize mapping array for homology descriptions
+$descript = array(
+	'within_species_paralog'=>'<td class="paralog" title="homology">paralog</td>',
+	'other_paralog'=>'<td class="paralog" title="homology">paralog</td>',
+	'ortholog_one2one'=>'<td class="ortholog" title="homology">ortholog</td>',
+	'ortholog_one2many'=>'<td class="ortholog" title="homology">ortholog</td>',
+	'between_species_paralog'=>'<td class="paralog" title="homology">paralog</td>',
+	'ortholog_many2many'=>'<td class="ortholog" title="homology">ortholog</td>',
+	'apparent_ortholog_one2one'=>'<td class="ortholog" title="homology">apparent ortholog</td>',
+	'putative_gene_split'=>'<td class="ortholog" title="homology">putative_gene_split</td>',
+	'contiguous_gene_split'=>'<td class="ortholog" title="homology">contiguous_gene_split</td>',
+	'possible_ortholog'=>'<td class="paralog" title="homology">possible<br />ortholog</td>');
+
+
+//iterate over locinames
 foreach ($loci2stable_ids_ex2[0] as $locus_ex2 => $ens_ids_ex2){
 	if(empty($ens_ids_ex2)){
 		// FIXME: If a locus does not affect any genes
 		// we skip it here.
 		continue;
 	}
-	$str = '<tr><th rowspan="'.sizeof($ens_ids_ex2).'" title="locus of species 2">';
-	$str.= $locus_ex2.'</th>';
+
+	//initialize parameter to check if whole locus-entry is empty
 	$firstrow = true;
 	$i = 0;
+	$str = "";
 	foreach ($ens_ids_ex2 as $ens_id_ex2) {
-		if($firstrow){
-			$firstrow = false;
-		}else{
-			$str.= "<tr>";
-		}
 		if($loci2stable_ids_ex2[1][$locus_ex2][$i++]){
-			$str.= '<th class="ciss" title="ciss">';
+			$rowString = '<th nowrap class="ciss" title="ciss">';
 		}else{
-			$str.= '<th title="trans">';
+			$rowString = '<th nowrap title="trans">';
 		}
-		$str.= $ens_id_ex2."</th>";
+		$rowString.= "<a target=\"_blank\" href=\"http://www.ensembl.org/"
+			.$experiment2['ensembl_species']."/Gene/Summary?db=core;g="
+			.$ens_id_ex2.'">'.$ens_id_ex2.$ens_img.'</th>';
 		foreach ($loci2stable_ids_ex1[0] as $locus_ex1 => $ens_ids_ex1) {
 			foreach ($ens_ids_ex1 as $ens_id_ex1){
-				if(in_array($ens_id_ex2, $traits12traits2[$ens_id_ex1])){
-					$str.= '<td class="homologue" title="homology">Hom</td>';
+				if(in_array($ens_id_ex2, array_keys($traits12traits2[$ens_id_ex1]))){
+					$rowString.= $descript[$traits12traits2[$ens_id_ex1][$ens_id_ex2]];
 				}else{
-					$str.= '<td />';
+					$rowString.= '<td />';
 				}
 			}
 		}
-		$str.= "</tr>\n";
+		$rowString.= "</tr>\n";
+
+		if($firstrow){
+			$firstrow = false;
+			$str .= $rowString;
+		}else{
+			$rowString = "<tr>".$rowString;
+			$str .= $rowString;
+		}
+
 	}
+
+	$str = '<tr><th rowspan="'.count($ens_ids_ex2).
+		'" title="locus of species '.$species2.'">'.$locus_ex2.'</th>'.$str;
+
 	fwrite($fptr, $str);
+
 }
 
 fwrite($fptr, "</tbody>

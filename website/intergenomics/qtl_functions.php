@@ -1,31 +1,31 @@
 <?php
 
 /**
-STARTOFDOCUMENTATION
+ STARTOFDOCUMENTATION
 
-=pod
+ =pod
 
-=head1 NAME
+ =head1 NAME
 
-qtl_functions.php - 
+ qtl_functions.php -
 
-=head1 SYNOPSIS
+ =head1 SYNOPSIS
 
-=head1 DESCRIPTION
+ =head1 DESCRIPTION
 
-=head1 AUTHOR
+ =head1 AUTHOR
 
-Michael Brehler <brehler@informatik.uni-luebeck.de>,
-Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
+ Michael Brehler <brehler@informatik.uni-luebeck.de>,
+ Georg Zeplin <zeplin@informatik.uni-luebeck.de>,
 
-=head1 COPYRIGHT
+ =head1 COPYRIGHT
 
-University of LE<uuml>beck, Germany, 2011
+ University of LE<uuml>beck, Germany, 2011
 
-=cut
+ =cut
 
-ENDOFDOCUMENTATION
-*/
+ ENDOFDOCUMENTATION
+ */
 
 require_once 'utils.php';
 
@@ -35,19 +35,11 @@ function connectToQtlDBs($project_names) {
 		$proj = $compara_array[$project_name];
 		$targetdb = @new mysqli($proj['db_host'], $proj['db_user'], $proj['db_pass'], $proj['db_name'], $proj['db_port']);
 		if (mysqli_connect_errno()) {
-			fatal_error('Could not connect to database: '.mysqli_connect_error().'('.mysqli_connect_errno().')');
+			fatal_error('Could not connect to QTL-db '.$proj['db_host'].' Error: '.mysqli_connect_error().'('.mysqli_connect_errno().')');
 		}
-		$compara_array[$project_name]['connection'] = $targetdb; 
+		$compara_array[$project_name]['connection'] = $targetdb;
 	}
 
-}
-
-function connectToQtlDB($port = '3306') {
-	$targetdb = @new mysqli('127.0.0.1', 'anonymous', 'no', '', $port);
-	if (mysqli_connect_errno()) {
-		fatal_error('Could not connect to database: '.mysqli_connect_error().'('.mysqli_connect_errno().')');
-	}
-	return $targetdb;
 }
 
 /**
@@ -70,6 +62,7 @@ function fillDefaults(&$storage,$allTraits) {
 
 }
 
+
 /**
  * Get ensembls stable gene ids to a set of traits associated with the parameter-loci.
  *
@@ -79,8 +72,39 @@ function fillDefaults(&$storage,$allTraits) {
  *
  * @param $loci e.g. array('c9.loc48', 'c9.loc43', 'c9.loc40' , 'c9.loc39');
  * @param $targetdb the dbms WITH SELECTED DEFAULT DATABASE
+ * @author Georg 2011.04.18 optimization
  */
 function loci2stable_ids($loci, $targetdb){
+	$storage = array();
+	
+	$sql = 'select qtl.locus, qtl.Chromosome, t.ensembl_stable_gene_id, t.chromosome
+	from trait as t inner join qtl on
+		(t.trait_id = qtl.trait AND qtl.locus in (\''.implode("', '",$loci).'\') 
+	    and t.ensembl_stable_gene_id is not null
+	    and length(t.ensembl_stable_gene_id) > 15 )
+	    group by qtl.locus, t.ensembl_stable_gene_id;';
+	//
+	//echo $sql;
+	$result = $targetdb->query($sql) or fatal_error('loci2stable_ids(); Query failed: '.$targetdb->error);
+	while ($row = $result->fetch_row()) {
+		$storage[0][$row[0]][] = $row[2];
+		$storage[1][$row[0]][] = $row[1]==$row[3];
+	}
+	return $storage;
+}
+
+/**
+ * @deprecated optimization
+ * Get ensembls stable gene ids to a set of traits associated with the parameter-loci.
+ *
+ * supported target species are:
+ * rat: stockholm "Rattus norvegicus"
+ * mus: rostock "Mus musculus"
+ *
+ * @param $loci e.g. array('c9.loc48', 'c9.loc43', 'c9.loc40' , 'c9.loc39');
+ * @param $targetdb the dbms WITH SELECTED DEFAULT DATABASE
+ */
+function loci2stable_ids_old($loci, $targetdb){
 	$storage = array();
 	$lociChromos = array();
 	$sql = 'select Chr, Name from locus where Name in	(\''.implode("', '",$loci).'\');';
@@ -113,6 +137,42 @@ function loci2stable_ids($loci, $targetdb){
 
 
 
+/**
+ * Get ensembls stable gene ids to a set of traits associated with the parameter-locus.
+ *
+ * FIXME GZ: We filter out ensembl-ids, that are to short.
+ * The normal length of a ensemble stable gene id is 18.
+ * Our minimum expected id-size is 16.
+ *
+ * @param $targetdb DBMS - search here for traits and stable ids
+ * @param $locus the parameter-locus e.g. 'c9.loc48'
+ * @param $chromos
+ */
+function locus2stable_ids($targetdb, $locus, &$chromos, $debug=FALSE) {
+	$sql = 'select t.ensembl_stable_gene_id, t.chromosome from trait as t inner join qtl on
+	(t.trait_id = qtl.trait AND qtl.locus = "'.$locus.'") group by ensembl_stable_gene_id;';
+	$result = $targetdb->query($sql) or fatal_error('Query failed: '.$targetdb->error);
+	if(!$result->num_rows && $debug){
+		error("qtl_functions.php locus2stable_ids():<br />No stable ids found for ".$locus);
+		// XXX: this should be done better...
+		// maybe search in ensemble for the gene...
+		return array();
+	}
+	$ids = array();
+
+	while ($row = $result->fetch_assoc()) {
+		$id = $row['ensembl_stable_gene_id'];
+		if($id != '' && strlen($id) > 15){
+			// empty filtering: it is neccessary, cause some traits have no stable id!!
+			$ids[] = $id;
+			$chromos[] = $row['chromosome'];
+		}/*else{
+		error($locus);
+		}*/
+	}
+	return $ids;
+}
+
 function group2stable_ids($mapEx,$loci2stable_ids_ex){
 	$lastElement = end($mapEx);
 	for ($i = 0; $i <= $lastElement[1]; $i++) {
@@ -127,42 +187,6 @@ function group2stable_ids($mapEx,$loci2stable_ids_ex){
 		$group2stable_ids_ex[$i] = array_unique($group2stable_ids_ex[$i]);
 	}
 	return $group2stable_ids_ex;
-}
-
-/**
- * Get ensembls stable gene ids to a set of traits associated with the parameter-locus.
- *
- * FIXME GZ: We filter out ensemble-ids, that are to short.
- * The normal length of a ensemble stable gene id is 18.
- * Our minimum expected id-size is 16.
- *
- * @param $targetdb DBMS - search here for traits and stable ids
- * @param $locus the parameter-locus e.g. 'c9.loc48'
- * @param $chromos
- */
-function locus2stable_ids($targetdb, $locus, &$chromos, $debug=FALSE) {
-	$sql = 'select t.ensembl_stable_gene_id, t.chromosome from Trait as t inner join qtl on
-	(t.trait_id = qtl.Trait AND qtl.Locus = "'.$locus.'") group by ensembl_stable_gene_id;';
-	$result = $targetdb->query($sql) or fatal_error('Query failed: '.$targetdb->error);
-	if(!$result->num_rows && $debug){
-		error("qtl_functions.php locus2stable_ids():<br />No stable ids found for ".$locus);
-		// XXX: this should be done better...
-		// maybe search in ensemble for the gene...
-		return array();
-	}
-	$ids = array();
-
-	while ($row = $result->fetch_assoc()) {
-		$id = $row['ensembl_stable_gene_id'];
-		if($id!='' && strlen($id) > 15){
-			// empty filtering: it is neccessary, cause some traits have no stable id!!
-			$ids[] = $id;
-			$chromos[] = $row['chromosome'];
-		}/*else{
-		error($locus);
-		}*/
-	}
-	return $ids;
 }
 
 /**
@@ -192,16 +216,18 @@ function filter_chromos($targetdb, $chromos, $debug=FALSE) {
 	return $qtl_chromos ;
 }
 
+
 /**
  * Get the union of the value-arrays from a 2d array.
  *
  * @param $array a 2d array
  */
-function get_unique_vals_from_2d_array($array) {
+function get_unique_vals_from_2d_array($array,&$cnt=0) {
 	$unique_vals = array();
 	foreach ($array as $vals){
 		$unique_vals = array_merge($unique_vals, $vals);
 	}
+	$cnt = count($unique_vals);
 	return array_unique($unique_vals);
 }
 
@@ -222,6 +248,14 @@ function get_only_loci_from_sql($sql, $qtldb){
 	}
 	return $loci;
 }
+
+function fetch_all($res) {
+	$r = array();
+	while ($row = $res->fetch_row()){
+		$r[] = $row;
+	}
+	return $r;
+}
 /**
  * Returns an grouped array of loci from a sql statement.
  * Returns also an array with every loci and its groupnumber.
@@ -235,15 +269,16 @@ function get_loci_from_sql($databaseTable, $qtldb, $searchType, $chromosomNo, $c
 	if ($searchType == 'wholeGenome'){
 		$sql = 'SELECT q.Chromosome, q.locus, l.cMorgan FROM '.$databaseTable.'.qtl as q inner join '.$databaseTable.'.locus as l on
 		(q.Chromosome in ("'.implode('","', $chromosomNo).'") AND q.locus = l.name) GROUP BY q.locus ORDER BY q.Chromosome, l.cMorgan;';
+
 		$res = $qtldb->query($sql) or fatal_error('Query failed: '.$qtldb->error);
-		$lociArray[0] = $res->fetch_all();
+		$lociArray[0] = fetch_all($res);
 	}elseif($searchType == 'userinterval'){
 		for ($i = 0; $i < sizeof($chromosomNo); $i++) {
 			$sql = 'SELECT q.Chromosome, q.locus, l.cMorgan FROM '.$databaseTable.'.qtl as q inner join '.$databaseTable.'.locus as l on
 		(q.Chromosome = "'.$chromosomNo[$i].'" AND l.cMorgan >='.$intervalStart[$i].' AND l.cMorgan <='.$intervalEnd[$i].' AND
 		q.locus = l.name) GROUP BY q.locus ORDER BY q.Chromosome, l.cMorgan;';	
 			$res = $qtldb->query($sql) or fatal_error('Query failed: '.$qtldb->error);
-			$lociArray[$i] = $res->fetch_all();
+			$lociArray[$i] = fetch_all($res);
 		}
 
 	}else{

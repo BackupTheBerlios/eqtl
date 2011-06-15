@@ -14,39 +14,31 @@ function prepareSpecies(site) {
 	var src_sel = document.getElementById(project_str + "0");
 	var tar_sel = document.getElementById(project_str + "1");
 
+	// indicates that something is wrong
+	var error = "";
+
 	if (src_sel.selectedIndex >= 0) {
 		var src_val = src_sel[src_sel.selectedIndex].value;
 	} else {
-		if (site == null) {
-			// XXX
-		}
+		error = "&err=src";
 		var src_val = "NULL";
 	}
 
 	if (tar_sel.selectedIndex >= 0) {
 		var tar_val = tar_sel[tar_sel.selectedIndex].value;
 	} else {
-		if (site == null) {
-		// XXX
-			site = "regions.php";
-		}
+		error = "&err=tar";
 		var tar_val = "NULL";
 	}
 
 	if (site == null) {
-		site = "regions.php";
+		site = "index.php";
+	} else if (error != "") {// error
+		site = "index.php";
 	}
 	var proj_arg = project_str + "[]=";
-	return site + "?" + proj_arg + src_val + "&" + proj_arg + tar_val;
+	return site + "?" + proj_arg + src_val + "&" + proj_arg + tar_val + error;
 
-	// var species_str = "species";
-	// var species_select = document.getElementsByName(species_str)[0];
-	// var expr = /(\w.+)\s(\w.+)/;
-	// expr.exec(species_select[species_select.selectedIndex].value);
-	// if (site == null) {
-	// site = "regions.php";
-	// }
-	// return site + "?" + species_str + "=" + RegExp.$1 + "+" + RegExp.$2;
 }
 
 /**
@@ -54,6 +46,9 @@ function prepareSpecies(site) {
  * regions[].
  */
 function prepareGetString(site) {
+	if (site == null) {
+		site = "index.php";
+	}
 	// prepare species
 	var str = prepareSpecies(site);
 
@@ -63,11 +58,13 @@ function prepareGetString(site) {
 	for ( var i = 0; i < ele.length; i++) {
 		var region = ele[i];
 		if (region.value != '') {
-			str += "&regions[]=" + region.id.substring(0, region.id.indexOf("-"))
-					+ ":" + region.value;
+			str += "&regions[]="
+					+ region.id.substring(0, region.id.indexOf("-")) + ":"
+					+ region.value;
 		}
 	}
-	str += '&confidence_int=' + document.getElementById('conf').value;
+	if (document.getElementById('conf') != null)
+		str += '&confidence_int=' + document.getElementById('conf').value;
 	return str;
 }
 /**
@@ -78,7 +75,20 @@ function addRegion(chr) {
 	var str = "&regions[]=" + chr + ":"
 			+ document.getElementById("start" + chr).value + "-"
 			+ document.getElementById("end" + chr).value;
-	window.location.href = prepareGetString() + str;
+	var ScrollTop = getScrollTop();
+	window.location.href = prepareGetString() + str + "&scrollY=" + ScrollTop;
+}
+
+function getScrollTop() {
+	var ScrollTop = document.body.scrollTop;
+	if (ScrollTop == 0) {
+		if (window.pageYOffset)
+			ScrollTop = window.pageYOffset;
+		else
+			ScrollTop = (document.body.parentElement) ? document.body.parentElement.scrollTop
+					: 0;
+	}
+	return ScrollTop;
 }
 
 /**
@@ -87,22 +97,24 @@ function addRegion(chr) {
  */
 function deleteRegion(chr) {
 	document.getElementById(chr).removeAttribute("name");
-	window.location.href = prepareGetString();
+	var ScrollTop = getScrollTop();
+	window.location.href = prepareGetString() + "&scrollY=" + ScrollTop;
 }
 
 /**
  * Called to go to the next page.
  * 
  * @param target
- *          modus, either 'overview' or all
+ *            modus, either 'overview' or all
  */
 function submit_page(target) {
 	if (target == 'overview') {
 		window.location.href = prepareGetString("compara.php");
 	} else if (target == 'all') {
 		window.location.href = prepareGetString("display_all.php");
-	} else {// this
+	} else if (target = "0") {
 		window.location.href = prepareSpecies();
+	} else {
+		window.location.href = prepareGetString();
 	}
-
 }

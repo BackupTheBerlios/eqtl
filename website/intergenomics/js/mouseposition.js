@@ -36,29 +36,28 @@ function getSpecies(str) {
 	return str + "=" + RegExp.$1 + "+" + RegExp.$2;
 }
 
-function getExp(str) {
-	var exp = document.getElementById(str).firstChild.nodeValue;
-	return "projects[]=" + exp;
+function trim (zeichenkette) {
+  // Erst führende, dann Abschließende Whitespaces entfernen
+  // und das Ergebnis dieser Operationen zurückliefern
+  return zeichenkette.replace (/^\s+/, '').replace (/\s+$/, '');
 }
 
-function getReg(ex) {
-	var reg_ex = ex.lastChild.nodeValue;
-	var chr_ex = ex.firstChild.nodeValue;
-	var expr = /(\d+)\D+(\d+)/;
-	expr.exec(reg_ex);
-	return chr_ex + ":" + RegExp.$1 + "-" + RegExp.$2;
+function getExp(str) {
+	var exp = document.getElementById(str).firstChild.nodeValue;
+	return "projects[]=" + trim(exp);
 }
 
 /**
- * In the header cells, the regions in cM are seperated by line breaks.
+ * In the header cells and in the cells on the left side, the regions in cM are seperated by whitesspaces.
  * 
  * @param ex
  * @returns {String}
  */
-function getRegHeader(ex) {
+function getReg(ex) {
 	var chr = ex.firstChild;
-	return chr.nodeValue + ":" + chr.nextSibling.nextSibling.nodeValue + "-"
-			+ ex.lastChild.nodeValue;
+	var regExp = /\s+/g;
+	var regionString = ex.lastChild.nodeValue;
+	return chr.nodeValue + ":" + regionString.replace(regExp,'');
 }
 
 function call_detail_view(e) {
@@ -80,7 +79,7 @@ function call_detail_view(e) {
 		var species1 = getExp('exp1');
 		var species2 = getExp('exp2');
 		window.location.href = "detailHomology.php?" + species1 + "&" + species2
-				+ "&region1=" + getRegHeader(ex1) + "&region2=" + getReg(ex2);
+				+ "&region1=" + getReg(ex1) + "&region2=" + getReg(ex2);
 		// alert("row: " + getReg(ex2) + " col: " + getReg(ex2) + " sp1");
 
 	} else {

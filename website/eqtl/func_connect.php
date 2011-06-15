@@ -54,14 +54,14 @@ University of LE<uuml>beck, 2009
 	if (!isset($hostname) or !isset($username) or !isset($database)) {
 		errorMessage("func_dbconfig failed to specify hostname, username or database for func_connect.php");
 		echo "<!-- func_connect.php -->\n";
-		echo "</body></html>";
+		include("footer.php");
 		exit;
 	}
 
 	if (empty($ensemblversion)) {
 		errorMessage("func_dbconfig failed to specify ensemblversion");
 		echo "<!-- func_connect.php -->\n";
-		echo "</body></html>";
+		include("footer.php");
 		exit;
 // 		print "<p>Attention: func_connect: setting ensemblversion to $ensemblversion</p>\n";
 	}
@@ -70,13 +70,13 @@ University of LE<uuml>beck, 2009
 
 	if (empty($linkLocal)) {
 		errorMessage("Could not create link to local database.");
-		echo "</body></html>";
+		include("footer.php");
 		exit;
 	}
 
 	if (!mysql_select_db($database,$linkLocal)) {
 		errorMessage("Could not select local database '$database' on machine '$hostname' as '$username'.");
-		echo "</body></html>";
+		include("footer.php");
 		exit;
 	}
 ?>

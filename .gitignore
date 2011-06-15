@@ -86,3 +86,4 @@ website/intergenomics/html/table_all.html
 # local install for testing
 conf_Maus
 conf_Ratte
+scripts/analyses/regularExpressionAnalyses.R

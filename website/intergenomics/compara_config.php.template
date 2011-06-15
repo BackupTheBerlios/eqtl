@@ -9,7 +9,7 @@ STARTOFDOCUMENTATION
 
 =head1 NAME
 
-compara_config.php - 
+compara_config.php - Settings for this project
 
 =head1 SYNOPSIS
 
@@ -39,7 +39,7 @@ $compara_array["PROJECTNAME"]=array(
         "db_user"    => "DATABASEEQTLUSER",
         "db_pass" 	 => "DATABASEEQTLPASSWORD",
 		"species"	 => "NCBITAXONOMYSPECIESNAME",
-		"genome_db_id" => "ENSEMBLSPECIESGENOMEDBID"
+		"ensembl_species" => "ENSEMBLSPECIESDB" /*Species name in the ensembl database*/
 );
 ?>
 

@@ -1,28 +1,15 @@
 /**
- * Stolen from:
+ * Adjusted from:
  * http://aktuell.de.selfhtml.org/artikel/javascript/scrolltabelle/index.htm
  * 
  * @author Georg
  */
-<?php 
-
-$args = $_GET;
-if(isset($args['cols'])){
-	echo 'var offAbove = "-'.$args['rows'].'px";
-var offLeft = "-'.($args['cols']-5).'px";
-	';
-}else{
-	echo 'var offAbove = "-138px";
-var offLeft = "-225px";
-	';
-}
-?>
 
 var aktFrame = "untRe";
-//var offAbove = "-135px";
-//var offLeft = "-225px";
-//var offAbove = "-138px";
-//var offLeft = "-218px";
+var offAbove = "-157px";
+var offLeft = "-240px";
+// var offAbove = "-138px";
+// var offLeft = "-218px";
 
 function init() {
 	untLi.document.getElementById('cont').style.top = offAbove;
@@ -95,7 +82,7 @@ function ver(MyFrame) {
 var sc; // Deklaration nur bei Mozilla-Workaround erforderlich (optional)
 
 function scrollen() {
-//	window.document.onclick = call_detail_view;
+	// window.document.onclick = call_detail_view;
 	switch (aktFrame) {
 
 	case "untRe":
@@ -132,7 +119,8 @@ function scrollen() {
 	// Ende Mozilla Workaround Teil2
 }
 
-window.onresize = function() {
-	window.document.onclick = call_detail_view;
-	balken();
-};
+//window.VARIABLENNAME === 
+if (!(window.untRe === undefined))//fix for other pages, cause of all js included
+	window.onresize = function() {
+		balken();
+	};

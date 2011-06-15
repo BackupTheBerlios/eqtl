@@ -16,7 +16,13 @@ but it may also be invoked from the shell e.g. for testing purposes.
 =head1 DESCRIPTION
 
 Every workunit gets a tailored R script to execute. This Perl script
-prepares it.
+prepares it. The script should evolve together with the evolving
+R/qtl library but otherwise be project-independent.
+
+=head1 TODO
+
+The working with multiple QTL effects still needs to be addressed.
+Also, the flanking regions of QTLs could need some better readout.
 
 =cut
 
