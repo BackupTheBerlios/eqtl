@@ -112,7 +112,7 @@ analyse.all.chromosomes.together<-function(
 		return(FALSE);
 	}
 
-	ofile.pdf<-paste(outputdir,"/","analysis_happy_project_",simpler.name(project.name),"phen_",phen,name.suffix,"_subset_",
+	ofile.pdf<-paste(outputdir,"/","analysis_happy_project_",simpler.name(project.name),"_phen_",phen,name.suffix,"_subset_",
 				individuals.subset,covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".pdf",sep="")
 	ofile.csv<-paste(outputdir,"/","analysis_happy_project_",simpler.name(project.name),"_phen_",phen,name.suffix,"_subset_",
 				individuals.subset, covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".csv",sep="")
@@ -121,18 +121,45 @@ analyse.all.chromosomes.together<-function(
 		return(TRUE)
 	}
 
+	if (verbose) cat("I: reading happy file.\n")
 	h<-happy(datafile=fname,allelesfile=markers.filename,generations=generations,phase="unknown",file.format="happy",missing.code=missing.code)
+	if (is.null(h$subjects)) stop("Happy datafile '",fname,"' did not produce h$subjects.\n",sep="")
 
 
 	# Every chromosome may have a different set of individuals
 	covariatematrix.raw<-NULL
-	for(d.pos in 1:length(data.covariates)) {
+	covariatematrix <- NULL
+	if (length(data.covariates)>0) for(d.pos in 1:length(data.covariates)) {
+		cat("I: retrieving covariate data #",d.pos," (",data.covariates[d.pos],").\n")
 		d       <-data.covariates[d.pos]
 		d.source<-data.covariates.source[d.pos]
+		cat("I: from source ",d.source,"\n")
 		pc<-phenotypes.collection[[d.source]]
 		if (is.null(pc)) stop("Could not retrieve phenotype source '",d.source,"'.\n")
+		cat("I: successfully retrieved covariates.\n")
+		if (is.null(rownames(pc))) stop("Covariates data does not have rownames.\n")
+		if (is.null(colnames(pc))) stop("Covariates data does not have colnames.\n")
 		if (! d %in% colnames(pc)) stop("Could not find colname ",d," for source ",d.source,". Available: ",colnames(pc),".\n")
-		pc.cov<-pc[h$subjects,d,drop=FALSE]
+		cat("I: assigning individuals shared between data sets\n")
+		pc.right.column<-pc[,d,drop=F]
+		#pc.cov<-pc[h$subjects,d,drop=FALSE]
+		pc.cov<-sapply(h$subjects,function(X,a,p){
+			if (is.null(p)) stop("missing names of array.\n")
+			if (is.null(a)) stop("missing array.\n")
+
+			if (is.matrix(a)) {
+				if (X %in% p) return(a[X,])
+			} else {
+				if (X %in% p) return(a[X])
+			}
+
+			#cat("W: Could not find individual '",X,"' in covariates.\n",sep="")
+			return(NA)
+		},a=pc.right.column,p=rownames(pc.right.column))
+		pc.cov<-as.matrix(pc.cov)
+		colnames(pc.cov)<-d
+		#cat("I: pc.cov: "); print(pc.cov)
+		cat("I: find if set is good enough\n")
 		if (sum(is.na(pc.cov))>0.7*nrow(pc.cov)) {
 			cat("W: too many covariates ",d.source,"[,",d,"] are NA. (",sum(!is.na(pc.cov))," of ",nrow(pc.cov),").\n",sep="")
 			cat("   h$subjects: ");print(h$subjects)
@@ -140,9 +167,9 @@ analyse.all.chromosomes.together<-function(
 			return(FALSE);
 		} else {
 			cat("I: acceptably many covariates of ",d.source,"[,",d,"] are NA. (",sum(!is.na(pc.cov))," of ",nrow(pc.cov),").\n",sep="")
-			cat("Covariates: "); print(pc.cov)
+			#cat("Covariates: "); print(pc.cov)
 		}
-		cat("dimnames(pc.cov)):"); print(dimnames(pc.cov))
+		#if (debug) {cat("dimnames(pc.cov)):"); print(dimnames(pc.cov))}
 		if (is.null(covariatematrix.raw)) {
 			covariatematrix.raw<-pc.cov
 		} else {
@@ -150,18 +177,25 @@ analyse.all.chromosomes.together<-function(
 		}
 	}
 
-	covariatematrix<-as.matrix(covariatematrix.raw)
+	if (is.null(covariatematrix.raw)) {
+		cat("I: No covariates assigned.\n")
+		covariatematrix<-NULL
+	} else {
+		cat("I: built covariate matrix, dim:\n"); print(dim(covariatematrix.raw))
+		covariatematrix<-as.matrix(covariatematrix.raw)
+		cat("I: For phen '",phen,"': Raw covariate matrix for {",paste(data.covariates,collapse=", ",sep=""),"} ",
+		                                           " of source '",data.covariates.source,"':\n",sep="")
+		print(covariatematrix.raw[1:10,])
+		cat("I: For phen '",phen,"': Covariate matrix for {",paste(data.covariates,collapse=", ",sep=""),"} ",
+		                                           " of source '",data.covariates.source,"':\n",sep="")
+		print(covariatematrix[1:30,])
 
-	cat("For phen '",phen,"': Raw covariate matrix for {",paste(data.covariates,collapse=", ",sep=""),"} of source '",data.covariates.source,"':\n",sep="")
-	print(covariatematrix.raw[1:10,])
-	cat("For phen '",phen,"': Covariate matrix for {",paste(data.covariates,collapse=", ",sep=""),"} of source '",data.covariates.source,"':\n",sep="")
-	print(covariatematrix[1:30,])
-
-	if (!is.numeric(covariatematrix)) {
-		stop("The covariatematrix is not numeric! for covariates ",
-			paste(data.covariates,collapse=","),
-			" from ",
-			paste(data.covariates.source,collapse="",sep=""),".\n",sep="")
+		if (!is.numeric(covariatematrix)) {
+			stop("The covariatematrix is not numeric! for covariates ",
+				paste(data.covariates,collapse=","),
+				" from ",
+				paste(data.covariates.source,collapse="",sep=""),".\n",sep="")
+		}
 	}
 
 	fit.0<-hfit(h, permute=0, verbose=verbose, model=model, covariatematrix=covariatematrix)

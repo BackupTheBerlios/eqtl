@@ -65,7 +65,7 @@ generations=4
 # Give extra summary statement
 info <- TRUE
 
-perform.singular.analysis <- F
+perform.singular.analysis <- T
 
 source("01_func_happy_start.R",local=FALSE)
 r <- happy.start(project.name=project.name,

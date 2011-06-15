@@ -541,6 +541,7 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 		if (perform.singular.analysis) for(p.n in project.name) {
 			phens<-colnames(phenotypes.collection[[p.n]])
 			cat("Singular analysis of phens for '",p.n,"'.\n",sep="")
+			num<-0
 			for(p in phens) {
 				if (p.n == "basic" && p %in% c("sex")) next;
 				cat("               phen '",p,"'.\n",sep="")
@@ -552,11 +553,15 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 				     data.covariates=NULL,
 				     name.suffix=name.suffix,project.name=p.n,overwrite=overwrite,
 				     inputdir=inputdir, outputdir=outputdir, missing.code=missing.code)
+				num <- num+1
+				cat("I: Complete job #",num," of ",length(phens)," (",round(100*num/length(phens),2),"%).\n")
+				cat("Memory garbage collector:\n"); print(gc())
 			}
 		}
 		
 		# Look at all the combinatorics
 
+		num<-0
 		for(p.n.outer in project.name) {
 			cat("p.n.outer:",p.n.outer,"\n")
 			for(p.n.inner in project.name) {
@@ -568,10 +573,11 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 				if (is.null(phens.inner)) stop("Phens inner is null")
 
 				for(p.outer in phens.outer) {
-					if (p.outer == "basic" && p.outer %in% c("sex","color")) next;
+					if (p.n.outer == "basic" && p.outer %in% c("sex")) next;
 					for(p.inner in phens.inner) {
-						if (p.inner == "basic" && p.inner %in% c("sex","color")) next;
-						cat("Running outer (",p.outer,") against inner (",p.inner,").\n")
+						if (p.inner == p.outer) next;
+						if (p.n.inner == "basic" && p.inner %in% c("sex","color")) next;
+						cat("Running outer (",p.n.outer,":",p.outer,") against inner (",p.n.inner,":",p.inner,").\n")
 						ok<-analyse.all.chromosomes.together(phen=p.outer,
 						     individuals.subset="all",
 						     #read.table.phenotypes=project.name,
@@ -584,10 +590,13 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 						     project.name=project.name,
 						     overwrite=overwrite,
 						     inputdir=inputdir, outputdir=outputdir, missing.code=missing.code)
+						num<-num+1
 						if (debug) {
 						     cat("BREAK inner\n")
 						     break
 						}
+						cat("I: Complete job #",num," of ",length(phens)," (",round(100*num/length(phens),2),"%).\n")
+						cat("Memory garbage collector:\n"); print(gc())
 					}
 					if (debug) {
 					     cat("BREAK outer\n")
