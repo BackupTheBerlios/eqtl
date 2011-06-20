@@ -161,40 +161,53 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 
     simple.reads.filenames<-list(
     	"susen"="data/susen/Immu_mColVIIc_IgG_C3_data.csv",
-	"susen.details"="data/susen/Immu_mColVIIc_IgG_C3_details_data.csv"
+	"susen.details"="data/susen/Immu_mColVIIc_IgG_C3_details_data.csv",
+	"mohan.elisa"="data/mohan/Saleh-Mohan_serum_ELISA_11MAR11.csv"
     )
 
-    possible.projects <- c(union(names(baines.project.filenames),names(simple.reads.filenames)),"mohan")
+    possible.projects <- c(union(names(baines.project.filenames),names(simple.reads.filenames)),"mohan","basic")
+    possible.projects.intersection <- intersect(possible.projects,project.name)
 
-    for (p.n in intersect(possible.projects,project.name)) {
-       if (!is.null(baines.project.filenames[[p.n]])) {
-          data.filename<-baines.project.filenames[[p.n]]
-	  cat(paste("Running extra code for project '",p.n,"' with data at '",data.filename,"'.\n",sep=""))
-	  r<-read.table(data.filename,sep="\t",header=F,row.names=1,stringsAsFactors=F,colClasses=integer())
-	  phenotypes.baines<-t(r[-1,])
-	  rownames(phenotypes.baines)<-as.character(r[1,])
-	  phenotypes.collection[[p.n]]<-phenotypes.baines
-	  rm(r,phenotypes.baines)
-       } else if (p.n %in% names(simple.reads.filenames)) {
-          data.filename<-simple.reads.filenames[[p.n]]
-	  cat(paste("Running extra code for project '",p.n,"' with data at '",data.filename,"'.\n",sep=""))
-	  r<-read.table(data.filename,sep="\t",header=T,stringsAsFactors=F,colClasses=integer())
-	  phenotypes.simple<-r[,-1]
-	  rownames(phenotypes.simple)<-r[,1]
-	  phenotypes.collection[[p.n]]<-phenotypes.simple
-	  rm(r,phenotypes.simple)
-       } else if ("mohan" == p.n) {
-	  cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
-	  r<-read.table("data/mohan/mohan_all_phenotypes.tsv",sep="\t",header=T,stringsAsFactors=F,colClasses=integer())
-	  r.good<-(!is.na(r[,2])) & !duplicated(r[,2])
-	  r2 <- r[r.good,]
-	  r2.good<-(!is.na(r2[,1])) & !duplicated(r2[,1])
-	  r3 <- r2[r2.good,]
-	  phenotypes.mohan<-r3[,grep("rank$",colnames(r2))]
-	  rownames(phenotypes.mohan)<-r3[,1]
-	  phenotypes.collection[[p.n]]<-phenotypes.mohan
-	  rm(r,r2,r3,r2.good,r.good,phenotypes.mohan)
-       }
+    if (0 == length(possible.projects.intersection)) {
+        stop("Don't know how to deal with project name:", paste(project.name,collapse=","),"\n")
+    } else if (length(project.name) > length(possible.projects.intersection)) {
+        stop("Don't know how to deal with project name:", paste(project.name,collapse=",")," since not all are known in ",paste(possible.projects.intersection,collapse=", "),".\n")
+    } else {
+        for (p.n in possible.projects.intersection) {
+            if (!is.null(baines.project.filenames[[p.n]])) {
+		  data.filename<-baines.project.filenames[[p.n]]
+		  cat(paste("Running extra code for project '",p.n,"' with data at '",data.filename,"'.\n",sep=""))
+		  r<-read.table(data.filename,sep="\t",header=F,row.names=1,stringsAsFactors=F,colClasses=integer())
+		  phenotypes.baines<-t(r[-1,])
+		  rownames(phenotypes.baines)<-as.character(r[1,])
+		  phenotypes.collection[[p.n]]<-phenotypes.baines
+		  rm(r,phenotypes.baines)
+            } else if (p.n %in% names(simple.reads.filenames)) {
+		  data.filename<-simple.reads.filenames[[p.n]]
+		  cat(paste("Running extra code for project '",p.n,"' with data at '",data.filename,"'.\n",sep=""))
+		  r<-read.table(data.filename,sep="\t",header=T,stringsAsFactors=F,colClasses=integer())
+		  r.1.duplicated<-duplicated(r[,1])
+		  phenotypes.simple<-r[!r.1.duplicated,-1]
+		  rownames(phenotypes.simple)<-r[!r.1.duplicated,1]
+		  phenotypes.collection[[p.n]]<-phenotypes.simple
+		  if (any(r.1.duplicated)) {
+		  	cat("W: The following phenotype IDs where found to be duplicated, taking the first occurrence: ",
+				paste(which(r.1.duplicated), collapse=", "),"\n")
+		  }
+		  rm(r,phenotypes.simple,phenotypes.simple.duplicated)
+            } else if ("mohan" == p.n) {
+		  cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
+		  r<-read.table("data/mohan/mohan_all_phenotypes.tsv",sep="\t",header=T,stringsAsFactors=F,colClasses=integer())
+		  r.good<-(!is.na(r[,2])) & !duplicated(r[,2])
+		  r2 <- r[r.good,]
+		  r2.good<-(!is.na(r2[,1])) & !duplicated(r2[,1])
+		  r3 <- r2[r2.good,]
+		  phenotypes.mohan<-r3[,grep("rank$",colnames(r2))]
+		  rownames(phenotypes.mohan)<-r3[,1]
+		  phenotypes.collection[[p.n]]<-phenotypes.mohan
+		  rm(r,r2,r3,r2.good,r.good,phenotypes.mohan)
+            }
+        } # for
     }
 
     # C H E C K   F O R   C O N S I S T E N C Y
@@ -561,9 +574,9 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 		
 		# Look at all the combinatorics
 
-		num<-0
 		for(p.n.outer in project.name) {
 			cat("p.n.outer:",p.n.outer,"\n")
+			#if (p.n.outer == "basic") next; # temporarily
 			for(p.n.inner in project.name) {
 				cat("p.n.inner:",p.n.outer,"\n")
 				if (p.n.inner == p.n.outer) next;
@@ -572,11 +585,16 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 				phens.inner<-colnames(phenotypes.collection[[p.n.inner]])
 				if (is.null(phens.inner)) stop("Phens inner is null")
 
+				num.outer<-0
 				for(p.outer in phens.outer) {
-					if (p.n.outer == "basic" && p.outer %in% c("sex")) next;
+					if (p.n.outer == "basic" && p.outer %in% c("sex","weight.3m")) next;
+					if (p.n.outer == "basic" && p.outer %in% c("Interstitium") && "p.n.inner" == "baines.selected.above.90") next;
+					num.inner<-0
 					for(p.inner in phens.inner) {
 						if (p.inner == p.outer) next;
 						if (p.n.inner == "basic" && p.inner %in% c("sex","color")) next;
+						#if (p.n.inner == "basic" && p.inner %in% c("weight.spleen","Black.spleen")) next;   #FIXME#
+						#if (p.n.inner == "basic" && p.inner %in% c("I.Pankreas")) next;   #FIXME#
 						cat("Running outer (",p.n.outer,":",p.outer,") against inner (",p.n.inner,":",p.inner,").\n")
 						ok<-analyse.all.chromosomes.together(phen=p.outer,
 						     individuals.subset="all",
@@ -590,19 +608,20 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 						     project.name=project.name,
 						     overwrite=overwrite,
 						     inputdir=inputdir, outputdir=outputdir, missing.code=missing.code)
-						num<-num+1
+						num.inner<-num.inner+1
 						if (debug) {
 						     cat("BREAK inner\n")
 						     break
 						}
-						cat("I: Complete job #",num," of ",length(phens)," (",round(100*num/length(phens),2),"%).\n")
+						cat("I: Completed inner job #",num.inner," of ",length(phens.inner)," (",round(100*num.inner/length(phens.inner),2),"%).\n")
+						cat("I: Completed outer job #",num.outer," of ",length(phens.outer)," (",round(100*num.outer/length(phens.outer),2),"%).\n")
 						cat("Memory garbage collector:\n"); print(gc())
 					}
+					num.outer<-num.outer+1
 					if (debug) {
 					     cat("BREAK outer\n")
 					     break
 					}
-					break;
 				}
 			}
 		}

@@ -71,27 +71,35 @@ analyse.all.chromosomes.together<-function(
 		data.phenotypes.source,
 		phenotypes.collection,
 		generations,model,
-		data.covariates.source,data.covariates,
+		data.covariates.source=NULL,
+		data.covariates=NULL,
 		name.suffix="",verbose=FALSE,
 		vlines.chr.col="darkgreen",
 		project.name="",
 		overwrite=TRUE,
 		inputdir="./",outputdir="./", missing.code="NA") {
 
+	cat("analyse.all.chromosomes.together: 1\n")
+
 	if (! data.phenotypes.source %in% names(phenotypes.collection)) {
 		stop("Specification of data.phenotype.source (",data.phenotypes.source,") not found. ",
 		     "It should be one of {",paste(names(phenotypes.collection),collapse=", ",sep=""),"}.\n")
 	}
 	read.table.phenotypes <- phenotypes.collection[[data.phenotypes.source]]
+
 	if (is.null(read.table.phenotypes)) {
 		stop("Could not retrieve sensible phenotypes from phenotypes.collection[[",data.phenotypes.source,"]] .\n")
 	}
+
+	cat("analyse.all.chromosomes.together: 2\n")
 
 	if (!is.null(data.covariates)) {
 		if (length(data.covariates) != length(data.covariates.source)) {
 			stop("Length of covariate-names differs from length of sources for covariates.\n")
 		}
 	}
+
+	cat("analyse.all.chromosomes.together: 3\n")
 
 	covariates.suffix<-paste("_covars_",ifelse(is.null(data.covariates),"none",paste(data.covariates,collapse=",",sep="")),sep="")
 	cat("\n"); cat("Investigating",data.phenotypes.source,"[,",phen,"]",name.suffix,"at times",individuals.subset,"and",covariates.suffix,"\n")
@@ -130,36 +138,44 @@ analyse.all.chromosomes.together<-function(
 	covariatematrix.raw<-NULL
 	covariatematrix <- NULL
 	if (length(data.covariates)>0) for(d.pos in 1:length(data.covariates)) {
-		cat("I: retrieving covariate data #",d.pos," (",data.covariates[d.pos],").\n")
+		if (debug) cat("I: retrieving covariate data #",d.pos," (",data.covariates[d.pos],").\n")
 		d       <-data.covariates[d.pos]
 		d.source<-data.covariates.source[d.pos]
-		cat("I: from source ",d.source,"\n")
+		if (debug) cat("I: from source ",d.source,"\n")
 		pc<-phenotypes.collection[[d.source]]
 		if (is.null(pc)) stop("Could not retrieve phenotype source '",d.source,"'.\n")
-		cat("I: successfully retrieved covariates.\n")
+		if (debug) cat("I: successfully retrieved covariates.\n")
 		if (is.null(rownames(pc))) stop("Covariates data does not have rownames.\n")
 		if (is.null(colnames(pc))) stop("Covariates data does not have colnames.\n")
 		if (! d %in% colnames(pc)) stop("Could not find colname ",d," for source ",d.source,". Available: ",colnames(pc),".\n")
-		cat("I: assigning individuals shared between data sets\n")
-		pc.right.column<-pc[,d,drop=F]
+		if (debug) cat("I: fetching correct colum \n")
+		pc.right.column<-as.matrix(pc[,d,drop=F])
+		if (!is.matrix(pc.right.column)) {
+			cat("I: pc.right.column: "); print(pc.right.column)
+			stop("expected matrix for 'pc.right.column'.\n")
+		}
 		#pc.cov<-pc[h$subjects,d,drop=FALSE]
+		if (debug) cat("I: assigning individuals shared between data sets\n")
 		pc.cov<-sapply(h$subjects,function(X,a,p){
+			if (is.null(X)) stop("X is null")
 			if (is.null(p)) stop("missing names of array.\n")
 			if (is.null(a)) stop("missing array.\n")
 
 			if (is.matrix(a)) {
+				if(ncol(a)>1) stop("a has more than a single column, i.e. ",ncol(a),"\n")
 				if (X %in% p) return(a[X,])
 			} else {
 				if (X %in% p) return(a[X])
 			}
-
 			#cat("W: Could not find individual '",X,"' in covariates.\n",sep="")
 			return(NA)
 		},a=pc.right.column,p=rownames(pc.right.column))
+		if (debug) cat("I: rewriting as matrix\n")
 		pc.cov<-as.matrix(pc.cov)
+		if (debug) cat("I: reassigning column vector\n")
 		colnames(pc.cov)<-d
 		#cat("I: pc.cov: "); print(pc.cov)
-		cat("I: find if set is good enough\n")
+		if (debug) cat("I: find if set is good enough\n")
 		if (sum(is.na(pc.cov))>0.7*nrow(pc.cov)) {
 			cat("W: too many covariates ",d.source,"[,",d,"] are NA. (",sum(!is.na(pc.cov))," of ",nrow(pc.cov),").\n",sep="")
 			cat("   h$subjects: ");print(h$subjects)

@@ -14,15 +14,17 @@
 #project.name<-"baines.unique.otu"
 #project.name<-"baines.selected.above.90"
 #project.name<-"mohan"
+#project.name<-"mohan.elisa"
+project.name<-c("basic","mohan.elisa")
 #project.name<-"susen"
 #project.name<-"susen.details"
 #project.name<-c("basic","susen")
 #project.name<-c("basic","susen.details")
-project.name<-c("basic","baines.selected.above.90")
+#project.name<-c("basic","baines.selected.above.90")
 #project.name<-NULL
 
 # set to TRUE if data needs to be prepared, too
-#data.covariates<-NULL
+data.covariates<-NULL
 #data.covariates<-c("sex","weight.6m")
 #data.covariates<-c("sex")
 #data.covariates<-c("eba.max.score")
@@ -42,8 +44,8 @@ markers.filename<-"markers.txt"
 #missing.code="NA"
 #missing.code="ND"
 
-#permute<-1000
-permute<-0
+permute<-1000
+#permute<-0
 
 verbose<-F
 
@@ -51,7 +53,7 @@ verbose<-F
 overwrite<-F
 
 # set to true if existing files should be recreated for runs of happy
-data.prepare<-F
+data.prepare<-T
 data.prepare.marker<-F
 
 # set if the data investigates has only two possible phenotypes
