@@ -1,5 +1,42 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <?php
+
+/**
+
+STARTOFDOCUMENTATION
+
+=pod
+
+=head1 NAME
+
+networks/presentModule.php - present modules as pathways with Cytoscape
+
+=head1 SYNOPSIS
+
+a dynamic weg page - may be invoked without parameters
+
+=head1 DESCRIPTION
+
+Yask, please fill this.
+
+=head1 AUTHORS
+
+Yask Gupta <yask.gupta@uk-sh.de> with a review by Steffen ME<ouml>ller
+
+=head1 COPYRIGHT
+
+UK-SH Schleswig-Holstein, LE<uuml>beck, Germany, 2010-2011
+
+=cut
+
+
+*/
+
+    require_once("../func_error.php");
+    require_once("../header.php");
+
+    show_small_header("Modules as Pathways with Cytoscape",true);
+
     $var = $_GET['modcolour'];
     $file = "VisANTInput-".$var."_d.out";
     $fh = fopen($file,"r") or die("Can't open file '$file'.");
@@ -37,10 +74,6 @@
     $string1 = 'data:{nodes:['.$var_node.'],edges:['.$var_edge.']}';
     $string  = 'data:{nodes:[{id:"2",label:"2"},{id:"3",label:"3"},{id:"1",label:"1"}],edges:[{id:"2to1",target:"1",source:"2",label:"2 to 1",weight:0.7 },{id:"3to1",target:"1",source:"3",label:"3 to 1",weight:0.3}]}';
 ?>
-<html>
-    <head>
-        <title>Cytoscape Web example</title>
-        
         <script type="text/javascript" src="json2.min.js"></script>
         <script type="text/javascript" src="AC_OETags.min.js"></script>
         <script type="text/javascript" src="cytoscapeweb.min.js"></script>
