@@ -32,14 +32,24 @@ UK-SH Schleswig-Holstein, LE<uuml>beck, Germany, 2010-2011
 
 */
 
-    require_once("../func_error.php");
-    require_once("../header.php");
+  require_once("../func_error.php");
+  require_once("../header.php");
 
-    show_small_header("Modules as Pathways with Cytoscape",true);
+  show_small_header("Modules as Pathways with Cytoscape",true);
 
-    $var = $_GET['modcolour'];
-    $file = "VisANTInput-".$var."_d.out";
-    $fh = fopen($file,"r") or die("Can't open file '$file'.");
+  if (array_key_exists("modcolour",$_GET) or array_key_exists("modcolour",$_POST)) {
+    $var = $_POST['modcolour'];
+    if (empty($var)) {
+       $var = $_GET['modcolour'];
+    }
+    if (empty($var)) {
+    	errorMessage("The argument 'modcolour' needs a value.");
+    }
+    $filename = "VisANTInput-".$var."_d.out";
+    if (!file_exists($filename)) {
+    	errorMessage("The file with data for module '$modcolour' was not found.");
+    }
+    $fh = fopen($filename,"r") or die("Can't open file '$filename'.");
     $array_edge = array();
     $array_node = array();
     while (!feof($fh)){
@@ -125,5 +135,25 @@ UK-SH Schleswig-Holstein, LE<uuml>beck, Germany, 2010-2011
          <div id="cytoscapeweb">
              Cytoscape Web will replace the contents of this div with your graph.
          </div>
-    </body>
-</html>
+<?php
+   }
+   else {
+   	echo "<p>The following networks are available:</p>\n";
+	$matches=array();
+	echo "<table border=0>";
+	foreach (glob("VisANTInput-*_d.out") as $filename) {
+	    if (0 < preg_match ("/^VisANTInput-([^_]+)_d.out/", $filename, $matches)) {
+		echo "<tr><td>";
+	    	echo "<a href=\"presentModule.php?modcolour=".$matches[1]."\">".$matches[1]."</a>";
+		echo "</td><td align=right>";
+		echo round(filesize($filename)/1000,0)." kB";
+		echo "</td></tr>\n";
+	    }
+	    else {
+		    echo "$filename"." (" . round(filesize($filename)/1024,0) . "kB)"."<br>\n";
+	    }
+	}
+	echo "</table>";
+   }
+   include_once("../footer.php");
+?>
