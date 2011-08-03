@@ -15,13 +15,14 @@
 #project.name<-"baines.selected.above.90"
 #project.name<-"mohan"
 #project.name<-"mohan.elisa"
-project.name<-c("basic","mohan.elisa")
+#project.name<-c("basic","mohan.elisa")
+#project.name<-c("basic","baines.species")
 #project.name<-"susen"
-#project.name<-"susen.details"
+project.name<-"susen.details"
 #project.name<-c("basic","susen")
 #project.name<-c("basic","susen.details")
 #project.name<-c("basic","baines.selected.above.90")
-#project.name<-NULL
+#project.name<-"basic"
 
 # set to TRUE if data needs to be prepared, too
 data.covariates<-NULL
@@ -44,8 +45,8 @@ markers.filename<-"markers.txt"
 #missing.code="NA"
 #missing.code="ND"
 
-permute<-1000
-#permute<-0
+#permute<-1000
+permute<-0
 
 verbose<-F
 
@@ -53,7 +54,7 @@ verbose<-F
 overwrite<-F
 
 # set to true if existing files should be recreated for runs of happy
-data.prepare<-T
+data.prepare<-F
 data.prepare.marker<-F
 
 # set if the data investigates has only two possible phenotypes
@@ -61,6 +62,9 @@ data.prepare.marker<-F
 data.binary <- F
 
 model="additive"
+#family="gaussian"
+#family="binomial"
+family="poisson"
 
 generations=4
 
@@ -73,6 +77,7 @@ source("01_func_happy_start.R",local=FALSE)
 r <- happy.start(project.name=project.name,
 	         generations=generations,
 	         model=model,
+		 family=family,
 	         permute=permute,
 	         data.covariates=data.covariates,
 	         data.prepare=data.prepare,
@@ -82,3 +87,4 @@ r <- happy.start(project.name=project.name,
 		 overwrite=overwrite,
 		 verbose=verbose
 )
+

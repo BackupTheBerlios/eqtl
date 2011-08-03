@@ -23,7 +23,10 @@ prepare.matrix.from.files<-function(files,subset=NULL) {
 		r.values<-as.numeric(r[,"additive.logP"])
 		m<-cbind(m,r.values)
 	}
-	if (1==length(files)) dim(m)<-c(length(m),1)
+	if (1==length(files)) {
+		warning("prepare.matrix.from.files: was passed only single file.\n")
+		dim(m)<-c(length(m),1)
+	}
 	colnames(m)<-basename(ff)
 	cM  <-as.numeric(r[,"cM"])
 	marker<-r[,"marker"]

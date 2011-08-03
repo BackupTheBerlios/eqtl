@@ -57,13 +57,13 @@ for(phen in phens) {
 	names(s)<-NULL
 	colnames(m)<-sapply(strsplit(x=m.annotation[,"covars"],split="Root_Bacteria_"),function(X)X[2])
 	# Heatmap of plain data
-	if (F) {
+	if (T) {
 		cat("I: plain\n")
 		heatmap.2(m[,s],Rowv=F,Colv=F,scale="none",dendrogram="none",trace="none",cexRow=0.15,cexCol=0.4,
 			main=paste("Plain representation for phenotype ",phen,sep=""),
 			xlab="bacteria",ylab="markers")
 	}
-	if (T) {
+	if (F) {
 		# Heatmap with column and rows clustered
 		cat("I: reordered\n")
 		heatmap.2(m[,s],Rowv=T,Colv=T,scale="none",dendrogram="none",trace="none",cexRow=0.15,cexCol=0.4,

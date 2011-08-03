@@ -1,5 +1,5 @@
 analyse.split.chromosomes<-function(phen,chr,data.phenotype.source,phenotypes.collection,
-                                    generations,model,inputdir="./",outputdir="./", missing.code="NA") {
+                                    generations,model,family,inputdir="./",outputdir="./", missing.code="NA") {
 	if (! data.phenotype.source %in% names(phenotypes.collection)) {
 		stop("Specification of data.phenotype.source (",data.phenotype.source,") not found. ",
 		     "It should be one of ",paste(names(phenotypes.collection),collapse=", ",sep=""),".\n")
@@ -32,9 +32,9 @@ analyse.split.chromosomes<-function(phen,chr,data.phenotype.source,phenotypes.co
 			covariatematrix<-as.matrix(read.table.phenotypes[h$subjects,data.covariates,drop=FALSE])
 		}
 
-		fit.0<-hfit(h, permute=0,verbose=TRUE,model=model,covariatematrix=covariatematrix)
+		fit.0<-hfit(h, permute=0,verbose=TRUE,model=model,family=family,covariatematrix=covariatematrix)
 		cat("\n",phen,name.suffix,covariates.suffix,"@",chr," fit.0$mapx: ",fit.0$maxp,"\n",sep="")
-		fit.permute<-hfit(h, permute=permute,verbose=TRUE,model=model,covariatematrix=covariatematrix)
+		fit.permute<-hfit(h, permute=permute,verbose=TRUE,model=model,family=family,covariatematrix=covariatematrix)
 		cat("\n",phen,name.suffix,covariates.suffix,"@",chr," fit.permute$permdata$p01: ",fit.permute$permdata$p01,"\n",sep="")
 		cat(     phen,name.suffix,covariates.suffix,"@",chr," fit.permute$permdata$p05: ",fit.permute$permdata$p05,"\n",sep="")
 
@@ -50,8 +50,8 @@ analyse.split.chromosomes<-function(phen,chr,data.phenotype.source,phenotypes.co
 					date(),
 			     sep=""), pch=3
 		)
-		abline(fit.permute$permdata$p05,0,col="green",lty=3)
-		abline(fit.permute$permdata$p01,0,col="green",lty=2)
+		abline(h=log(fit.permute$permdata$p05)/log(10),v=0,col="green",lty=3)
+		abline(h=log(fit.permute$permdata$p01)/log(10),v=0,col="green",lty=2)
 
 		# Empirical significance
 		happyplot(fit.permute, labels=l, pch=3,
@@ -70,7 +70,7 @@ analyse.all.chromosomes.together<-function(
 		phen,individuals.subset,
 		data.phenotypes.source,
 		phenotypes.collection,
-		generations,model,
+		generations,model,family,
 		data.covariates.source=NULL,
 		data.covariates=NULL,
 		name.suffix="",verbose=FALSE,
@@ -121,9 +121,9 @@ analyse.all.chromosomes.together<-function(
 	}
 
 	ofile.pdf<-paste(outputdir,"/","analysis_happy_project_",simpler.name(project.name),"_phen_",phen,name.suffix,"_subset_",
-				individuals.subset,covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".pdf",sep="")
+				individuals.subset,covariates.suffix,"_chr_","together","_model_",model,"_family_",family,"_permute_",permute,".pdf",sep="")
 	ofile.csv<-paste(outputdir,"/","analysis_happy_project_",simpler.name(project.name),"_phen_",phen,name.suffix,"_subset_",
-				individuals.subset, covariates.suffix,"_chr_","together","_model_",model,"_permute_",permute,".csv",sep="")
+				individuals.subset, covariates.suffix,"_chr_","together","_model_",model,"_family_",family,"_permute_",permute,".csv",sep="")
 	if ( (!overwrite) && file.exists(ofile.pdf) && file.exists(ofile.csv)) {
 		cat("\nSkipping: Results are already existing: ",ofile.pdf,", ",ofile.csv,"\n",sep="")
 		return(TRUE)
@@ -214,12 +214,12 @@ analyse.all.chromosomes.together<-function(
 		}
 	}
 
-	fit.0<-hfit(h, permute=0, verbose=verbose, model=model, covariatematrix=covariatematrix)
+	fit.0<-hfit(h, permute=0, verbose=verbose, model=model, family=family, covariatematrix=covariatematrix)
 	cat("\n",phen,name.suffix,covariates.suffix,"@","all"," fit.0$mapx: ",fit.0$maxp,"\n",sep="")
 
 	fit.permute<-NULL
 	if (permute > 0) {
-		fit.permute<-hfit(h, permute=permute,verbose=TRUE,model=model,covariatematrix=covariatematrix)
+		fit.permute<-hfit(h, permute=permute,verbose=TRUE,model=model,family=family,covariatematrix=covariatematrix)
 		cat("\n",phen,name.suffix,covariates.suffix,"@","all"," fit.permute$permdata$p01: ",fit.permute$permdata$p01,"\n",sep="")
 		cat(     phen,name.suffix,covariates.suffix,"@","all"," fit.permute$permdata$p05: ",fit.permute$permdata$p05,"\n",sep="")
 	}
@@ -227,12 +227,16 @@ analyse.all.chromosomes.together<-function(
 	cat("Writing PDF to file '",ofile.pdf,"'\n") ; pdf(ofile.pdf,width=50,height=9)
 	happyplot(fit.0,labels=T,together=TRUE,vlines.chr.lwd=3,vlines.chr.col=vlines.chr.col,
 		main=paste("AIL for phenotype '",phen,"' on subset '",individuals.subset,"'",sep=""),
-		sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
+		sub=paste( ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))),
+		           ", ",model," model of family ",family,sep="")
+	)
 	write.csv(file=ofile.csv, x=fit.0$table)
 	if (!is.null(fit.permute)) {
 		happyplot(fit.permute,labels=TRUE,together=TRUE,
 			main=paste("Permutation data for AIL phenotype",phen),
-			sub=ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))))
+			sub=paste(ifelse(is.null(covariatematrix),"No covariates",paste("Covariates ",paste(data.covariates,collapse=",",sep=""))),
+		           ", ",model," model of family ",family,sep="")
+		)
 		write.csv(file=paste(outputdir,"/","happy_project_",simpler.name(project.name),"_subset_",individuals.subset,"_phen_",phen,
 				name.suffix,covariates.suffix,"_chr_","together","_maxLodP_",fit.permute$maxp,"_permutation.csv",sep=""),
 			  x=fit.permute$permdata$permutation.pval)

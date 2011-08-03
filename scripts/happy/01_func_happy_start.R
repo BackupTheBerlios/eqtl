@@ -16,7 +16,7 @@ require(happy.hbrem)
 simpler.name<-function(n) { paste(n,collapse="W",sep="") }
 debug <- F
 
-happy.start <- function(project.name,generations=4,model="additive", permute=0,
+happy.start <- function(project.name,generations=4,model="additive", family="gaussian",permute=0,
                         data.covariates=NULL, data.binary=F, data.prepare=F, subset.phenotype=NULL,
 			markers.filenam="markers.txt", missing.code="NA", split.chromosomes=F,
 			overwrite=F, verbose=F) {
@@ -143,20 +143,9 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
     phenotypes.victimised.3m[is.na(phenotypes.victimised.3m)]<-F
     # The phenotypes.*.* are binary vectors, all of the very same length
 
-    #phenotypes.extra <- NULL
-    #phenotypes.mohan<- NULL
-    #phenotypes.susen<- NULL
-    #phenotypes.susen.details<- NULL
-
-    #phenotypes.baines<- NULL
-    #phenotypes.baines.otu.relative <- NULL
-    #phenotypes.baines.phylum<- NULL
-    #phenotypes.baines.genus<- NULL
-    #phenotypes.baines.otu.unique<- NULL
-    #phenotypes.baines.selected.above.90<- NULL
-
     baines.project.filenames<-list(
-	"baines.selected.above.90"="data/baines/selected_taxon/selected_taxon.txt"
+	"baines.selected.above.90"="data/baines/selected_taxon/selected_taxon.txt",
+	"baines.species"="data/baines/species/species.txt"
     )
 
     simple.reads.filenames<-list(
@@ -194,7 +183,7 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 		  	cat("W: The following phenotype IDs where found to be duplicated, taking the first occurrence: ",
 				paste(which(r.1.duplicated), collapse=", "),"\n")
 		  }
-		  rm(r,phenotypes.simple,phenotypes.simple.duplicated)
+		  rm(r,phenotypes.simple,r.1.duplicated)
             } else if ("mohan" == p.n) {
 		  cat(paste("Running extra code for project '",project.name,"'.\n",sep=""))
 		  r<-read.table("data/mohan/mohan_all_phenotypes.tsv",sep="\t",header=T,stringsAsFactors=F,colClasses=integer())
@@ -515,7 +504,7 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 			ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset="all",
 							     data.phenotypes.source=project.name,
 							     phenotypes.collection=phenotypes.collection,
-							     generations=generations, model=model,
+							     generations=generations, model=model, family=family,
 							     data.covariates=data.covariates,
 							     name.suffix=name.suffix,project.name=project.name,overwrite=overwrite,
 							     inputdir=inputdir, outputdir=outputdir, missing.code=missing.code)
@@ -537,7 +526,7 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 				ok<-analyse.all.chromosomes.together(phen=phen,individuals.subset=individuals.subset,
 							             data.phenotypes.source=project.name,
 							     	     phenotypes.collection=phenotypes.collection,
-								     generations=generations, model=model.el,
+								     generations=generations, model=model, family=family,
 								     data.covariates=data.covariates,name.suffix=name.suffix,overwrite=overwrite,
 								     inputdir=inputdir, outputdir=outputdir, missing.code=missing.code)
 				if (!ok) one.was.omitted<-TRUE
@@ -562,7 +551,7 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 				     individuals.subset="all",
 				     data.phenotypes.source=p.n,
 				     phenotypes.collection=phenotypes.collection,
-				     generations=generations, model=model,
+				     generations=generations, model=model, family=family,
 				     data.covariates=NULL,
 				     name.suffix=name.suffix,project.name=p.n,overwrite=overwrite,
 				     inputdir=inputdir, outputdir=outputdir, missing.code=missing.code)
@@ -587,10 +576,17 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 
 				num.outer<-0
 				for(p.outer in phens.outer) {
+					num.outer<-num.outer+1
+					#if (p.n.outer == "basic" && ! p.outer %in% c("eba.max.score")) next; # temporary
+					#if (p.n.inner == "basic" && ! p.inner %in% c("eba.max.score")) next; # temporary
 					if (p.n.outer == "basic" && p.outer %in% c("sex","weight.3m")) next;
-					if (p.n.outer == "basic" && p.outer %in% c("Interstitium") && "p.n.inner" == "baines.selected.above.90") next;
+					if (p.n.outer == "basic" && p.outer %in% c("Interstitium")
+					                         && p.n.inner %in% c("baines.species","baines.selected.above.90")) next;
+					if (p.n.inner == "basic" && p.inner %in% c("Interstitium")
+					                         && p.n.outer %in% c("baines.species","baines.selected.above.90")) next;
 					num.inner<-0
 					for(p.inner in phens.inner) {
+						num.inner<-num.inner+1
 						if (p.inner == p.outer) next;
 						if (p.n.inner == "basic" && p.inner %in% c("sex","color")) next;
 						#if (p.n.inner == "basic" && p.inner %in% c("weight.spleen","Black.spleen")) next;   #FIXME#
@@ -601,14 +597,13 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 						     #read.table.phenotypes=project.name,
 						     data.phenotypes.source=p.n.outer,
 				     		     phenotypes.collection=phenotypes.collection,
-						     generations=generations, model=model,
+						     generations=generations, model=model, family=family,
 						     data.covariates.source=p.n.inner,
 						     data.covariates=p.inner,
 						     name.suffix=name.suffix,
 						     project.name=project.name,
 						     overwrite=overwrite,
 						     inputdir=inputdir, outputdir=outputdir, missing.code=missing.code)
-						num.inner<-num.inner+1
 						if (debug) {
 						     cat("BREAK inner\n")
 						     break
@@ -617,7 +612,6 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 						cat("I: Completed outer job #",num.outer," of ",length(phens.outer)," (",round(100*num.outer/length(phens.outer),2),"%).\n")
 						cat("Memory garbage collector:\n"); print(gc())
 					}
-					num.outer<-num.outer+1
 					if (debug) {
 					     cat("BREAK outer\n")
 					     break
@@ -647,7 +641,7 @@ happy.start <- function(project.name,generations=4,model="additive", permute=0,
 		for(chr in chromosomes) {
 			analyse.split.chromosomes(phen,chr,
 					read.table.phenotypes=read.table.phenotypes,
-					generations=generations, model=model,
+					generations=generations, model=model, family=family,
 					inputdir=inputdir, outputdir=outputdir, missing.code=missing.code)
 		}
 		dev.off()
