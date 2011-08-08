@@ -44,7 +44,8 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 	show_small_header("Selection of eLoci",TRUE);
 	$err=array();
 
-	foreach(array(  "Name",
+	$dataSelectionFieldsQTL = array(
+			"Name",
 			"direct",
 			"submitted",
 			"show_LocusOfGene",
@@ -77,17 +78,48 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 	$tmp = split($pfile, $_SERVER['PHP_SELF']);
 	$BASEPATH = "http://".$_SERVER['SERVER_NAME'].$tmp[0];
 
-	$a=array("Name"=>1,"Chr"=>1,"cMorgan"=>1,"Organism"=>0,"qtl"=>0,"locusInteraction" => 0,"VennLink"=>0, "Genes_in_locus" =>1, /*"trait"=>0, */"genes_effected"=>1
+	$a=array(
+	   "Name"=>1,"Chr"=>1,"cMorgan"=>1,"Organism"=>0,"qtl"=>0,"locusInteraction" => 0,
+	   "VennLink"=>0, "Genes_in_locus" =>1, /*"trait"=>0, */"genes_effected"=>1
 	);
 
-	foreach($a as $vname => $x)
+	# Conversion of array keys to values to be checked as being parameter names
+	function prependShow($value) {
+		$m = "show_".$value;
+		return($m);
+	};
+	$aKeys = array_keys($a);
+	$aPrepend = array_map("prependShow",$aKeys);
+	#echo "Mapping: " . join(",",$aPrepend)."\n";
+
+
+	$accessible_fields_in_POST_or_GET = array_merge(
+		$dataSelectionFieldsQTL,
+		$aPrepend
+	);
+
+	foreach($accessible_fields_in_POST_or_GET as $vname)
 	{
-		$vname = "show_".$vname;
 		if (isset($_POST[$vname])) {
-			$$vname = $_POST[$vname];
+			if (is_array($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			}
+			else {
+				$$vname = ltrim(rtrim($_POST[$vname]));
+				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
+					echo $vname."=".$$vname."\t";
+				}
+			}
 		}
 		elseif(isset($_GET[$vname])) {
-			$$vname = $_GET[$vname];
+			if (is_array($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			} else {
+				$$vname = ltrim(rtrim($_GET[$vname]));
+				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
+					echo $vname."=".$$vname."\t";
+				}
+			}
 		}
 	}
 

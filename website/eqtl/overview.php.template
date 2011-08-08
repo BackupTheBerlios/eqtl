@@ -77,7 +77,7 @@ University of LE<uuml>beck, Germany, 2009
 			}
 			else {
 				$$vname = ltrim(rtrim($_POST[$vname]));
-				if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
 					echo $vname."=".$$vname."\t";
 				}
 			}
@@ -87,7 +87,7 @@ University of LE<uuml>beck, Germany, 2009
 				$$vname=$_POST[$vname];
 			} else {
 				$$vname = ltrim(rtrim($_GET[$vname]));
-				if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
 					echo $vname."=".$$vname."\t";
 				}
 			}

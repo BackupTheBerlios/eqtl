@@ -102,7 +102,7 @@ ENDOFDOCUMENTATION
 			"description"=>"The QTL and the gene it controls are on the same chromosome"
 		),
 		"Unequal Chromosomes" => array(
-			"constraint"=>"trait.seqname != qtl.Chromosome",
+			"constraint"=>"trait.chromosome != qtl.Chromosome",
 			"description"=>"The QTL and the gene it controls are on different chromosomes"
 		),
 		"Within classical QTL" => array(
@@ -194,7 +194,7 @@ ENDOFDOCUMENTATION
 			}
 			else {
 				$$vname = ltrim(rtrim($_POST[$vname]));
-				if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
 					echo $vname."=".$$vname."\t";
 				}
 			}
@@ -204,7 +204,7 @@ ENDOFDOCUMENTATION
 				$$vname=$_POST[$vname];
 			} else {
 				$$vname = ltrim(rtrim($_GET[$vname]));
-				if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
 					echo $vname."=".$$vname."\t";
 				}
 			}
@@ -283,13 +283,18 @@ ENDOFDOCUMENTATION
 				echo empty($onlyNumbers)?"":" value=\"$onlyNumbers\""; ?>>
 			   <br />
 			&nbsp;
-			   <input type="radio" name="onlyNumbersGrouped" value="totals" <?php ((empty($onlyNumbersGrouped)?
+			   	<input type="radio" name="onlyNumbersGrouped" value="totals" <?php echo empty($onlyNumbersGrouped)?
 			   					" checked":
-			   					("totals"=="$onlyNumbersGrouped")?" checked":""))?>>Totals only<br />
+			   					(("totals"=="$onlyNumbersGrouped")?" checked":"")?> >Totals only</input><br />
 			&nbsp;
-			   <input type="radio" name="onlyNumbersGrouped" value="seqname" <?php (!empty($seqname) && "seqname"=="$onlyNumbersGrouped"?" checked":"")?>>Trait's Chromosome<br />
+			   <input type="radio" name="onlyNumbersGrouped" value="trait.chromosome"
+			   <?php
+			   	echo (!empty($onlyNumbersGrouped) and "trait.chromosome"=="$onlyNumbersGrouped")?" checked":"";
+			    ?> >Trait's Chromosome</input><br />
 			&nbsp;
-			   <input type="radio" name="onlyNumbersGrouped" value="Chromosome" <?php (!empty($seqname) && "Chromosome"=="$onlyNumbersGrouped"?" checked":"")?>>eQTL's Chromosome<br />
+			   <input type="radio" name="onlyNumbersGrouped" value="qtl.Chromosome" <?php 
+			        echo (!empty($onlyNumbersGrouped) and "qtl.Chromosome"=="$onlyNumbersGrouped")?" checked":"";
+			    ?> >eQTL's Chromosome</input><br />
 			</p>
 
 			<?php
@@ -367,10 +372,11 @@ ENDOFDOCUMENTATION
 		$query = "SELECT ";
 		if (!empty($onlyNumbers) and $onlyNumbers and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
 			if (!empty($onlyNumbersGrouped) and !("totals"==$onlyNumbersGrouped)) {
-				if ("Chromosome"=="$onlyNumbersGrouped" or "seqname" == "$onlyNumbersGrouped") {
+				if ("qtl.Chromosome"=="$onlyNumbersGrouped") {
 					$query .= "$onlyNumbersGrouped,";
-				}
-				else {
+				} else if ("trait.chromosome" == "$onlyNumbersGrouped") {
+					$query .= "$onlyNumbersGrouped,";
+				} else {
 					errorMessage("Unknown attribute to group for: '$onlyNumbersGrouped'.");
 					exit;
 				}
@@ -622,11 +628,11 @@ ENDOFDOCUMENTATION
 		#	Covariates - they are always queried
 		# 
 
-		if (isset($debug)) {
+		if (isset($debug) and !empty($debug)) {
 			echo "<pre>";
 			echo "covariate_selection_type: $covariate_selection_type\n";
 			echo "covariates: "; print_r($covariates); echo "\n";
-			echo "\$_POST:" ; print_r($_POST); echo "\n";
+			#echo "\$_POST:" ; print_r($_POST); echo "\n";
 			echo "</pre>\n";
 		}
 		if ("selected" == $covariate_selection_type) {
@@ -783,15 +789,14 @@ ENDOFDOCUMENTATION
                             #    echo "<tr><td colspan=1000>Ignoring row since it does not overlapt with classical QTLs</td></tr>\n";
                                 continue;
                         }
-			if (!empty($onlyNumbersGrouped) and "seqname" == "$onlyNumbersGrouped") {
-			if(array_key_exists($chromdingens,$chr_count)){
-			   $chr_count[$chromdingens]++;
+			if (!empty($onlyNumbersGrouped) and "trait.chromosome" == "$onlyNumbersGrouped") {
+			    if(array_key_exists($chromdingens,$chr_count)){
+			       $chr_count[$chromdingens]++;
+			    } else{
+			       $chr_count[$chromdingens]=1;
+			    }
 			}
-			else{
-			   $chr_count[$chromdingens]=1;
-			}
-			}
-			elseif (!empty($onlyNumbersGrouped) and "Chromosome" == "$onlyNumbersGrouped") {
+			elseif (!empty($onlyNumbersGrouped) and "qtl.Chromosome" == "$onlyNumbersGrouped") {
 			if(array_key_exists($c,$chr_count)){
                            $chr_count[$c]++;
                         }
