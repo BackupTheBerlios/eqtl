@@ -185,28 +185,30 @@ ENDOFDOCUMENTATION
 	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
 		echo "<br>Retrieving info for: "; print_r($accessible_fields_in_POST_or_GET); echo "<br>\n";
 	}
-			
+
 	foreach($accessible_fields_in_POST_or_GET as $vname)
 	{
 		if (isset($_POST[$vname])) {
-			$$vname = ltrim(rtrim($_POST[$vname]));
-			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
-				echo $vname."=".$$vname."\t";
+			if (is_array($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			}
+			else {
+				$$vname = ltrim(rtrim($_POST[$vname]));
+				if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+					echo $vname."=".$$vname."\t";
+				}
 			}
 		}
 		elseif(isset($_GET[$vname])) {
-			$$vname = ltrim(rtrim($_GET[$vname]));
-			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
-				echo $vname."=".$$vname."\t";
+			if (is_array($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			} else {
+				$$vname = ltrim(rtrim($_GET[$vname]));
+				if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+					echo $vname."=".$$vname."\t";
+				}
 			}
 		}
-	}
-
-	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
-		echo "<br>\n";
-		echo "eae: "; print_r($eae);
-		echo "sum: "; print_r($sum);
-		echo "<br>\n";
 	}
 
 	if (!empty($covariates)) {
@@ -620,6 +622,13 @@ ENDOFDOCUMENTATION
 		#	Covariates - they are always queried
 		# 
 
+		if (isset($debug)) {
+			echo "<pre>";
+			echo "covariate_selection_type: $covariate_selection_type\n";
+			echo "covariates: "; print_r($covariates); echo "\n";
+			echo "\$_POST:" ; print_r($_POST); echo "\n";
+			echo "</pre>\n";
+		}
 		if ("selected" == $covariate_selection_type) {
 			if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
 				if ("WHERE " != $where) $where .= " AND ";
@@ -629,6 +638,8 @@ ENDOFDOCUMENTATION
 				else {
 					$where .= " covariates='".join(",",$covariates)."' ";
 				}
+			} else {
+				echo "FIXME:  missing implementation for this covariate representation\n";
 			}
 		}
 

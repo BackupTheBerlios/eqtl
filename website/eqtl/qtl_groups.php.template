@@ -155,24 +155,26 @@ ENDOFDOCUMENTATION
 	foreach($accessible_fields_in_POST_or_GET as $vname)
 	{
 		if (isset($_POST[$vname])) {
-			$$vname = $_POST[$vname];
-			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
-				echo $vname."=".$$vname."\t";
+			if (is_array($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			}
+			else {
+				$$vname = ltrim(rtrim($_POST[$vname]));
+				if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+					echo $vname."=".$$vname."\t";
+				}
 			}
 		}
 		elseif(isset($_GET[$vname])) {
-			$$vname = $_GET[$vname];
-			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
-				echo $vname."=".$$vname."\t";
+			if (is_array($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			} else {
+				$$vname = ltrim(rtrim($_GET[$vname]));
+				if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+					echo $vname."=".$$vname."\t";
+				}
 			}
 		}
-	}
-
-	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
-		echo "<br>\n";
-		echo "eae: "; print_r($eae);
-		echo "sum: "; print_r($sum);
-		echo "<br>\n";
 	}
 
 	$a=array("Trait"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
