@@ -138,7 +138,8 @@ ENDOFDOCUMENTATION
 		"cM_Peak_Min","cM_Peak_Max",
 		"Mbp_Peak_Min","Mbp_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
-		"locus","chrlist", "condition"
+		"locus","chrlist", "condition",
+		"trait.chromosome","qtl.Chromosome"
 	);
 
 	# fields offered to be optionally deselected from being presented as columns
@@ -760,7 +761,7 @@ ENDOFDOCUMENTATION
 			exit;
 		}
 
-		if ($debug) echo "query: $query<br>";
+		if (isset($debug) and !empty($debug)) echo "query: $query<br>";
 
 		$result = mysql_query($query,$linkLocal);
 		if (empty($result)) {
@@ -807,62 +808,33 @@ ENDOFDOCUMENTATION
 			}
                         $rowno++;
 	            }
-		    if (!empty($onlyNumbersGrouped) and "totals" == "$onlyNumbersGrouped") {
-                                        echo "<pre>";
-					echo "Number of eQTL within classical QTL:<br>";
-                                        print_r($rowno);
-                                        echo "</pre>\n";
-                        }
-                        else {
-				
-				echo "<table><thead><tr><th>Chromosome</th><th>#</th></tr></thead>\n";
-                                echo "<tbody>\n";
-				echo "else fall\n";
-				$sum =0;
-				foreach ($chr_count as $chrom => $counter)
-				{
-                                                echo "<tr>";
-                                                echo "<td>$chrom</td>";
-                                                echo "<td>$counter</td>";
-                                                echo "</tr>\n";
-						$sum += $counter;
-				}	
-				
-				#TODO remains to be implemented
-                                #$r=array();
-                                #echo "<table><thead><tr><th>Chromosome</th><th>#</th></tr></thead>\n";
-                                #while ($line = mysql_fetch_row($result)) {
-                                #        print_r($line);
-                                #        $r["chr".$line[0]]=$line[1];
-                                #}
-                                #echo "<tbody>\n";
-                                #$i=-2;
-                                #$s=0;
-                                #while($i<23) {
-                                #        $i++;
-                                #        $j=$i;
-                                #        if (-1=="$j") $j="";
-                                #        if (0=="$j") $j="X";
-                                #        if (array_key_exists("chr$j",$r)) {
-                                #                echo "<tr>";
-                                #                echo "<td>$j</td>";
-                                #                echo "<td>".$r["chr$j"]."</td>";
-                                #                echo "</tr>\n";
-                                #                $s += $r["chr$j"];
-                                #        }
-                                #}
-                                echo "</tbody>\n";
-                                echo "<tfooter>";
-                                echo "<tr>";
-                                echo "<td>Sum</td>";
-                                echo "<td>".$sum."</td>";
-                                echo "</tr>\n";
-                                echo "</tfooter>";
-                                echo "</table>\n";
-                        }
-
-
-
+		    ##### FIXME: REDUNDANT CODE BLOCK
+	            if (!empty($onlyNumbersGrouped) and "totals" == "$onlyNumbersGrouped") {
+                        echo "<pre>";
+                        echo "Number of eQTL within classical QTL:<br>";
+                        print_r($rowno);
+                        echo "</pre>\n";
+                    } else {
+                        echo "<table><thead><tr><th>Chromosome</th><th>#</th></tr></thead>\n";
+                        echo "<tbody>\n";
+                        echo "else fall\n";
+                        $sum =0;
+                        foreach ($chr_count as $chrom => $counter) {
+                            echo "<tr>";
+                            echo "<td>$chrom</td>";
+                            echo "<td>$counter</td>";
+                            echo "</tr>\n";
+                            $sum += $counter;
+                        }	
+			echo "</tbody>\n";
+			echo "<tfooter>";
+			echo "<tr>";
+			echo "<td>Sum</td>";
+			echo "<td>".$sum."</td>";
+			echo "</tr>\n";
+			echo "</tfooter>";
+			echo "</table>\n";
+                    }
 		}
 		elseif(!empty($onlyNumbers)){
 			if (!empty($onlyNumbersGrouped) and "totals" == "$onlyNumbersGrouped") {
@@ -874,32 +846,39 @@ ENDOFDOCUMENTATION
 			}
 			else {
 				$r=array();
-				echo "<table><thead><tr><th>Chromosome</th><th>#</th></tr></thead>\n";
-				while ($line = mysql_fetch_row($result)) {
-					print_r($line);
-					$r["chr".$line[0]]=$line[1];
-				}
+				echo "<table><thead><tr><th>Chromosome</th><th>#</th><th># accum.</th><th>Link</th></tr></thead>\n";
 				echo "<tbody>\n";
-				$i=-2;
 				$s=0;
-				while($i<23) {
-					$i++;
-					$j=$i;
-					if (-1=="$j") $j="";
-					if (0=="$j") $j="X";
-					if (array_key_exists("chr$j",$r)) {
-						echo "<tr>";
-						echo "<td>$j</td>";
-						echo "<td>".$r["chr$j"]."</td>";
-						echo "</tr>\n";
-						$s += $r["chr$j"];
+				$s_unassigned=0;
+				while ($line = mysql_fetch_row($result)) {
+					#print_r($line); echo "<br />\n";
+					$r["Chr. '".$line[0]."'"]=$line[1];
+					echo "<tr>";
+					if ('' == $line[0]) {
+						echo "<td><strike>".$line[0]."</strike></td>";
+						echo "<td><strike>".$line[1]."</strike></td>";
+						$s_unassigned += $line[1];
+					} else {
+						echo "<td>".$line[0]."</td>";
+						echo "<td>".$line[1]."</td>";
+						$s += $line[1];
 					}
+					echo "<td>$s + $s_unassigned</td>";
+					echo "<td>";
+					if ("trait.chromosome" == "$onlyNumbersGrouped") {
+						echo "<a href=\"qtl.php?TraitChromosome=".$line[0]."\">qtl</a>";
+					} else if ("qtl.Chromosome" == "$onlyNumbersGrouped") {
+						echo "<a href=\"qtl.php?chrlist=".$line[0]."\">qtl</a>";
+					} else {
+						echo "<i>error</i>";
+					}
+					echo "</td></tr>\n";
 				}
 				echo "</tbody>\n";
 				echo "<tfooter>";
 				echo "<tr>";
 				echo "<td>Sum</td>";
-				echo "<td>".$s."</td>";
+				echo "<td>$s <i>+ $s_unassigned</i></td>";
 				echo "</tr>\n";
 				echo "</tfooter>";
 				echo "</table>\n";
