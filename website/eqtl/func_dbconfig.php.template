@@ -216,7 +216,7 @@ $markeruser=$usernameeqtl;
 $markerpassword=$passwordeqtl;
 $markerdatabase=$databaseeqtl;
 
-$debug=TRUE;
+#$debug=TRUE;
 
 function show_config() {
 	global $hostnameEnsembl, $usernameEnsembl,
