@@ -159,7 +159,7 @@ function print_selection_form($properties) {
 	       $chromosome2, $cM2, $marker2, 
 	       $gene_name,
 	       $LODdiffmin, $LODdiffmax, $cM_Peak_Min, $cM_Peak_Max, $Mbp_Peak_Min, $Mbp_Peak_Max,
-	       $cM_within, $groups, $locus, $chrlist,
+	       $cM_within, $groups, $locus, $chrlist,$TraitChromosome,
 	       $MeanMin, $MeanMax, 
 	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,
                $PvalueMax,$PvalueMin,
@@ -181,7 +181,7 @@ function print_selection_form($properties) {
 			$properties = array("groups", "locus", 
 					    "chromosome", "peakInMbp",
 					    "peakInCentiMorgan", "flanks",
-					    "trait",
+					    "trait","TraitChromosome",
 					    "gene_name",
 					    "LOD", "quantile", "LODdiff",
 					    "pvalue",
@@ -317,6 +317,25 @@ function print_selection_form($properties) {
 				}
 				else {
 					echo "\"$chrlist\"";
+				}
+			}
+?>
+			></td></tr>
+<?php
+				break;
+
+
+			case "TraitChromosome":
+?>
+			<tr><th class=r>Chromosome of Trait:</th><td colspan=3><input type=text name=TraitChromosome size=40 maxsize=700
+<?php
+			if (!empty($TraitChromosome)) {
+				echo "value=";
+				if (is_array($TraitChromosome)) {
+					echo "\"".join(",",$TraitChromosome)."\"";
+				}
+				else {
+					echo "\"$TraitChromosome\"";
 				}
 			}
 ?>

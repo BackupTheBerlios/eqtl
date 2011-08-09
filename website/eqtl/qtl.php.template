@@ -139,14 +139,14 @@ ENDOFDOCUMENTATION
 		"Mbp_Peak_Min","Mbp_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
 		"locus","chrlist", "condition",
-		"trait.chromosome","qtl.Chromosome"
+		"traits","traitlist","gene_name","TraitChromosome"
 	);
 
 	# fields offered to be optionally deselected from being presented as columns
 	$a=array("Trait"=>1, "Groups"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
 		"LOD"=>1,"LODdiff"=>1,"pvalue" => 1, "Quantile"=>1,
 		"covariates"=>1,
-		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>0, "cMorgan_Max"=>0,
+		"Chromosome"=>1, "TraitChromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>0, "cMorgan_Max"=>0,
 		"Gid"=>0, "gene_name"=>1, "name"=>1, "ensembl_stable_gene_id"=>1, "mean"=>1, "sd"=>1 
 	);
 			
@@ -164,7 +164,7 @@ ENDOFDOCUMENTATION
 
 		$dataSelectionFieldsQTL,
 
-		array(  "direct",
+		array( "direct",
 			"debug",
 			"submitted",
 			"onlyNumbers",
@@ -173,12 +173,7 @@ ENDOFDOCUMENTATION
 
 		$aPrepend,
 
-		array(
-			"traits",
-			"traitlist",
-			"gene_name",	
-			"limit","order"
-		),
+		array(	"limit","order"),
 		
 		convert_string_to_covariates_array(strtolower("qtl"))
 	);
@@ -274,7 +269,7 @@ ENDOFDOCUMENTATION
 						</select>
 						</td></tr>
 			<tr><th class=r>Limit lines shown</th>
-			    <td colspan=3><input type=text name=limit value=500></td></tr>
+			    <td colspan=3><input type=text name=limit value=<? echo empty($limit)?500:$limit;?>></td></tr>
 			<tr><td>&nbsp;</td><td></td></tr>
 			<tr><td align=right><input type=submit></td><td align=left><input type=reset></td></tr>
 			</table>
@@ -315,7 +310,18 @@ ENDOFDOCUMENTATION
 			}
 ?>
 			</table>
-			</small></small>
+			</small>
+
+			<table border=0 width="100%">
+			<?php foreach(array("verbose","debug") as $n) {
+				echo "<tr><td align=left colspan=2>";
+				echo "<input type=checkbox name=$n ";
+				if (!empty($$n)) echo " checked";
+				echo ">$n</input><br />\n";
+				echo "</td></tr>";
+			} ?>
+			</table>
+			</small>
 		</td><td valign=top>
 			<table border=0>
 			<tr bgcolor="red"><th colspan=4 class=c>QTLs - Select Locus</th></tr>
@@ -459,11 +465,12 @@ ENDOFDOCUMENTATION
 		# These extra joins are not needed for every kind of query, some optimisation
 		# would help to speed things up!
 
-		if (!(empty($show_LocusOfGene) and empty($show_Chromosome)
+		if (!(empty($show_LocusOfGene) and empty($show_Chromosome) and empty($show_TraitChromosome)
 			and empty($MeanMin) and empty($MeanMax)
 			and empty($SdMin) and empty($SdMax) and empty($show_ExpressionOfGene)
 			and empty($show_gene_assignment)
-			and empty($gene_name)))
+			and empty($gene_name)
+			and empty($TraitChromosome)))
 		{
 			$query .= " join trait on Trait=trait.trait_id ";
 		}
@@ -563,6 +570,12 @@ ENDOFDOCUMENTATION
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " qtl.Chromosome";
 			$where .= " in ('".join("','",preg_split("/[, ;]+/",$chrlist))."') ";
+		}
+
+		if (!empty($TraitChromosome)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " trait.chromosome";
+			$where .= " in ('".join("','",preg_split("/[, ;]+/",$TraitChromosome))."') ";
 		}
 
                 if (!empty($traitlist)) {
