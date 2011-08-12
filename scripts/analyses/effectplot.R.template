@@ -106,26 +106,28 @@ height.pixel<-width.pixel
 height.inch<-width.inch
 
 opt = getopt(matrix(c(
-    'verbose'    , 'v', 2, "integer",
-    'debug'      , 'd', 2, "integer",
-    'help'       , 'h', 0, "logical",
-    'trait'      , 't', 1, "character",
-    'chromosome1', 'e', 2, "character",
-    'chromosome2', 'q', 2, "character",
-    'cM1'        , 'm', 2, "double",
-    'cM2'        , 'n', 2, "double",
-    'method'     , 'y', 2, "character",
-    'marker1'    , 'a', 2, "double",
-    'marker2'    , 'b', 2, "double",
-    'findmarker' , 'z', 2, "character",
-    'LODmin'     , 'l', 1, "double",
-    'interactive', 'i', 0, "logical",
-    'individuals', 'I', 0, "character",
-    'format'     , 'f', 1, "character",
-    'covariates' , 'c', 1, "character",
-    'work'       , 'w', 1, "character",
-    'output'     , 'o', 1, "character"
-   ),ncol=4,byrow=TRUE), debug=FALSE)
+    'verbose'    , 'v', 2, "integer","",
+    'debug'      , 'd', 2, "integer","",
+    'help'       , 'h', 0, "logical","",
+    'trait'      , 't', 1, "character","",
+    'chromosome1', 'e', 2, "character","",
+    'chromosome2', 'q', 2, "character","",
+    'cM1'        , 'm', 2, "double","",
+    'cM2'        , 'n', 2, "double","",
+    'method'     , 'y', 2, "character","",
+    'marker1'    , 'a', 2, "double","",
+    'marker2'    , 'b', 2, "double","",
+    'findmarker' , 'z', 2, "character","",
+    'LODmin'     , 'l', 1, "double","minimal LOD score for QTLs to list in table",
+    'interactive', 'i', 0, "logical","",
+    'individuals', 'I', 0, "character","",
+    'format'     , 'f', 1, "character","",
+    'covariates' , 'c', 1, "character","",
+    'work'       , 'w', 1, "character","set to 'scanone' or 'scantwo'",
+    'output'     , 'o', 1, "character","",
+    'main'       , 'M', 1, "character","main title of the plot",
+    'sub'        , 'S', 1, "character","sub title of the plot"
+   ),ncol=5,byrow=TRUE), debug=FALSE)
 
 if (!is.null(opt$help)) {
    cat("Please run 'pod2man createVenn.R | nroff -man | less' on this script to gain more insights.\n")
@@ -140,6 +142,25 @@ if (is.null(opt$trait)) {
 if (is.null(opt$work)) {
    opt$work<-"scanone"
 }
+
+
+if (is.null(opt$main)) {
+   opt[["main"]]<-opt[["trait"]]
+   if (!is.null(opt[["covariates"]])) {
+	opt[["main"]]<-paste(opt[["trait"]]," with covariates ",opt[["covariates"]],sep="")
+   }
+   if (!is.null(opt$verbose)) cat("Set main title to ",opt$main,"\n")
+}
+
+if (is.null(opt$sub)) {
+#   opt[["sub"]]<-paste("Showing ",switch(opt$display,lod="LOD",opt$display),
+#                       " of eQTL with LOD>=",opt$LODmin,
+#                       if (opt$PvalueMax<1) paste(" and P-value<=",opt$PvalueMax,sep="") else "",
+#                       if (opt$MeanMin>-1) paste(" and mean expression>=",opt$MeanMin,sep="") else "",
+#                       sep="")
+#   if (!is.null(opt$verbose)) cat("Set sub title to ",opt$sub,"\n")
+}
+
 
 #if (is.null(opt[["marker1"]])) {
 #	if (is.null(opt$chromosome1) & is.null(opt$cM1)) {
@@ -386,7 +407,47 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 		if (!is.null(opt$verbose)) {
 			cat("Executing Scanone.\n");
 		}
-		my.work <- scanone( my.cross, pheno.col=PHENOCOL, method=opt$method, verbose=FALSE )
+
+		if (!is.null(opt$debug)) {
+			cat("cov: "); print(cov)
+		}
+
+		cov.add<-NULL
+		cov.int<-NULL
+		if (!is.null(opt[["covariates"]])) {
+			cov.array <- strsplit(split="\\s*,\\s*",x=opt[["covariates"]])[[1]]
+			for(cc in cov.array) {
+				cc.split<-strsplit(split="_",x=cc)[[1]]
+				if (2 != length(cc.split)) {
+					warning(paste("Found strangely formatted covariate (1): ",cc,"\n",sep=""))
+					continue;
+				}
+				if (cc.split[2] == "add") {
+					cov.add <- c(cov.add,cc.split[1])
+				} else if (cc.split[2] == "int") {
+					cov.int <- c(cov.int,cc.split[1])
+				} else {
+					warning(paste("Found strangely formatted covariate (2): ",cc,"\n",sep=""))
+					continue;
+				}
+			}
+		}
+		# what is int shall also be add
+		cov.int<-unique(cov.int)
+		cov.add<-unique(c(cov.add,cov.int))
+
+		if (!is.null(opt$verbose)) {
+			cat("Parameters for scanone:\n");
+			cat("   cov.add: "); print(cov.add)
+			cat("   cov.int: "); print(cov.int)
+		}
+
+		ac<-NULL; ic<-NULL
+		if (!is.null(cov.add)) ac <- pull.pheno(my.cross, cov.add)
+                if (!is.null(cov.int)) ic <- pull.pheno(my.cross, cov.int)
+
+		my.work <- scanone( my.cross, pheno.col=PHENOCOL, method=opt$method,
+                                    verbose=FALSE, addcovar=ac, intcovar=ic)
 		m<-as.matrix(summary(my.work,thr=opt$LODmin)) # LODmin is always set
 		cat(file=txtname,"<h2>Scanone</h2>\n")
 		cat(file=txtname,
@@ -441,7 +502,7 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	f<-paste(opt$output,".",opt$format,sep="")
 	cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 	prepareOutput(f)
-	plot(my.work)
+	plot(my.work,main=opt$main,sub=opt$sub)
 	dev.off()
 	par(mfrow=c(1,1))
 
@@ -476,7 +537,7 @@ Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>,
 
 =head1 COPYRIGHT
 
-University of LE<uuml>beck, Germany, 2009-2010
+University of LE<uuml>beck, Germany, 2009-2011
 
 =cut
 
