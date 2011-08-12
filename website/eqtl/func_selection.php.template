@@ -139,12 +139,52 @@ function print_exclusive_selection($rname,$variablename,$entryarray,$default="")
 */
 
 
-
 /*
 
 =head2 Public function
 
 =over 4
+
+=item print_covariates_selection
+
+Argument 'cov' can be either a list of covariates or the context in which the selection is shown.
+
+=cut
+
+*/
+
+
+function print_covariates_selection($cov="qtl") {
+	global $linkLocal;
+	echo "<tr><th class=r valign=top>Covariates:";
+	if ("effectplot" != $cov) {
+		echo "<br />\n";
+		echo "      <font size=\"-3\"><i>";
+		$cvs=get_covars_on_your_own_from_qtl($linkLocal);
+		$colors=array("red","green","blue","black");
+		foreach ($cvs as $n=>$c) {
+			if ($n>0) {
+				echo "; ";
+				#if ( 0== $n%2) {
+				#	echo "<br>\n";
+				#}
+			}
+			$i=$n%count($colors);
+			echo "<font color=".$colors[$i].">"
+				.displayCovariates("$c")
+				."</font>";
+		}
+		echo "</i></font>";
+	}
+	echo "</th><td colspan=3 valign=top>";
+	select_covariates($linkLocal, $cov);
+	echo "</td></tr>\n";
+}
+
+
+
+
+/*
 
 =item print_selection_form
 
@@ -157,7 +197,7 @@ function print_selection_form($properties) {
 	global $LODmin,$LODmax,$quantilemin,$quantilemax,
 	       $chromosome,  $cM,  $marker, 
 	       $chromosome2, $cM2, $marker2, 
-	       $gene_name,
+	       $gene_name, $individuals_group_id,
 	       $LODdiffmin, $LODdiffmax, $cM_Peak_Min, $cM_Peak_Max, $Mbp_Peak_Min, $Mbp_Peak_Max,
 	       $cM_within, $groups, $locus, $chrlist,$TraitChromosome,
 	       $MeanMin, $MeanMax, 
@@ -423,12 +463,12 @@ function print_selection_form($properties) {
 				}
 				else {
 					echo "<table>\n";
-					$line=array(individuals_group_id=>"", name=>"all", phen=>"", relation=>"",  value=>"");
+					$line=array("individuals_group_id"=>"", "name"=>"all", "phen"=>"", "relation"=>"",  "value"=>"");
 					do {
 						echo "<tr><td>";
 						echo '<input type="radio" name="individuals_group_id" value="'
 							.$line["individuals_group_id"].'"'
-							.("$individuals_group_id"==$line["individuals_group_id"]?' checked':'').'>'.$line["name"]
+							.($individuals_group_id==$line["individuals_group_id"]?' checked':'').'>'.$line["name"]
 							.'</td><td>';
 						if ("all" != $line["name"]) echo '<small> ('.$line["phen"]." ".$line["relation"]." ".$line["value"].')</small>';
 						echo '</td>';

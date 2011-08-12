@@ -212,7 +212,7 @@ and two checkboxes to indicate if additive or interacting or both should be sele
 =cut
 
 */
-function select_covariates($dbh,$cov,$maxPerLine=6) {
+function select_covariates($dbh,$covariatesToShow,$maxPerLine=6) {
 
 	global $_POST, $_GET; // still to be used.
 	global $covariates; // the covariates selected on the web site
@@ -224,9 +224,13 @@ function select_covariates($dbh,$cov,$maxPerLine=6) {
 	}
 
 	#print_r($covariates);
+
+	#FIXME: enable direct specification of covariates to show
 	
 	/*
-	if( $cov == 'qtl' or $cov == 'locusInteraction' or $cov == 'both' ) {
+	if( $covariatesToShow == 'qtl' or $covariatesToShow == 'locusInteraction'
+			or $covariatesToShow == 'both' or $covariatesToShow == 'effectplot')
+	{
 		$cov = get_covars_on_your_own_from_schema($dbh);
 	} else {
 		$cov = convert_string_to_covariates_array($cov);
@@ -248,8 +252,10 @@ function select_covariates($dbh,$cov,$maxPerLine=6) {
 		     ."<tr><td valign=top nowrap>";
 
 		if ("none" == "$n") {
-			echo "<input type=radio name=covariate_selection_type value='selected' checked>selected<br>\n";
-			echo "<input type=radio name=covariate_selection_type value='all'>all available\n";
+			if ("effectplot" != "$covariatesToShow") {
+				echo "<input type=radio name=covariate_selection_type value='selected' checked>selected<br>\n";
+				echo "<input type=radio name=covariate_selection_type value='all'>all available\n";
+			}
 		}
 		else {
 			foreach($c as $v) 

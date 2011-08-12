@@ -85,6 +85,7 @@ University of LE<uuml>beck, Germany, 2010
 		"cM_Peak_Min","cM_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
 	*/
+		"covariate_selection_type", "covariates",
 		"method",
 		"find_marker",
 		"cistrans",
@@ -101,7 +102,7 @@ University of LE<uuml>beck, Germany, 2010
 	);
 
 	$accessible_fields_in_POST_or_GET = array_merge (
-		array("submitted","direct","inlineImages","rerunAnalyses","verbose"),
+		array("submitted","direct","inlineImages","rerunAnalyses","verbose","debug"),
 		$dataSelectionFieldsQTL
 	);
 
@@ -141,6 +142,18 @@ University of LE<uuml>beck, Germany, 2010
 		}
 	}
 
+	if (!empty($covariates)) {
+		if (!is_array($covariates)) {
+			if ("none"=="$covariates") {
+				$covariates=array('');
+			}
+			else {
+				$covariates=preg_split("/[, ;]+/",$covariates);
+			}
+		}
+	}
+
+
 	if (empty($submitted) and empty($direct)) {
 
 		#
@@ -166,11 +179,11 @@ University of LE<uuml>beck, Germany, 2010
 
 		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
 
+		echo "<h2>Covariates need some work, still, even though they are already shown</h2>\n";
 		echo "<table>\n";
 
 		print_selection_form("figure_effectplot");
-		//echo "<tr><th>Covariates of stored QTL</th><td>";
-		//select_covariates_combinations(3);
+		print_covariates_selection("effectplot");
 		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
 		echo "<tr><td align=right><input type=submit></td>";
 		echo "<td align=left><input type=reset></td>";
@@ -178,6 +191,7 @@ University of LE<uuml>beck, Germany, 2010
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=inlineImages value=1 />Inline Images";
 		//echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=rerunAnalyses value=1 />Rerun previous analyses";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=verbose value=1 />verbose";
+		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=debug".(isset($debug)?" value=checked":"")."/>debug";
 		echo "</td></tr>\n";
 		echo "</table>\n";
 
@@ -325,6 +339,14 @@ University of LE<uuml>beck, Germany, 2010
 				}
 				$outputfilename .= "_findmarker_$find_marker";
 				array_push($attributes,"--findmarker",$find_marker);
+			}
+
+			if (!empty($covariates)) {
+				if(is_array($covariates)) {
+					array_push($attributes,"--covariates",join($covariates,","));
+				} else {
+					array_push($attributes,"--covariates",$covariates);
+				}
 			}
 
 			$rscript = getcwd() . "/../../scripts/analyses/effectplot.R";

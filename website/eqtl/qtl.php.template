@@ -128,11 +128,10 @@ ENDOFDOCUMENTATION
 	# fields that should appear
 	$dataSelectionFieldsQTL = array(
 		"groups",
-		"covariate_selection_type",
+		"covariate_selection_type", "covariates",
 		"ensemblversion",
 		"cM_within","LODmax","LODmin",
 		"quantilemin","quantilemax",
-		"covariates",
 		"LODdiffmin","LODdiffmax",
 		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
@@ -217,6 +216,7 @@ ENDOFDOCUMENTATION
 			}
 		}
 	}
+
 	if (!empty($direct)) {
 		foreach($a as $i=>$v) {
 			$n="show_".$i;
@@ -233,30 +233,8 @@ ENDOFDOCUMENTATION
 		<input type="hidden" name="submitted" value="1">
 		<table width="100%"><tr><td>
 			<table>
-			<tr><th class=r valign=top>Covariates:<br>
-	<font size="-3"><i>
 	<?php
-		$cvs=get_covars_on_your_own_from_qtl($linkLocal);
-		$colors=array("red","green","blue","black");
-		foreach ($cvs as $n=>$c) {
-			if ($n>0) {
-				echo "; ";
-				#if ( 0== $n%2) {
-				#	echo "<br>\n";
-				#}
-			}
-			$i=$n%count($colors);
-			echo "<font color=".$colors[$i].">".displayCovariates("$c")."</font>";
-		}
-	?>
-	</i></font>
-			</th><td colspan=3 valign=top>
-	<?php
-					select_covariates($linkLocal, "qtl");
-	?>
-			</td></tr>
-
-	<?php
+			print_covariates_selection();
 			print_selection_form("all_qtl");
 	?>
 			<tr><th class=r>Order by:</th><td colspan=3>
