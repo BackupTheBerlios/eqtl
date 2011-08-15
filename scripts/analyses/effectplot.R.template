@@ -397,6 +397,52 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 
 	my.work<-NULL
 
+	#
+	# getting the covariates worked out
+	#
+
+	if (!is.null(opt$debug)) {
+		cat("cov: "); print(cov)
+	}
+
+	cov.add<-NULL
+	cov.int<-NULL
+	if (!is.null(opt[["covariates"]])) {
+		cov.array <- strsplit(split="\\s*,\\s*",x=opt[["covariates"]])[[1]]
+		for(cc in cov.array) {
+			cc.split<-strsplit(split="_",x=cc)[[1]]
+			if (2 != length(cc.split)) {
+				warning(paste("Found strangely formatted covariate (1): ",cc,"\n",sep=""))
+				continue;
+			}
+			if (cc.split[2] == "add") {
+				cov.add <- c(cov.add,cc.split[1])
+			} else if (cc.split[2] == "int") {
+				cov.int <- c(cov.int,cc.split[1])
+			} else {
+				warning(paste("Found strangely formatted covariate (2): ",cc,"\n",sep=""))
+				continue;
+			}
+		}
+	}
+	# what is int shall also be add
+	cov.int<-unique(cov.int)
+	cov.add<-unique(c(cov.add,cov.int))
+
+	ac<-NULL; ic<-NULL
+	if (!is.null(cov.add)) ac <- pull.pheno(my.cross, cov.add)
+	if (!is.null(cov.int)) ic <- pull.pheno(my.cross, cov.int)
+
+	if (!is.null(opt$verbose)) {
+		cat("Parameters for scanone:\n");
+		cat("   cov.add: "); print(cov.add)
+		cat("   cov.int: "); print(cov.int)
+	}
+
+	#
+	# here starting the real computation
+	#
+
 	if ("scanone" == opt$work) {
 		if (USECALCGENOPROB) {
 			if (!is.null(opt$verbose)) {
@@ -404,47 +450,10 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 			}
 			my.cross <- calc.genoprob( my.cross, step=STEPSSO, error.prob=0.01 )
 		}
+
 		if (!is.null(opt$verbose)) {
 			cat("Executing Scanone.\n");
 		}
-
-		if (!is.null(opt$debug)) {
-			cat("cov: "); print(cov)
-		}
-
-		cov.add<-NULL
-		cov.int<-NULL
-		if (!is.null(opt[["covariates"]])) {
-			cov.array <- strsplit(split="\\s*,\\s*",x=opt[["covariates"]])[[1]]
-			for(cc in cov.array) {
-				cc.split<-strsplit(split="_",x=cc)[[1]]
-				if (2 != length(cc.split)) {
-					warning(paste("Found strangely formatted covariate (1): ",cc,"\n",sep=""))
-					continue;
-				}
-				if (cc.split[2] == "add") {
-					cov.add <- c(cov.add,cc.split[1])
-				} else if (cc.split[2] == "int") {
-					cov.int <- c(cov.int,cc.split[1])
-				} else {
-					warning(paste("Found strangely formatted covariate (2): ",cc,"\n",sep=""))
-					continue;
-				}
-			}
-		}
-		# what is int shall also be add
-		cov.int<-unique(cov.int)
-		cov.add<-unique(c(cov.add,cov.int))
-
-		if (!is.null(opt$verbose)) {
-			cat("Parameters for scanone:\n");
-			cat("   cov.add: "); print(cov.add)
-			cat("   cov.int: "); print(cov.int)
-		}
-
-		ac<-NULL; ic<-NULL
-		if (!is.null(cov.add)) ac <- pull.pheno(my.cross, cov.add)
-                if (!is.null(cov.int)) ic <- pull.pheno(my.cross, cov.int)
 
 		my.work <- scanone( my.cross, pheno.col=PHENOCOL, method=opt$method,
                                     verbose=FALSE, addcovar=ac, intcovar=ic)
@@ -471,11 +480,28 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 			}
 			my.cross <- calc.genoprob( my.cross, step=STEPSST, error.prob=0.01 )
 		}
+
 		if (!is.null(opt$verbose)) {
 			cat("Executing Scantwo.\n");
 		}
-		my.work <- scantwo( my.cross, pheno.col=PHENOCOL, method=opt$method, verbose=FALSE )
-		m<-as.matrix(summary(my.work,thr=c(opt$LODmin,0,0,0,0))) # LODmin is always set
+
+		my.work <- scantwo( my.cross, pheno.col=PHENOCOL, method=opt$method,
+                                    verbose=FALSE, addcovar=ac, intcovar=ic)
+		m<-as.matrix(summary(my.work,thr=opt$LODmin)) # LODmin is always set
+		cat(file=txtname,"<h2>MQMscan</h2>\n")
+		cat(file=txtname,
+                    paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
+			  "<th>Links</th>",
+			  "</th></tr>\n"),append=T)
+		apply(m,1,function(X){
+			cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
+			cat(file=txtname,"<td>",append=T)
+			effectplotlinkO(txtname,X["chr"],X["pos"],"effectplot",verbose=!is.null(opt$verbose))
+			cat(file=txtname,"</td>",append=T)
+			cat(file=txtname,"</tr>\n",append=T)
+			
+		})
+		cat(file=txtname,paste("</table>\n"),append=T)
 		cat(file=txtname,"<h2>Scantwo</h2>\n")
 		cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
 			"<th>Effectplot</th>",
@@ -495,8 +521,47 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 			
 		})
 		cat(file=txtname,paste("</table>\n"),append=T)
+	} else if ("mqmscan" == opt$work) {
+		if (USECALCGENOPROB) {
+			if (!is.null(opt$verbose)) {
+				cat("Executing Calc.genoprob.\n");
+			}
+			my.cross <- calc.genoprob( my.cross, step=STEPSSO, error.prob=0.01 )
+		}
+
+		cat("Augmenting data to estimate missing.\n")
+		my.cross <- mqmaugment(my.cross)
+
+		if (!is.null(opt$verbose)) {
+			cat("Executing mqmscan.\n");
+		}
+		covs.unique<-unique(c(cov.int,cov.add))
+		my.work <- mqmscan( my.cross, pheno.col=PHENOCOL,
+				    #cofactors=cov.unique,
+                                    verbose=FALSE)
+		m<-as.matrix(summary(my.work,thr=c(opt$LODmin,0,0,0,0))) # LODmin is always set
+		cat(file=txtname,"<h2>MQMscan</h2>\n")
+		cat(file=txtname,paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
+			"<th>Effectplot</th>",
+			"</th></tr>\n"),append=T)
+		apply(m,1,function(X){
+			cat(file=txtname,paste("<tr><td>",paste(X,collapse="</td><td>",sep=""),"</td>",sep=""),append=T)
+			cat(file=txtname,"<td>",append=T)
+			effectplotlinkT(file=txtname,chr1=X["chr1"],pos1=X["pos1f"],
+			                             chr2=X["chr2"],pos2=X["pos2f"],name="full",
+					verbose=!is.null(opt$verbose))
+			cat(file=txtname," &nbsp; ",append=T)
+			effectplotlinkT(file=txtname,chr1=X["chr1"],pos1=X["pos1a"],
+			                             chr2=X["chr2"],pos2=X["pos2a"],name="additive",
+					verbose=!is.null(opt$verbose))
+			cat(file=txtname,"</td>",append=T)
+			cat(file=txtname,"</tr>\n",append=T)
+			
+		})
+		cat(file=txtname,paste("</table>\n"),append=T)
+
 	} else {
-		stop(paste("Don't know how to do '",opt$work,"'.\n"))
+		stop(paste("Don't know how to do '",opt$work,"'.\n",sep=""))
 	}
 
 	f<-paste(opt$output,".",opt$format,sep="")

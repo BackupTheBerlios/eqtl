@@ -171,6 +171,7 @@ University of LE<uuml>beck, Germany, 2010
 		analysis on individual traits. It uses those insights to then show all
 		effect plots for the LOD scores above the <i>LODmin</i>
 		threshold.</p>";
+		echo "<h2>Currently adding MQMscan</h2>\n";
 
 		echo "<form action=effectplot.php method=post>\n";
 		echo "<input type=hidden name=submitted value=1>\n";
@@ -179,7 +180,6 @@ University of LE<uuml>beck, Germany, 2010
 
 		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
 
-		echo "<h2>Covariates need some work, still, even though they are already shown</h2>\n";
 		echo "<table>\n";
 
 		print_selection_form("figure_effectplot");
@@ -344,9 +344,13 @@ University of LE<uuml>beck, Germany, 2010
 			if (!empty($covariates)) {
 				if(is_array($covariates)) {
 					array_push($attributes,"--covariates",join($covariates,","));
+					$outputfilename .= "_covariates_".join($covariates,",");
 				} else {
 					array_push($attributes,"--covariates",$covariates);
+					$outputfilename .= "_covariates_".$covariates;
 				}
+			} else {
+				$outputfilename .= "_covariates_none";
 			}
 
 			$rscript = getcwd() . "/../../scripts/analyses/effectplot.R";

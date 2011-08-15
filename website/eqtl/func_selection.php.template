@@ -489,7 +489,7 @@ function print_selection_form($properties) {
 
 			case "work":
 				print_exclusive_selection("Work","work",
-						array("scanone"=>"scanone","scantwo"=>"scantwo"),"scanone");
+						array("scanone"=>"scanone","scantwo"=>"scantwo","MQMscan"=>"mqmscan"),"scanone");
 				break;
 
 			case "method":
