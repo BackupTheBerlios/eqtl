@@ -567,7 +567,11 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 	f<-paste(opt$output,".",opt$format,sep="")
 	cat(paste("<a href=\"",f,"\">",f,"</a>\n",sep=""))
 	prepareOutput(f)
-	plot(my.work,main=opt$main,sub=opt$sub)
+	if ("mqmscan" == opt$work) {
+		mqmplot.singletrait(my.work,main=opt$main,sub=opt$sub)
+	} else {
+		plot(my.work,main=opt$main,sub=opt$sub)
+	}
 	dev.off()
 	par(mfrow=c(1,1))
 
