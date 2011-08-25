@@ -179,6 +179,9 @@ analyzeclusters <- function(
 			draw=F,
 			verbose=FALSE,
 			phen=NULL,
+			hull.lwd=3,
+			hull.lty="dotted",
+			col=c("red","green","gray"),
 			label.individuals=T,
 			selection_xaxis="gene",
 			selection_yaxis="gene",
@@ -193,16 +196,17 @@ analyzeclusters <- function(
   	m<-find.best.markers(e1,e2,verbose=verbose)
   }
   md <- marker[m,]
-  pindices <- which(md %in% c(1,"1","A"))
-  nindices <- which(md %in% c(2,"2",3,"3","B"))
+  cat("Values in genotypes:  "); print(paste(unique(md),collapse=",",sep=""))
+  pindices <- which(md %in% c(1," 1","1","A"))
+  nindices <- which(md %in% c(2," 2","2",3,"3","B"))
   mindices <- which(md %in% c("H"))
-  naindices <- which(is.na(md))
+  naindices <- which(is.na(md) | md %in% "-")
   if (length(pindices) == 0 || length(nindices) == 0) {
     message("analyzeclusters(",e1,",",e2,",",m,") :  problem with length(pindices)==",length(pindices)," and length(nindices)==",length(nindices),".\n")
     return(0)
   }
 
-  # HACK HACK HACK ... FIXME ...
+  # FIXME: HACK HACK HACK
   pindices <- pindices[pindices < nrow(ed)]
   nindices <- nindices[nindices < nrow(ed)]
 
@@ -230,9 +234,9 @@ analyzeclusters <- function(
     #pch[naindices] <- 20
     plot(x=ed, col=col, pch=pch, xlab=xlab, ylab=ylab, sub=sub)
 
-    hulls<-list(list("indices"=pindices,"col"="green","lty"="dotted","lwd"=2),
-                list("indices"=nindices,"col"="red","lty"="dotted","lwd"=2),
-                list("indices"=1:nrow(ed),"col"="gray","lty"="dotted","lwd"=2))
+    hulls<-list(list("indices"=pindices,  "col"=col[1],"lty"=hull.lty[1],"lwd"=hull.lwd[1]),
+                list("indices"=nindices,  "col"=col[2],"lty"=hull.lty[1],"lwd"=hull.lwd[2]),
+                list("indices"=1:nrow(ed),"col"=col[3],"lty"=hull.lty[1],"lwd"=hull.lwd[3]))
 
     to.print<-NULL
     for (l in hulls) {

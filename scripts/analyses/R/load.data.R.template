@@ -93,10 +93,15 @@ load.data <- function(data.type,verbose=FALSE) {
   if ("expression" == data.type) {
 
     d.prime<-read.table(filename, dec="PHENOFIELDDEC", header=T, sep="PHENOFIELDSEP", row.names=PHENOROWNAMES, skip=PHENOLINESSKIPNO,nrows=5)
+    cat("dim(d.prime):");print(dim(d.prime))
+    cat("d.prime[1:2,1:5]:\n"); print(d.prime[1:2,1:5])
     #col.numeric<-apply(d.prime,2,function(X){return(sum(!is.na(as.numeric(X)))>=4)})
     # this version does not report "NA" conversions
     col.numeric<-apply(d.prime,2,function(X){length(grep("^ *-?[0-9]+(\\.[0-9]+)? *$",X))>4})
-    if (0 == sum(col.numeric)) stop("load.data.R: exected some numeric columns. The format is not understood.\n")
+    if (0 == sum(col.numeric)) {
+      cat("col.numeric[1:2,1:5]:\n"); print(col.numeric[1:2,1:5])
+      stop("load.data.R: exected some numeric columns. The format (PHENO-FIELDSEP = 'PHENOFIELDSEP', PHENO-FIELDDEC='PHENOFIELDDEC')  is not understood.\n")
+    }
 
     colClasses=rep("character",times=ncol(d.prime))
     colClasses[col.numeric]<-"numeric"

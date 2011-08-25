@@ -133,8 +133,8 @@ opt = getopt(matrix(c(
    'imagewidth'      , 'W', 1, "integer"  , "width of image, represented in dependency on the format",
    'imageheight'     , 'H', 1, "integer"  , "height of image, represented in dependency on the format",
    'linecolour'      , 'a', 1, "character", "colour of lines separating the chromosomes",
-   'linewidth'       , 'w', 1, "double"   , "width of lines separating the chromosomes",
-   'linetype'        , 't', 1, "integer"  , "type of lines separating the chromosomes",
+   'linewidth'       , 'w', 1, "double"   , "width of lines for convex hull",
+   'linetype'        , 't', 1, "integer"  , "type of lines for convex hull",
    'axescolour'      , 'b', 1, "character", "colour of axes",
    'axeswidth'       , 'x', 1, "double"   , "width of axes",
    'axestype'        , 'y', 1, "integer"  , "line type of axes",
@@ -192,12 +192,12 @@ if (is.null(opt$linecolour)) {
 }
 
 if (is.null(opt$linewidth)) {
-   opt[["linewidth"]]<-1
+   opt[["linewidth"]]<-2
    if (!is.null(opt$verbose)) cat("Set width for lines : ",opt$linewidth,"\n")
 }
 
 if (is.null(opt$linetype)) {
-   opt[["linetype"]]<-3
+   opt[["linetype"]]<-"dotted"
    if (!is.null(opt$verbose)) cat("Set type for lines : ",opt$linetype,"\n")
 }
 
@@ -276,7 +276,7 @@ source('BASEDIR/scripts/analyses/R/load.data.R')
 #source('BASEDIR/scripts/analyses/R/analyseCorrelationForMarkers.R')
 source('BASEDIR/scripts/analyses/R/analyseCorrelationForAllMarkers.R')
 
-a<-analyzeclusters(e1=opt$value_xaxis, e2=opt$value_yaxis, m=NULL, draw=T, verbose=opt$verbose)
+a<-analyzeclusters(e1=opt$value_xaxis, e2=opt$value_yaxis, m=NULL, draw=T, hull.lty=opt$linetype, hull.lwd=opt$linewidth, verbose=opt$verbose)
 #a<-analyzeclusters(opt$selection_xaxis,  opt$value_xaxis,
 #		   opt$selection_yaxis,  opt$value_yaxis,
 #		   opt$selection_symbol, opt$value_symbol,
