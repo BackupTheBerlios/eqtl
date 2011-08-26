@@ -1,0 +1,16 @@
+For using the network presentation, add additional files from the internet.
+We have been successful with version 0.7.3 of cytoscape web.
+
+wget http://cytoscapeweb.cytoscape.org/file/lib/cytoscapeweb_v0.7.3.zip
+if unzip -x cytoscapeweb_v0.7.3.zip \*.swf \*json2.min.js \*AC_OETags.min.js \*cytoscapeweb.min.js ; then
+	mv js/min/*.js . &&  rm -rf js
+	mv swf/*.swf . && rm -rf swf
+fi
+rm cytoscapeweb_v0.7.3.zip
+
+
+The network is implemented with Flash, to successfully interact with it,
+you need a particular browser. This is all installed automatically,
+just for the security settings, ensure everything to be "allowed", as
+explained here
+http://www.macromedia.com/support/documentation/en/flashplayer/help/settings_manager04.html

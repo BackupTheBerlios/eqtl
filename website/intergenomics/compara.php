@@ -27,8 +27,21 @@
  ENDOFDOCUMENTATION
  */
 
-include 'html/header.html';
+require_once '../eqtl/header.php';
+$upper_tit = '<div id="headline">Ensembl Compara interface for Expression QTL</div>';
+show_large_header("Intergenomics - Syntenies for selected regions",true,$upper_tit,
+	'../eqtl/', array('css/style.css','css/prettyPhoto.css'));
 
+?>
+
+<script
+	src="js/jquery-1.4.4.min.js" type="text/javascript" charset="utf-8"></script>
+<script
+	src="js/jquery.prettyPhoto.js" type="text/javascript" charset="utf-8"></script>
+<script
+	src="js/mouseposition.js" type="text/javascript"></script>
+
+<?php
 require_once 'qtl_functions.php';
 require_once 'db_functions.php';
 require_once 'utils.php';
@@ -136,5 +149,5 @@ $groupSynteny_ex12ex2 = getSyntenyGroups(array($experiment1['connection'], $expe
 // display -----------------------
 include 'display_table.php';
 toc($start,'Synteny search');
-include 'html/footer.html';
+require_once("../eqtl/footer.php");
 ?>

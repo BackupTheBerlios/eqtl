@@ -44,8 +44,10 @@ the image dynamically and allow you to click on it. For the time speaking,
 please just look at the writing at the left and at the bottom to find
 the values to select from the respective modules and phenotype selection
 dropdown boxes. Suggestions on how to present the data more easily please
-let flow in. More work on the linking to the GeneOntology and pathway
-analyses is on its way, some surprises are already scheduled for Monday.
+let flow in. More work on the linking to the GeneOntology.
+
+The most recent addition was on pathway analyses, which are available
+upon a mouse click for every module.
 
 =head1 ATTRIUTES
 
@@ -141,7 +143,7 @@ function showMe (it, box) {
 
   echo "<p>This page presents all traits (gene expressions) that belong to the same module. The module is named by a colour, which means nothing more than to be easily remembered and to look nicer than mere numbers. The genes in the module are offered to be ranked for their meaning in the context of a clinical phenotype and varies between genes. Module-membership of traits is independently calculcated from those phenotypes. For that, the very same genes may have different significances for an association with the different phenotypes, but always the same affinity to a particular module. What module to look at, you select from <i>Module Colour</i> selection box. To select the <i>Clinical Phenotype</i>, use the respective other selection box.</p>";
   echo "<p>The output table also shows the QTL for every molecular trait. You can constrain the search by specifying three minimal values for the module membership of a trait (<i>module membership</i>), the association with a phenotype (<i>gene significance</i>) and the association with a chromosomal locus (<i>LOD score</i> - coming later tonight). The wording from this page relects that of R's CRAN <a href='http://www.genetics.ucla.edu/labs/horvath/CoexpressionNetwork/Rpackages/WGCNA/'>WGCRA</a> software package that is used to perform those analyses.</p>";
-  echo "<p>The analysis should start by a click to the checkbox right below the entry form to have a diagram popped up that presents the association of modules to all the clinical phenotypes. At some time we hope to generate the image dynamically and allow you to click on it. For the time speaking, please just look at the writing at the left and at the bottom to find the values to select from the respective modules and phenotype selection dropdown boxes. Suggestions on how to present the data more easily please let flow in. More work on the linking to the GeneOntology and pathway analyses is on its way, some surprises are already scheduled for Monday.</p>";
+  echo "<p>The analysis should start by a click to the checkbox right below the entry form to have a diagram popped up that presents the association of modules to all the clinical phenotypes. At some time we hope to generate the image dynamically and allow you to click on it. For the time speaking, please just look at the writing at the left and at the bottom to find the values to select from the respective modules and phenotype selection dropdown boxes. Suggestions on how to present the data more easily please let flow in. More work on the linking to the GeneOntology and pathway analyses have just now been addeed.</p>";
 
   echo "<form action='modules.php' method='post'>";
   echo "<table width=100% border=0>";
@@ -234,8 +236,8 @@ function showMe (it, box) {
 
   if (!empty($modcolour) and !empty($clinical)) {
 
-    echo "<p><a href=\"demo/visant.php?modcolour=$modcolour\">"
-            ."<b>Click to open gene network for module with Visant (<i>coming Monday</i>)</b>"
+    echo "<p><a href=\"networks/presentModule.php?modcolour=$modcolour\">"
+            ."<b>Click to open gene network for module with Cytoscape</i>)</b>"
 	    ."</a>"
 	."</p>\n";
     $query = "SELECT module_trait_moduleMembership.trait_id as trait_id"

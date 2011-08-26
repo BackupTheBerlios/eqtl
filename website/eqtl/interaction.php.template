@@ -91,14 +91,30 @@ set in the configuration.
 		convert_string_to_covariates_array(strtolower("locusInteraction"))
 	);
 
-	foreach ($accessible_fields_in_POST_or_GET as $vname) {
+			
+	foreach($accessible_fields_in_POST_or_GET as $vname)
+	{
 		if (isset($_POST[$vname])) {
-			$$vname=ltrim(rtrim($_POST[$vname]));
+			if (is_array($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			}
+			else {
+				$$vname = ltrim(rtrim($_POST[$vname]));
+				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
+					echo $vname."=".$$vname."\t";
+				}
+			}
 		}
-		elseif (isset($_GET[$vname])) {
-			$$vname=ltrim(rtrim($_GET[$vname]));
+		elseif(isset($_GET[$vname])) {
+			if (is_array($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			} else {
+				$$vname = ltrim(rtrim($_GET[$vname]));
+				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
+					echo $vname."=".$$vname."\t";
+				}
+			}
 		}
-// 		echo $$vname . " = " . $vname ."<br>";
 	}
 
 	if (!empty($direct)) {
@@ -743,5 +759,3 @@ Universities of Rostock and LE<uuml>beck, Germany, 2003-2009
 */
 
 ?>
-</body>
-</html>

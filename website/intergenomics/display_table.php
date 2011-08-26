@@ -40,7 +40,7 @@ prepareColors($groups1,$groups2);
 <p>
   Experiment 1 (species name) over the columns: <span id="species1"
     class="display_species"><?php echo $projects[0]." (".$species_names[0].")";?>
-  </span>; Experiment 2 (species name) over the rows: <span
+  </span>; <br /> Experiment 2 (species name) over the rows: <span
     id="species2" class="display_species"><?php echo $projects[1]." (".$species_names[1].")";?>
   </span>.<br />click on a synthenic region for details or click <a href="img/synteny_l.png" rel="prettyPhoto" title="Syntenic regions view for the selected chromosomes.">HERE</a> for legend.
 </p>
@@ -60,7 +60,7 @@ prepareColors($groups1,$groups2);
       <tr>
         <th>syntenic <br /> loci <br /> groupnumbers</th>
         <?php
-        $colorArray = array("#BDB76B","#B8860B","#DAA520","#FFD700");
+        $colorArray = array("#C4C4C4","#999999");
         $colIndex = 0;
         $regionNo = $group2region[0];
         for ($i = 0; $i < sizeof($groups1); $i++) {
@@ -71,7 +71,8 @@ prepareColors($groups1,$groups2);
         	if ($colIndex >= sizeof($colorArray)) {
         		$colIndex =0;
         	}
-        	echo '<th style="background-color:'.$colorArray[$colIndex].'" title="region '.($group2region[$i]+1).'">'.$groups1[$i]['Chr'].'<br />'.round($groups1[$i]['start']).'<br />-<br />'.round($groups1[$i]['end']).'</th>';
+        	echo '<th style="background-color:'.$colorArray[$colIndex].'" title="region '.($group2region[$i]+1).'">'.$groups1[$i]['Chr'].'<br />'
+        	.round($groups1[$i]['start']).'&nbsp;-&nbsp;'.round($groups1[$i]['end']).'</th>';
         }
         ?>
       </tr>

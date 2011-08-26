@@ -102,7 +102,7 @@ ENDOFDOCUMENTATION
 			"description"=>"The QTL and the gene it controls are on the same chromosome"
 		),
 		"Unequal Chromosomes" => array(
-			"constraint"=>"trait.seqname != qtl.Chromosome",
+			"constraint"=>"trait.chromosome != qtl.Chromosome",
 			"description"=>"The QTL and the gene it controls are on different chromosomes"
 		),
 		"Within classical QTL" => array(
@@ -128,24 +128,24 @@ ENDOFDOCUMENTATION
 	# fields that should appear
 	$dataSelectionFieldsQTL = array(
 		"groups",
-		"covariate_selection_type",
+		"covariate_selection_type", "covariates",
 		"ensemblversion",
 		"cM_within","LODmax","LODmin",
 		"quantilemin","quantilemax",
-		"covariates",
 		"LODdiffmin","LODdiffmax",
 		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
 		"Mbp_Peak_Min","Mbp_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
-		"locus","chrlist", "condition"
+		"locus","chrlist", "condition",
+		"traits","traitlist","gene_name","TraitChromosome"
 	);
 
 	# fields offered to be optionally deselected from being presented as columns
 	$a=array("Trait"=>1, "Groups"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
 		"LOD"=>1,"LODdiff"=>1,"pvalue" => 1, "Quantile"=>1,
 		"covariates"=>1,
-		"Chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>0, "cMorgan_Max"=>0,
+		"Chromosome"=>1, "TraitChromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>0, "cMorgan_Max"=>0,
 		"Gid"=>0, "gene_name"=>1, "name"=>1, "ensembl_stable_gene_id"=>1, "mean"=>1, "sd"=>1 
 	);
 			
@@ -163,7 +163,7 @@ ENDOFDOCUMENTATION
 
 		$dataSelectionFieldsQTL,
 
-		array(  "direct",
+		array( "direct",
 			"debug",
 			"submitted",
 			"onlyNumbers",
@@ -172,12 +172,7 @@ ENDOFDOCUMENTATION
 
 		$aPrepend,
 
-		array(
-			"traits",
-			"traitlist",
-			"gene_name",	
-			"limit","order"
-		),
+		array(	"limit","order"),
 		
 		convert_string_to_covariates_array(strtolower("qtl"))
 	);
@@ -185,28 +180,30 @@ ENDOFDOCUMENTATION
 	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
 		echo "<br>Retrieving info for: "; print_r($accessible_fields_in_POST_or_GET); echo "<br>\n";
 	}
-			
+
 	foreach($accessible_fields_in_POST_or_GET as $vname)
 	{
 		if (isset($_POST[$vname])) {
-			$$vname = ltrim(rtrim($_POST[$vname]));
-			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
-				echo $vname."=".$$vname."\t";
+			if (is_array($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			}
+			else {
+				$$vname = ltrim(rtrim($_POST[$vname]));
+				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
+					echo $vname."=".$$vname."\t";
+				}
 			}
 		}
 		elseif(isset($_GET[$vname])) {
-			$$vname = ltrim(rtrim($_GET[$vname]));
-			if (isset($_POST["debug"]) or isset($_GET["debug"])) {
-				echo $vname."=".$$vname."\t";
+			if (is_array($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			} else {
+				$$vname = ltrim(rtrim($_GET[$vname]));
+				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
+					echo $vname."=".$$vname."\t";
+				}
 			}
 		}
-	}
-
-	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
-		echo "<br>\n";
-		echo "eae: "; print_r($eae);
-		echo "sum: "; print_r($sum);
-		echo "<br>\n";
 	}
 
 	if (!empty($covariates)) {
@@ -219,6 +216,7 @@ ENDOFDOCUMENTATION
 			}
 		}
 	}
+
 	if (!empty($direct)) {
 		foreach($a as $i=>$v) {
 			$n="show_".$i;
@@ -235,30 +233,8 @@ ENDOFDOCUMENTATION
 		<input type="hidden" name="submitted" value="1">
 		<table width="100%"><tr><td>
 			<table>
-			<tr><th class=r valign=top>Covariates:<br>
-	<font size="-3"><i>
 	<?php
-		$cvs=get_covars_on_your_own_from_qtl($linkLocal);
-		$colors=array("red","green","blue","black");
-		foreach ($cvs as $n=>$c) {
-			if ($n>0) {
-				echo "; ";
-				#if ( 0== $n%2) {
-				#	echo "<br>\n";
-				#}
-			}
-			$i=$n%count($colors);
-			echo "<font color=".$colors[$i].">".displayCovariates("$c")."</font>";
-		}
-	?>
-	</i></font>
-			</th><td colspan=3 valign=top>
-	<?php
-					select_covariates($linkLocal, "qtl");
-	?>
-			</td></tr>
-
-	<?php
+			print_covariates_selection();
 			print_selection_form("all_qtl");
 	?>
 			<tr><th class=r>Order by:</th><td colspan=3>
@@ -271,7 +247,7 @@ ENDOFDOCUMENTATION
 						</select>
 						</td></tr>
 			<tr><th class=r>Limit lines shown</th>
-			    <td colspan=3><input type=text name=limit value=500></td></tr>
+			    <td colspan=3><input type=text name=limit value=<? echo empty($limit)?500:$limit;?>></td></tr>
 			<tr><td>&nbsp;</td><td></td></tr>
 			<tr><td align=right><input type=submit></td><td align=left><input type=reset></td></tr>
 			</table>
@@ -281,13 +257,18 @@ ENDOFDOCUMENTATION
 				echo empty($onlyNumbers)?"":" value=\"$onlyNumbers\""; ?>>
 			   <br />
 			&nbsp;
-			   <input type="radio" name="onlyNumbersGrouped" value="totals" <?php ((empty($onlyNumbersGrouped)?
+			   	<input type="radio" name="onlyNumbersGrouped" value="totals" <?php echo empty($onlyNumbersGrouped)?
 			   					" checked":
-			   					("totals"=="$onlyNumbersGrouped")?" checked":""))?>>Totals only<br />
+			   					(("totals"=="$onlyNumbersGrouped")?" checked":"")?> >Totals only</input><br />
 			&nbsp;
-			   <input type="radio" name="onlyNumbersGrouped" value="seqname" <?php (!empty($seqname) && "seqname"=="$onlyNumbersGrouped"?" checked":"")?>>Trait's Chromosome<br />
+			   <input type="radio" name="onlyNumbersGrouped" value="trait.chromosome"
+			   <?php
+			   	echo (!empty($onlyNumbersGrouped) and "trait.chromosome"=="$onlyNumbersGrouped")?" checked":"";
+			    ?> >Trait's Chromosome</input><br />
 			&nbsp;
-			   <input type="radio" name="onlyNumbersGrouped" value="Chromosome" <?php (!empty($seqname) && "Chromosome"=="$onlyNumbersGrouped"?" checked":"")?>>eQTL's Chromosome<br />
+			   <input type="radio" name="onlyNumbersGrouped" value="qtl.Chromosome" <?php 
+			        echo (!empty($onlyNumbersGrouped) and "qtl.Chromosome"=="$onlyNumbersGrouped")?" checked":"";
+			    ?> >eQTL's Chromosome</input><br />
 			</p>
 
 			<?php
@@ -307,7 +288,18 @@ ENDOFDOCUMENTATION
 			}
 ?>
 			</table>
-			</small></small>
+			</small>
+
+			<table border=0 width="100%">
+			<?php foreach(array("verbose","debug") as $n) {
+				echo "<tr><td align=left colspan=2>";
+				echo "<input type=checkbox name=$n ";
+				if (!empty($$n)) echo " checked";
+				echo ">$n</input><br />\n";
+				echo "</td></tr>";
+			} ?>
+			</table>
+			</small>
 		</td><td valign=top>
 			<table border=0>
 			<tr bgcolor="red"><th colspan=4 class=c>QTLs - Select Locus</th></tr>
@@ -365,10 +357,11 @@ ENDOFDOCUMENTATION
 		$query = "SELECT ";
 		if (!empty($onlyNumbers) and $onlyNumbers and !(isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition))) {
 			if (!empty($onlyNumbersGrouped) and !("totals"==$onlyNumbersGrouped)) {
-				if ("Chromosome"=="$onlyNumbersGrouped" or "seqname" == "$onlyNumbersGrouped") {
+				if ("qtl.Chromosome"=="$onlyNumbersGrouped") {
 					$query .= "$onlyNumbersGrouped,";
-				}
-				else {
+				} else if ("trait.chromosome" == "$onlyNumbersGrouped") {
+					$query .= "$onlyNumbersGrouped,";
+				} else {
 					errorMessage("Unknown attribute to group for: '$onlyNumbersGrouped'.");
 					exit;
 				}
@@ -450,11 +443,12 @@ ENDOFDOCUMENTATION
 		# These extra joins are not needed for every kind of query, some optimisation
 		# would help to speed things up!
 
-		if (!(empty($show_LocusOfGene) and empty($show_Chromosome)
+		if (!(empty($show_LocusOfGene) and empty($show_Chromosome) and empty($show_TraitChromosome)
 			and empty($MeanMin) and empty($MeanMax)
 			and empty($SdMin) and empty($SdMax) and empty($show_ExpressionOfGene)
 			and empty($show_gene_assignment)
-			and empty($gene_name)))
+			and empty($gene_name)
+			and empty($TraitChromosome)))
 		{
 			$query .= " join trait on Trait=trait.trait_id ";
 		}
@@ -556,6 +550,12 @@ ENDOFDOCUMENTATION
 			$where .= " in ('".join("','",preg_split("/[, ;]+/",$chrlist))."') ";
 		}
 
+		if (!empty($TraitChromosome)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " trait.chromosome";
+			$where .= " in ('".join("','",preg_split("/[, ;]+/",$TraitChromosome))."') ";
+		}
+
                 if (!empty($traitlist)) {
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " Trait in ('".join("','",preg_split("/[, ;]+/",$traitlist))."') ";
@@ -620,6 +620,13 @@ ENDOFDOCUMENTATION
 		#	Covariates - they are always queried
 		# 
 
+		if (isset($debug) and !empty($debug)) {
+			echo "<pre>";
+			echo "covariate_selection_type: $covariate_selection_type\n";
+			echo "covariates: "; print_r($covariates); echo "\n";
+			#echo "\$_POST:" ; print_r($_POST); echo "\n";
+			echo "</pre>\n";
+		}
 		if ("selected" == $covariate_selection_type) {
 			if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
 				if ("WHERE " != $where) $where .= " AND ";
@@ -629,6 +636,8 @@ ENDOFDOCUMENTATION
 				else {
 					$where .= " covariates='".join(",",$covariates)."' ";
 				}
+			} else {
+				echo "FIXME:  missing implementation for this covariate representation\n";
 			}
 		}
 
@@ -743,7 +752,7 @@ ENDOFDOCUMENTATION
 			exit;
 		}
 
-		if ($debug) echo "query: $query<br>";
+		if (isset($debug) and !empty($debug)) echo "query: $query<br>";
 
 		$result = mysql_query($query,$linkLocal);
 		if (empty($result)) {
@@ -772,15 +781,14 @@ ENDOFDOCUMENTATION
                             #    echo "<tr><td colspan=1000>Ignoring row since it does not overlapt with classical QTLs</td></tr>\n";
                                 continue;
                         }
-			if (!empty($onlyNumbersGrouped) and "seqname" == "$onlyNumbersGrouped") {
-			if(array_key_exists($chromdingens,$chr_count)){
-			   $chr_count[$chromdingens]++;
+			if (!empty($onlyNumbersGrouped) and "trait.chromosome" == "$onlyNumbersGrouped") {
+			    if(array_key_exists($chromdingens,$chr_count)){
+			       $chr_count[$chromdingens]++;
+			    } else{
+			       $chr_count[$chromdingens]=1;
+			    }
 			}
-			else{
-			   $chr_count[$chromdingens]=1;
-			}
-			}
-			elseif (!empty($onlyNumbersGrouped) and "Chromosome" == "$onlyNumbersGrouped") {
+			elseif (!empty($onlyNumbersGrouped) and "qtl.Chromosome" == "$onlyNumbersGrouped") {
 			if(array_key_exists($c,$chr_count)){
                            $chr_count[$c]++;
                         }
@@ -791,62 +799,33 @@ ENDOFDOCUMENTATION
 			}
                         $rowno++;
 	            }
-		    if (!empty($onlyNumbersGrouped) and "totals" == "$onlyNumbersGrouped") {
-                                        echo "<pre>";
-					echo "Number of eQTL within classical QTL:<br>";
-                                        print_r($rowno);
-                                        echo "</pre>\n";
-                        }
-                        else {
-				
-				echo "<table><thead><tr><th>Chromosome</th><th>#</th></tr></thead>\n";
-                                echo "<tbody>\n";
-				echo "else fall\n";
-				$sum =0;
-				foreach ($chr_count as $chrom => $counter)
-				{
-                                                echo "<tr>";
-                                                echo "<td>$chrom</td>";
-                                                echo "<td>$counter</td>";
-                                                echo "</tr>\n";
-						$sum += $counter;
-				}	
-				
-				#TODO remains to be implemented
-                                #$r=array();
-                                #echo "<table><thead><tr><th>Chromosome</th><th>#</th></tr></thead>\n";
-                                #while ($line = mysql_fetch_row($result)) {
-                                #        print_r($line);
-                                #        $r["chr".$line[0]]=$line[1];
-                                #}
-                                #echo "<tbody>\n";
-                                #$i=-2;
-                                #$s=0;
-                                #while($i<23) {
-                                #        $i++;
-                                #        $j=$i;
-                                #        if (-1=="$j") $j="";
-                                #        if (0=="$j") $j="X";
-                                #        if (array_key_exists("chr$j",$r)) {
-                                #                echo "<tr>";
-                                #                echo "<td>$j</td>";
-                                #                echo "<td>".$r["chr$j"]."</td>";
-                                #                echo "</tr>\n";
-                                #                $s += $r["chr$j"];
-                                #        }
-                                #}
-                                echo "</tbody>\n";
-                                echo "<tfooter>";
-                                echo "<tr>";
-                                echo "<td>Sum</td>";
-                                echo "<td>".$sum."</td>";
-                                echo "</tr>\n";
-                                echo "</tfooter>";
-                                echo "</table>\n";
-                        }
-
-
-
+		    ##### FIXME: REDUNDANT CODE BLOCK
+	            if (!empty($onlyNumbersGrouped) and "totals" == "$onlyNumbersGrouped") {
+                        echo "<pre>";
+                        echo "Number of eQTL within classical QTL:<br>";
+                        print_r($rowno);
+                        echo "</pre>\n";
+                    } else {
+                        echo "<table><thead><tr><th>Chromosome</th><th>#</th></tr></thead>\n";
+                        echo "<tbody>\n";
+                        echo "else fall\n";
+                        $sum =0;
+                        foreach ($chr_count as $chrom => $counter) {
+                            echo "<tr>";
+                            echo "<td>$chrom</td>";
+                            echo "<td>$counter</td>";
+                            echo "</tr>\n";
+                            $sum += $counter;
+                        }	
+			echo "</tbody>\n";
+			echo "<tfooter>";
+			echo "<tr>";
+			echo "<td>Sum</td>";
+			echo "<td>".$sum."</td>";
+			echo "</tr>\n";
+			echo "</tfooter>";
+			echo "</table>\n";
+                    }
 		}
 		elseif(!empty($onlyNumbers)){
 			if (!empty($onlyNumbersGrouped) and "totals" == "$onlyNumbersGrouped") {
@@ -858,32 +837,39 @@ ENDOFDOCUMENTATION
 			}
 			else {
 				$r=array();
-				echo "<table><thead><tr><th>Chromosome</th><th>#</th></tr></thead>\n";
-				while ($line = mysql_fetch_row($result)) {
-					print_r($line);
-					$r["chr".$line[0]]=$line[1];
-				}
+				echo "<table><thead><tr><th>Chromosome</th><th>#</th><th># accum.</th><th>Link</th></tr></thead>\n";
 				echo "<tbody>\n";
-				$i=-2;
 				$s=0;
-				while($i<23) {
-					$i++;
-					$j=$i;
-					if (-1=="$j") $j="";
-					if (0=="$j") $j="X";
-					if (array_key_exists("chr$j",$r)) {
-						echo "<tr>";
-						echo "<td>$j</td>";
-						echo "<td>".$r["chr$j"]."</td>";
-						echo "</tr>\n";
-						$s += $r["chr$j"];
+				$s_unassigned=0;
+				while ($line = mysql_fetch_row($result)) {
+					#print_r($line); echo "<br />\n";
+					$r["Chr. '".$line[0]."'"]=$line[1];
+					echo "<tr>";
+					if ('' == $line[0]) {
+						echo "<td><strike>".$line[0]."</strike></td>";
+						echo "<td><strike>".$line[1]."</strike></td>";
+						$s_unassigned += $line[1];
+					} else {
+						echo "<td>".$line[0]."</td>";
+						echo "<td>".$line[1]."</td>";
+						$s += $line[1];
 					}
+					echo "<td>$s + $s_unassigned</td>";
+					echo "<td>";
+					if ("trait.chromosome" == "$onlyNumbersGrouped") {
+						echo "<a href=\"qtl.php?TraitChromosome=".$line[0]."\">qtl</a>";
+					} else if ("qtl.Chromosome" == "$onlyNumbersGrouped") {
+						echo "<a href=\"qtl.php?chrlist=".$line[0]."\">qtl</a>";
+					} else {
+						echo "<i>error</i>";
+					}
+					echo "</td></tr>\n";
 				}
 				echo "</tbody>\n";
 				echo "<tfooter>";
 				echo "<tr>";
 				echo "<td>Sum</td>";
-				echo "<td>".$s."</td>";
+				echo "<td>$s <i>+ $s_unassigned</i></td>";
 				echo "</tr>\n";
 				echo "</tfooter>";
 				echo "</table>\n";
@@ -1152,5 +1138,3 @@ ENDOFDOCUMENTATION
 	}
 	include("footer.php");
 ?>
-</body>
-</html>

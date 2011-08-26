@@ -64,7 +64,8 @@ ENDOFDOCUMENTATION
 
 	show_small_header("Selection of eTraits",TRUE);
 
-	foreach(array("direct", "submitted",
+	$dataSelectionFieldsQTL = array(
+			"direct", "submitted",
 			"VarianceMin", "VarianceMax",
 			"maxNumCorrGenesToShow",
 			"expr_neg_cor_max",  "expr_neg_cor_min",
@@ -83,17 +84,7 @@ ENDOFDOCUMENTATION
 			"SdMin","SdMax",
 			"traitlist", "traits",
 			"gene_name",
-			"limit","order","innerOrder") as $vname)
-	{
-		if (isset($_POST[$vname])) {
-			$$vname = $_POST[$vname];
-		}
-		elseif(isset($_GET[$vname])) {
-			$$vname = $_GET[$vname];
-			//if ("expr_pos_cor_max" == "$vname") echo "found $vname to be " . $$vname . "\n";
-			//if ("phen" == "$vname") echo "found $vname to be " . $$vname . "\n";
-		}
-	}
+			"limit","order","innerOrder");
 
 	// specification of attributes to be shown in table
 	$a=array("Trait"=>1,
@@ -115,6 +106,44 @@ ENDOFDOCUMENTATION
 #		 "traits_neg_cor_most"=>1, "traits_neg_cor_most_rho"=>1,
 	);
 
+	# Conversion of array keys to values to be checked as being parameter names
+	function prependShow($value) {
+		$m = "show_".$value;
+		return($m);
+	};
+	$aKeys = array_keys($a);
+	$aPrepend = array_map("prependShow",$aKeys);
+
+	$accessible_fields_in_POST_or_GET = array_merge(
+		$dataSelectionFieldsQTL,
+		$aPrepend
+	);
+
+	foreach($accessible_fields_in_POST_or_GET as $vname)
+	{
+		if (isset($_POST[$vname])) {
+			if (is_array($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			}
+			else {
+				$$vname = ltrim(rtrim($_POST[$vname]));
+				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
+					echo $vname."=".$$vname."\t";
+				}
+			}
+		}
+		elseif(isset($_GET[$vname])) {
+			if (is_array($_POST[$vname])) {
+				$$vname=$_POST[$vname];
+			} else {
+				$$vname = ltrim(rtrim($_GET[$vname]));
+				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
+					echo $vname."=".$$vname."\t";
+				}
+			}
+		}
+	}
+
 	# initialisation
 	if (!empty($direct)) {
 		foreach($a as $i=>$v) {
@@ -123,16 +152,6 @@ ENDOFDOCUMENTATION
 		}
 	}
 
-	# reset by parameters
-	foreach ($a as $vname =>$v) {
-		$vname = "show_".$vname;
-		if (isset($_POST[$vname])) {
-			$$vname = $_POST[$vname];
-		}
-		elseif(isset($_GET[$vname])) {
-			$$vname = $_GET[$vname];
-		}
-	}
 
 	# transforming array of traits into comma separated string
 	if (!empty($traitlist)) {
@@ -1039,5 +1058,3 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 	}
 	include("footer.php");
 ?>
-    </body>
-</html>
