@@ -214,11 +214,9 @@ if (is.null(opt$axescolour)) {
 if (is.null(opt$imagewidth)) {
    if (is.null(opt$format) || opt$format %in% c("png","jpeg","jpg","gif")) {
 	opt[["imagewidth"]]<-width.pixel
-   }
-   else if ("pdf" == opt$format) {
+   } else if ("pdf" == opt$format) {
 	opt[["imagewidth"]]<-width.inch
-   }
-   else {
+   } else {
 	cat("Unknown format ",opt$format,"\n")
 	q(status=1);
    }
@@ -227,11 +225,9 @@ if (is.null(opt$imagewidth)) {
 if (is.null(opt$imageheight)) {
    if (is.null(opt$format) || opt$format %in% c("png","jpeg","jpg","gif")) {
 	opt[["imageheight"]]<-height.pixel
-   }
-   else if ("pdf" == opt$format) {
+   } else if ("pdf" == opt$format) {
 	opt[["imageheight"]]<-height.inch
-   }
-   else {
+   } else {
 	cat("Unknown format ",opt$format,"\n")
 	q(status=1);
    }
@@ -251,17 +247,13 @@ if (is.null(opt$interactive)) {
 	}
 	if (is.null(opt$format) || "png" == opt$format) {
 		png(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
-	}
-	else if ("pdf" == opt$format) {
+	} else if ("pdf" == opt$format) {
 		pdf(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
-	}
-	else if ("jpg" == opt$format  || "jpeg" == opt$format) {
+	} else if ("jpg" == opt$format  || "jpeg" == opt$format) {
 		jpg(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
-	}
-	else if ("gif" == opt$format) {
+	} else if ("gif" == opt$format) {
 		jpg(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
-	}
-	else {
+	} else {
 		cat("Unknown format ",opt$format,"\n")
 		q(status=1)
 	}
@@ -276,7 +268,10 @@ source('BASEDIR/scripts/analyses/R/load.data.R')
 #source('BASEDIR/scripts/analyses/R/analyseCorrelationForMarkers.R')
 source('BASEDIR/scripts/analyses/R/analyseCorrelationForAllMarkers.R')
 
-a<-analyzeclusters(e1=opt$value_xaxis, e2=opt$value_yaxis, m=NULL, draw=T, hull.lty=opt$linetype, hull.lwd=opt$linewidth, verbose=opt$verbose)
+cat("* Starting 'analyzeclusters' with hull.lty='",opt$linetype,"' hull.lwd='",opt$linewidth,"'\n")
+a<-analyzeclusters(e1=opt$value_xaxis, e2=opt$value_yaxis, m=NULL, draw=T,
+                   hull.lty=opt$linetype, hull.lwd=opt$linewidth,
+		   verbose=opt$verbose)
 #a<-analyzeclusters(opt$selection_xaxis,  opt$value_xaxis,
 #		   opt$selection_yaxis,  opt$value_yaxis,
 #		   opt$selection_symbol, opt$value_symbol,

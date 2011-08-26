@@ -222,6 +222,7 @@ analyzeclusters <- function(
 
   # if drawing is activated
   if (draw) {
+    cat("\n\n*\n* Drawing \n*\n\n")
     xlab <- paste("Probeset", e1, sep=" ")
     ylab <- paste("Probeset", e2, sep=" ")
     sub <- paste("Marker ", if(is.character(m)) {m} else {markerrownames[m]}, sep="")
@@ -240,7 +241,10 @@ analyzeclusters <- function(
 
     to.print<-NULL
     for (l in hulls) {
-    	ed.sub<-ed[l$indices,]; chu.indices<-chull(ed.sub); lines(ed.sub[c(chu.indices,chu.indices[1]),],lty=l$lty,col=l$col)
+    	cat("Hull: lty:"); print(l$lty))
+    	cat("Hull: lwd:"); print(l$lwd))
+    	ed.sub<-ed[l$indices,]; chu.indices<-chull(ed.sub)
+	lines(ed.sub[c(chu.indices,chu.indices[1]),],lty=l$lty,col=l$col)
 	to.print<-c(to.print,l$indices[chu.indices])
     }
     points(t(posm), col = "green", pch = 8, cex = 2)
@@ -249,6 +253,8 @@ analyzeclusters <- function(
   }
   res <- list(posm = posm, negm = negm)
   return(res)
+} else {
+  cat("\n\n*\n* Drawing was not activated.\n*\n\n")
 }
 
 
