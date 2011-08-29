@@ -68,7 +68,7 @@ University Clinics Schleswig-Holstein, Germany, 2010
 					"LODmax","LODmin","PvalueMax","PvalueMin",
 					"imagewidth","imageheight",
 					"linewidth","linecolour","linetype",
-					"axeswidth","axescolour","axestype");
+					"axeslinewidth","axescolour","axeslinetype");
 
 
 
@@ -188,13 +188,13 @@ University Clinics Schleswig-Holstein, Germany, 2010
 		echo "<th colspan=2>Field</th>";
 		echo "<th colspan=2>Axes</th></tr>\n";
 		echo "<td>image width:</td>  <td><input type=text size=4 name=imagewidth  value=\"".    (empty($imagewidth)?"":$imagewidth)."\"></td>\n";
-		echo "<td>line width:</td>   <td><input type=text size=4 name=linewidth   value=\"".    (empty($linewidth)?1:$linewidth).   "\"></td>\n";
-		echo "<td>axes width:</td>   <td><input type=text size=4 name=axeswidth   value=\"".    (empty($axeswidth)?3:$axeswidth).   "\"></td></tr>\n";
+		echo "<td>hull linewidth:</td>   <td><input type=text size=4 name=linewidth   value=\"".    (empty($linewidth)?1:$linewidth).   "\"></td>\n";
+		echo "<td>axes linewidth:</td>   <td><input type=text size=4 name=axeslinewidth   value=\"".    (empty($axeslinewidth)?3:$axeslinewidth).   "\"></td></tr>\n";
 		echo "<td>image height:</td> <td><input type=text size=4 name=imageheight value=\"".    (empty($imageheight)?"":$imageheight)."\"></td>\n";
-		echo "<td>line type:</td>    <td><input type=text size=4 name=linetype    value=\"".    (empty($linetype)?3:$linetype).     "\"></td>\n";
-		echo "<td>axes type:</td>    <td><input type=text size=4 name=axestype    value=\"".    (empty($axestype)?"":$axestype).    "\"></td></tr>\n";
+		echo "<td>hull linetype:</td>    <td><input type=text size=4 name=linetype    value=\"".    (empty($linetype)?3:$linetype).     "\"></td>\n";
+		echo "<td>axes linetype:</td>    <td><input type=text size=4 name=axeslinetype    value=\"".    (empty($axeslinetype)?"":$axeslinetype).    "\"></td></tr>\n";
 		echo "<td colspan=2></td>";
-		echo "<td>line colour:</td>  <td><input type=text size=4 name=linecolour  value=\""  .(empty($linecolour)?"red":$linecolour)."\"></td>\n";
+		//echo "<td>line colour:</td>  <td><input type=text size=4 name=linecolour  value=\""  .(empty($linecolour)?"red":$linecolour)."\"></td>\n";
 		echo "<td>axes colour:</td>  <td><input type=text size=4 name=axescolour  value=\"".(empty($axescolour)?"black":$axescolour)."\"></td></tr>\n";
 
 		echo "<tr><td valign=top>Display variable:</td>  <td>";

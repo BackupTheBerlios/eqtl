@@ -179,8 +179,8 @@ analyzeclusters <- function(
 			draw=F,
 			verbose=FALSE,
 			phen=NULL,
-			hull.lwd=3,
-			hull.lty="dotted",
+                        hull.lwd=3, hull.lty="dotted",
+                        axes.colour="black", axes.linewidth=3, axes.linetype="solid",
 			col=c("red","green","gray"),
 			label.individuals=T,
 			selection_xaxis="gene",
@@ -233,7 +233,9 @@ analyzeclusters <- function(
     	pch[naindices] <- 20
     }
     #pch[naindices] <- 20
-    plot(x=ed, col=col, pch=pch, xlab=xlab, ylab=ylab, sub=sub)
+    plot(x=ed, col=col, pch=pch, xlab=xlab, ylab=ylab, sub=sub, xaxt="n", yaxt="n")
+    axis(1,col=axes.colour,lwd=axes.linewidth,lty=axes.linetype)
+    axis(2,col=axes.colour,lwd=axes.linewidth,lty=axes.linetype)
 
     hulls<-list(list("indices"=pindices,  "col"=col[1],"lty"=hull.lty[1],"lwd"=hull.lwd[1]),
                 list("indices"=nindices,  "col"=col[2],"lty"=hull.lty[1],"lwd"=hull.lwd[2]),
