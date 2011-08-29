@@ -68,11 +68,11 @@ specification of the type of lines tha shall be separating the chromosomes, defa
 
 colour of axes
 
-=item --axeswidth I<number>
+=item --axeslinewidth I<number>
 
 width of axes
 
-=item --axestype I<number>
+=item --axeslinetype I<number>
 
 type of axes
 
@@ -121,10 +121,10 @@ opt = getopt(matrix(c(
    'selection_yaxis' , 'Y', 0, "character", "parameter to display for Y axis, defaults to 'trait'",
    'selection_colour', 'D', 0, "character", "parameter to show as colour, defaults to 'none'",
    'selection_symbol', 'G', 0, "character", "parameter to show as symbol (gestalt), defaults to 'none'",
-   'value_xaxis'     , 'C', 0, "character", "parameter to display for X axis, defaults to 'trait'",
-   'value_yaxis'     , 'V', 0, "character", "parameter to display for Y axis, defaults to 'trait'",
-   'value_colour'    , 'B', 0, "character", "parameter to show as colour, defaults to 'none'",
-   'value_symbol'    , 'N', 0, "character", "parameter to show as symbol (gestalt), defaults to 'none'",
+   'value_xaxis'     , 'C', 0, "character", "selection criterion for parameter to show on X axis",
+   'value_yaxis'     , 'V', 0, "character", "selection criterion for parameter to show on Y axis",
+   'value_colour'    , 'B', 0, "character", "selection criterion for parameter to display with colour",
+   'value_symbol'    , 'N', 0, "character", "selection criterion for parameter to display with symbol",
    'format'          , 'f', 1, "character", "the format of the image that should present the plot",
    'output'          , 'o', 1, "character", "name of output file",
    'display'         , 'd', 2, "character", "defaults to lod, alternatives are rank and p.value",
@@ -136,11 +136,13 @@ opt = getopt(matrix(c(
    'linewidth'       , 'w', 1, "double"   , "width of lines for convex hull",
    'linetype'        , 't', 1, "integer"  , "type of lines for convex hull",
    'axescolour'      , 'b', 1, "character", "colour of axes",
-   'axeswidth'       , 'x', 1, "double"   , "width of axes",
-   'axestype'        , 'y', 1, "integer"  , "line type of axes",
+   'axeslinewidth'   , 'x', 1, "double"   , "width of axes",
+   'axeslinetype'    , 'y', 1, "integer"  , "line type of axes",
    'legend'          , 'e', 2, "logical"  , "set to add a legend"
    ),ncol=5,byrow=TRUE),
-   debug=TRUE)
+   debug=TRUE
+   #debug=FALSE
+)
 
 if (!is.null(opt$verbose)) cat("I was here 1.\n")
 
@@ -193,12 +195,12 @@ if (is.null(opt$linecolour)) {
 
 if (is.null(opt$linewidth)) {
    opt[["linewidth"]]<-2
-   if (!is.null(opt$verbose)) cat("Set width for lines : ",opt$linewidth,"\n")
+   if (!is.null(opt$verbose)) cat("Set width for hull lines : ",opt$linewidth,"\n")
 }
 
 if (is.null(opt$linetype)) {
    opt[["linetype"]]<-"dotted"
-   if (!is.null(opt$verbose)) cat("Set type for lines : ",opt$linetype,"\n")
+   if (!is.null(opt$verbose)) cat("Set type for hull lines : ",opt$linetype,"\n")
 }
 
 if (is.null(opt$axeswidth)) {
@@ -271,6 +273,7 @@ source('BASEDIR/scripts/analyses/R/analyseCorrelationForAllMarkers.R')
 cat("* Starting 'analyzeclusters' with hull.lty='",opt$linetype,"' hull.lwd='",opt$linewidth,"'\n")
 a<-analyzeclusters(e1=opt$value_xaxis, e2=opt$value_yaxis, m=NULL, draw=T,
                    hull.lty=opt$linetype, hull.lwd=opt$linewidth,
+		   axes.colour=opt$axescolour, axes.width=opt$axeslinewidth, axes.type=opt$axelinestype,
 		   verbose=opt$verbose)
 #a<-analyzeclusters(opt$selection_xaxis,  opt$value_xaxis,
 #		   opt$selection_yaxis,  opt$value_yaxis,
