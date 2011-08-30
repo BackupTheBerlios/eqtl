@@ -9,7 +9,7 @@ determineCorrelations.R - prepare upload of correlation data
 
 =head1 SYNOPSIS
 
-echo source('determineCorrelations.R') | R --vanilla --no-save
+echo "source('determineCorrelations.R')" | R --vanilla --no-save
 
 =head1 DESCRIPTION
 
@@ -44,27 +44,16 @@ University of LE<uuml>beck, Germany, 2009
 
 TEMPLATEWARNINGHASH
 
-# read in data after conversion with OpenOffice from xls
-# further abstractions are required to adapt for multiple
-# organisms.
-fname<-"CSVDATABASE/PHENOFILE"
-if (!file.exists(fname)) {
-	stop(paste("Could not find file '",fname,"'.\n",sep=""))
-}
-d<-read.delim(file=fname,dec="PHENOFIELDDEC",sep="PHENOFIELDSEP",row.names=1,skip=PHENOLINESSKIPNO)
+source("R/load.data.R")
 
-# columns with expression data
-p<-grep("INDIVIDUALIDREGEXP",colnames(d))
+d<-load.data("expression")$numeric
 
-# convert to (numerical) matrix
-# selecting mouse-columns,
-# transposing since genes are the observations that shall be compared
 #m<-t(as.matrix(d[,p])) # did not work for me any more
-m<-as.numeric(as.matrix(d[,p]))
-dim(m)<-c(length(m)/length(p),length(p))
-m<-t(m)
-rownames(m)<-colnames(d)[p]
-colnames(m)<-rownames(d)
+#m<-as.numeric(as.matrix(d[,p]))
+#dim(m)<-c(length(m)/length(p),length(p))
+m<-t(d)
+#rownames(m)<-colnames(d)[p]
+#colnames(m)<-rownames(d)
 # freeing some memory
 rm("d")
 
@@ -72,8 +61,11 @@ rm("d")
 if (TRUE) {
 
 	# recieving all-against-all matrix or for all genes
-	m.cor<-cor(m,method="spearman")
-	con.out.fname<-"trait_trait_cor.sql"
+	#m.method<-"spearman"
+	#m.method<-"pearson"
+	m.method<-"kendall"
+	m.cor<-cor(m,method=m.method)
+	con.out.fname<-paste("trait_trait_cor_",m.method,".sql",sep="")
 	if (file.exists(con.out.fname)) {
 		unlink(con.out.fname)
 	}
@@ -106,8 +98,8 @@ if (TRUE) {
 				sep=""))
 	}
 	close(con.out)
-}
-else {
+
+} else {
 
 	# read in phenotypes
 	if (CLINICALPHENOTYPESWITHGENOTYPES) {

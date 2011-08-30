@@ -56,11 +56,11 @@ For every axis / dimension, three different values can be specified for the sele
 
 name of colour of lines to separate the chromosomes
 
-=item --linewidth I<number>
+=item --hulllinewidth I<number>
 
 width of lines separating the chromosomes
 
-=item --linetype 0-5
+=item --hulllinetype 0-5
 
 specification of the type of lines tha shall be separating the chromosomes, defaults to 3 (dotted)
 
@@ -79,6 +79,18 @@ type of axes
 =item --imagewidth I<number>
 
 width of image, the units depend on the format of the image, png needs the number of pixels, pdf needs inches.
+
+=item --meanSymbol I<number>
+
+pch value for internal R routine 'points' to represent the means, defaults to 8 (star)
+
+=item --meanSize I<number>
+
+cex value for internal R routine 'points', saying how much bigger the mean symbol shall be than regular text in the graph
+
+=item --individualsSize I<number>
+
+cex value for internal R routine 'points' to represent individuals, defaults to 1
 
 =back
 
@@ -132,12 +144,15 @@ opt = getopt(matrix(c(
    'sub'             , 'S', 1, "character", "sub title of the plot",
    'imagewidth'      , 'W', 1, "integer"  , "width of image, represented in dependency on the format",
    'imageheight'     , 'H', 1, "integer"  , "height of image, represented in dependency on the format",
-   'linecolour'      , 'a', 1, "character", "colour of lines separating the chromosomes",
-   'linewidth'       , 'w', 1, "double"   , "width of lines for convex hull",
-   'linetype'        , 't', 1, "integer"  , "type of lines for convex hull",
+   'hulllinecolour'  , 'a', 1, "character", "colour of lines separating the chromosomes",
+   'hulllinewidth'   , 'w', 1, "double"   , "width of lines for convex hull",
+   'hulllinetype'    , 't', 1, "integer"  , "type of lines for convex hull",
    'axescolour'      , 'b', 1, "character", "colour of axes",
    'axeslinewidth'   , 'x', 1, "double"   , "width of axes",
    'axeslinetype'    , 'y', 1, "integer"  , "line type of axes",
+   'meanSymbol'      , 'z', 1, "integer"  , "symbol number (pch in R) for mean representation",
+   'meanSize'        , 'Z', 1, "double"   , "relative size of mean symbol to regular text",
+   'individualsSize' , 'I', 1, "integer"  , "relative size of mean symbol to regular text",
    'legend'          , 'e', 2, "logical"  , "set to add a legend"
    ),ncol=5,byrow=TRUE),
    debug=TRUE
@@ -193,14 +208,14 @@ if (is.null(opt$linecolour)) {
    if (!is.null(opt$verbose)) cat("Set colour for lines : ",opt$linecolour,"\n")
 }
 
-if (is.null(opt$linewidth)) {
-   opt[["linewidth"]]<-2
-   if (!is.null(opt$verbose)) cat("Set width for hull lines : ",opt$linewidth,"\n")
+if (is.null(opt$hulllinewidth)) {
+   opt[["hulllinewidth"]]<-3
+   if (!is.null(opt$verbose)) cat("Set width for hull lines : ",opt$hulllinewidth,"\n")
 }
 
-if (is.null(opt$linetype)) {
-   opt[["linetype"]]<-"dotted"
-   if (!is.null(opt$verbose)) cat("Set type for hull lines : ",opt$linetype,"\n")
+if (is.null(opt$hulllinetype)) {
+   opt[["hulllinetype"]]<-"dotted"
+   if (!is.null(opt$verbose)) cat("Set type for hull lines : ",opt$hulllinetype,"\n")
 }
 
 if (is.null(opt$axeswidth)) {
@@ -211,6 +226,26 @@ if (is.null(opt$axeswidth)) {
 if (is.null(opt$axescolour)) {
    opt[["axescolour"]]<-3
    if (!is.null(opt$verbose)) cat("Set colour for axes : ",opt$axescolour,"\n")
+}
+
+if (is.null(opt$meanSymbol)) {
+   opt[["meanSymbol"]]<-8
+   if (!is.null(opt$verbose)) cat("Set symbol for mean : ",opt$meanSymbol,"\n")
+}
+
+if (is.null(opt$meanSize)) {
+   opt[["meanSize"]]<-3
+   if (!is.null(opt$verbose)) cat("Set size for mean : ",opt$meanSize,"\n")
+}
+
+if (is.null(opt$individualsSymbol)) {
+   opt[["individualsSymbol"]]<-1
+   if (!is.null(opt$verbose)) cat("Set symbol for individuals : ",opt$individualsSymbol,"\n")
+}
+
+if (is.null(opt$individualsSize)) {
+   opt[["individualsSize"]]<-1
+   if (!is.null(opt$verbose)) cat("Set size for individuals : ",opt$individualsSize,"\n")
 }
 
 if (is.null(opt$imagewidth)) {
@@ -270,10 +305,11 @@ source('BASEDIR/scripts/analyses/R/load.data.R')
 #source('BASEDIR/scripts/analyses/R/analyseCorrelationForMarkers.R')
 source('BASEDIR/scripts/analyses/R/analyseCorrelationForAllMarkers.R')
 
-cat("* Starting 'analyzeclusters' with hull.lty='",opt$linetype,"' hull.lwd='",opt$linewidth,"'\n")
+cat("* Starting 'analyzeclusters' with hull.lty='",opt$hulllinetype,"' hull.lwd='",opt$hulllinewidth,"'\n")
 a<-analyzeclusters(e1=opt$value_xaxis, e2=opt$value_yaxis, m=NULL, draw=T,
-                   hull.lty=opt$linetype, hull.lwd=opt$linewidth,
-		   axes.colour=opt$axescolour, axes.width=opt$axeslinewidth, axes.type=opt$axelinestype,
+                   hull.lty=opt$hulllinetype, hull.lwd=opt$hulllinewidth,
+		   axes.colour=opt$axescolour, axes.linewidth=opt$axeslinewidth, axes.linetype=opt$axeslinestype,
+		   mean.pch=opt$meanSymbol, mean.cex=opt$meanSize, individuals.pch=opt$individualsSymbol, individuals.cex=opt$individualsSize,
 		   verbose=opt$verbose)
 #a<-analyzeclusters(opt$selection_xaxis,  opt$value_xaxis,
 #		   opt$selection_yaxis,  opt$value_yaxis,

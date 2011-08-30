@@ -180,8 +180,11 @@ analyzeclusters <- function(
 			verbose=FALSE,
 			phen=NULL,
                         hull.lwd=3, hull.lty="dotted",
-                        axes.colour="black", axes.linewidth=3, axes.linetype="solid",
-			col=c("red","green","gray"),
+                        axes.colour="red", axes.linewidth=3, axes.linetype="solid",
+			mean.pch=8, mean.cex=2,
+			individuals.pch=22,
+			individuals.cex=1,
+			groups.col=c("red","green","gray"),
 			label.individuals=T,
 			selection_xaxis="gene",
 			selection_yaxis="gene",
@@ -195,68 +198,109 @@ analyzeclusters <- function(
   if (is.null(m)) {
   	m<-find.best.markers(e1,e2,verbose=verbose)
   }
+
   md <- marker[m,]
-  cat("Values in genotypes:  "); print(paste(unique(md),collapse=",",sep=""))
-  pindices <- which(md %in% c(1," 1","1","A"))
-  nindices <- which(md %in% c(2," 2","2",3,"3","B"))
-  mindices <- which(md %in% c("H"))
-  naindices <- which(is.na(md) | md %in% "-")
-  if (length(pindices) == 0 || length(nindices) == 0) {
-    message("analyzeclusters(",e1,",",e2,",",m,") :  problem with length(pindices)==",length(pindices)," and length(nindices)==",length(nindices),".\n")
-    return(0)
+  if (length(md)>nrow(ed)) {
+     cat("Dimension of marker data: "); print(dim(md))
+     stop("Number of markers (",length(md),") and number of individuals with trait (",nrow(ed),") differ.\n")
   }
 
-  # FIXME: HACK HACK HACK
-  pindices <- pindices[pindices < nrow(ed)]
-  nindices <- nindices[nindices < nrow(ed)]
+  group.list<-list(
+    "0"=c("0",0," 0"),
+    "1"=c("1",1," 1"),
+    "2"=c("2",2," 2"),
+    "2"=c("3",3," 3"),
+    "A"=c("A"," A"),
+    "H"=c("H"," H"),
+    "B"=c("B"," B")
+  )
 
-  # set color vector
-  col <- rep("gray", length(md))
-  col[pindices] <- "green"
-  col[nindices] <- "red"
+  group.results<-list(
+   "NA"=rep(T,length(md))
+  )
+  cat("Values in genotypes:  "); cat(paste("'",paste(unique(md),collapse=",",sep=""),"'\n",sep=""))
+  for(n in names(group.list)) {
+     v<-group.list[[n]]
+     m<-(md %in% v)
+     if (sum(m)>0) {
+       group.results[[n]]<-m
+       group.results[["NA"]][m]<-F
+     }
+  }
+
+  cat("Available groups: "); print(paste(names(group.results),collapse=","))
+
+  #if (length(pindices) == 0 || length(nindices) == 0) {
+  #  message("analyzeclusters(",e1,",",e2,",",m,") :  problem with length(pindices)==",length(pindices)," and length(nindices)==",length(nindices),".\n")
+  #  return(0)
+  #}
+
+  ## FIXME: HACK HACK HACK
+  #pindices <- pindices[pindices < nrow(ed)]
+  #nindices <- nindices[nindices < nrow(ed)]
 
 
   # evaluate the markerwise (classwise) means
-  posm <- colMeans(ed[pindices,,drop=F])
-  negm <- colMeans(ed[nindices,,drop=F])
+
+  if (verbose) cat("Determining means for group ...\n",sep="")
+  group.means<-list()
+  for(n in names(group.results)) {
+     if (verbose) cat("                          ...'",n,"'\n",sep="")
+     group.means[[n]]<-colMeans(ed[group.results[[n]],,drop=F])
+  }
 
   # if drawing is activated
   if (draw) {
+
     cat("\n\n*\n* Drawing \n*\n\n")
+
+    # set color vector
+    col <- rep("gray", length(md))
+    col.list<-rainbow(length(group.means))
+    names(col.list)<-names(group.means)
+    for(n in names(group.means)) {
+        col[ group.results[[n]] ] <- col.list[n]
+    }
+
+    if (verbose) cat("assigned all colours\n")
+
     xlab <- paste("Probeset", e1, sep=" ")
     ylab <- paste("Probeset", e2, sep=" ")
     sub <- paste("Marker ", if(is.character(m)) {m} else {markerrownames[m]}, sep="")
-    pch <- rep(21, length(col))
+    #pch <- rep(individuals.pch, length(col))
+    pch <- rep(22, length(col))
     if (!is.null(phen)) {
     	p.factors<-as.factor(phen$values)
 	pch[phen$notna]<-20+sapply(phen$values,function(X){which(X==unique(phen$values))})
     	pch[naindices] <- 20
     }
     #pch[naindices] <- 20
-    plot(x=ed, col=col, pch=pch, xlab=xlab, ylab=ylab, sub=sub, xaxt="n", yaxt="n")
+    plot(x=ed, col=col, pch=pch, cex=individuals.cex, xlab=xlab, ylab=ylab, sub=sub, xaxt="n", yaxt="n")
     axis(1,col=axes.colour,lwd=axes.linewidth,lty=axes.linetype)
     axis(2,col=axes.colour,lwd=axes.linewidth,lty=axes.linetype)
 
-    hulls<-list(list("indices"=pindices,  "col"=col[1],"lty"=hull.lty[1],"lwd"=hull.lwd[1]),
-                list("indices"=nindices,  "col"=col[2],"lty"=hull.lty[1],"lwd"=hull.lwd[2]),
-                list("indices"=1:nrow(ed),"col"=col[3],"lty"=hull.lty[1],"lwd"=hull.lwd[3]))
+    hulls<-list(list(indices=pindices,  col=col[1],lty=hull.lty,lwd=hull.lwd),
+                list(indices=nindices,  col=col[2],lty=hull.lty,lwd=hull.lwd),
+                list(indices=1:nrow(ed),col=col[3],lty=hull.lty,lwd=hull.lwd))
 
     to.print<-NULL
-    for (l in hulls) {
-    	cat("Hull: lty:"); print(l$lty))
-    	cat("Hull: lwd:"); print(l$lwd))
-    	ed.sub<-ed[l$indices,]; chu.indices<-chull(ed.sub)
-	lines(ed.sub[c(chu.indices,chu.indices[1]),],lty=l$lty,col=l$col)
+    for (n in names(group.results)) {
+        cat("Plotting group '",n,"'.\n",sep="")
+    	ed.sub<-ed[group.results[[n]],]
+	chu.indices<-chull(ed.sub)
+	lines(ed.sub[c(chu.indices,chu.indices[1]),],lty=hull.lty,col=col.list[n],lwd=hull.lwd)
 	to.print<-c(to.print,l$indices[chu.indices])
     }
-    points(t(posm), col = "green", pch = 8, cex = 2)
-    points(t(negm), col = "red", pch = 8, cex = 2)
+    for(n in names(group.means)) {
+        points(t(group.means[[n]]), col = col.list[n], pch = mean.pch, cex = mean.cex)
+    }
+    #points(t(negm), col = "red", pch = mean.pch, cex = mean.cex)
     if (label.individuals) text(x=ed[to.print,],labels=rownames(ed)[to.print],cex=0.5,pos=4,offset=0.3)
+  } else {
+    # cat("\n\n*\n* Drawing was not activated.\n*\n\n")
   }
   res <- list(posm = posm, negm = negm)
   return(res)
-} else {
-  cat("\n\n*\n* Drawing was not activated.\n*\n\n")
 }
 
 
