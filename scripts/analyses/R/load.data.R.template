@@ -160,12 +160,23 @@ load.data <- function(data.type,verbose=FALSE) {
     cat(paste(" [ok]  Read ",ncol(d.clinical)," classical phenotypes ",
               "and ", ncol(d.genotypes)," genotypes for ",
 	      nrow(d.genotypes), " individuals.\n",sep=""),sep="")
+    d.individuals<-d[3:nrow(d),1]
+
     l<-list()
     l[["chromosomes"]]<-d.chr
     l[["cMorgan"]]<-d.morgan
     l[["clinical"]]<-d.clinical
     l[["genotypes"]]<-d.genotypes
+    l[["individuals"]]<-d.individuals
+    if (any(duplicated(l[["individuals"]]))) {
+       stop("Found the following individuals twice: ",
+            paste(l[["individuals"]][duplicated(l[["individuals"]])],collapse=","),"\n")
+    }
+    rownames(l[["genotypes"]])<-l[["individuals"]]
+
+
     return(l)
+
   } else if ("scores" == data.type) {
 
     if (CLINICALPHENOTYPESWITHGENOTYPES) {
@@ -193,5 +204,47 @@ load.data <- function(data.type,verbose=FALSE) {
     stop(paste("Don't know how to read data of type '",data.type,"'.\n",sep=""))
   }
 
+}
+
+adjust.individuals.data.to.expressionData <- function(expressionData, individualsData, verbose=T) {
+
+  if (is.list(individualsData) && !is.data.frame(individualsData) && !is.matrix(individualsData)) {
+     if (verbose) cat("adjust.genotypes.to.expressionData: a\n")
+     individualsData<-individualsData[["genotypes"]]
+  }
+  if (is.null(individualsData))
+     stop("adjust.genotypes.to.expressionData: ",
+  	"Something is wrong with the handling of the individuals data or those data themselves. ",
+	"Please investigate.\n")
+
+  if (is.list(expressionData) && !is.data.frame(expressionData)) {
+     if (verbose) cat("adjust.individuals.data.to.expressionData: b\n")
+     expressionData<-expressionData[["numeric"]]
+  }
+
+  if (is.null(expressionData))
+     stop("adjust.individuals.data.to.expressionData: ",
+  	"Something is wrong with the handling of the expression data or the expression data themselves. ",
+	"Please investigate.\n")
+
+  individuals.names<-rownames(individualsData)
+  individuals.expression<-colnames(expressionData)
+  expressionData.matched <- t(sapply(individuals.expression,function(n) {
+     if (n %in% individuals.names) {
+     	return(individualsData[n,])
+     } else {
+        return(rep(NA,ncol(individualsData)))
+     }
+  }))
+  return(expressionData.matched)
+
+}
+
+test.me <- function() {
+  a <- load.data(data.type="expression")
+  b <- load.data(data.type="genotypes")
+  c <- load.data(data.type="scores")
+
+  z<-match.expression.data.with.genotypes(a,b)
 }
 

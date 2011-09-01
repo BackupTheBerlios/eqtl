@@ -23,8 +23,6 @@ find.best.markers
 
 =head1 DESCRIPTION
 
-This f
-
 This function defines a series of then global variables that
 it needs for its analysis.
 The load.data.R and maxcminc.R files needs to be sourced
@@ -54,14 +52,11 @@ chromnames <- unique(chromos)
 # Look for cMorgan distances on markers
 cmorgan <- quandata$cMorgan
 # get genotypes in same orientation
-marker <- t(quandata$genotypes)
+marker <- t(adjust.individuals.data.to.expressionData(data.expression,individualsData=quandata))
 # Extract marker names
 markerrownames <- rownames(marker)
 # and analogously for clinical phenotypes
-clinical <- t(quandata$clinical)
-if (!CLINICALPHENOTYPESWITHGENOTYPES) {
-	clinical <- load.data("scores")
-}
+clinical <- t(adjust.individuals.data.to.expressionData(data.expression,individualsData=load.data("scores")))
 
 # Remove the first two lines (chromos and cmorgan)
 #quan <- apply(quandata[,3:dim(quandata)[2]], c(1, 2), as.numeric)
@@ -220,6 +215,7 @@ analyzeclusters <- function(
   )
   cat("Values in genotypes:  "); cat(paste("'",paste(unique(md),collapse=",",sep=""),"'\n",sep=""))
   for(n in names(group.list)) {
+     if (is.na(n)) n<-"NA"
      v<-group.list[[n]]
      m<-(md %in% v)
      if (sum(m)>0) {
@@ -234,10 +230,6 @@ analyzeclusters <- function(
   #  message("analyzeclusters(",e1,",",e2,",",m,") :  problem with length(pindices)==",length(pindices)," and length(nindices)==",length(nindices),".\n")
   #  return(0)
   #}
-
-  ## FIXME: HACK HACK HACK
-  #pindices <- pindices[pindices < nrow(ed)]
-  #nindices <- nindices[nindices < nrow(ed)]
 
 
   # evaluate the markerwise (classwise) means
@@ -279,17 +271,13 @@ analyzeclusters <- function(
     axis(1,col=axes.colour,lwd=axes.linewidth,lty=axes.linetype)
     axis(2,col=axes.colour,lwd=axes.linewidth,lty=axes.linetype)
 
-    hulls<-list(list(indices=pindices,  col=col[1],lty=hull.lty,lwd=hull.lwd),
-                list(indices=nindices,  col=col[2],lty=hull.lty,lwd=hull.lwd),
-                list(indices=1:nrow(ed),col=col[3],lty=hull.lty,lwd=hull.lwd))
-
     to.print<-NULL
     for (n in names(group.results)) {
         cat("Plotting group '",n,"'.\n",sep="")
     	ed.sub<-ed[group.results[[n]],]
 	chu.indices<-chull(ed.sub)
 	lines(ed.sub[c(chu.indices,chu.indices[1]),],lty=hull.lty,col=col.list[n],lwd=hull.lwd)
-	to.print<-c(to.print,l$indices[chu.indices])
+	to.print<-c(to.print,group.results[[n]][chu.indices])
     }
     for(n in names(group.means)) {
         points(t(group.means[[n]]), col = col.list[n], pch = mean.pch, cex = mean.cex)
@@ -299,28 +287,34 @@ analyzeclusters <- function(
   } else {
     # cat("\n\n*\n* Drawing was not activated.\n*\n\n")
   }
-  res <- list(posm = posm, negm = negm)
-  return(res)
+  return(group.means)
 }
 
 
-# Evaluate the differences of the means for each markerpair
-evalresiduals <- function(e1, e2, verbose=F, selection_xaxis="gene",selection_yaxis="gene",selection_shape="phen",selection_colour="marker") {
+# Evaluate the differences of the means for each marker group
+evalresiduals <- function(e1, e2, verbose=T, selection_xaxis="gene",selection_yaxis="gene",selection_shape="phen",selection_colour="marker") {
   sa<-sapply(markerrownames,function(m) {
       if (verbose) {
       	cat("evalresiduals: evaluation of ",m,"\n")
       }
       res <- analyzeclusters(e1,e2,m,draw=F)
-      r<-c(posm=res$posm[1],
-      	   posm=res$posm[2],
-           negm=res$negm[1],
-	   negm=res$negm[2])
-      if (verbose) print(r)
-      return(r)
+      res.matrix<-matrix(NA,ncol=length(res),nrow=length(res))
+      res.matrix.names<-names(res)
+      colnames(res.matrix)<-rownames(res.matrix)<-res.matrix.names
+      for(n1 in res.matrix.names) {
+         for(n2 in names(res)) {
+	    d<-(res[[n1]]-res[[n2]])
+	    res.matrix[n1,n2]<-sqrt(sum(d^2))
+	 }
+      }
+      if (verbose) print(res.matrix)
+      return(max(res.matrix,na.rm=T))
   })
-  geom.diff <- sqrt(colSums(sa[1:2,] - sa[3:4,])^2)
-  names(geom.diff)<-colnames(sa)
-  return(geom.diff)
+  if (verbose) {cat("dim(sa): "); print(dim(sa))}
+  #geom.diff <- sqrt(colSums(sa[1:2,] - sa[3:4,])^2)
+  #names(geom.diff)<-colnames(sa)
+
+  return(sa)
 }
 
  
