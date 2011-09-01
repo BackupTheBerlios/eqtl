@@ -172,6 +172,7 @@ analyzeclusters <- function(
 			e2,
 			m=NULL,
 			draw=F,
+			draw.legend=T,
 			verbose=FALSE,
 			phen=NULL,
                         hull.lwd=3, hull.lty="dotted",
@@ -247,8 +248,8 @@ analyzeclusters <- function(
     cat("\n\n*\n* Drawing \n*\n\n")
 
     # set color vector
-    col <- rep("gray", length(md))
-    col.list<-rainbow(length(group.means))
+    col <- length(md)
+    col.list<-c("gray",rainbow(length(group.means)-1))
     names(col.list)<-names(group.means)
     for(n in names(group.means)) {
         col[ group.results[[n]] ] <- col.list[n]
@@ -275,15 +276,23 @@ analyzeclusters <- function(
     for (n in names(group.results)) {
         cat("Plotting group '",n,"'.\n",sep="")
     	ed.sub<-ed[group.results[[n]],]
+	if (verbose) {cat("rownames(ed.sub) for ",n,": "); print(rownames(ed.sub))}
 	chu.indices<-chull(ed.sub)
 	lines(ed.sub[c(chu.indices,chu.indices[1]),],lty=hull.lty,col=col.list[n],lwd=hull.lwd)
-	to.print<-c(to.print,group.results[[n]][chu.indices])
+	to.print<-c(to.print,rownames(ed.sub)[chu.indices])
     }
     for(n in names(group.means)) {
         points(t(group.means[[n]]), col = col.list[n], pch = mean.pch, cex = mean.cex)
     }
-    #points(t(negm), col = "red", pch = mean.pch, cex = mean.cex)
-    if (label.individuals) text(x=ed[to.print,],labels=rownames(ed)[to.print],cex=0.5,pos=4,offset=0.3)
+    if (label.individuals) {
+        text(x=ed[to.print,],labels=rownames(ed[to.print,]),cex=0.5,pos=4,offset=0.3)
+    }
+
+    if (draw.legend) {
+       cat("Drawing legend for groups: ",paste(names(group.results),collapse=",",sep=""),"\n")
+       legend(x="topright",legend=names(group.results),fill=col.list[names(group.results)])
+    }
+
   } else {
     # cat("\n\n*\n* Drawing was not activated.\n*\n\n")
   }

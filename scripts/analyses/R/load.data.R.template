@@ -174,7 +174,6 @@ load.data <- function(data.type,verbose=FALSE) {
     }
     rownames(l[["genotypes"]])<-l[["individuals"]]
 
-
     return(l)
 
   } else if ("scores" == data.type) {
@@ -217,7 +216,7 @@ adjust.individuals.data.to.expressionData <- function(expressionData, individual
   	"Something is wrong with the handling of the individuals data or those data themselves. ",
 	"Please investigate.\n")
 
-  if (is.list(expressionData) && !is.data.frame(expressionData)) {
+  if (is.list(expressionData) && !is.data.frame(expressionData) && !is.matrix(expressionData)) {
      if (verbose) cat("adjust.individuals.data.to.expressionData: b\n")
      expressionData<-expressionData[["numeric"]]
   }
