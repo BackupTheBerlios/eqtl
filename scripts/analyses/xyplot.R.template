@@ -270,6 +270,25 @@ if (is.null(opt$imageheight)) {
    }
 }
 
+if (is.null(opt$selection_xaxis)) {
+   opt[["selection_xaxis"]]<-"gene"
+}
+if (is.null(opt$selection_yaxis)) {
+   opt[["selection_xaxis"]]<-"gene"
+}
+if (is.null(opt$selection_colour)) {
+   opt[["selection_colour"]]<-"phen"
+}
+if (is.null(opt$selection_symbol)) {
+   opt[["selection_symbol"]]<-"marker"
+}
+
+if (is.null(opt$legend)) {
+   opt$legend<-F
+} else {
+   opt$legend<-T
+}
+
 
 # Ppreparation of the output file
 
@@ -287,9 +306,9 @@ if (is.null(opt$interactive)) {
 	} else if ("pdf" == opt$format) {
 		pdf(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
 	} else if ("jpg" == opt$format  || "jpeg" == opt$format) {
-		jpg(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
+		jpeg(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
 	} else if ("gif" == opt$format) {
-		jpg(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
+		jpeg(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
 	} else {
 		cat("Unknown format ",opt$format,"\n")
 		q(status=1)
@@ -305,11 +324,16 @@ source('BASEDIR/scripts/analyses/R/load.data.R')
 #source('BASEDIR/scripts/analyses/R/analyseCorrelationForMarkers.R')
 source('BASEDIR/scripts/analyses/R/analyseCorrelationForAllMarkers.R')
 
-cat("* Starting 'analyzeclusters' with hull.lty='",opt$hulllinetype,"' hull.lwd='",opt$hulllinewidth,"'\n")
-a<-analyzeclusters(e1=opt$value_xaxis, e2=opt$value_yaxis, m=NULL, draw=T,
+cat("* Starting 'analyzeclusters' with hull.lty='",opt$hulllinetype,"' hull.lwd='",opt$hulllinewidth,"'\n",sep='')
+a<-analyzeclusters(value_xaxis=opt$value_xaxis, value_yaxis=opt$value_yaxis,
+		   value_colour=opt$value_colour, value_symbol=opt$value_symbol,
+                   selection_xaxis=opt$selection_xaxis, selection_yaxis=opt$selection_yaxis,
+                   selection_colour=opt$selection_colour, selection_symbol=opt$selection_symbol,
+		   draw=T, draw.legend=opt$legend,
                    hull.lty=opt$hulllinetype, hull.lwd=opt$hulllinewidth,
 		   axes.colour=opt$axescolour, axes.linewidth=opt$axeslinewidth, axes.linetype=opt$axeslinestype,
-		   mean.pch=opt$meanSymbol, mean.cex=opt$meanSize, individuals.pch=opt$individualsSymbol, individuals.cex=opt$individualsSize,
+		   mean.pch=opt$meanSymbol, mean.cex=opt$meanSize,
+		   individuals.pch=opt$individualsSymbol, individuals.cex=opt$individualsSize,
 		   verbose=opt$verbose)
 #a<-analyzeclusters(opt$selection_xaxis,  opt$value_xaxis,
 #		   opt$selection_yaxis,  opt$value_yaxis,

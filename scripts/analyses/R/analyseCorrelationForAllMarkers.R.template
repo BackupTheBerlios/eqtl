@@ -5,7 +5,7 @@ doc <- "
 
 =head1 NAME
 
-analyseCorrelationForMarkers.R - collection of functions to investigate a change in the correlation of genes because of some marker
+analyseCorrelationForMarkers.R - collection of functions to investigate a change in the correlation of traits because of some marker
 
 =head1 SYNOPSIS
 
@@ -166,40 +166,125 @@ draw is a boolean and activates the graphical output
 
 "
 
+get.data.of.type.and.filter <- function(t,f,value_xaxis=NULL,value_yaxis=NULL,selection_xaxis="trait",selection_yaxis="trait", verbose=T, debug=F) {
+	if (missing(t) || is.null(t)) {
+		stop("Value for data type to retrieve is null.\n")
+	}
+	if (missing(t) || is.null(f)) {
+		if ("marker"==t) {
+			if (!missing(value_xaxis) && !missing(value_yaxis) && !is.null(value_xaxis) && !is.null(value_yaxis)) {
+				f<-find.best.markers(value_xaxis,value_yaxis,verbose=verbose)
+			} else {
+				stop("The system would know how to select a marker, just specify two traits.")
+			}
+		} else if ("phen"==t) {
+			return(NULL)
+		} else {
+			stop("Value for filter to retrieve is null.\n")
+		}
+	}
 
-analyzeclusters <- function(
-			e1,
-			e2,
-			m=NULL,
-			draw=F,
-			draw.legend=T,
-			verbose=FALSE,
-			phen=NULL,
-                        hull.lwd=3, hull.lty="dotted",
-                        axes.colour="red", axes.linewidth=3, axes.linetype="solid",
-			mean.pch=8, mean.cex=2,
-			individuals.pch=22,
-			individuals.cex=1,
-			groups.col=c("red","green","gray"),
-			label.individuals=T,
-			selection_xaxis="gene",
-			selection_yaxis="gene",
-			selection_shape="phen",
-			selection_colour="marker"
-) {
+	r<-NULL
+	if ("trait" == t) {
+		r<-as.numeric(expr[f,,drop=T])
+		names(r)<-colnames(expr)
+	} else if ("phen" == t) {
+		#cat("clinical: "); print(clinical)
+		if (f %in% rownames(clinical)) {
+			r <- unlist(clinical[f,,drop=T])
+		} else if (tolower(f) %in% tolower(rownames(clinical))) {
+			if (sum(tolower(f) == tolower(rownames(clinical)))>1) {
+				stop("get.data.of.type.and.filter: cannot resolve name ",f," unambiguously in (",
+					paste(rownames(clinical),collapse=","),").\n")
+			}
+			r <- unlist(clinical[tolower(f) == tolower(rownames(clinical)),,drop=T])
+		}
+	} else if ("marker" == t) {
+		r <- unlist(marker[f,])
+		#names(r)<-rownames(marker)
+	} else {
+		stop("Do not know how to retrieve data of type '",t,"'.'\n")
+	}
+	if (debug) {cat("get.data.of.type.and.filter(",t,",",f,")\n",sep=""); print(r)}
 
-  # get expression data (and make them columns)
-  ed <- t(expr[c(e1, e2), ])
-  # get marker data
-  if (is.null(m)) {
-  	m<-find.best.markers(e1,e2,verbose=verbose)
-  }
+	return(r)
+}
 
-  md <- marker[m,]
-  if (length(md)>nrow(ed)) {
-     cat("Dimension of marker data: "); print(dim(md))
-     stop("Number of markers (",length(md),") and number of individuals with trait (",nrow(ed),") differ.\n")
-  }
+transform.to.symbol<-function(vals=NULL,max.symbols=8) {
+	if (is.null(vals)) return(NULL)
+        if (length(unique(vals))>max.symbols) {
+	    cat("Not plotting more than ",max.symbols," different symbols, requested ",length(unique(vals)),".\n",sep="")
+	    return(NULL)
+	} else {
+	    pch<-rep(NA,length(vals))
+	    #cat("transform.to.symbol: vals: "); print(vals)
+	    vals.unique<-sort(unique(vals),na.last=F)
+    	    p.factors<-factor(vals,levels=vals.unique)
+	    pch <- 18-as.numeric(p.factors)
+    	    pch[is.na(pch)] <- 21
+	    pch.list<-c(21,17:(18-length(vals.unique[!is.na(vals.unique)])))
+	    names(pch.list)<-c("NA",vals.unique[!is.na(vals.unique)])
+	    attr(pch,"pch.list")<-pch.list
+	    cat("pch: "); print(pch)
+	    return(pch)
+	}
+}
+
+
+transform.to.colour<-function(vals=NULL,colour.scheme=rainbow,na.colour="gray") {
+	if (is.null(vals)) return(NULL)
+	vals.u<-unique(vals)
+	col<-rep(NA,length(vals))
+	col.list<-NULL
+	v<-NULL
+	if (length(vals.u)>=256) {
+		cat("transform.to.colour: only showing 255 different values\n")
+		if (!all(is.numeric(vals.u),na.rm=T)) stop("For so many values, I need something numeric.")
+		vals.rank<-rank(vals)
+		v<-vals.rank-min(vals.rank,na.rm=T)
+		v<-v/max(v,na.rm=T)
+		v<-v*(255-1)
+		v<-floor(v+1)
+		scheme<-colour.scheme(max(v,na.rm=T))
+		col<-scheme[v]
+		col.list<-c(min=scheme[min(v)],max=scheme[max(v)])
+	} else {
+		cat("vals.u:"); print(vals.u)
+		vals.u.sort<-sort(vals.u,na.last=F)
+		cat("vals.u.sort:"); print(vals.u.sort)
+		v<-factor(vals,levels=vals.u.sort)
+		col.list<-colour.scheme(length(vals.u.sort[!is.na(vals.u.sort)]))
+		col<-col.list[as.numeric(v)]
+		names(col.list)<-as.character(vals.u.sort[!is.na(vals.u.sort)])
+#  group.colours<-NULL
+#  if (perform.colouring) {
+#     col.list<-c("gray",rainbow(length(colour.group$means)-1))
+#     names(col.list)<-names(colour.group$means)
+#     for(n in names(colour.group$means)) {
+#        col[ group$results[[n]] ] <- col.list[n]
+#     }
+#     if (verbose) cat("assigned all colours\n")
+#  }
+	}
+	col[is.na(v)]<-na.colour
+	if (any(is.na(vals))) col.list<-c("NA"=na.colour,col.list)
+	attr(col,"col.list")<-col.list
+	col[is.na(col)]<-na.colour
+	attr(col,"na.colour")<-na.colour
+	return(col)
+}
+
+transform.to.groups<-function(positions,vals,verbose=F) {
+
+  if (missing(positions)) stop("transform.to.groups: positions not set\n")
+  if (missing(vals)) {warning("transform.to.groups: vals not set\n") ; return(NULL)}
+  if (verbose) cat("***transform.to.groups****\n")
+  if (is.null(positions)) stop("transform.to.groups: positions is null\n")
+  if (is.null(vals)) {warning("transform.to.groups: vals is null\n") ; return(NULL)}
+
+  if (verbose) {cat("dim(positions): "); print(dim(positions))}
+  if (verbose) {cat("length(vals): "); print(length(vals))}
+  if (verbose) {cat("vals: "); print(vals)}
 
   group.list<-list(
     "0"=c("0",0," 0"),
@@ -212,13 +297,14 @@ analyzeclusters <- function(
   )
 
   group.results<-list(
-   "NA"=rep(T,length(md))
+   "NA"=rep(T,length(vals))
   )
-  cat("Values in genotypes:  "); cat(paste("'",paste(unique(md),collapse=",",sep=""),"'\n",sep=""))
+
+  vals[is.na(vals)]<-"NA"
+  cat("Values in genotypes:  "); cat(paste("'",paste(unique(vals),collapse=",",sep=""),"'\n",sep=""))
   for(n in names(group.list)) {
-     if (is.na(n)) n<-"NA"
      v<-group.list[[n]]
-     m<-(md %in% v)
+     m<-(vals %in% v)
      if (sum(m)>0) {
        group.results[[n]]<-m
        group.results[["NA"]][m]<-F
@@ -227,91 +313,200 @@ analyzeclusters <- function(
 
   cat("Available groups: "); print(paste(names(group.results),collapse=","))
 
-  #if (length(pindices) == 0 || length(nindices) == 0) {
-  #  message("analyzeclusters(",e1,",",e2,",",m,") :  problem with length(pindices)==",length(pindices)," and length(nindices)==",length(nindices),".\n")
-  #  return(0)
-  #}
-
-
   # evaluate the markerwise (classwise) means
 
   if (verbose) cat("Determining means for group ...\n",sep="")
   group.means<-list()
+  if (verbose) {
+     cat("transform.to.groups: dim(positions):\n"); print(dim(positions))
+     #cat("transform.to.groups: positions:\n"); print(positions)
+  }
   for(n in names(group.results)) {
      if (verbose) cat("                          ...'",n,"'\n",sep="")
-     group.means[[n]]<-colMeans(ed[group.results[[n]],,drop=F])
+     group.means[[n]]<-colMeans(positions[group.results[[n]],,drop=F])
   }
+
+  if (verbose) {cat("transform.to.groups: group.results: "); print(group.results)}
+  
+  return(list(
+  	list=group.list,
+	results=group.results,
+	means=group.means
+  ))
+
+}
+
+
+analyzeclusters <- function(
+			value_xaxis, # e1
+			value_yaxis, # e2
+			value_symbol=NULL, # phen=NULL,
+			value_colour=NULL, # m=NULL,
+			draw=F,
+			draw.legend=T,
+			verbose=T,
+                        hull.lwd=3, hull.lty="dotted",
+                        axes.colour="red", axes.linewidth=3, axes.linetype="solid",
+			mean.pch=8, mean.cex=2,
+			individuals.pch=22,
+			individuals.cex=2,
+			groups.col=c("red","green","gray"),
+			label.individuals=T,
+			selection_xaxis="trait", selection_yaxis="trait", selection_symbol="phen", selection_colour="marker"
+) {
+
+  if ("trait" != selection_xaxis || "trait" != selection_yaxis)
+      stop("At the moment, only the plotting of two traits against each other is implemented, not ",
+            selection_xaxis," and ",selection_yaxis,".\n")
+
+  # get expression data (and make them columns)
+  #ed <- t(expr[c(e1, e2), ])
+  ed <- cbind(get.data.of.type.and.filter(selection_xaxis,value_xaxis),
+              get.data.of.type.and.filter(selection_yaxis,value_yaxis))
+  if (verbose) {cat("analyzeclusters: dim(ed): "); print(dim(ed))}
+  #if (verbose) {cat("analyzeclusters: ed:\n"); print(ed)}
+  phen.data <- marker.data <-NULL
+  phen.group <- marker.group <- NULL
+
+  symbol.data<-colour.data<-NULL
+  cat("analyzeclusters: selection_colour=",selection_colour,", value_colour=",value_colour,"\n",sep="")
+  colour.data<-get.data.of.type.and.filter(t=selection_colour,f=value_colour,
+                                           value_xaxis=value_xaxis,value_yaxis=value_yaxis,
+                                           selection_xaxis=selection_xaxis,selection_yaxis=selection_yaxis)
+  colour.group <- transform.to.groups(positions=ed,vals=colour.data)
+
+  if ("marker" == selection_colour) {
+     marker.data<-colour.data
+     marker.group<-colour.group
+  } else if ("phen"   == selection_colour) {
+     phen.data<-colour.data
+     phen.group<-colour.group
+  }
+
+  cat("analyzeclusters: selection_symbol='",selection_symbol,"', value_symbol='",value_symbol,"'\n",sep="")
+  symbol.data<-get.data.of.type.and.filter(selection_symbol,value_symbol)
+  symbol.group <- transform.to.groups(positions=ed,vals=symbol.data)
+  if ("marker" == selection_symbol) {
+      marker.data<-symbol.data
+      marker.group<-symbol.group
+  } else if ("phen" == selection_symbol) {
+      phen.data<-symbol.data
+      phen.group<-symbol.group
+  }
+
+  if (length(marker.data)>nrow(ed)) {
+     cat("analyzeclusters: Dimension of marker data: "); print(dim(marker.data))
+     stop("analyzeclusters: Number of markers (",length(marker.data),") and number of individuals with trait (",nrow(ed),") differ.\n")
+  }
+
+  #cat("analyzeclusters: marker.data: "); print(marker.data)
+
 
   # if drawing is activated
   if (draw) {
 
     cat("\n\n*\n* Drawing \n*\n\n")
 
+    xlab <- paste("Probeset", value_xaxis, sep=" ")
+    ylab <- paste("Probeset", value_yaxis, sep=" ")
+
+    #sub <- paste("Marker ", if(is.character(m)) {m} else {markerrownames[m]}, sep="")
+    sub<-NULL
+
     # set color vector
-    col <- length(md)
-    col.list<-c("gray",rainbow(length(group.means)-1))
-    names(col.list)<-names(group.means)
-    for(n in names(group.means)) {
-        col[ group.results[[n]] ] <- col.list[n]
+    col <- rep("black",nrow(ed))
+    if (!is.null(colour.data)) {
+       col<-transform.to.colour(colour.data)
+    } else {
+       cat("No colour data for type ",selection_symbol," that is ",value_symbol,".\n",sep="")
     }
 
-    if (verbose) cat("assigned all colours\n")
-
-    xlab <- paste("Probeset", e1, sep=" ")
-    ylab <- paste("Probeset", e2, sep=" ")
-    sub <- paste("Marker ", if(is.character(m)) {m} else {markerrownames[m]}, sep="")
     #pch <- rep(individuals.pch, length(col))
-    pch <- rep(22, length(col))
-    if (!is.null(phen)) {
-    	p.factors<-as.factor(phen$values)
-	pch[phen$notna]<-20+sapply(phen$values,function(X){which(X==unique(phen$values))})
-    	pch[naindices] <- 20
+    pch <- rep(22, nrow(ed))
+    if (!is.null(symbol.data)) {
+    	pch<-transform.to.symbol(symbol.data)
+	cat("pch: "); print(str(pch))
     }
+
     #pch[naindices] <- 20
     plot(x=ed, col=col, pch=pch, cex=individuals.cex, xlab=xlab, ylab=ylab, sub=sub, xaxt="n", yaxt="n")
     axis(1,col=axes.colour,lwd=axes.linewidth,lty=axes.linetype)
     axis(2,col=axes.colour,lwd=axes.linewidth,lty=axes.linetype)
 
     to.print<-NULL
-    for (n in names(group.results)) {
-        cat("Plotting group '",n,"'.\n",sep="")
-    	ed.sub<-ed[group.results[[n]],]
+    for (n in names(marker.group$results)) {
+        cat("Plotting marker.group '",n,"'.\n",sep="")
+    	ed.sub<-ed[marker.group$results[[n]],]
 	if (verbose) {cat("rownames(ed.sub) for ",n,": "); print(rownames(ed.sub))}
 	chu.indices<-chull(ed.sub)
-	lines(ed.sub[c(chu.indices,chu.indices[1]),],lty=hull.lty,col=col.list[n],lwd=hull.lwd)
-	to.print<-c(to.print,rownames(ed.sub)[chu.indices])
+	#lines(ed.sub[c(chu.indices,chu.indices[1]),],lty=hull.lty,col=col.list[n],lwd=hull.lwd)
+	lines(ed.sub[c(chu.indices,chu.indices[1]),],lty=hull.lty,col="black",lwd=hull.lwd)
+	to.print<-unique(c(to.print,rownames(ed.sub)[chu.indices]))
     }
-    for(n in names(group.means)) {
-        points(t(group.means[[n]]), col = col.list[n], pch = mean.pch, cex = mean.cex)
+
+    #cat("to.print: "); print(to.print)
+    for(n in names(marker.group$means)) {
+        #points(t(marker.group$means[[n]]), col = col.list[n], pch = mean.pch, cex = mean.cex)
+        text(t(marker.group$means[[n]]), col = "black", labels = n, cex = mean.cex)
     }
     if (label.individuals) {
         text(x=ed[to.print,],labels=rownames(ed[to.print,]),cex=0.5,pos=4,offset=0.3)
     }
 
     if (draw.legend) {
-       cat("Drawing legend for groups: ",paste(names(group.results),collapse=",",sep=""),"\n")
-       legend(x="topright",legend=names(group.results),fill=col.list[names(group.results)])
+          pch.list<-attr(pch,"pch.list")
+	  if (is.null(pch.list)) {
+	     cat("Could not retrieve 'pch.list' attribute from pch.\n")
+	  } else {
+             cat("Drawing legend for groups: ",paste(names(symbol.group$results),collapse=",",sep=""),"\n")
+             legend(x="topright",legend=names(pch.list),pch=pch.list,title=value_symbol,cex=2.5)
+	  }
+          col.list<-attr(col,"col.list")
+	  if (is.null(col.list)) {
+	     cat("Could not retrieve 'col.list' attribute from col.\n")
+	  } else {
+             legend(x="topleft",legend=names(col.list),fill=col.list,title=value_colour,cex=2.5)
+	  }
+    } else {
+       if (verbose) cat ("Not drawing legend.\n")
     }
 
   } else {
     # cat("\n\n*\n* Drawing was not activated.\n*\n\n")
   }
-  return(group.means)
 }
 
 
 # Evaluate the differences of the means for each marker group
-evalresiduals <- function(e1, e2, verbose=T, selection_xaxis="gene",selection_yaxis="gene",selection_shape="phen",selection_colour="marker") {
+evalresiduals <- function(value_xaxis, value_yaxis, verbose=T, selection_xaxis="trait",selection_yaxis="trait",selection_evaluation="marker") {
+
+  if (selection_evaluation != "marker") {
+      stop("evalresiduals: Cannot evaluate anything else but markers for the very moment.\n")
+  }
+
+  if (verbose) {
+      cat("evalresiduals: a\n")
+      cat("  markerrownames: "); print(markerrownames)
+  }
+
   sa<-sapply(markerrownames,function(m) {
       if (verbose) {
       	cat("evalresiduals: evaluation of ",m,"\n")
       }
-      res <- analyzeclusters(e1,e2,m,draw=F)
+      ed <- cbind(get.data.of.type.and.filter(selection_xaxis,value_xaxis),
+                  get.data.of.type.and.filter(selection_yaxis,value_yaxis))
+      marker.data <- get.data.of.type.and.filter(selection_evaluation,m,value_xaxis=value_xaxis,value_yaxis=value_yaxis,selection_xaxis=selection_xaxis,selection_yaxis=selection_yaxis)
+      cat("evalresiduals: marker.data: "); print(marker.data)
+      groups <- transform.to.groups(ed,vals=marker.data)
+      res <- groups[["means"]]
+      cat("evalresiduals: res: "); print(res)
+      cat("evalresiduals: groups: "); print(groups)
+
       res.matrix<-matrix(NA,ncol=length(res),nrow=length(res))
       res.matrix.names<-names(res)
       colnames(res.matrix)<-rownames(res.matrix)<-res.matrix.names
       for(n1 in res.matrix.names) {
-         for(n2 in names(res)) {
+         for(n2 in res.matrix.names) {
 	    d<-(res[[n1]]-res[[n2]])
 	    res.matrix[n1,n2]<-sqrt(sum(d^2))
 	 }
@@ -319,6 +514,7 @@ evalresiduals <- function(e1, e2, verbose=T, selection_xaxis="gene",selection_ya
       if (verbose) print(res.matrix)
       return(max(res.matrix,na.rm=T))
   })
+
   if (verbose) {cat("dim(sa): "); print(dim(sa))}
   #geom.diff <- sqrt(colSums(sa[1:2,] - sa[3:4,])^2)
   #names(geom.diff)<-colnames(sa)
@@ -327,8 +523,11 @@ evalresiduals <- function(e1, e2, verbose=T, selection_xaxis="gene",selection_ya
 }
 
  
-find.best.markers <- function(e1, e2,verbose=FALSE) {
-  m<-evalresiduals(e1,e2, verbose=verbose)
+find.best.markers <- function(value_xaxis, value_yaxis,verbose=FALSE,selection_xaxis="trait",selection_yaxis="trait",selection_evaluation="marker") {
+  m<-evalresiduals(value_xaxis=value_xaxis,value_yaxis=value_yaxis,
+                   verbose=verbose,
+		   selection_xaxis=selection_xaxis,selection_yaxis=selection_yaxis,
+		   selection_evaluation=selection_evaluation)
   m.best<-maxc(m)
   return(names(m)[m.best])
 }
