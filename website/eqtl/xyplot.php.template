@@ -53,6 +53,7 @@ University Clinics Schleswig-Holstein, Germany, 2010
 	# be iterated to check for _GET and _POST submissions
 	foreach ($dimensions as $d=>$dd) {
 		array_push($dataSelectionFieldsQTL,"selection_$d");
+		array_push($dataSelectionFieldsQTL,"value_$d");
 		foreach ($dimension_types as $dt=>$dtdt) {
 			$varname=$d."_".$dt;
 			#echo "<p>$varname</p>\n";
@@ -108,6 +109,10 @@ University Clinics Schleswig-Holstein, Germany, 2010
 
 		echo "<p>Please specify the data to be presented for each dimension:</p>\n";
 		echo "<table>\n";
+		$markers_mod=array_merge(
+			array("most_sep_geometric"=>"Find most separating"),
+			$markers
+		);
 		foreach ($dimensions as $parameter=>$parameter_text) {
 			echo "<hr>\n";
 			echo "<h3>";
@@ -157,8 +162,11 @@ University Clinics Schleswig-Holstein, Germany, 2010
 			echo "<td>";
 			echo "<p>Specification of Marker:</p>\n";
 			$varname="$parameter"."_marker";
+			if (empty($$varname)) {
+				$$varname="most_sep_geometric";
+			}
 			echo "<select name=".$varname.">\n";
-			foreach ($markers as $m=>$mdisplay) {
+			foreach ($markers_mod as $m=>$mdisplay) {
 				echo "<option value=\"".$m."\"";
 				if (!empty($$varname)) {
 					if ($m == $$varname) {

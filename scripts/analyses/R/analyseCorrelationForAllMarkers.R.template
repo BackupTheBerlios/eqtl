@@ -170,17 +170,18 @@ get.data.of.type.and.filter <- function(t,f,value_xaxis=NULL,value_yaxis=NULL,se
 	if (missing(t) || is.null(t)) {
 		stop("Value for data type to retrieve is null.\n")
 	}
-	if (missing(t) || is.null(f)) {
-		if ("marker"==t) {
-			if (!missing(value_xaxis) && !missing(value_yaxis) && !is.null(value_xaxis) && !is.null(value_yaxis)) {
-				f<-find.best.markers(value_xaxis,value_yaxis,verbose=verbose)
-			} else {
-				stop("The system would know how to select a marker, just specify two traits.")
-			}
-		} else if ("phen"==t) {
-			return(NULL)
+	if (missing(f) || is.null(f) || "most_sep_geometric" == f) {
+
+		if (!missing(value_xaxis) && !missing(value_yaxis) && !is.null(value_xaxis) && !is.null(value_yaxis)) {
+			f<-find.best.markers(value_xaxis=value_xaxis, value_yaxis=value_yaxis,
+				    verbose=FALSE,selection_xaxis=selection_xaxis,selection_yaxis=selection_xaxis,
+				    selection_evaluation=t)
 		} else {
-			stop("Value for filter to retrieve is null.\n")
+			stop("get.data.of.type.and.filter: did not receive all information required for determining the best separating. Make sure, value_xaxis and value_yaxis are set.\n")
+		}
+		if (is.null(f)) {
+			cat("get.data.of.type.and.filter(",t,",",f,"): could not identify any best ",t,".\n")
+			return(NULL);
 		}
 	}
 
@@ -200,12 +201,25 @@ get.data.of.type.and.filter <- function(t,f,value_xaxis=NULL,value_yaxis=NULL,se
 			r <- unlist(clinical[tolower(f) == tolower(rownames(clinical)),,drop=T])
 		}
 	} else if ("marker" == t) {
-		r <- unlist(marker[f,])
-		#names(r)<-rownames(marker)
+		if (f %in% rownames(marker)) {
+			r <- unlist(marker[f,])
+		} else if (tolower(f) %in% tolower(rownames(marker))) {
+			if (sum(tolower(f) == tolower(rownames(marker)))>1) {
+				stop("get.data.of.type.and.filter: cannot resolve name ",f," unambiguously in (",
+					paste(rownames(marker),collapse=","),").\n")
+			}
+			r <- unlist(marker[tolower(f) == tolower(rownames(marker)),,drop=T])
+		} else {
+			#warning("Can not find marker ",most_sep_geometric,".\n")
+			return(NULL);
+		}
 	} else {
 		stop("Do not know how to retrieve data of type '",t,"'.'\n")
 	}
 	if (debug) {cat("get.data.of.type.and.filter(",t,",",f,")\n",sep=""); print(r)}
+
+	attr(r,"f")<-f
+	attr(r,"t")<-t
 
 	return(r)
 }
@@ -245,7 +259,7 @@ transform.to.colour<-function(vals=NULL,colour.scheme=rainbow,na.colour="gray") 
 		v<-v/max(v,na.rm=T)
 		v<-v*(255-1)
 		v<-floor(v+1)
-		scheme<-colour.scheme(max(v,na.rm=T))
+		scheme<-colour.scheme(n=max(v,na.rm=T),start=0,end=2/3)
 		col<-scheme[v]
 		col.list<-c(min=scheme[min(v)],max=scheme[max(v)])
 	} else {
@@ -253,7 +267,7 @@ transform.to.colour<-function(vals=NULL,colour.scheme=rainbow,na.colour="gray") 
 		vals.u.sort<-sort(vals.u,na.last=F)
 		cat("vals.u.sort:"); print(vals.u.sort)
 		v<-factor(vals,levels=vals.u.sort)
-		col.list<-colour.scheme(length(vals.u.sort[!is.na(vals.u.sort)]))
+		col.list<-colour.scheme(n=length(vals.u.sort[!is.na(vals.u.sort)]),start=0,end=2/3)
 		col<-col.list[as.numeric(v)]
 		names(col.list)<-as.character(vals.u.sort[!is.na(vals.u.sort)])
 #  group.colours<-NULL
@@ -363,6 +377,7 @@ analyzeclusters <- function(
   #ed <- t(expr[c(e1, e2), ])
   ed <- cbind(get.data.of.type.and.filter(selection_xaxis,value_xaxis),
               get.data.of.type.and.filter(selection_yaxis,value_yaxis))
+
   if (verbose) {cat("analyzeclusters: dim(ed): "); print(dim(ed))}
   #if (verbose) {cat("analyzeclusters: ed:\n"); print(ed)}
   phen.data <- marker.data <-NULL
@@ -384,7 +399,9 @@ analyzeclusters <- function(
   }
 
   cat("analyzeclusters: selection_symbol='",selection_symbol,"', value_symbol='",value_symbol,"'\n",sep="")
-  symbol.data<-get.data.of.type.and.filter(selection_symbol,value_symbol)
+  symbol.data<-get.data.of.type.and.filter(t=selection_symbol,f=value_symbol,
+                                           value_xaxis=value_xaxis,value_yaxis=value_yaxis,
+                                           selection_xaxis=selection_xaxis,selection_yaxis=selection_yaxis)
   symbol.group <- transform.to.groups(positions=ed,vals=symbol.data)
   if ("marker" == selection_symbol) {
       marker.data<-symbol.data
@@ -429,10 +446,12 @@ analyzeclusters <- function(
     }
 
     #pch[naindices] <- 20
-    plot(x=ed, col=col, pch=pch, cex=individuals.cex, xlab=xlab, ylab=ylab, sub=sub, xaxt="n", yaxt="n")
-    axis(1,col=axes.colour,lwd=axes.linewidth,lty=axes.linetype)
-    axis(2,col=axes.colour,lwd=axes.linewidth,lty=axes.linetype)
+    plot.new()
+    plot.window(xlim=c(min(ed[,1]),max(ed[,1])),ylim=c(min(ed[,2]),max(ed[,2])))
+    axis(1,col=axes.colour,lwd=axes.linewidth,lty=axes.linetype,cex=1.5)
+    axis(2,col=axes.colour,lwd=axes.linewidth,lty=axes.linetype,cex=1.5)
 
+    # First drawing the dominant hulls
     to.print<-NULL
     for (n in names(marker.group$results)) {
         cat("Plotting marker.group '",n,"'.\n",sep="")
@@ -443,6 +462,9 @@ analyzeclusters <- function(
 	lines(ed.sub[c(chu.indices,chu.indices[1]),],lty=hull.lty,col="black",lwd=hull.lwd)
 	to.print<-unique(c(to.print,rownames(ed.sub)[chu.indices]))
     }
+
+    # Then drawing the otherwise hidden points
+    points(x=ed, col=col, pch=pch, cex=individuals.cex*2, xlab=xlab, ylab=ylab, sub=sub, xaxt="n", yaxt="n")
 
     #cat("to.print: "); print(to.print)
     for(n in names(marker.group$means)) {
@@ -458,14 +480,22 @@ analyzeclusters <- function(
 	  if (is.null(pch.list)) {
 	     cat("Could not retrieve 'pch.list' attribute from pch.\n")
 	  } else {
+	     v<-value_symbol
+	     if ("most_sep_geometric"==v) v=attr(symbol.data,"f")
+	     if (is.null(v)) stop("draw.legend: v is null for symbols\n")
              cat("Drawing legend for groups: ",paste(names(symbol.group$results),collapse=",",sep=""),"\n")
-             legend(x="topright",legend=names(pch.list),pch=pch.list,title=value_symbol,cex=2.5)
+             legend(x="topright",legend=names(pch.list),pch=pch.list,title=v,cex=2.5)
 	  }
           col.list<-attr(col,"col.list")
 	  if (is.null(col.list)) {
 	     cat("Could not retrieve 'col.list' attribute from col.\n")
 	  } else {
-             legend(x="topleft",legend=names(col.list),fill=col.list,title=value_colour,cex=2.5)
+	     v<-value_symbol
+	     if ("most_sep_geometric"==v) v=attr(colour.data,"f")
+	     if (is.null(v)) stop("draw.legend: v is null for colours\n")
+	     s<-1:length(col.list)
+	     if (length(col.list)>7) s<-round(c(1,2,length(col.list)/4,length(col.list)/2,length(col.list)*3/4,length(col.list)))
+             legend(x="topleft",legend=names(col.list)[s],fill=col.list[s],title=v,cex=2.5)
 	  }
     } else {
        if (verbose) cat ("Not drawing legend.\n")
