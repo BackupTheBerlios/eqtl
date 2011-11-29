@@ -42,7 +42,7 @@ University of LE<uuml>beck, Germany, 2009
 	show_small_header("Venn diagrams on e-QTL for the same trait between covariates",TRUE);
 
 	$database="DATABASEEQTLNAME";
-	include_once("func_connect.php");
+	include_once("func_connecti.php");
 	require_once("func_public_qtl.php");
 
 	# fields that should appear
@@ -108,9 +108,9 @@ University of LE<uuml>beck, Germany, 2009
 		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
 
 		echo "<table>\n";
-		print_selection_form("figure_venn");
+		print_selection_form($linkLocali,"figure_venn");
 		echo "<tr><th>Covariates of stored QTL</th><td>";
-		select_covariates_combinations(3);
+		select_covariates_combinations($linkLocali,3);
 		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
 		echo "<tr><td align=right><input type=submit></td>";
 		echo "<td align=left><input type=reset>";
@@ -122,7 +122,7 @@ University of LE<uuml>beck, Germany, 2009
 
 		if ("" == "this is not yet implemented") {
 		  echo "</td>\n<td valign=top>";
-		  select_from_public_qtls($linkLocal,TRUE);
+		  select_from_public_qtls($linkLocali,TRUE);
 		  echo "</td>";
 		}
 		echo "</tr>";

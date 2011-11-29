@@ -58,7 +58,7 @@ ENDOFDOCUMENTATION
 
 	require_once("header.php");
 	$database="DATABASEEQTLNAME";
-	require_once("func_connect.php");
+	require_once("func_connecti.php");
 	require_once("func_covariates.php");
 	require_once("func_selection.php"); // prints parts of the HTML for forms
 
@@ -133,8 +133,8 @@ ENDOFDOCUMENTATION
 			}
 		}
 		elseif(isset($_GET[$vname])) {
-			if (is_array($_POST[$vname])) {
-				$$vname=$_POST[$vname];
+			if (is_array($_GET[$vname])) {
+				$$vname=$_GET[$vname];
 			} else {
 				$$vname = ltrim(rtrim($_GET[$vname]));
 				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
@@ -175,7 +175,7 @@ ENDOFDOCUMENTATION
 		<table><tr><td valign=top>
 			<table cellspacing=5>
 <?php
-			print_selection_form("all_qtl_trait");
+			print_selection_form($linkLocali,"all_qtl_trait");
 ?>
 			<tr><th align=right>inner order by:</th><td>
 				<select name=innerOrder>
@@ -217,7 +217,7 @@ ENDOFDOCUMENTATION
 			</table>
 
 			<H3>Selection of traits' controling QTL</h3>
-			<?php select_covariates_combinations(); ?>
+			<?php select_covariates_combinations($linkLocali); ?>
 		</td>
 		</tr>
 		</table>
@@ -230,7 +230,6 @@ ENDOFDOCUMENTATION
 		# Perform query and present results
 		#
 
-		require_once("func_connect.php");
 		require_once("func_species.php");
 		require_once("func_conversion_ENSEMBLVERSION.php");
 		require_once("func_covariates.php");
@@ -240,8 +239,8 @@ ENDOFDOCUMENTATION
 			$innerOrder = "locus.Chr,locus.cMorgan";
 		}
 
-		if (empty($linkLocal)) {
-			echo "<p>Could not create link to database.</p>";
+		if (empty($linkLocali)) {
+			echo "<p>trait.php: Could not create link to database.</p>";
 			exit;
 		}
 
@@ -307,15 +306,15 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 	$corQuery .= ", traits_${posOrNeg}_cor_rho, gene_name";
 	$corQuery .= " FROM trait";
 	$corQuery .= " WHERE trait_id = '$traitid';";
-	$resultCor = mysql_query($corQuery,$connection);
+	$resultCor = mysqli_query($connection,$corQuery);
 	if (empty($resultCor)) {
 		echo "<p>Problem with query '$corQuery': "
-			.mysql_error($connection)."</p>";
-		mysql_close($connection);
+			.mysqli_error($connection)."</p>";
+		mysqli_close($connection);
 		exit;
 	}
 	$traits=""; $traitsRho="";
-	if ($lineCor = mysql_fetch_array($resultCor,
+	if ($lineCor = mysqli_fetch_array($resultCor,
 					MYSQL_ASSOC)) {
 		$traits   =preg_split("/,/",$lineCor["traits_${posOrNeg}_cor"]);
 		if (count($traits) > $maxNumCorrGenesToShow) {
@@ -356,7 +355,7 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 	else {
 		echo "Could not find any correlations for trait '$traitid'.\n";
 	}
-	mysql_free_result($resultCor);
+	mysqli_free_result($resultCor);
 }
 
 		foreach ($a as $n=>$v) {
@@ -627,19 +626,19 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 
 		echo "<p><pre>query: $query</pre></p>";
 
-		$result = mysql_query($query,$linkLocal);
+		$result = mysqli_query($linkLocali, $query);
 		if (empty($result)) {
 			echo "<p>";
 			echo "Problem with query:<br>\n";
 			echo "<pre>$query</pre>\n";
-			echo mysql_error($linkLocal)."</p>";
-			mysql_close($linkLocal);
+			echo mysqli_error($linkLocal)."</p>";
+			mysqli_close($linkLocali);
 			exit;
 		}
 		$firstRow=true;
 		echo "<small><table border=1>\n";
 		$lineno=0;
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 			$lineno++;
 			if ($firstRow) {
 				$firstRow=FALSE;
@@ -709,7 +708,7 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 					    ."<th>covariates</th>"
 					;
 				}
-				echo "</tr>";
+				echo "</tr> <!-- first row --> \n ";
 			}
 			if (0 == $lineno%2) {
 				echo "<tr bgcolor=\"lightgray\">";
@@ -741,13 +740,13 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 
 				//echo $loci_query;
 
-				$loci_result = mysql_query($loci_query,$linkLocal);
+				$loci_result = mysqli_query($linkLocali,$loci_query);
 				if (empty($loci_result)) {
-					echo "<p>Problem in query '$loci_query': ".mysql_error($linkLocal)."</p>";
-					mysql_close($linkLocal);
+					echo "<p>Problem in query '$loci_query': ".mysqli_error($linkLocali)."</p>";
+					mysqli_close($linkLocali);
 					exit;
 				}
-				while($loci_line = mysql_fetch_array($loci_result,MYSQL_ASSOC)) {
+				while($loci_line = mysqli_fetch_array($loci_result,MYSQL_ASSOC)) {
 					$numberOfLociToShow++;
 					if (1<$numberOfLociToShow) {
 						if (0 == $lineno%2) {
@@ -770,11 +769,11 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 					;
 					$htmlTextToRepresentLoci .= "</tr>\n";
 				}
-				mysql_free_result($loci_result);
+				mysqli_free_result($loci_result);
 				if (0==$numberOfLociToShow) {
 					$numberOfLociToShow++;
 					$htmlTextToRepresentLoci = "<td colspan=8 valign=top>no locus found</td>";
-					$htmlTextToRepresentLoci .= "</tr>\n";
+					#$htmlTextToRepresentLoci .= "</tr>\n"; // only closing line when that section of code has opened one
 				}
 			}
 
@@ -881,7 +880,7 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 						break;
 					default:
 						if (empty($l)) $l="N/A";
-						echo "<td rowspan=$numberOfLociToShow valign=top>$l</td>";
+						echo "<td ".(!empty($numberOfLociToShow)?"rowspan=$numberOfLociToShow":"")." valign=\"top\">$l</td>";
 					}
 				}
 				else if("traits_pos_cor"==$n) {
@@ -894,6 +893,7 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 					# echo "<td rowspan=$numberOfLociToShow>$l</td>\n";
 				}
 			}
+
 			if (!empty($show_mean_sd_variance)) {
 				echo "<td valign=top rowspan=$numberOfLociToShow>";
 				echo "mean: ".$line["mean"]."<br/>\nsd: ".$line["sd"]."<br>\n";
@@ -902,6 +902,7 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 				echo "\n";
 				echo "</td>\n";
 			}
+
 			if (!empty($show_phen_analyses)
 				//and empty($trait_phen_analysis_id) # There will be only one analysis-line per trait, show all
 			   ){
@@ -924,15 +925,15 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 					if (!empty($aswfpa)) $phenanalysisquery .= " AND $aswfpa";
 
 					$phenanalysisquery .= " ORDER BY value";
-					$resultPhenAnalysis = mysql_query($phenanalysisquery,$linkLocal);
+					$resultPhenAnalysis = mysqli_query($linkLocali,$phenanalysisquery);
 					#print $phenanalysisquery;
 					if (empty($resultPhenAnalysis)) {
-						echo "<p>Problem with query $phenanalysisquery: ".mysql_error($linkLocal)."</p>";
-						mysql_close($linkLocal);
+						echo "<p>Problem with query $phenanalysisquery: ".mysqli_error($linkLocali)."</p>";
+						mysqli_close($linkLocali);
 						exit;
 					}
 					$firstPhenAnalysis=true;
-					while ($linePhenAnalysis = mysql_fetch_array($resultPhenAnalysis,
+					while ($linePhenAnalysis = mysqli_fetch_array($resultPhenAnalysis,
 									MYSQL_ASSOC)) {
 						if($firstPhenAnalysis){
 							$firstPhenAnalysis=FALSE;
@@ -945,10 +946,11 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 						   ." p=".round($linePhenAnalysis["value"],3);
 
 					}
-					mysql_free_result($resultPhenAnalysis);
+					mysqli_free_result($resultPhenAnalysis);
 				}
 				echo "</td>\n";
 			}
+
 			if (!empty($show_phen_correlation)){
 				echo "<td valign=top rowspan=$numberOfLociToShow>";
 				if (empty($traitid)) {
@@ -999,14 +1001,14 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 					}
 
 					$phenquery .= " ORDER BY p";
-					$resultPhen = mysql_query($phenquery,$linkLocal);
+					$resultPhen = mysqli_query($linkLocali,$phenquery);
 					if (empty($resultPhen)) {
-						echo "<p>".mysql_error($linkLocal)."</p>";
-						mysql_close($linkLocal);
+						echo "<p>".mysqli_error($linkLocali)."</p>";
+						mysqli_close($linkLocali);
 						exit;
 					}
 					$firstPhen=true;
-					while ($linePhen = mysql_fetch_array($resultPhen,
+					while ($linePhen = mysqli_fetch_array($resultPhen,
 									MYSQL_ASSOC)) {
 						if($firstPhen){
 							$firstPhen=FALSE;
@@ -1020,10 +1022,11 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 							." <i>p</i>".round($linePhen["p"],4);
 
 					}
-					mysql_free_result($resultPhen);
+					mysqli_free_result($resultPhen);
 				}
 				echo "</td>\n";
 			}
+
 			if (       !empty($show_positive_correlation)
 				or !empty($show_negative_correlation)) {
 
@@ -1036,25 +1039,25 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 				else {
 					if (!empty($show_positive_correlation)){
 						retrieveCorrelations($traitid,"pos",
-						"horizontal",$maxNumCorrGenesToShow,$linkLocal);
+						"horizontal",$maxNumCorrGenesToShow,$linkLocali);
 					}
 					if (!empty($show_negative_correlation)){
 						retrieveCorrelations($traitid,"neg",
-						"horizontal",$maxNumCorrGenesToShow,$linkLocal);
+						"horizontal",$maxNumCorrGenesToShow,$linkLocali);
 					}
 				}
 				echo "</td>\n";
 			}
+
 			if (!empty($show_trait_loci)) {
 				echo $htmlTextToRepresentLoci;
 			}
-			else {
-				echo "</tr>";
-			}
+
+			echo "</tr> <!-- regular end of trait -->\n";
 		}
 		echo "</table></small>";
-		mysql_free_result($result);
-		mysql_close($linkLocal);
+		mysqli_free_result($result);
+		mysqli_close($linkLocali);
 	}
 	include("footer.php");
 ?>

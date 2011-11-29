@@ -97,18 +97,23 @@ Set to FALSE if the empty covariate shall be shown with the string none.
 function get_covars_on_your_own_from_qtl($dbh,$ignorenone=TRUE) {
 	global $debug;
 	global $covariates_qtl;
+	if (empty($dbh)) {
+		echo "get_covars_on_your_own_from_qtl: passed empty dbh\n";
+		exit;
+	}
 	if (isset($covariates_qtl)) {
 		return($covariates_qtl);
 	}
 	$query = "SELECT distinct covariates from qtl";
 	if ($ignorenone) $query .= " where covariates != ''";
-	$result = mysql_query($query) or die('Query failed: ' . mysql_error());
+	$result = mysqli_query($dbh,$query) or die('Query failed: ' . mysqli_error($dbh));
 	$retrieved=array();
-	while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+	while($line=mysqli_fetch_array($result, MYSQL_ASSOC)) {
 		#if ($debug) print_r($line); echo "<br>";
 		array_push($retrieved,$line["covariates"]);
 	}
 	$covariates_qtl=$retrieved;
+	mysqli_free_result($result);
 	return($retrieved);
 }
 
@@ -122,10 +127,11 @@ function get_covars_on_your_own_from_qtl($dbh,$ignorenone=TRUE) {
 */
 function get_covars_on_your_own_from_schema($dbh) {
 	global $debug;
+	if (empty($dbh)) die("get_covars_on_your_own_from_schema was passed empty dbh\n");
 	$query = 'DESCRIBE qtl';
-	$result = mysql_query($query) or die('Query failed: ' . mysql_error());
+	$result = mysqli_query($dbh,$query) or die('Query failed: ' . mysqli_error($dbh));
 	$retrieved=array();
-	while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+	while($line=mysqli_fetch_array($result, MYSQL_ASSOC)) {
 		#if ($debug) print_r($line); echo "<br>";
 		if ("covariates" == $line["Field"]) {
 			#echo "In covariates:"; print_r($line);
@@ -140,7 +146,7 @@ function get_covars_on_your_own_from_schema($dbh) {
 		}
 	}
 	#echo "\n"; echo "FINDME\n"; print_r($retrieved); echo "\n";
-	mysql_free_result($result);
+	mysqli_free_result($result);
 	return($retrieved);
 }
 
@@ -161,6 +167,7 @@ values to the strings, accordingly.
  */
 function prepare_covariates_values_hash($dbh) {
 	global $covariates_values;
+	if (empty($dbh)) die("prepare_covariates_values_hash was passed empty dbh.\n");
 	if (0==count($covariates_values)) {
 		$cov = get_covars_on_your_own_from_schema($dbh);
 		$v=1;
@@ -184,6 +191,7 @@ $covariates_statistics=array();
 */
 function prepare_covariates_statistics($dbh,$initial=array()) {
 	global $covariates_statistics;
+	if (empty($dbh)) die("func_covariates: prepare_covariates_statistics was passed empty dbh\n");
 	if (0==count($covariates_statistics)) {
 		$cov = prepare_covariates_values_hash($dbh);
 		foreach ($cov as $c=>$v) {
@@ -213,9 +221,11 @@ and two checkboxes to indicate if additive or interacting or both should be sele
 
 */
 function select_covariates($dbh,$covariatesToShow,$maxPerLine=6) {
-
 	global $_POST, $_GET; // still to be used.
 	global $covariates; // the covariates selected on the web site
+
+	if (empty($dbh)) die("func_covariates.php: select_covariates was passed empty dbh.\n");
+
 	if (empty($covariates) and !empty($_POST["covariates"])) {
 		$covariates=$_POST["covariates"];
 	}
@@ -291,10 +301,10 @@ expression QTL.
 
 */
 
-function select_covariates_combinations($ncol=2,$htmlFieldName="qtl_covariates") {
+function select_covariates_combinations($dbh,$ncol=2,$htmlFieldName="qtl_covariates") {
 	echo "<b>Covariates:</b><br>";
 	global $linkLocal;
-	$covars = get_covars_on_your_own_from_qtl($linkLocal,FALSE);
+	$covars = get_covars_on_your_own_from_qtl($dbh,FALSE);
 	//print_r($covars);
 	echo "<table border=0><tr>";
 	foreach($covars as $n=>$covar) {

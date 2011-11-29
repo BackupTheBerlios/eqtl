@@ -51,7 +51,7 @@ ENDOFDOCUMENTATION
 
 	require_once("header.php");
 	$database="DATABASEEQTLNAME";
-	include_once("func_connect.php");
+	include_once("func_connecti.php");
 	require_once("func_covariates.php");
 	require_once("func_selection.php"); // prints part of the HTML for forms
 
@@ -181,24 +181,24 @@ ENDOFDOCUMENTATION
 				echo $e."<br>";
 			}
 			echo "</p>";
-			mysql_close($linkLocal);
+			mysqli_close($linkLocali);
 			exit;
 		}
 
 		if ($debug) echo "query: $query<br>";
 
-		$result = mysql_query($query,$linkLocal);
+		$result = mysqli_query($linkLocali,$query);
 		if (empty($result)) {
-			errorMessage(mysql_error($linkLocal)."</p><p>".$query."</p>");
-			//echo "LinkLocal: "; print_r($linkLocal);
-			mysql_close($linkLocal);
+			errorMessage(mysqli_error($linkLocali)."</p><p>".$query."</p>");
+			//echo "LinkLocal: "; print_r($linkLocali);
+			mysqli_close($linkLocali);
 			exit;
 		}
 
 		$rowno=0;
 		echo "<small><table border=1>\n<thead>\n";
 		$firstRow=TRUE;
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 			$rowno++;
 			if (1==$rowno) {
 				$firstRow=FALSE;
@@ -224,8 +224,8 @@ ENDOFDOCUMENTATION
 		if (0==$rowno) {
 			echo "<p>No records found matching criteria.</p>";
 		}
-		mysql_free_result($result);
-		mysql_close($linkLocal);
+		mysqli_free_result($result);
+		mysqli_close($linkLocali);
 	}
 	include("footer.php");
 ?>

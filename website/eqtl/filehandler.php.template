@@ -100,7 +100,7 @@ ENDOFDOCUMENATION
 	if( !empty($genes_within) ){
 		if( !empty($locus) ) {
 			require_once("func_dbconfig.php");
-			require_once("func_connect.php");
+			require_once("func_connecti.php");
 			
 			$query = "SELECT Chr, cMorgan FROM locus WHERE Name=\"".$locus."\"";
 	
@@ -110,27 +110,27 @@ ENDOFDOCUMENATION
 					echo $e."<br>";
 				}
 				echo "</p>";
-				mysql_close($link);
+				mysqli_close($linkLocali);
 				exit;
 			}
 	
 			$database=$databaseLocal;
-			if (!mysql_select_db("$database",$link)) {
+			/*if (!mysql_select_db("$database",$linkLocali)) {
 				echo "Could not select database '$database'. "
 				. "Please report to <a href=\"mailto:MAINTAINEREMAIL\""
 				. ">MAINTAINEREMAIL</a><br>";
-				mysql_close($link);
+				mysqli_close($linkLocali);
 				exit;
-			}
+			}*/
 	
-			$result = mysql_query($query,$link);
+			$result = mysqli_query($linkLocali,$query);
 			if (empty($result)) {
-				echo "<p>Error: ".mysql_error($link)."</p>";
-				mysql_close($link);
+				echo "<p>Error: ".mysqli_error($linkLocali)."</p>";
+				mysqli_close($linkLocali);
 				exit;
 			}
 			$first=true;
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 				if( $line["Chr"] != NULL && $line["Chr"] != "" ) {
 					$chromosome = $line["Chr"];
 					$cM = $line["cMorgan"];
@@ -140,8 +140,8 @@ ENDOFDOCUMENATION
 					exit;
 				}
 			}
-			mysql_free_result($result);
-			mysql_close($link);
+			mysqli_free_result($result);
+			mysqli_close($linkLocali);
 		} else {
 			@readfile($BASEPATH."genes_within.php?submitted=submitted&chr=".$chromosome."&bpFrom=".$begin."&bpTo=".$end."&ensemblhost=".martdbhost(ENSEMBLVERSION)."&ensembluser=anonymous&ensemblorganism=ENSEMBLSPECIESMARTLONG&ensemblversion=ENSEMBLVERSION&markerhost=DATABASEHOSTLOCAL&markeruser=qtl&markerdatabase=DATABASEEQTLNAME&plain=on");
 		}
@@ -149,7 +149,7 @@ ENDOFDOCUMENATION
 	if( !empty($trait_genes) ) {
 		if( !empty( $locus ) ) {
 			require_once("func_dbconfig.php");
-			require_once("func_connect.php");
+			require_once("func_connecti.php");
 			
 			$query = "SELECT DISTINCT qtl.Locus,  bea.gene_stable_id_rat FROM ((SELECT Trait, Locus FROM qtl WHERE Locus=\"".$locus."\") UNION (SELECT Trait, A AS Locus FROM locusInteraction WHERE A=\"".$locus."\") UNION (SELECT Trait, B AS Locus FROM locusInteraction WHERE B=\"".$locus."\")) AS qtl LEFT JOIN (SELECT gene_stable_id_rat, probeset_id FROM BEARatChip) AS bea ON (bea.probeset_id=qtl.Trait)";
 	
@@ -159,25 +159,28 @@ ENDOFDOCUMENATION
 					echo $e."<br>";
 				}
 				echo "</p>";
-				mysql_close($link);
+				mysqli_close($linkLocali);
 				exit;
 			}
 	
+			/*
 			$database=$databaseLocal;
-			if (!mysql_select_db("$database",$link)) {
-				mysql_close($link);
+			if (!mysql_select_db("$database",$linkLocali)) {
+				mysqli_close($linkLocali);
 				errorMessage("Could not select database '$database'.");
 				exit;
 			}
 	
-			$result = mysql_query($query,$link);
+			/*
+
+			$result = mysqli_query($linkLocali,$query);
 			if (empty($result)) {
-				mysql_close($link);
-				errorMessage(mysql_error($link));
+				mysqli_close($linkLocali);
+				errorMessage(mysqli_error($linkLocali));
 				exit;
 			}
 			$first=true;
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 				if( $line["gene_stable_id_rat"] != NULL ) {
 					if($first) {
 						echo $line["gene_stable_id_rat"];
@@ -187,8 +190,8 @@ ENDOFDOCUMENATION
 					}
 				}
 			}
-			mysql_free_result($result);
-			mysql_close($link);
+			mysqli_free_result($result);
+			mysqli_close($linkLocali);
 		} else {
 			echo "trait_genes does not accept [chromosome + position] as argument but requires [locus]";
 			exit;

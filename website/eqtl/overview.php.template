@@ -22,6 +22,9 @@ This script prepares a tabular overview on
 
 The figure is prepared in a way that would be suitable for publication.
 
+=head1 CAVEATS
+
+For this page to display properly, on needs to have run "deduceDatabaseCols.pl qtlCis" and "deduceDatabaseCols.pl qtlPos" beforehand.
 
 =head1 AUTHORS
 
@@ -43,7 +46,7 @@ University of LE<uuml>beck, Germany, 2009
 	show_small_header("Tabular overview on Expression QTL",TRUE);
 
 	$database="DATABASEEQTLNAME";
-	include_once("func_connect.php");
+	include_once("func_connecti.php");
 	require_once("func_public_qtl.php");
 
 	# fields that should appear
@@ -109,15 +112,15 @@ University of LE<uuml>beck, Germany, 2009
 		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
 
 		echo "<table>\n";
-		print_selection_form("table_overview_scanone");
+		print_selection_form($linkLocali,"table_overview_scanone");
 		echo "<tr><th>Covariates of stored QTL</th><td>";
-		select_covariates_combinations();
+		select_covariates_combinations($linkLocali);
 		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
 		echo "<tr><td align=right><input type=submit></td><td align=left><input type=reset></td></tr>\n";
 		echo "</table>\n";
 
 		echo "</td>\n<td valign=top>";
-		select_from_public_qtls($linkLocal,TRUE);
+		select_from_public_qtls($linkLocali,TRUE);
 		echo "</td>";
 		echo "</tr>";
 		echo "</table>";
@@ -138,6 +141,7 @@ University of LE<uuml>beck, Germany, 2009
 			}
 			else {
 				echo "falling back to default list.</p>\n";
+				//FIXME: needs configuration/something else
 				$qtl_covariates = array("","eae_add","eae_int","dud_int");
 			}
 		}
@@ -201,11 +205,11 @@ University of LE<uuml>beck, Germany, 2009
 
 		echo "<p>Query All:"; print_r($query); echo "</p>\n";
 
-		$result = mysql_query($query,$linkLocal);
+		$result = mysqli_query($linkLocali,$query);
 		if (empty($result)) {
-			errorMessage(mysql_error($linkLocal)."</p><p>".$query."</p>");
-			//echo "LinkLocal: "; print_r($linkLocal);
-			mysql_close($linkLocal);
+			errorMessage(mysqli_error($linkLocali)."</p><p>".$query."</p>");
+			//echo "LinkLocal: "; print_r($linkLocali);
+			mysqli_close($linkLocali);
 			exit;
 		}
 
@@ -214,7 +218,7 @@ University of LE<uuml>beck, Germany, 2009
 			echo "<tr><td colspan=20 bgcolor=black></td></tr>\n";
 			$first=TRUE;
 			$line=array();
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 				if ($first) {
 
 					echo "<tr>";
@@ -273,7 +277,7 @@ University of LE<uuml>beck, Germany, 2009
 		else {
 
 			$dataFromTable = array();
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 				$cov=$line["covariates"];
 				$chr=$line["chr"];
 				if (""=="$cov") $cov="none";
@@ -314,16 +318,16 @@ University of LE<uuml>beck, Germany, 2009
 			echo "<p>cqtl: "; if (empty($cqtl)) {echo "empty";} else {print_r($cqtl);} echo "</p>\n";
 			echo "<p>Query DiseaseLoci:"; print_r($queryDiseaseLoci); echo "</p>\n";
 
-			$result = mysql_query($queryDiseaseLoci,$linkLocal);
-			if (empty($result)) {
-				errorMessage(mysql_error($linkLocal)."</p><p>".$queryDiseaseLoci."</p>");
-				//echo "LinkLocal: "; print_r($linkLocal);
-				mysql_close($linkLocal);
+			$result2 = mysqli_query($linkLocali,$queryDiseaseLoci);
+			if (empty($result2)) {
+				errorMessage(mysqli_error($linkLocali)."</p><p>".$queryDiseaseLoci."</p>");
+				//echo "LinkLocal: "; print_r($linkLocali);
+				mysqli_close($linkLocali);
 				exit;
 			}
 
 			$dataFromTableDiseaseLoci = array();
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while ($line = mysqli_fetch_array($result2, MYSQL_ASSOC)) {
 
 				$cov=$line["covariates"];
 				if ("" == "$cov") $cov="none";
@@ -385,6 +389,7 @@ University of LE<uuml>beck, Germany, 2009
 				}
 				$dataFromTableDiseaseLoci["$cov"]["$chr"]["numCisDiseaseLoci"]-- ;
 			}
+			mysqli_free_result($result2);
 
 			if (!empty($verbose)) {
 				echo "dataFromTableDiseaseLoci: ";
@@ -442,8 +447,11 @@ University of LE<uuml>beck, Germany, 2009
 					if (empty($dataFromTable["$cov"])) {
 						echo "<td colspan=3>";
 						echo "<small>";
-						echo "empty(\$dataFromTable[\"$cov\"]), the following keys are available: '"
-							.join("','",array_keys($dataFromTable))."'<br>\n";
+						if ($debug) {
+							echo "empty(\$dataFromTable[\"$cov\"]), the following keys are available: '"
+							     .join("','",array_keys($dataFromTable))."'<br>\n";
+						} 
+						echo 0;
 						echo "</small>";
 						echo "</td>";
 					} else if (empty($dataFromTable["$cov"]["$c"])) {
@@ -537,6 +545,7 @@ University of LE<uuml>beck, Germany, 2009
 			echo "</caption>";
 			echo "</table>";
 		}
+		mysqli_free_result($result);
 	}
 	include("footer.php");
 ?>

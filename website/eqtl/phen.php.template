@@ -61,7 +61,7 @@ ENDOFDOCUMENTATION
 	);
 
 	$database="DATABASEEQTLNAME";
-	include("func_connect.php");
+	include("func_connecti.php");
 
 	$dataSelectionFieldsQTL = array(
 		"show_LocusOfGene", "show_Covariates",
@@ -147,11 +147,11 @@ ENDOFDOCUMENTATION
 	echo '<input type=hidden name=submitted value=1>'."\n";
 
 	echo "<table>";
-	print_selection_form("all_qtl_phen"); 
+	print_selection_form($linkLocali,"all_qtl_phen"); 
 	echo "<tr><td><input type=submit></td></tr>";
 	echo "</table>";
 	if (empty($phen)) {
-		$phenotypes=list_phenotypes();
+		$phenotypes=list_phenotypes($linkLocali);
 	}
 	else {
 		$phenotypes=preg_split("/,/",$phen);
@@ -257,16 +257,16 @@ ENDOFDOCUMENTATION
 				echo "Query: '$queryAllCorrelations'<br>";
 			}
 
-			$result = mysql_query($queryAllCorrelations,$linkLocal);
+			$result = mysqli_query($queryAllCorrelations,$linkLocali);
 			if (empty($result)) {
-				errorMessage(mysql_error($linkLocal)."</p><p>".$queryAllCorrelations."</p>");
-				mysql_close($linkLocal);
-				//echo "LinkLocal: "; print_r($linkLocal);
+				errorMessage(mysqli_error($linkLocali)."</p><p>".$queryAllCorrelations."</p>");
+				mysqli_close($linkLocali);
+				//echo "LinkLocal: "; print_r($linkLocali);
 				exit;
 			}
 			echo "<table border=1 width=100%>";
 			echo "<tr><th>Probe</th><th>Gene Name</th><th>Chr</th><th>&rho;</th><th>P</th></tr>\n";
-			while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while($line=mysqli_fetch_array($result, MYSQL_ASSOC)) {
 				if (false) {
 					echo "{<a href=\"http:trait.php?traits=".$line["trait_id"]."\">".$line["trait_id"]."</a>"
 					   . "=[".$line["gene_name"]."@".$line["chromosome"]."] : ";
@@ -278,7 +278,7 @@ ENDOFDOCUMENTATION
 				echo round($line["rho"],3)."</td><td>".round($line["p"],5)."</td>";
 				echo "</tr>\n";
 			}
-			mysql_free_result($result);
+			mysqli_free_result($result);
 			echo "</table>";
 			echo "</td>";
 		}
@@ -291,7 +291,7 @@ ENDOFDOCUMENTATION
 
 	echo "</form>\n";
 
-	mysql_close($linkLocal);
+	mysqli_close($linkLocal);
 	include("footer.php");
 ?>
 </body>

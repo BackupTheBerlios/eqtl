@@ -61,7 +61,7 @@ University of LE<uuml>beck, Germany, 2010
 	show_small_header("EffectPlot",TRUE);
 
 	$database="DATABASEEQTLNAME";
-	include_once("func_connect.php");
+	include_once("func_connecti.php");
 	require_once("func_public_qtl.php");
 
 	# fields that should appear
@@ -183,7 +183,7 @@ University of LE<uuml>beck, Germany, 2010
 		echo "<table>\n";
 
 		print_selection_form("figure_effectplot");
-		print_covariates_selection("effectplot");
+		print_covariates_selection($linkLocali,"effectplot");
 		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
 		echo "<tr><td align=right><input type=submit></td>";
 		echo "<td align=left><input type=reset></td>";

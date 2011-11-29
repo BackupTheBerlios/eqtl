@@ -36,7 +36,7 @@ University of LE<uuml>beck, 2009
 */
 
 
-    global $hostname,$username,$database,$ensemblversion,$linkLocali;
+    global $hostname,$username,$database,$ensemblversion,$hostnameqtl,$usernameqtl,$passwordqtl,$linkLocali;
 
     require_once("func_dbconfig.php");
 
@@ -67,11 +67,16 @@ University of LE<uuml>beck, 2009
 	}
 
 	$linkLocali = mysqli_init();
+	#echo "<p>mysqli_real_connect(linkLocali,$hostnameqtl,$usernameqtl,$passwordqtl,$database)</p>\n";
 
 	if (!mysqli_real_connect($linkLocali,$hostnameqtl,$usernameqtl,$passwordqtl,$database)) {
+		$t="";
+		if (mysqli_connect_errno()) {
+			$t=mysqli_connect_error();
+		}
 		errorMessage("Could not create link to local database"
 			.    " as $hostnameqtl,$usernameqtl,$passwordqtl,$database"
-			.    ".");
+			.    ". $t");
 		echo "</body></html>";
 		exit;
 	}
