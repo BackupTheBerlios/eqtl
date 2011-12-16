@@ -28,7 +28,7 @@ require_once("func_selection.php"); // prints part of the HTML for forms
 
 show_small_header("Group \"".$_GET['name']."\"",TRUE);
 
-include_once("func_connect.php");
+include_once("func_connecti.php");
 
 echo "<br>\n";
 echo "<table border=\"1\">\n";
@@ -46,15 +46,15 @@ $query = "select group_characteristics_id, g.term_id, pvalue, c.description "
         ."from group_characteristics as g join characteristics as c using(term_id) "
 	."where g.group_id=$group_id;";
 
-$group_characteristics = mysql_query($query);
+$group_characteristics = mysqli_query($linkLocali,$query);
 
 if (empty($group_characteristics)) {
-	errorMessage(mysql_error($linkLocal)."</p><p>".$query."</p>");
-	mysql_close($linkLocal);
+	errorMessage(mysqli_error($linkLocali)."</p><p>".$query."</p>");
+	mysql_close($linkLocali);
 	exit;
 }
 
-while($row = mysql_fetch_array($group_characteristics))
+while($row = mysqli_fetch_array($group_characteristics))
 {
 	$term_id=$row["term_id"];
 	$desc = $row["description"];
@@ -63,23 +63,24 @@ while($row = mysql_fetch_array($group_characteristics))
 	echo " <td>".$term_id."</td>\n";
 	echo " <td>".$row["pvalue"]."</td>\n";
 	echo " <td>".$desc."</td>\n";
-	$other_groups_query=mysql_query("select group_id, c.name from group_characteristics as g join groups as c using(group_id) where term_id=\"".$term_id."\";");
+	$other_groups_query=mysql_query($linkLocali,"select group_id, c.name from group_characteristics as g join groups as c using(group_id) where term_id=\"".$term_id."\";");
 	$other_groups="";
 
-	while($row2 = mysql_fetch_array($other_groups_query))
+	while($row2 = mysqli_fetch_array($other_groups_query))
 	{
 		$group_id=$row2["group_id"];
 		$name=$row2["name"];
 		$other_groups=$other_groups."<a href=db_characterisation2.php?group_id=$group_id&name=$name>".$name."</a>, ";
 	}
+	mysqli_free_result($other_group_query);
 	
 	$other_groups=substr($other_groups, 0, -2);
 
 	echo " <td>".$other_groups."</td>\n";
 	echo "<tr>\n";
 }
-
 echo "</table>\n";
+mysqli_free_result($group_characteristics);
 
 include("footer.php");
 

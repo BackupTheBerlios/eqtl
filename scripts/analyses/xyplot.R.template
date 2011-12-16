@@ -318,7 +318,6 @@ if (is.null(opt$interactive)) {
 
 ##### HERE THE MAIN PROGRAM STARTS #####
 
-
 source('BASEDIR/scripts/analyses/R/maxcminc.R')
 source('BASEDIR/scripts/analyses/R/load.data.R')
 #source('BASEDIR/scripts/analyses/R/analyseCorrelationForMarkers.R')

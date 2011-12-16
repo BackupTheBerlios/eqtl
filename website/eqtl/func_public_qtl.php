@@ -52,6 +52,7 @@ an index by chromosome, "name" otherise (default).
 =cut
 
  */
+	
 	function get_public_qtls($dbh,$order="name") {
 
 		global $databaseqtl;
@@ -105,10 +106,10 @@ an index by chromosome, "name" otherise (default).
 	+-------+-----+-----------+-----------+
 */
 
-		$result = mysql_query($query,$dbh);
+		$result = mysqli_query($dbh,$query);
 		if (empty($result)) {
-			errorMessage(mysql_error($dbh)."</p><p>".$query."</p>");
-			mysql_close($dbh);
+			errorMessage(mysqli_error($dbh)."</p><p>".$query."</p>");
+			mysqli_close($dbh);
 			echo "<!-- func_public_qtl.php -->\n";
 			echo "</body></html>\n";
 			exit;
@@ -116,7 +117,7 @@ an index by chromosome, "name" otherise (default).
 
 		$qtls=array();
 		$qtls_by_chromosome=array();
-		while($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 			#print_r($line);
 			$qtls[$line["name"]]=$line;
 			if (empty($qtls_by_chromosome[$line["chr"]])) {
@@ -124,6 +125,7 @@ an index by chromosome, "name" otherise (default).
 			}
 			$qtls_by_chromosome[$line["chr"]][]=$line;
 		}
+		mysqli_free_result($result);
 
 		$qtlsCache = $qtls;
 		#echo "<br>qtlsCache: "; print_r($qtlsCache);
@@ -209,6 +211,7 @@ Prepares the table to collect QTLs from in the various input forms to specify fi
 */
 
 	function select_from_public_qtls($dbh,$checkboxes=FALSE) {
+		if (empty($dbh)) die("func_public_qtl.php: select_from_public_qtls was passed empty dbh.\n");
 		$qtlsByC = get_public_qtls($dbh,"chromosome");
 		#echo "---------<p>qtlsByC:"; print_r($qtlsByC); echo "</p> ---------";
 		echo "<table>";

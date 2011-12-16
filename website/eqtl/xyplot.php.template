@@ -33,10 +33,12 @@ University Clinics Schleswig-Holstein, Germany, 2010
 	show_small_header("XY plot of arbitrary phenotypic and genotypic data",TRUE);
 
 	$database="DATABASEEQTLNAME";
-	include_once("func_connect.php");
+	include_once("func_connecti.php");
 	require_once("func_public_qtl.php");
 	require_once("func_phenotypes.php");
 	require_once("func_markers.php");
+
+	#echo "a";
 
 	# fields that should appear
 	$dataSelectionFieldsQTL = array(
@@ -80,8 +82,12 @@ University Clinics Schleswig-Holstein, Germany, 2010
 		$presentationAttributes
 	);
 
-	$phenotypes=list_phenotypes();
-	$markers=list_markers();
+	#echo "b";
+
+	$phenotypes=list_phenotypes($linkLocali);
+	#echo "c";
+	$markers=list_markers($linkLocali);
+	#echo "d";
 
 	foreach($accessible_fields_in_POST_or_GET as $vname)
 	{

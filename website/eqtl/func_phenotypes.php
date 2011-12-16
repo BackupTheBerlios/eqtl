@@ -37,24 +37,24 @@ data base handle to the expression QTL table with the phenotype correlations
 
 */
 
-function list_phenotypes() {
+function list_phenotypes($dbh) {
 
 	$queryPhenotypes = "SELECT DISTINCT phen FROM trait_phen_cor";
 	$queryPhenotypes .= " LIMIT 1000"; # just to be on the save side
 
-	$result = mysql_query($queryPhenotypes);
+	$result = mysqli_query($dbh,$queryPhenotypes);
 	if (empty($result)) {
-		mysql_close($linkLocal);
-		errorMessage("Error: " . mysql_error()."</p><p>".$queryPhenotypes."</p>");
+		mysqli_close($dbh);
+		errorMessage("Error: " . mysqli_error($dbh)."</p><p>".$queryPhenotypes."</p>");
 		//echo "LinkLocal: "; print_r($linkLocal);
 		exit;
 	}
 
 	$phenotypes=array();
-	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+	while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 		array_push($phenotypes,$line["phen"]);
 	}
-	mysql_free_result($result);
+	mysqli_free_result($result);
 
 	return($phenotypes);
 

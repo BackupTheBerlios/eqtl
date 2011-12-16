@@ -154,13 +154,12 @@ Argument 'cov' can be either a list of covariates or the context in which the se
 */
 
 
-function print_covariates_selection($cov="qtl") {
-	global $linkLocal;
+function print_covariates_selection($dbh,$cov="qtl") {
 	echo "<tr><th class=r valign=top>Covariates:";
 	if ("effectplot" != $cov) {
 		echo "<br />\n";
 		echo "      <font size=\"-3\"><i>";
-		$cvs=get_covars_on_your_own_from_qtl($linkLocal);
+		$cvs=get_covars_on_your_own_from_qtl($dbh);
 		$colors=array("red","green","blue","black");
 		foreach ($cvs as $n=>$c) {
 			if ($n>0) {
@@ -177,7 +176,7 @@ function print_covariates_selection($cov="qtl") {
 		echo "</i></font>";
 	}
 	echo "</th><td colspan=3 valign=top>";
-	select_covariates($linkLocal, $cov);
+	select_covariates($dbh, $cov);
 	echo "</td></tr>\n";
 }
 
@@ -192,7 +191,7 @@ function print_covariates_selection($cov="qtl") {
 
 */
 
-function print_selection_form($properties) {
+function print_selection_form($dbh,$properties) {
 
 	global $LODmin,$LODmax,$quantilemin,$quantilemax,
 	       $chromosome,  $cM,  $marker, 
@@ -227,6 +226,16 @@ function print_selection_form($properties) {
 					    "pvalue",
 					    "mean", "sd");
 			break;
+		 case "all_interaction":
+			$properties = array("groups", "locus", 
+					    "chromosome", "peakInMbp",
+					    "peakInCentiMorgan", "flanks",
+					    "trait","TraitChromosome",
+					    "gene_name",
+					    "LOD", "quantile", "LODdiff",
+					    "pvalue",
+					    "mean", "sd");
+		 	break;
 		 case "all_qtl_groups":
 			$properties = array("mean", "sd", "LOD");
 			break;
@@ -457,9 +466,9 @@ function print_selection_form($properties) {
 				echo "<th align=right>Available Specs for Subset of Individuals:</th>";
 				echo "<td>";
 				$constraintsQuery="SELECT * FROM individuals_group";
-				$constraintsResult=mysql_query($constraintsQuery);
+				$constraintsResult=mysqli_query($dbh,$constraintsQuery);
 				if (!$constraintsResult) {
-					echo 'Query failed: ' . mysql_error()."\n";
+					echo 'Query failed: ' . mysqli_error($dbh)."\n";
 				}
 				else {
 					echo "<table>\n";
@@ -479,9 +488,9 @@ function print_selection_form($properties) {
 						}
 						echo "</tr>\n";
 					}
-					while($line = mysql_fetch_array($constraintsResult, MYSQL_ASSOC));
+					while($line = mysqli_fetch_array($constraintsResult, MYSQL_ASSOC));
 					echo "</table>";
-					mysql_free_result($constraintsResult);
+					mysqli_free_result($constraintsResult);
 				}
 				echo "</td>";
 				echo "</tr>\n";
@@ -566,11 +575,11 @@ function print_selection_form($properties) {
 				echo "</td></tr>";
 				echo "<tr><td valign=top>";
 				$query = "select distinct phen from trait_phen_cor";
-				$result = mysql_query($query) or die("Query '$query' failed: " . mysql_error());
+				$result = mysqli_query($dbh,$query) or die("Query '$query' failed: " . mysqli_error($dbh));
 				echo "<b>Show only data for the following phen(s):</b><br />\n";
 				/*
 				echo "<select name=phen multiple size=8>\n";
-				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+				while($line=mysqli_fetch_array($result, MYSQL_ASSOC)) {
 					echo "<option value=\"".$line["phen"]."\">"
 						.$line{"phen"}."</option>\n";
 				}
@@ -579,7 +588,7 @@ function print_selection_form($properties) {
 
 				$lno=0;
 				echo "<table><tr>";
-				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+				while($line=mysqli_fetch_array($result, MYSQL_ASSOC)) {
 					$lno++;
 					echo "<td>";
 					echo "<input name=\"phen\" type=\"checkbox\" "
@@ -592,7 +601,7 @@ function print_selection_form($properties) {
 					}
 				}
 				echo "</tr></table>\n";
-				mysql_free_result($result);
+				mysqli_free_result($result);
 				echo "</td></tr>";
 				break;
 
@@ -609,15 +618,15 @@ function print_selection_form($properties) {
 		     		echo "<tr><th>Phen Analyses:</th><td>";
 				$query = "select trait_phen_analysis_id, analysis, "
 					."description from trait_phen_analysis";
-				$result = mysql_query($query) or die("Query '$query' failed: " . mysql_error());
+				$result = mysqli_query($dbh,$query) or die("Query '$query' failed: " . mysqli_error($dbh));
 				echo "<b>Select analysis to constrain traits for:</b><br />";
 				echo "<select name=\"trait_phen_analysis_id\">\n";
 				echo "<option value=\"\">select test of concern</option>\n";
-				while($line=mysql_fetch_array($result, MYSQL_ASSOC)) {
+				while($line=mysqli_fetch_array($result, MYSQL_ASSOC)) {
 					echo "<option value=\"".$line["trait_phen_analysis_id"]."\">"
 						.$line["description"]."</option>\n";
 				}
-				mysql_free_result($result);
+				mysqli_free_result($result);
 				
 				echo "</select><br />\n";
 				print_two_input_text("trait_phen_analysis_value_min",

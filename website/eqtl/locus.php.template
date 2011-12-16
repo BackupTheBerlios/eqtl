@@ -37,41 +37,24 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 */
 
 	require_once("header.php");
-	require_once("func_dbconfig.php");
-	require_once("func_covariates.php");
+	//require_once("func_dbconfig.php");
+	//require_once("func_covariates.php");
 	$database=$databaseeqtl;
-	require_once("func_connect.php");
+	require_once("func_connecti.php");
 	show_small_header("Selection of eLoci",TRUE);
 	$err=array();
+
+	$show_qtlLod=0;
+	$show_interactionLod=0;
 
 	$dataSelectionFieldsQTL = array(
 			"Name",
 			"direct",
 			"submitted",
-			"show_LocusOfGene",
-			"show_Trait",
-			"show_mean",
-			"show_sd",
-			"show_unigene",
-			"show_swissprot_ID",
-			"show_gene_assignment",
-			"show_first_symbol",
-			"show_Description",
-			"show_ProbeSequence",
-			"MeanMin","MeanMax","SdMin","SdMax",
 			"traitlist",
 			"locus",
 			"chrlist",
-
-			"limit","order") as $vname)
-	{
-		if (isset($_POST[$vname])) {
-			$$vname = $_POST[$vname];
-		}
-		elseif(isset($_GET[$vname])) {
-			$$vname = $_GET[$vname];
-		}
-	}
+			"limit","order","debug","verbose");
 
 	$break = Explode('/', $_SERVER['PHP_SELF']);
 	$pfile = $break[count($break) - 1];
@@ -79,8 +62,11 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 	$BASEPATH = "http://".$_SERVER['SERVER_NAME'].$tmp[0];
 
 	$a=array(
-	   "Name"=>1,"Chr"=>1,"cMorgan"=>1,"Organism"=>0,"qtl"=>0,"locusInteraction" => 0,
-	   "VennLink"=>0, "Genes_in_locus" =>1, /*"trait"=>0, */"genes_effected"=>1
+	   "Name"=>1,"Chr"=>1,"cMorgan"=>1,
+	   // Organism"=>0,
+	   "qtlNumber"=>0,"locusInteractionNumber"=>0,
+	   "qtlLod"=>0, "interactionLod"=>0,
+	   "VennLink"=>0, "Genes_in_locus" =>1, /*"trait"=>0, */ "genes_effected"=>1
 	);
 
 	# Conversion of array keys to values to be checked as being parameter names
@@ -98,6 +84,10 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 		$aPrepend
 	);
 
+	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+		echo "<br>Retrieving info for: "; print_r($accessible_fields_in_POST_or_GET); echo "<br>\n";
+	}
+
 	foreach($accessible_fields_in_POST_or_GET as $vname)
 	{
 		if (isset($_POST[$vname])) {
@@ -112,8 +102,8 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 			}
 		}
 		elseif(isset($_GET[$vname])) {
-			if (is_array($_POST[$vname])) {
-				$$vname=$_POST[$vname];
+			if (is_array($_GET[$vname])) {
+				$$vname=$_GET[$vname];
 			} else {
 				$$vname = ltrim(rtrim($_GET[$vname]));
 				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
@@ -173,11 +163,12 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 						<input type=text name=cMmax size=4>
 						</td></tr>
 			<tr><th class=h align=center colspan=2>Information on traits assigned to loci</th>
-			<tr><th align=right valign=top>Covariates:</th><td>
-				<?php select_covariates($linkLocal,"both"); ?>
-			</td></tr>
-			<tr><th class=r>Trait names:</th><td><input type=text name=traitlist length=70
+
 <?php
+	echo "<tr><th align=right valign=top>Covariates:</th><td>";
+	select_covariates($linkLocali,"both"); ?>
+	echo "</td></tr>";
+	echo "<tr><th class=r>Trait names:</th><td><input type=text name=traitlist length=70";
 	if (!empty($traitlist)) {
 		if (is_array($traitlist)) {
 			echo "value=\"".join(",",$traitlist)."\"";
@@ -203,9 +194,11 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 			<tr><th class=r>Order by:</th><td>
 						<select name=order>
 						<option value="l.Chr,l.cMorgan">Chromosome, cMorgan</option>
-						<option value="qtl DESC">Number of QTLs involved</option>
+						<option value="qtlNumber DESC">Number of QTLs involved</option>
+						<option value="qtlLod DESC">QTL LOD</option>
+						<option value="interactionLod ASC">Interaction LOD</option>
 						<option value="trait DESC">Number of Traits involved</option>
-						<option value="locusInteraction DESC">locusInteractions involved</option>
+						<option value="locusInteractionNumber DESC">locusInteractions involved</option>
 						</select>
 						</td></tr>
 			<tr><th class=r>Limit lines shown:</th><td><input type=text name=limit value=150></td></tr>
@@ -232,7 +225,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 			<tr bgcolor="orange"><th>Name</th><th>Chr</th><th><small>bp From</small></th><th><small>bp To</small></th></tr>
 <?php
 		require_once("func_public_qtl.php");
-		$qtls = get_public_qtls($linkLocal);
+		$qtls = get_public_qtls($linkLocali);
 		foreach ($qtls as $q) {
 			echo "<tr><td><small>".$q["name"]."</small></td>";
 			echo "<td align=right><small><a href=locus.php?chrlist=".$q["chr"].">".$q["chr"]."</a></small></td>";
@@ -249,30 +242,75 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 <?php
 	}
 	else {
-		require_once("func_dbconfig.php");
+		//require_once("func_dbconfig.php");
+		require_once("func_connecti.php");
 		require_once("func_conversion_ENSEMBLVERSION.php");
 		require_once("func_public_qtl.php"); // sets variable qtls
-		$qtls = get_public_qtls($linkLocal);
 
-		foreach (array(
-			"show_NumLoci","show_NumEQTLPeak","show_NumEQTLTraitPeak","show_NumEQTLPeak",
-			"show_NumEQTLPeakAvg","show_NumEQTL","show_NumEQTL8","show_NumEInteractions",
-			"show_NumEInteractionsTrait","show_NumEQTLTraitAvg",
-			"cMinDist","cMaxDist","Name","format","locustype","type",
-			"order","limit"
-			) as $vname) {
-			if (isset($_POST[$vname])) {
-				$$vname = $_POST[$vname];
-			}
-			elseif (isset($_GET[$vname])) {
-				$$vname = $_GET[$vname];
-			}
+		$numberOfQtlPerLocusTxt="select count(*) from qtl where Locus=?";
+		$numberOfQtlPerLocusStmt = mysqli_stmt_init($linkLocali);
+		if (empty($numberOfQtlPerLocusStmt)) {
+			echo("<p>Could not initialise statement for QTL count. \n".mysqli_error($linkLocali)."</p>");
+		} else if (!mysqli_prepare($numberOfQtlPerLocusStmt,$numberOfQtlPerLocusTxt)) {
+			echo("<p>Could not prepare statement for QTL count like '$numberOfQtlPerLocusTxt'. \n"
+				#.mysqli_error($linkLocali)
+				."</p>");
+			#mysqli_close($linkLocali);
+			#exit;
 		}
+
+		$numberOfInteractionsPerLocusTxt="select count(*) from locusInteraction where A=? or B=?";
+		$numberOfInteractionsPerLocusStmt = mysqli_stmt_init($linkLocali);
+		if (empty($numberOfInteractionsPerLocusStmt)) {
+			echo("<p>Could not initialise statement for Interaction count. \n".mysqli_error($linkLocali)."</p>");
+			print_r($numberOfInteractionPerLocusStmt);
+		} else if (!mysqli_prepare($numberOfInteractionsPerLocusStmt,$numberOfInteractionsPerLocusTxt)) {
+			print_r($numberOfInteractionsPerLocusStmt);
+			echo("Could not prepare statement for Interaction count like '$numberOfInteractionsPerLocusTxt'.\n".mysqli_error($linkLocali));
+			#mysqli_close($linkLocali);
+			#exit;
+		}
+		if (empty($numberOfInteractionsPerLocusStmt) or empty($numberOfQtlPerLocusStmt)) {
+			echo("<p>Either numberOfInteractionsPerLocusStmt or numberOfQtlPerLocusStmt could not be initialised.</p>");
+			mysqli_close($linkLocali);
+			exit;
+		}
+
+		$qtls = get_public_qtls($linkLocali);
+	
+		if (empty($format)) $format="html";
 
 		$whereB=FALSE;
 		$where;
 		$from = ' FROM locus AS l ';
 		$query = "SELECT l.Name, l.Chr, l.cMorgan ";
+
+		if (!empty($debug)) { echo "\$order: "; print_r($order); echo "<br />\n";}
+
+		if (!empty($order) and "$order" == "qtlLod DESC") {
+		        $show_qtlLod=TRUE;
+		}
+
+		if (!empty($order) and "$order" == "interactionLod DESC") {
+		        $show_interactionLod=TRUE;
+		}
+
+		if (!empty($show_qtlLod)) {
+			$query .= ", min(qtl.LOD) as qtlPvalue, max(qtl.LOD) as qtlLod";
+		}
+
+		if (!empty($show_qtlLod)) {
+			$from .= " LEFT JOIN qtl ON (l.Name=qtl.Locus) ";
+		}
+
+		if (!empty($show_interactionLod)) {
+			$query .= ", min(locusInteraction.pvalue_full) as interactionPvalue, max(locusInteraction.lod_full) as interactionLod";
+		}
+
+		if (!empty($show_interactionLod)) {
+			$from .= " LEFT JOIN locusInteraction ON (l.Name=locusInteraction.A or l.Name=locusInteraction.B) ";
+		}
+		
 
 		if (empty($cMinDist)) $cMinDist=0;
 		if (empty($cMaxDist)) $cMaxDist=0;
@@ -311,15 +349,14 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 			$where .= " l.Chr in ('".join("','",preg_split("/[, ;]/",$chrlist))."') ";
 		}
 
-		if(!empty($show_qtl)/* && empty($show_Trait)*/) {
-			$query .= ", qtl.cnt AS qtl ";
-			$from .= " LEFT JOIN (SELECT Locus, COUNT(*) AS cnt FROM qtl GROUP BY Locus) AS qtl ON (l.Name=qtl.Locus) ";
+		if(!empty($show_qtlNumber)/* and empty($show_Trait)*/) {
+			$query .= ", qtlCnt.cnt AS qtlNumber ";
+			$from .= " LEFT JOIN (SELECT Locus, COUNT(*) AS cnt FROM qtl GROUP BY Locus) AS qtlCnt ON (l.Name=qtlCnt.Locus) ";
 		}
 
-		
-
-		if(!empty($show_locusInteraction)/* && empty($show_Trait)*/ ) {
-			$query .= ", li.cnt AS locusInteraction ";
+		# FIXME: not always, but often, conform to direct selection, not fully understood ....
+		if(!empty($show_locusInteractionNumber)/* && empty($show_Trait)*/ ) {
+			$query .= ", li.cnt AS locusInteractionNumber ";
 			$from .= " LEFT JOIN ((SELECT A AS loc, COUNT(*) AS cnt FROM locusInteraction GROUP BY A) UNION (SELECT B AS loc, COUNT(*) AS cnt FROM locusInteraction GROUP BY B)) AS li ON (l.Name=li.loc) ";
 		}
 
@@ -369,12 +406,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 			$query .= " LIMIT ".$limit." ";
 		}
 
-
-
-
-		echo $query;
-
-
+		echo "<p>$query</p>";
 
 		if (0<count($err)) {
 			echo "<p>Please address the following error".(1<count($err)?"s":"").":<br>";
@@ -382,26 +414,26 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 				echo $e."<br>";
 			}
 			echo "</p>";
-			mysql_close($linkLocal);
+			mysqli_close($linkLocali);
+			exit;
+		}
+
+		$result = mysqli_query($linkLocali,$query);
+		if (empty($result)) {
+			echo "<p>Error: <i>$query</i>:".mysqli_error($linkLocali)."</p>";
+			mysqli_close($linkLocali);
 			exit;
 		}
 
 		$database=$databaseLocal;
-		if (!mysql_select_db("$database",$linkLocal)) {
-			echo "Could not select database '$database'. "
-			. "Send an email to <a href=\"steffen.moeller a t uni-luebeck.de\""
-			. ">steffen.moeller a t uni-luebeck.de</a><br>";
-			mysql_close($linkLocal);
-			exit;
-		}
+		#if (!mysql_select_db("$database",$linkLocal)) {
+		#	echo "Could not select database '$database'. "
+		#	. "Send an email to <a href=\"steffen.moeller a t uni-luebeck.de\""
+		#	. ">steffen.moeller a t uni-luebeck.de</a><br>";
+		#	mysqli_close($linkLocali);
+		#	exit;
+		#}
 
-		$result = mysql_query($query,$linkLocal);
-		if (empty($result)) {
-			echo "<p>Error: ".mysql_error($linkLocal)."</p>";
-			mysql_close($linkLocal);
-			exit;
-		}
-		
 		$rowno=0;
 		if ("html"==$format) {
 			if( $show_VennLink ) {
@@ -412,7 +444,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 					</tr></p><br>";
 			}
 			echo "<small><table border=1>\n";
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 				$rowno++;
 				if (1==$rowno) {				
 					echo "<thead>\n<tr bgcolor=yellow><th>#</th>";
@@ -448,9 +480,14 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 					$locus = $line["Name"];
 					$cMorgan=$line["cMorgan"];
 					if (!empty($$f)) {
-						if (!isset($l)||""==$l) echo "<td>&nbsp;</td>";
+						if (!isset($l)||""==$l) {
+							echo "<td>";
+							if (!empty($debug) or !empty($verbose)) echo $n;
+							echo "&nbsp;";
+							echo "</td>";
+						} 
 						else switch($n) {
-						case "Morgan":
+						case "cMorgan":
 							echo "<td align=right>".round($cMorgan,4)."</td>\n";
 							break;
 						case "Chr":
@@ -463,25 +500,65 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 		    					.(cM2bp($c,$cMorgan)-100000).'&vc_end='.(cM2bp($c,$cMorgan)+100000);
 							echo "\">$l</a></td>\n";
 							break;
-						case "qtl":
-							echo 	"<td align=\"right\">".$line["qtl"]
-								." [<a href=\"qtl.php?Locus=".$locus."\">qtl</a> <a href=\"qtl.php?submitted=1&locus=".$locus."&chrlist=&LODmin=0&LODmax=&quantilemin=&quantilemax=&LODdiffmin=0&cM_Peak_Min=&cM_Peak_Max=&cM_within=&traitlist=&order=LOD+DESC&limit=500&show_Trait=on&show_LocusOfGene=on&show_Locus=on&show_LOD=on&show_LODdiff=on&show_Quantile=on&show_Covariates=on&show_Chromosome=on&show_cMorgan_Peak=on&show_cMorgan_Min=on&show_cMorgan_Max=on&show_Analysis=on&show_swissprot_ID=on&show_gene_assignment=on&show_first_symbol=on&show_Definition=on\">d</a>]"
-								."</td>";
+						case "qtlNumber":
+							echo "<td align=\"right\">";
+							echo "Was here.";
+							if (!mysqli_stmt_bind_param($numberOfQtlPerLocusStmt,"s",$line["Name"])) {
+								echo "QTL: Problem with assignment of value to prepared query.";
+							} else {
+							    $a = mysqli_stmt_execute($numberOfQtlPerLocusStmt);
+							    if (mysqli_errno()) echo "Problem with stmt_execute: ".mysqli_error($linkLocali);
+
+							    if (!mysqli_stmt_bind_result($numberOfQtlPerLocusStmt, $number)) {
+							    	echo "QTL: Problem with mysqli_stmt_bind_result to number ($number).\n";
+							    } else if(mysqli_stmt_fetch($numberOfQtlPerLocusStmt)) {
+							    #echo 	"$line["qtlNumber"]
+							    echo " [<a href=\"qtl.php?Locus=".$locus."\">qtl</a>]";
+							    # <a href=\"qtl.php?submitted=1&locus=".$locus."&chrlist=&LODmin=0&LODmax=&quantilemin=&quantilemax=&LODdiffmin=0&cM_Peak_Min=&cM_Peak_Max=&cM_within=&traitlist=&order=LOD+DESC&limit=500&show_Trait=on&show_LocusOfGene=on&show_Locus=on&show_LOD=on&show_LODdiff=on&show_Quantile=on&show_Covariates=on&show_Chromosome=on&show_cMorgan_Peak=on&show_cMorgan_Min=on&show_cMorgan_Max=on&show_Analysis=on&show_swissprot_ID=on&show_gene_assignment=on&show_first_symbol=on&show_Definition=on\">d</a>]";
+							    } else {
+							        echo "<i>qtl error</i>";
+							    }
+							    mysqli_stmt_close($numberOfQtlPerLocusStmt);
+							}
+							echo "</td>";
 							break;
-						case "locusInteraction":
-							echo 	"<td align=\"right\">".$line["locusInteraction"]
-								." [<a href=\"interaction_collapsed.php?locus1=".$locus."\">li</a> <a href=\"interaction_collapsed.php?submitted=1&type=&LODmin=0&LODmax=&quantilemin=&quantilemax=&LODdiffmin=0&chrlist=&locus1=".$locus."&locus2=&traitlist=&order=(lod_full-qlod_full)+DESC&limit=150&show_LocusInteraction=on&show_LocusInteractionTrait=on&show_Affected_genes=on&show_Covariates=on&show_lod_full_span=on&show_qlod_full_span=on&show_LOD_Diff=on&show_seqname=on\">d</a>]"
-								."</td>";
+						case "locusInteractionNumber":
+							echo   "<td align=\"right\">";
+							if (!mysqli_stmt_bind_param($numberOfInteractionsPerLocusStmt,"ss",$line["Name"],$line["Name"])) {
+								echo "<p>Interaction: Problem with assignment of value '".$line["Name"]."' to prepared statement.</p>";
+							#} else {
+							    mysqli_stmt_execute($numberOfInteractionsPerLocusStmt,$line["Name"],$line["Name"]);
+							    if (mysqli_errno()) echo "Problem with stmt_execute: ".mysqli_error($linkLocali);
+							    mysqli_stmt_bind_result($numberOfInteractionsPerLocusStmt, $number);
+							    if (mysqli_errno()) echo "Problem with stmt_bind_result: ".mysqli_error($linkLocali);
+							    if(mysqli_stmt_fetch($numberOfInteractionsPerLocusStmt)) {
+							    #.$line["locusInteraction"]
+							    # ." [<a href=\"interaction.php?locus=".$locus."\">li</a> <a href=\"interaction.php?submitted=1&type=&LODmin=0&LODmax=&quantilemin=&quantilemax=&LODdiffmin=0&chrlist=&locus=".$locus."&traitlist=&order=(lod_full-qlod_full)+DESC&limit=150&show_LocusInteraction=on&show_LocusInteractionTrait=on&show_Affected_genes=on&show_Covariates=on&show_lod_full_span=on&show_qlod_full_span=on&show_LOD_Diff=on&show_seqname=on\">d</a>]"
+							    echo "$number";
+							    echo "[<a href=\"interaction.php?locus=".$locus."\">li</a>]";
+							    #echo "<a href=\"interaction.php?submitted=1&type=&LODmin=0&LODmax=&quantilemin=&quantilemax=&LODdiffmin=0&chrlist=&locus=".$locus."&traitlist=&order=(lod_full-qlod_full)+DESC&limit=150&show_LocusInteraction=on&show_LocusInteractionTrait=on&show_Affected_genes=on&show_Covariates=on&show_lod_full_span=on&show_qlod_full_span=on&show_LOD_Diff=on&show_seqname=on\">d</a>]"
+							    } else {
+							        echo "<i>interaction error</i>";
+							        if (mysqli_connect_errno()) echo "Problem with stmt_fetch (".$line["Name"]."): ".mysqli_error($linkLocali);
+							    }
+							    mysqli_stmt_close($numberOfInteractionsPerLocusStmt);
+							}
+							echo "</td>";
 							break;
 						case "trait":
 							echo 	"<td align=\"right\">".$line["trait"]
 								." <a href=\"trait.php\">link follows</a>"
 								."</td>";
 							break;
+						case "interactionLod":
+							echo "<td>".round($l,2)."</td>";
+							break;
 						default:
-							if (!isset($l)||""==$l) $l="<td>&nbsp;</td>";
-							else echo "<td>$l</td>";
+							echo "<td>$l</td>";
 						}
+					}
+					else if (!empty($debug)) {
+						echo "<p>Not showing $n -> $l</p>";
 					}
 				}
 				$bp=cM2bp($line["Chr"],$line["cMorgan"]);
@@ -533,13 +610,13 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 				echo "</tr>\n";
 			}
 			echo "</tbody>\n</table>\n";
-			if( $show_VennLink ) {
+			if( !empty($show_VennLink) ) {
 				echo "</form>";
 			}
 		}
 		else {
 			echo "<pre>";
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 				echo join("\t",$line)."\n";
 			}
 			echo "</pre>";
@@ -551,7 +628,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 			echo "<p>$rowno record".($rowno>1?"s":"")." found matching criteria.</p>\n";
 		}
 		echo "</small>\n";
-		mysql_free_result($result);
+		mysqli_free_result($result);
 	}
 	include("footer.php");
 ?>

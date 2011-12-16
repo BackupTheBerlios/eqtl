@@ -92,8 +92,6 @@ ENDOFDOCUMENTATION
 	require_once("func_selection.php"); // prints part of the HTML for forms
 
 	show_small_header("Selection of eQTL",TRUE);
-?>
-<?php
 
 	$err=array();
 	$conditionList=array(
@@ -123,7 +121,7 @@ ENDOFDOCUMENTATION
 
 
 	$database="DATABASEEQTLNAME";
-	include_once("func_connect.php");
+	require_once("func_connecti.php");
 
 	# fields that should appear
 	$dataSelectionFieldsQTL = array(
@@ -195,8 +193,8 @@ ENDOFDOCUMENTATION
 			}
 		}
 		elseif(isset($_GET[$vname])) {
-			if (is_array($_POST[$vname])) {
-				$$vname=$_POST[$vname];
+			if (is_array($_GET[$vname])) {
+				$$vname=$_GET[$vname];
 			} else {
 				$$vname = ltrim(rtrim($_GET[$vname]));
 				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
@@ -234,8 +232,8 @@ ENDOFDOCUMENTATION
 		<table width="100%"><tr><td>
 			<table>
 	<?php
-			print_covariates_selection();
-			print_selection_form("all_qtl");
+			print_covariates_selection($linkLocali);
+			print_selection_form($linkLocali,"all_qtl");
 	?>
 			<tr><th class=r>Order by:</th><td colspan=3>
 						<select name=order>
@@ -305,7 +303,7 @@ ENDOFDOCUMENTATION
 			<tr bgcolor="red"><th colspan=4 class=c>QTLs - Select Locus</th></tr>
 			<tr bgcolor="orange"><th>Name</th><th>Chromosome</th><th><small>bp From</small></th><th><small>bp To</small></th></tr>
 <?php
-		select_from_public_qtls($linkLocal);
+		select_from_public_qtls($linkLocali);
 
 ?>
 			</table>
@@ -748,17 +746,17 @@ ENDOFDOCUMENTATION
 				echo $e."<br>";
 			}
 			echo "</p>";
-			mysql_close($linkLocal);
+			mysqli_close($linkLocali);
 			exit;
 		}
 
 		if (isset($debug) and !empty($debug)) echo "query: $query<br>";
 
-		$result = mysql_query($query,$linkLocal);
+		$result = mysqli_query($linkLocali,$query);
 		if (empty($result)) {
-			errorMessage(mysql_error($linkLocal)."</p><p>".$query."</p>");
-			//echo "LinkLocal: "; print_r($linkLocal);
-			mysql_close($linkLocal);
+			errorMessage(mysqli_error($linkLocali)."</p><p>".$query."</p>");
+			//echo "LinkLocal: "; print_r($linkLocali);
+			mysqli_close($linkLocali);
 			exit;
 		}
 
@@ -767,8 +765,8 @@ ENDOFDOCUMENTATION
 		if (!empty($onlyNumbers) and isset($condition) and is_array($condition) and in_array("Within classical QTL",$condition)) {
 		    $rowno=0;
 		    $chr_count=array();
-		    $qtls = get_public_qtls($linkLocal);
-		    while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		    $qtls = get_public_qtls($linkLocali);
+		    while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 
 			# preparation of a hash with chromosomes that can be incremented later
 			$cMpeak=$line["cMorgan_Peak"];
@@ -829,7 +827,7 @@ ENDOFDOCUMENTATION
 		}
 		elseif(!empty($onlyNumbers)){
 			if (!empty($onlyNumbersGrouped) and "totals" == "$onlyNumbersGrouped") {
-				while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+				while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 					echo "<pre>";
 					print_r($line);
 					echo "</pre>\n";
@@ -841,7 +839,7 @@ ENDOFDOCUMENTATION
 				echo "<tbody>\n";
 				$s=0;
 				$s_unassigned=0;
-				while ($line = mysql_fetch_row($result)) {
+				while ($line = mysqli_fetch_row($result)) {
 					#print_r($line); echo "<br />\n";
 					$r["Chr. '".$line[0]."'"]=$line[1];
 					echo "<tr>";
@@ -884,8 +882,8 @@ ENDOFDOCUMENTATION
 			$demandOverlappingQTL=TRUE;
 		    }
 		    echo "<small><table border=1>\n<thead>\n";
-		    $qtls = get_public_qtls($linkLocal);
-		    while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		    $qtls = get_public_qtls($linkLocali);
+		    while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 
 // 			if (empty($line["cMorgan_Max"])) {
 // 				if ($debug) echo "\nDebug: <p>empty(\$line[\"cMorgan_Max\"]</p>\n";
@@ -1133,8 +1131,8 @@ ENDOFDOCUMENTATION
 		    }
 		    echo "</small>";
 		}
-		mysql_free_result($result);
-		mysql_close($linkLocal);
+		mysqli_free_result($result);
+		mysqli_close($linkLocali);
 	}
 	include("footer.php");
 ?>

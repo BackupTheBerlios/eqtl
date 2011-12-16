@@ -31,12 +31,11 @@ Steffen ME<ouml>ller <moeller@inb.uni-luebeck.de>
 echo "<html><head><title>DB</title></head>\n";
 echo "<body>";
 
-$link=mysql_connect("DATABASEHOSTLOCAL","DATABASEQTLUSER","DATABASEQTLPASSWORD");
-mysql_select_db("DATABASEEQTLNAME");
+require_once("func_connecti.php");
 
-$char = mysql_query("select * from characteristics;");
-$groups = mysql_query("select * from groups;");
-$group_char = mysql_query("select * from group_characteristics;");
+$char = mysqli_query($linkLocali,"select * from characteristics;");
+$groups = mysqli_query($linkLocali,"select * from groups;");
+$group_char = mysqli_query($linkLocali,"select * from group_characteristics;");
 
 #For table group
 
@@ -54,7 +53,7 @@ $trait_list=str_replace(" ",",",$_GET['textarea']);
 
 $group_arr = array();
 
-while($row = mysql_fetch_array($groups))
+while($row = mysqli_fetch_array($groups))
 {
 	$id=$row["name"];
 	array_push($group_arr, $id);
@@ -66,19 +65,19 @@ if(array_search($name,$group_arr)===FALSE){   # if there is NO entry with name=I
 	$group_id= rand(1,10000000000);
 	#$group_id= rand(1,10)*rand(1,10);
 
-	mysql_query("insert into groups set name=\"$name\";");
-	mysql_query("update groups set group_id=\"$group_id\" where name=\"$name\";");
+	mysqli_query($linkLocali,"insert into groups set name=\"$name\";");
+	mysqli_query($linkLocali,"update groups set group_id=\"$group_id\" where name=\"$name\";");
 }
 else {
-	$group_id=mysql_query("select group_id from groups where name=\"$name\";");
-	$group_id=mysql_fetch_array($group_id);
+	$group_id=mysqli_query($linkLocali,"select group_id from groups where name=\"$name\";");
+	$group_id=mysqli_fetch_array($group_id);
 	$group_id=$group_id['group_id'];
-	mysql_query("delete from group_characteristics where group_id=\"$group_id\";");
+	mysqli_query($linkLocali,"delete from group_characteristics where group_id=\"$group_id\";");
 }
 
-mysql_query("update groups set trait_list=\"$trait_list\" where name=\"$name\";");
-mysql_query("update groups set query=\"$query\" where name=\"$name\";");
-mysql_query("update groups set significant=\"$significant\" where name=\"$name\";");
+mysqli_query($linkLocali,"update groups set trait_list=\"$trait_list\" where name=\"$name\";");
+mysqli_query($linkLocali,"update groups set query=\"$query\" where name=\"$name\";");
+mysqli_query($linkLocali,"update groups set significant=\"$significant\" where name=\"$name\";");
 
 # For table "characteristics"
 
@@ -90,7 +89,7 @@ $fh = fopen($url,"r");
 $line=fgets($fh);
 $arr = array();
 
-while($row = mysql_fetch_array($char))
+while($row = mysqli_fetch_array($char))
 {
         $termid=$row["term_id"];
         $arr[$termid]["description"] = $row["description"];
@@ -112,21 +111,21 @@ while(!feof($fh) && strpos($fields[0],'#')!==0) {
         }
         else{
                 echo "Term '$term_id' was not seen before, adding it to internal term database.";
-                mysql_query("insert into characteristics set term_id='$term_id';");
+                mysqli_query($linkLocali,"insert into characteristics set term_id='$term_id';");
         }
 	echo "</td>";
-        mysql_query("update characteristics set description='$description' where term_id='$term_id';");
-#       mysql_query("update characteristics set url='$url' where term_id='$term_id';");
-	mysql_query("insert into group_characteristics set group_id='$group_id';");
-	mysql_query("update group_characteristics set term_id='$term_id' where group_id='$group_id' and term_id<=>NULL;");
-	mysql_query("update group_characteristics set pvalue='$pvalue' where group_id='$group_id' and term_id='$term_id';");
+        mysqli_query($linkLocali,"update characteristics set description='$description' where term_id='$term_id';");
+#       mysqli_query($linkLocali,"update characteristics set url='$url' where term_id='$term_id';");
+	mysqli_query($linkLocali,"insert into group_characteristics set group_id='$group_id';");
+	mysqli_query($linkLocali,"update group_characteristics set term_id='$term_id' where group_id='$group_id' and term_id<=>NULL;");
+	mysqli_query($linkLocali,"update group_characteristics set pvalue='$pvalue' where group_id='$group_id' and term_id='$term_id';");
         $line=fgets($fh);
         $fields = preg_split("/\t/",$line);
 }
 
 # For table "groups"
 
-#mysql_query("update groups set term_id='$term_id' where name='$name';");
+#mysqli_query($linkLocali,"update groups set term_id='$term_id' where name='$name';");
 echo "</table>\n";
 echo "<p><a href=db_characterisation.php>Show overview on characteristics.</a><p>\n";
 include("footer.php");
