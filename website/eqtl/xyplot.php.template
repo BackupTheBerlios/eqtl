@@ -280,7 +280,7 @@ University Clinics Schleswig-Holstein, Germany, 2010
 				if ("xaxis"=="$d") $errors[]="Missing display variable for X-axis";
 				if ("yaxis"=="$d") $errors[]="Missing display variable for Y-axis";
 			} else {
-				$outputfilename .= "_$d_".$$value_varname;
+				$outputfilename .= "_${d}_".$$value_varname;
 				array_push($attributes,"--selection_${d}",$$select_varname);
 				$cmd .= " --selection_${d} ".$$select_varname;
 				array_push($attributes,"--value_${d}",$$value_varname);
