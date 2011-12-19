@@ -145,8 +145,8 @@ ENDOFDOCUMENTATION
 			"limit","order"
 		),
 		
-			convert_string_to_covariates_array(strtolower("qtl"))
-		);
+		convert_string_to_covariates_array(strtolower("qtl"))
+	);
 
 	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
 		echo "<br>Retrieving info for: "; print_r($accessible_fields_in_POST_or_GET); echo "<br>\n";
@@ -196,7 +196,7 @@ ENDOFDOCUMENTATION
 
 	echo "<table width=100% border=0><tr><td>";
 	echo "<table border=0>\n";
-	print_selection_form("all_qtl_groups");
+	print_selection_form($linkLocali,"all_qtl_groups");
 	echo "</table>\n";
 	echo "</td><td rowspan=2>Select minimal LOD score:<br>";
 	for($lod=3.5; $lod<15; $lod++) {
@@ -375,7 +375,7 @@ ENDOFDOCUMENTATION
 		$prevSource=$line["source"];
 	}
 	if ($first) {
-		echo "<tr><td colspan=2>NO ENTRIES FOUND for query: '$queryAllGroups'</td></tr>\n";
+		echo "<tr><td colspan=4>NO ENTRIES FOUND for query: '$queryAllGroups'</td></tr>\n";
 	}
 	else {
 		echo "</td></tr>";
