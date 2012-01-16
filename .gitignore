@@ -30,6 +30,7 @@ scripts/deduceDatabaseCols.pl
 scripts/deprecated/createProbeQuery.pl
 scripts/deprecated/insertStaticDataToSql.pl
 scripts/executeQuery.sh
+scripts/insertQTLDataToSql_test.pl
 scripts/insertQTLDataToSql.pl
 scripts/insertQTLDataToSql.pm
 scripts/iterateThroughFiles.pl
