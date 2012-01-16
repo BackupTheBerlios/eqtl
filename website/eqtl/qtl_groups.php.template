@@ -94,7 +94,7 @@ ENDOFDOCUMENTATION
 	}
 
 	$database="DATABASEEQTLNAME";
-	include("func_connect.php");
+	include("func_connecti.php");
 
 	$dataSelectionFieldsQTL = array(
 		"show_LocusOfGene", "show_Covariates",
@@ -145,8 +145,8 @@ ENDOFDOCUMENTATION
 			"limit","order"
 		),
 		
-			convert_string_to_covariates_array(strtolower("qtl"))
-		);
+		convert_string_to_covariates_array(strtolower("qtl"))
+	);
 
 	if (isset($_POST["debug"]) or isset($_GET["debug"])) {
 		echo "<br>Retrieving info for: "; print_r($accessible_fields_in_POST_or_GET); echo "<br>\n";
@@ -196,7 +196,7 @@ ENDOFDOCUMENTATION
 
 	echo "<table width=100% border=0><tr><td>";
 	echo "<table border=0>\n";
-	print_selection_form("all_qtl_groups");
+	print_selection_form($linkLocali,"all_qtl_groups");
 	echo "</table>\n";
 	echo "</td><td rowspan=2>Select minimal LOD score:<br>";
 	for($lod=3.5; $lod<15; $lod++) {
@@ -314,10 +314,10 @@ ENDOFDOCUMENTATION
 
 	echo "<p>Query: $queryAllGroups</p>";
 
-	$result = mysql_query($queryAllGroups);
+	$result = mysqli_query($linkLocali,$queryAllGroups);
 	if (empty($result)) {
-		errorMessage(mysql_error($linkLocal)."</p><p>".$queryAllGroups."</p>");
-		mysql_close($linkLocal);
+		errorMessage(mysqli_error($linkLocali)."</p><p>".$queryAllGroups."</p>");
+		mysqli_close($linkLocali);
 		//echo "LinkLocal: "; print_r($linkLocal);
 		exit;
 	}
@@ -332,7 +332,7 @@ ENDOFDOCUMENTATION
 	$chr=array();
 	$prevTrait="";
 	$prevSource="";
-	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+	while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 		if ("$prevGroupname" != $line["group_id"]) {
 			if (!$first) {
 				#print_r($line);
@@ -375,7 +375,7 @@ ENDOFDOCUMENTATION
 		$prevSource=$line["source"];
 	}
 	if ($first) {
-		echo "<tr><td colspan=2>NO ENTRIES FOUND for query: '$queryAllGroups'</td></tr>\n";
+		echo "<tr><td colspan=4>NO ENTRIES FOUND for query: '$queryAllGroups'</td></tr>\n";
 	}
 	else {
 		echo "</td></tr>";
@@ -392,7 +392,7 @@ ENDOFDOCUMENTATION
 	echo "</table>";
 	echo "</form>";
 
-	if (!empty($result)) mysql_free_result($result);
-	mysql_close($linkLocal);
+	if (!empty($result)) mysqli_free_result($result);
+	mysqli_close($linkLocali);
 	include("footer.php");
 ?>

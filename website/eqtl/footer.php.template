@@ -62,9 +62,11 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2010
 	if ($n>0) echo "<br/>";
 	$m=0;
 	foreach ($block as $a=>$b) {
-		if (!empty($m)) echo "&nbsp;|&nbsp;";
-		echo "<a href=\"$basepath$b\">$a</a>";
-		$m++;
+		if (file_exists($b)) {
+			if (!empty($m)) echo "&nbsp;|&nbsp;";
+			echo "<a href=\"$basepath$b\">$a</a>";
+			$m++;
+		}
 	}
   }
   echo '</td>';

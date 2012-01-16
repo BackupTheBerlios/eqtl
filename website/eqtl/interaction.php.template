@@ -34,10 +34,10 @@ set in the configuration.
 	$err=array();
 
 	$database="DATABASEEQTLNAME";
-	include_once("func_connect.php");
+	require_once("func_connecti.php");
 
-	include_once("func_public_qtl.php"); // get_public_qtls, withinthefollowingqtls
-	$qtls = get_public_qtls($linkLocal);
+	require_once("func_public_qtl.php"); // get_public_qtls, withinthefollowingqtls
+	$qtls = get_public_qtls($linkLocali);
 
 
 	$conditionList=array(
@@ -106,8 +106,8 @@ set in the configuration.
 			}
 		}
 		elseif(isset($_GET[$vname])) {
-			if (is_array($_POST[$vname])) {
-				$$vname=$_POST[$vname];
+			if (is_array($_GET[$vname])) {
+				$$vname=$_GET[$vname];
 			} else {
 				$$vname = ltrim(rtrim($_GET[$vname]));
 				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
@@ -146,7 +146,7 @@ set in the configuration.
 					<font size=-3><i>
 					<?php
 						$colors=array("red","green","blue","black");
-						$cvs=get_covars_on_your_own_from_qtl($linkLocal);
+						$cvs=get_covars_on_your_own_from_qtl($linkLocali);
 						foreach ($cvs as $n=>$c) {
 							if ($n>0) {
 							echo "; ";
@@ -161,56 +161,12 @@ set in the configuration.
 					</i></font>
 				</th>
 				<td valign=top>
-					<?php select_covariates($linkLocal,"locusInteraction"); ?>
+					<?php select_covariates($linkLocali,"locusInteraction"); ?>
 				</td>
 			</tr>
-			<tr><th align=right>LOD-score span:</th>
-						<td>
-							<input type=text name=LODmin size=4 value= <?php echo isset($LODmin)?$LODmin:"12.0"; ?>>
-						-
-							<input type=text name=LODmax size=4<?php if (!empty($LODmax)) echo " value=$LODmax";?>>
-						</td></tr>
-			<tr><th align=right>95% quantile span:</th>
-						<td>
-							<input type=text name=quantilemin size=4 value= <?php echo empty($quantilemin)?$quantilemin:""; ?>>
-						-
-							<input type=text name=quantilemax size=4<?php if (!empty($quantilemax)) echo " value=$quantilemax";?>>
-						</td></tr>
-			<tr><th align=right>Min diff of LOD score<br>to 95% quantile:</th>
-						<td>
-							<input type=text name=LODdiffmin size=4 value= <?php echo empty($LODdiffmin)?"0":$LODdiffmin; ?>>
-						</td></tr>
-			<tr><th>Chromosomes<br>of interest:</th><td><input type=text name=chrlist size=25 maxsize=70
 <?php
-			if (!empty($chrlist)) {
-				echo "value=";
-				if (is_array($chrlist)) {
-					echo "\"".join(",",$chrlist)."\"";
-				}
-				else {
-					echo "\"$chrlist\"";
-				}
-			}
+			print_selection_form($linkLocali,"all_interaction");
 ?>
-			></td></tr>
-			<tr><th align=right>centi-Morgan span:</th>
-				<td>
-					<input type=text name=cMmin size=4<?php if (isset($cMmin)) echo " value=$cMmin";?>>
-					-
-					<input type=text name=cMmax size=4<?php if (isset($cMmax)) echo " value=$cMmax";?>>
-				</td></tr>
-			<tr><th align=right>Trait names:</th><td><input type=text name=traitlist size=30 maxsize=255
-<?php
-	if (!empty($traitlist)) {
-		if (is_array($traitlist)) {
-			echo "value=\"".join(",",$traitlist)."\"";
-		}
-		else {
-			echo "value=\"$traitlist\"";
-		}
-	}
-?>
-		></td></tr>
 		<tr><th align=right>order by:</th><td>
 						<select name=order>
 						<option value=A>1st locus</option>
@@ -278,7 +234,7 @@ set in the configuration.
 
 		require_once("func_dbconfig.php");
 		require_once("func_conversion_".$ensemblversionLocal.".php");
-		require_once("func_connect.php");
+		require_once("func_connecti.php");
 
 		$where = "WHERE ";
 		$from  = " FROM locusInteraction  AS li ";
@@ -423,7 +379,7 @@ set in the configuration.
 				}
 				$where .= "))";
 			}
-			if (!empty($cMmax)) {
+			if (isset($cMmax) and "" != "$cMmax") {
 				if (!is_numeric($cMmax)) array_push($err,"The upper boundary in cMorgan positions for loci under investigation must be numeric ($cMmax).\n");
 				if ("WHERE " != $where) $where .= " AND ";
 				$where .= " ((A.cMorgan <= ".$cMmax." ";
@@ -442,7 +398,7 @@ set in the configuration.
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " lod_full >= ".$LODmin." ";
 		}
-		if (!empty($LODmax)) {
+		if (isset($LODmax) and "" != "$LODmax") {
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " lod_full <= ".$LODmax." ";
 		}
@@ -450,9 +406,13 @@ set in the configuration.
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " lod_full >= ".$quantilemin." ";
 		}
-		if (!empty($quantilemax)) {
+		if (isset($quantilemax) and "" != "$quantilemax" ) {
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " lod_full <= ".$quantilemax." ";
+		}
+		if (!empty($locus)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " (A = '$locus' or B = '$locus' ) ";
 		}
 		if (!empty($LODdiffmin)) {
 			if ("WHERE " != $where) $where .= " AND ";
@@ -481,16 +441,16 @@ set in the configuration.
 			echo "query: $query<br>";
 		}
 
-		$result = mysql_query($query,$linkLocal);
+		$result = mysqli_query($linkLocali,$query);
 		if (empty($result)) {
-			echo "<p>".mysql_error()."</p>";
-			mysql_close($linkLocal);
+			echo "<p>".mysqli_error()."</p>";
+			mysqli_close($linkLocali);
 			exit;
 		}
 
 		$rowno=0;
 		echo "<small><table border=1>\n<thead>\n";
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 // 			if (!empty($_POST["debug"])) {
 // 				echo "1; "; print_r($line); echo "<br>";
 // 				echo "2; "; print_r($line); echo "<br>";
@@ -523,14 +483,13 @@ set in the configuration.
 
 // 			echo "3; "; print_r($line); echo "<br>";
 			$ca=$line["AChr"];
-			#$ca=$line["Chr_A"];
-// 			if (empty($ca)) {ism&id
-// 				$ca = $line["AlChr"];
-// 			}
-			if (empty($ca)) {
+ 			if (isset($ca)) {
+ 				$ca = $line["AlChr"];
+ 			}
+			if (!isset($ca)) {
 				$ca = $line["Chr_A"];
 			}
- 			if (empty($ca)) {
+ 			if (!isset($ca)) {
  				echo "<br>Could not retrieve value for Chromosome A, line is '";
  				echo "4; "; print_r($line);
  				echo "'<br>\n";
@@ -541,13 +500,13 @@ set in the configuration.
 			}
 
 			$cb=$line["BChr"];
- 			if (empty($cb)) {
+ 			if (!isset($cb)) {
  				$cb = $line["BlChr"];
  			}
-			if (empty($cb)) {
+			if (!isset($cb)) {
 				$cb = $line["Chr_B"];
 			}
- 			if (empty($cb)) {
+ 			if (!isset($cb)) {
  				echo "<br>Could not retrieve value for Chromosome B, line is '";
  				print_r($line);
  				echo "'<br>\n";
@@ -738,8 +697,8 @@ set in the configuration.
 			echo "<p>$rowno record".($rowno>1?"s":"")." found matching criteria.</p>";
 		}
 		echo "</small>";
-		mysql_free_result($result);
-		mysql_close($linkLocal);
+		mysqli_free_result($result);
+		mysqli_close($linkLocali);
 	}
 
 	include("footer.php");

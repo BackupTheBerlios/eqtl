@@ -41,7 +41,7 @@ University of LE<uuml>beck, Germany, 2010
 
 	require_once("header.php");
 	$database="DATABASEEQTLNAME";
-	require_once("func_connect.php");
+	require_once("func_connecti.php");
 	require_once("func_covariates.php");
 	require_once("func_selection.php"); // prints parts of the HTML for forms
 
@@ -94,9 +94,9 @@ University of LE<uuml>beck, Germany, 2010
 		echo "<form action=\"trait_summary.php\">\n";
 		require_once("func_selection.php");
 		echo "<table border=0>\n";
-		print_selection_form("trait");
-		print_selection_form("hr");
-		print_selection_form("submit");
+		print_selection_form($linkLocali,"trait");
+		print_selection_form($linkLocali,"hr");
+		print_selection_form($linkLocali,"submit");
 		echo "</table>\n";
 		echo "</form>\n";
 	}
@@ -143,8 +143,8 @@ University of LE<uuml>beck, Germany, 2010
 
 			$query = "SELECT chromosome,lod "
 				  ."FROM qtl WHERE Trait='$trait_id' and (covariates IS NULL or covariates='');";
-			$qtls_query_none = mysql_query($query) or die("Query '$query' failed: ".mysql_error());
-			while ($qtls_none_result = mysql_fetch_array($qtls_query_none,MYSQL_ASSOC)) {
+			$qtls_query_none = mysqli_query($linkLocali,$query) or die("Query '$query' failed: ".mysqli_error($linkLocali));
+			while ($qtls_none_result = mysqli_fetch_array($qtls_query_none,MYSQL_ASSOC)) {
 				$LodForNone["".$qtls_none_result["chromosome"]] = $qtls_none_result["lod"];
 			}
 			echo "LodForNone: "; print_r($LodForNone);
@@ -154,8 +154,8 @@ University of LE<uuml>beck, Germany, 2010
 				       ."min(pvalue) as minP, max(pvalue) as maxP "
 				  ."FROM qtl WHERE Trait='$trait_id' GROUP BY trait,chromosome;";
 
-			$qtls_query_min_max = mysql_query($query); # or die("Query '$query' failed: ".mysql_error());
-			while ($qtls_min_max_result = mysql_fetch_array($qtls_query_min_max,MYSQL_ASSOC)) {
+			$qtls_query_min_max = mysqli_query($linkLocali,$query); # or die("Query '$query' failed: ".mysqli_error($linkLocali));
+			while ($qtls_min_max_result = mysqli_fetch_array($qtls_query_min_max,MYSQL_ASSOC)) {
 				$minLod["".$qtls_min_max_result["chromosome"]] = $qtls_min_max_result["minLod"];
 				$maxLod["".$qtls_min_max_result["chromosome"]] = $qtls_min_max_result["maxLod"];
 				$minP["".$qtls_min_max_result["chromosome"]]   = $qtls_min_max_result["minP"];
@@ -166,7 +166,7 @@ University of LE<uuml>beck, Germany, 2010
 			echo("minP=");print_r($minP);echo("maxP=");print_r($maxP);
 
 			$query="SELECT * FROM qtl WHERE Trait='$trait_id';";
-			$qtls_query = mysql_query($query) or die("Query '$query' failed: " . mysql_error());
+			$qtls_query = mysqli_query($linkLocali,$query) or die("Query '$query' failed: " . mysqli_error($linkLocali));
 
 			$chromosome_info = array();
 			$covars_seen = array();
@@ -177,7 +177,7 @@ University of LE<uuml>beck, Germany, 2010
 	 
 			echo "Reading in data from database.";
 
-			while ($qtls_result = mysql_fetch_array($qtls_query,MYSQL_ASSOC)) {
+			while ($qtls_result = mysqli_fetch_array($qtls_query,MYSQL_ASSOC)) {
 				#print_r($qtls_result);
 
 				$covariates=$qtls_result["covariates"];

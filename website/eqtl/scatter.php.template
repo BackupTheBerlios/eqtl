@@ -43,7 +43,7 @@ University of LE<uuml>beck, Germany, 2009
 	show_small_header("Scatter plot overview of Expression QTL",TRUE);
 
 	$database="DATABASEEQTLNAME";
-	include_once("func_connect.php");
+	require_once("func_connecti.php");
 	require_once("func_public_qtl.php");
 
 	# fields that should appear
@@ -121,9 +121,9 @@ University of LE<uuml>beck, Germany, 2009
 		echo "<td valign=top>"; # entry of typical filter attributes - left hand side
 
 		echo "<table>\n";
-		print_selection_form("figure_scatter");
+		print_selection_form($linkLocali,"figure_scatter");
 		echo "<tr><th>Covariates of stored QTL<br><small>implicit 'none'</small></th><td>";
-		select_covariates_combinations(3);
+		select_covariates_combinations($linkLocali,3);
 		echo "<tr><th>Presentation</th><td>";
 		echo "<table><tr>";
 		echo "<td>Main title</td><td colspan=5><input type=text name=main size=80></td></tr>\n";
@@ -173,7 +173,7 @@ University of LE<uuml>beck, Germany, 2009
 		#if ("" == "this is not yet implemented") {
 		  echo "</td>\n<td valign=top>";
 		  echo "Work in progress:<br>\n";
-		  select_from_public_qtls($linkLocal,TRUE);
+		  select_from_public_qtls($linkLocali,TRUE);
 		  echo "</td>";
 		#}
 		echo "</tr>";

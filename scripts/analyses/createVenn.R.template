@@ -202,7 +202,7 @@ if ("pdf" == opt$format) {
 # for manual interaction in shell: 
 # con <- dbConnect(MySQL(),user="qtl", password="", dbname="eQTL_Stockholm", host="pc15.inb.uni-luebeck.de")
 
-con <- dbConnect(MySQL(),user="DATABASEEQTLUSER", password="", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
+con <- dbConnect(MySQL(),user="DATABASEEQTLUSER", password="DATABASEEQTLPASSWORD", dbname="DATABASEEQTLNAME", host="DATABASEHOSTLOCAL")
 
 #covariates<-c('','eae_add','sud_add','dud_add','wl0_add','D12G1_add','D12G2B_add','D12G2C_add','D35G1_add','D35G2B_add','D35G2C_add','t12p_add','t35p_add')
 covariates<-c()

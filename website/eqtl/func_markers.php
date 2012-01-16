@@ -37,23 +37,23 @@ data base handle to the expression QTL table with the phenotype correlations
 
 */
 
-function list_markers() {
+function list_markers($dbh) {
 
 	$queryMarkers = "SELECT DISTINCT marker,chr,cmorgan_rqtl as cM FROM map ORDER BY chr,cM";
 
-	$result = mysql_query($queryMarkers);
+	$result = mysqli_query($dbh,$queryMarkers);
 	if (empty($result)) {
-		mysql_close($linkLocal);
-		errorMessage("Error: " . mysql_error()."</p><p>".$queryPhenotypes."</p>");
+		mysqli_close($dbh);
+		errorMessage("Error: " . mysqli_error($dbh)."</p><p>".$queryPhenotypes."</p>");
 		//echo "LinkLocal: "; print_r($linkLocal);
 		exit;
 	}
 
 	$markers=array();
-	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+	while ($line = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 		$markers[$line["marker"]]=$line["marker"]." ".$line["chr"].":".$line["cM"];
 	}
-	mysql_free_result($result);
+	mysqli_free_result($result);
 
 	return($markers);
 

@@ -45,14 +45,14 @@ class Trait
    	$this->trait_id=$traitid; # identification of the entry
 
 	$q="SELECT trait_id,gene_name,chromosome,start FROM trait WHERE trait_id='$traitid'";
-	$resultTraitDetails = mysql_query($q,$connection);
+	$resultTraitDetails = mysqli_query($connection,$q);
 	if (!$resultTraitDetails){
 		echo "<p>Problem with query '$q': "
-			.mysql_error($connection)."</p>";
-		mysql_close($connection);
+			.mysqli_error($connection)."</p>";
+		mysqli_close($connection);
 		exit; // learn about alternative
 	}
-	if ($resultTraitDetailsLine = mysql_fetch_array($resultTraitDetails,MYSQL_ASSOC)) {
+	if ($resultTraitDetailsLine = mysqli_fetch_array($resultTraitDetails,MYSQL_ASSOC)) {
 		#print_r($resultTraitDetailsLine);
 		$this->genename=$resultTraitDetailsLine["gene_name"];
 		$this->chr=$resultTraitDetailsLine["chromosome"];

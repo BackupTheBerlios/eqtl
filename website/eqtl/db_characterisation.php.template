@@ -28,7 +28,7 @@ require_once("func_selection.php"); // prints part of the HTML for forms
 
 show_small_header("Characterisation Entries",TRUE);
 
-include_once("func_connect.php");
+require_once("func_connecti.php");
 
 $todo=$_GET["todo"];
 $selection=$_GET["selection"];
@@ -39,12 +39,12 @@ if (!empty($selection)) {
 		echo "entering 'delete'";
 		$q = "delete from groups "
 		    ."where group_id in ('".join("','",$selection)."');";
-		$res = mysql_query($q);
-		if (!$res) echo "Error in query:<br>$q: " . mysql_error();
+		$res = mysqli_query($linkLocali,$q);
+		if (!$res) echo "Error in query:<br>$q: " . mysqli_error($linkLocali);
 		$q = "delete from group_characteristics "
 		    ."where group_id in ('".join("','",$selection)."');";
-		$res = mysql_query($q);
-		if (!$res) echo "Error in query:<br>$q: " . mysql_error();
+		$res = mysqli_query($linkLocali,$q);
+		if (!$res) echo "Error in query:<br>$q: " . mysqli_error($linkLocali);
 	}
 	elseif ($todo=="Change Group Name") {
 		$new_group_name=$_GET["new_group_id"];
@@ -56,8 +56,8 @@ if (!empty($selection)) {
 		else {
 			$q = "update groups set name='".$new_group_name."' "
 			    ."where group_id in ('".join("','",$selection)."');";
-			$res = mysql_query($q);
-			if (!$res) echo "Error in query:<br>$q: " . mysql_error();
+			$res = mysqli_query($linkLocali,$q);
+			if (!$res) echo "Error in query:<br>$q: " . mysqli_error($linkLocali);
 		}
 	}
 }
@@ -74,10 +74,10 @@ echo " <th rowspan=2>selecting</th></tr>\n";
 echo " <tr><th colspan=4>query</th>\n";
 echo "</tr>\n";
 
-$groups = mysql_query("select * from groups;");
+$groups = mysqli_query($linkLocali,"select * from groups;");
 
 echo "<form action=\"db_characterisation.php\" method=\"GET\">\n";
-while($row = mysql_fetch_array($groups))
+while($row = mysqli_fetch_array($groups))
 {
 	echo "<tr>\n";
 	$name=$row["name"];
@@ -92,6 +92,7 @@ while($row = mysql_fetch_array($groups))
 	echo "</tr>\n";
 }
 echo "</table>\n";
+mysqli_free_result($groups);
 
 echo "<br>\n";
 
