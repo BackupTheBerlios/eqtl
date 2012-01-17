@@ -153,7 +153,7 @@ University of LE<uuml>beck, Germany, 2009
 		echo "</td>";
 		echo "<td>";
 		if (empty($format)) $format="png";
-		foreach (array("pdf"=>"PDF","png"=>"PNG","jpg"=>"JPG") as $v=>$vv) {
+		foreach (array("pdf"=>"PDF","png"=>"PNG","jpg"=>"JPG","svg"=>"SVG","eps"=>"EPS") as $v=>$vv) {
 			echo "<input type=\"radio\" name=\"format\" value=\"$v\"  " . (($v==$format)?"checked":"")  .">$vv<br/>";
 		}
 		echo "</td></tr>\n";
@@ -298,7 +298,7 @@ University of LE<uuml>beck, Germany, 2009
 
 			$imagePath=dirname($_SERVER["PHP_SELF"])."/$outputfilename";
 
-			if ("pdf" != $format) {
+			if ("pdf" != "$format" && "eps" != "$format") {
 				if (!empty($inlineImages)) {
 					echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n";
 				}

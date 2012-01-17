@@ -46,7 +46,7 @@ to be set if the user shall be interactively working with the R shell rather tha
 
 =item format
 
-the format in which the image is to be saved - pdf, jpeg, png are currently supported.
+the format in which the image is to be saved - pdf, jpeg, png, svg and eps are currently supported.
 
 =item covariates
 
@@ -218,7 +218,7 @@ if (is.null(opt$imagewidth)) {
    if (is.null(opt$format) || opt$format %in% c("png","jpeg","jpg","gif")) {
 	opt[["imagewidth"]]<-width.pixel
    }
-   else if ("pdf" == opt$format) {
+   else if (opt$format %in% c("pdf","svg","eps")) {
 	opt[["imagewidth"]]<-width.inch
    }
    else {
@@ -231,7 +231,7 @@ if (is.null(opt$imageheight)) {
    if (is.null(opt$format) || opt$format %in% c("png","jpeg","jpg","gif")) {
 	opt[["imageheight"]]<-height.pixel
    }
-   else if ("pdf" == opt$format) {
+   else if (opt$format %in% c("pdf","svg","eps")) {
 	opt[["imageheight"]]<-height.inch
    }
    else {
@@ -317,17 +317,17 @@ if (is.null(opt$interactive)) {
 	}
 	if (is.null(opt$format) || "png" == opt$format) {
 		png(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
-	}
-	else if ("pdf" == opt$format) {
+	} else if ("svg" == opt$format) {
+		svg(filename=opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
+	} else if ("eps" == opt$format) {
+		cairo_ps(filename=opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
+	} else if ("pdf" == opt$format) {
 		pdf(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
-	}
-	else if ("jpg" == opt$format  || "jpeg" == opt$format) {
+	} else if ("jpg" == opt$format  || "jpeg" == opt$format) {
 		jpg(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
-	}
-	else if ("gif" == opt$format) {
+	} else if ("gif" == opt$format) {
 		jpg(opt[["output"]],width=opt$imagewidth,height=opt$imageheight)
-	}
-	else {
+	} else {
 		cat("Unknown format ",opt$format,"\n")
 		q(status=1)
 	}

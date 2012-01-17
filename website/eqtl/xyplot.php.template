@@ -218,7 +218,7 @@ University Clinics Schleswig-Holstein, Germany, 2010
 		echo "</td>";
 		echo "<td colspan=2>";
 		if (empty($format)) $format="png";
-		foreach (array("pdf"=>"PDF","png"=>"PNG","jpeg"=>"JPG") as $v=>$vv) {
+		foreach (array("pdf"=>"PDF","png"=>"PNG","jpeg"=>"JPG","svg"=>"SVG","eps"=>"EPS") as $v=>$vv) {
 			echo "<input type=\"radio\" name=\"format\" value=\"$v\"  " . (($v==$format)?"checked":"")  .">$vv";
 			if ("JPG" != $vv) echo ", ";
 		}

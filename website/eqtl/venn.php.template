@@ -64,7 +64,7 @@ University of LE<uuml>beck, Germany, 2009
 
 
 	$accessible_fields_in_POST_or_GET = array_merge (
-		array("submitted","inlineImages","rerunAnalyses","verbose"),
+		array("submitted","inlineImages","rerunAnalyses","format","verbose"),
 		$dataSelectionFieldsQTL
 	);
 
@@ -82,8 +82,8 @@ University of LE<uuml>beck, Germany, 2009
 			}
 		}
 		elseif(isset($_GET[$vname])) {
-			if (is_array($_POST[$vname])) {
-				$$vname=$_POST[$vname];
+			if (is_array($_GET[$vname])) {
+				$$vname=$_GET[$vname];
 			} else {
 				$$vname = ltrim(rtrim($_GET[$vname]));
 				if (isset($debug) or array_key_exists("debug",$_POST) or array_key_exists("debug",$_GET)) {
@@ -92,6 +92,9 @@ University of LE<uuml>beck, Germany, 2009
 			}
 		}
 	}
+
+	// PNG is default format
+	if (empty($format)) $format="png";
 
 
 	if (empty($submitted)) {
@@ -117,7 +120,13 @@ University of LE<uuml>beck, Germany, 2009
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=inlineImages value=1 />Inline Images";
 		//echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=rerunAnalyses value=1 />Rerun previous analyses";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=verbose value=1 />verbose";
-		echo "</td></tr>\n";
+		echo "</td>";
+		echo "<td>";
+		foreach (array("pdf"=>"PDF","png"=>"PNG","jpg"=>"JPG","svg"=>"SVG","eps"=>"EPS") as $v=>$vv) {
+			echo "<input type=\"radio\" name=\"format\" value=\"$v\"  " . (($v==$format)?"checked":"")  .">$vv<br/>";
+		}
+		echo "</td>";
+		echo "</tr>\n";
 		echo "</table>\n";
 
 		if ("" == "this is not yet implemented") {
@@ -188,7 +197,7 @@ University of LE<uuml>beck, Germany, 2009
 		}
 		$cmd = "$rscript";
 		$cmd .= " --format png";
-		array_push($attributes,"--format","png");
+		array_push($attributes,"--format","$format");
 		if (!empty($qtl_covariates)) {
 		  $cmd .= " --covariates ".join(";",$qtl_covariates);
 		  array_push($attributes,"--covariates",'"'.join(";",$qtl_covariates).'"');
@@ -222,9 +231,9 @@ University of LE<uuml>beck, Germany, 2009
 			  "flanking_trait"=>"The specification of chromosomal loci are weakened towards their flanking markers",
 			  "flanking_trait_indiseaseqtl"=>"As before, the specification of loci are reduced to flanking markers, and only thoes are shown, that are located within classical QTL") as $s=>$t) {
 			echo "<h3>$s</h3>\n";
-			$imagePath=dirname($_SERVER["PHP_SELF"])."/${outputfilename}_${s}.png";
+			$imagePath=dirname($_SERVER["PHP_SELF"])."/${outputfilename}_${s}.${format}";
 			if (!empty($inlineImages)) { echo "<IMG SRC=\"$imagePath\" HEIGHT=\"100%\">\n"; }
-			echo "<a href=\"http:$imagePath\">${outputfilename}_${s}.png</a><br/>\n$t\n";
+			echo "<a href=\"http:$imagePath\">${outputfilename}_${s}.${format}</a><br/>\n$t\n";
 			echo "<hr>\n";
 		}
 	}

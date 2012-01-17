@@ -38,7 +38,7 @@ for being accepted as 'cis', the distance of the peak from the location of the g
 
 rather than dumping an image to a file, specified by '--output', the result can be analysed interactively with the R shell . This is useful only when sourcing the script from within an R shell
 
-=item format <png|jpeg|pdf>
+=item format <png|jpeg|pdf|svg|eps>
 
 The graphics format to be used. The default is 'png'. To use the typical display of the R shell, use set --interaction.
 
@@ -74,7 +74,7 @@ only the loci within a classical QTL are inspected
 
 =item width I<number>
 
-The width of the figure, either in pixels (png, jpeg) or inch (pdf).
+The width of the figure, either in pixels (png, jpeg) or inch (pdf,svg,eps).
 
 =item height I<number>
 
@@ -111,18 +111,18 @@ prepareOutput<-function(filename) {
 	}
 	if (is.null(opt$interactive)) {
 		if (is.null(opt$format) || "png" == opt$format) {
-			png(filename,width=width.pixel,height=height.pixel)
-		}
-		else if ("pdf" == opt$format) {
-			pdf(filename,width=width.inch,height=height.inch)
-		}
-		else if ("jpg" == opt$format  || "jpeg" == opt$format) {
-			jpg(filename,width=width.pixel,height=height.pixel)
-		}
-		else if ("gif" == opt$format) {
-			jpg(filename,width=width.pixel,height=height.pixel)
-		}
-		else {
+			png(filename=filename,width=width.pixel,height=height.pixel)
+		} else if ("svg" == opt$format) {
+			svg(filename=filename,width=width.inch,height=height.inch)
+		} else if ("eps" == opt$format) {
+			cairo_ps(filename=filename,width=width.inch,height=height.inch)
+		} else if ("pdf" == opt$format) {
+			pdf(filename=filename,width=width.inch,height=height.inch)
+		} else if ("jpg" == opt$format  || "jpeg" == opt$format) {
+			jpg(filename=filename,width=width.pixel,height=height.pixel)
+		} else if ("gif" == opt$format) {
+			jpg(filename=filename,width=width.pixel,height=height.pixel)
+		} else {
 			cat("Unknown format ",opt$format,"\n")
 			q(status=1);
 		}
@@ -174,10 +174,10 @@ if (is.null(opt$cisDistMax)) {
 
 if (is.null(opt$format)) {
    opt[["format"]]<-"png";
-   cat("Set format to default value '",opt$format,"'.\n",sep="")
+   cat("E: Set format to default value '",opt$format,"'.\n",sep="")
 }
 
-if ("pdf" == opt$format) {
+if (opt$format %in% c("pdf","svg","eps")) {
 	if (!is.null(opt$width)) {
 		width.inch<-opt$width
 	}
@@ -301,6 +301,7 @@ prepareOutput(f)
 colnames(loc.trait.covariate)<-pretty.print.columnames(colnames(loc.trait.covariate))
 venn(loc.trait.covariate)
 if(is.null(opt$interactive)) {
+	cat("I: Closing file",f,"\n",sep="")
 	dev.off()
 }
 
@@ -321,6 +322,7 @@ prepareOutput(f)
 colnames(trait.covariate)<-pretty.print.columnames(colnames(trait.covariate))
 venn(trait.covariate)
 if(is.null(opt$interactive)) {
+	cat("I: Closing file",f,"\n",sep="")
 	dev.off()
 }
 
