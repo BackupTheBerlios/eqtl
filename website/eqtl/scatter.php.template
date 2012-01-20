@@ -54,7 +54,7 @@ University of LE<uuml>beck, Germany, 2009
 		"quantilemin","quantilemax",
 		"qtl_covariates",
 		"cqtl",
-		"legend",
+		"legendshow",
 		"LODdiffmin","LODdiffmax",
 		"PvalueMin","PvalueMax",
 		"cM_Peak_Min","cM_Peak_Max",
@@ -68,6 +68,7 @@ University of LE<uuml>beck, Germany, 2009
 					"display","format",
 					"LODmax","LODmin","PvalueMax","PvalueMin",
 					"imagewidth","imageheight",
+					"legendmincolour","legendmaxcolour","legendscheme",
 					"linewidth","linecolour","linetype",
 					"axeswidth","axescolour","axestype");
 
@@ -156,6 +157,12 @@ University of LE<uuml>beck, Germany, 2009
 		foreach (array("pdf"=>"PDF","png"=>"PNG","jpg"=>"JPG","svg"=>"SVG","eps"=>"EPS") as $v=>$vv) {
 			echo "<input type=\"radio\" name=\"format\" value=\"$v\"  " . (($v==$format)?"checked":"")  .">$vv<br/>";
 		}
+		echo "<td align=left>"; echo "Legend scheme:</td>";
+		echo "<td nowrap>";
+		echo "<input type=radio name=legendscheme value=yellowbrown checked>Yellow-Brown</input> &nbsp; <br />\n";
+		echo "<input type=radio name=legendscheme value=custom>Custom Legend Colour</input><br />\n";
+		echo "&nbsp; &nbsp; Min:<input type=text name=legendmincolour size=5 /> &nbsp; Max:<input type=text name=legendmaxcolour size=5 />\n";
+		echo "</td>\n";
 		echo "</td></tr>\n";
 
 		echo "</table>\n";
@@ -166,7 +173,7 @@ University of LE<uuml>beck, Germany, 2009
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=inlineImages value=1 />Inline Images";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=rerunAnalyses value=1 />Rerun previous analyses";
 		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=verbose value=1 />verbose";
-		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=legend value=1 />legend";
+		echo "&nbsp;&nbsp;&nbsp;<input type=checkbox name=legendshow value=1 />legend";
 		echo "</td></tr>\n";
 		echo "</table></td>\n";
 
@@ -213,22 +220,26 @@ University of LE<uuml>beck, Germany, 2009
 			if ($n>0) echo "<hr>";
 
 			$outputfilename = "tmp_images/scatter_output";
-			if (!empty($cov)) {
-			    $outputfilename .= "_cov_$cov";
-			}
-			if (!empty($PvalueMin)) {
-			    $outputfilename .= "_PvalueMin_$PvalueMin";
-			}
-			if (!empty($LODmin)) {
-			    $outputfilename .= "_LODmin_$LODmin";
-			}
-			if (!empty($MeanMin)) {
-			    $outputfilename .= "_MeanMin_$MeanMin";
-			}
+
+			if (!empty($cov)) $outputfilename .= "_cov_$cov";
+			if (!empty($PvalueMin)) $outputfilename .= "_PvalueMin_$PvalueMin";
+			if (!empty($LODmin)) $outputfilename .= "_LODmin_$LODmin";
+			if (!empty($MeanMin)) $outputfilename .= "_MeanMin_$MeanMin";
+			#if (!empty($legendscheme)) {
+			#  $outputfilename .= "_legendscheme_$legendscheme";
+			#  $cmd .= " --legendscheme $legendscheme";
+			#  if ("custom" == "$legendscheme") {
+			#    $cmd .= " --legendmincolour $legendmincolour --legendmaxcolour $legendmaxcolour";
+			#  }
+			#}
+			#if (!empty($legendmincolour)) $outputfilename .= "_legendmin_$legendmincolour";
+			#if (!empty($legendmaxcolour)) $outputfilename .= "_legendmax_$legendmaxcolour";
 
 			$attributes=array();
 			$cmd = "$rscript";
 			$cmd .= " --format $format";
+
+
 			array_push($attributes,"--format","png");
 			if (!empty($qtl_covariates)) {
 			  $cmd .= " --covariates $cov";
@@ -239,10 +250,10 @@ University of LE<uuml>beck, Germany, 2009
 			  array_push($attributes,"--verbose",1);
 			}
 
-			if (!empty($legend)) {
-			  $cmd .= " --legend";
-			  array_push($attributes,"--legend",1);
-			  $outputfilename .= "_lengend";
+			if (!empty($legendshow)) {
+			  $cmd .= " --legendshow";
+			  array_push($attributes,"--legendshow",1);
+			  $outputfilename .= "_legendshow";
 			}
 
 			# the names of the html fields are the same as the ones 

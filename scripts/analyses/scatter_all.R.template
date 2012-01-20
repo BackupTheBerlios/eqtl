@@ -72,6 +72,22 @@ width of lines separating the chromosomes
 
 specification of the type of lines tha shall be separating the chromosomes, defaults to 3 (dotted)
 
+=item --legendmincolour
+
+set if a legend shall be shown
+
+=item --legendmincolour I<string>
+
+colour to use for dots indicating minimal statistical significance (but above threshold), use together with --legendscheme custom, defaults to I<yellow>
+
+=item --legendmaxcolour I<string>
+
+colour to use for dots indicating maximal statistical significance, use together with --legendscheme custom, defaults to I<red>
+
+=item --legendscheme I<string>
+
+readily prepared schemes for colouring, available are I<custom>, I<yellowbrown>. When choosing I<custom>, this will interpolate between the colours given for --legendmincolour and --legendmincolour.
+
 =item --axescolour I<string>
 
 colour of axes
@@ -125,30 +141,33 @@ library(getopt)
 # cat("I was here 0.\n")
 
 opt = getopt(matrix(c(                                            
-   'verbose'    , 'v', 2, "integer",  "gives information on the internal status of program",
-   'help'       , 'h', 0, "logical",  "gives instructions on how to retrieve information on how to use the program",
-   'MeanMin'    , 'm', 1, "double",   "the threshold for a minimal expression level that the trait should have to be selected for display (as a dot on the plot)",
-   'LODmin'     , 'l', 1, "double",   "the minimal LOD score the expression QTL should have reached",
-   'LODmax'     , 'L', 1, "double",   "the maximal LOD score the expression QTL allowed in (defaults to THRESHOLD)",
-   'PvalueMax'       , 'p', 1, "double",   "the maximal P value the expression QTL may have reached to be considered significant",
-   'PvalueMin'       , 'P', 1, "double",   "the minimal P value the expression QTL may have reached to leave out the most significant eQTL",
-   'interactive', 'i', 0, "logical",  "indication that this script is run from the UNIX shell",
-   'format'     , 'f', 1, "character","the format of the image that should present the plot",
-   'covariates' , 'c', 1, "character","covariates the plot shall be run for",
-   'output'     , 'o', 1, "character","name of output file",
-   'qtls'       , 'q', 2, "character","list of QTLs (their IDs in the database) that shall be represented on the plot",
-   'display'    , 'd', 2, "character","defaults to lod, alternatives are rank and p.value",
-   'main'       , 'M', 1, "character","main title of the plot",
-   'sub'        , 'S', 1, "character","sub title of the plot",
-   'imagewidth' , 'W', 1, "integer",  "width of image, represented in dependency on the format",
-   'imageheight', 'H', 1, "integer",  "height of image, represented in dependency on the format",
-   'linecolour' , 'a', 1, "character","colour of lines separating the chromosomes",
-   'linewidth'  , 'w', 1, "double",   "width of lines separating the chromosomes",
-   'linetype'   , 't', 1, "integer",  "type of lines separating the chromosomes",
-   'axescolour' , 'b', 1, "character","colour of axes",
-   'axeswidth'  , 'x', 1, "double",   "width of axes",
-   'axestype'   , 'y', 1, "integer",  "line type of axes",
-   'legend'     , 'e', 2, "logical",  "set to add a legend"
+   'verbose'        , 'v', 2, "integer"  ,"gives information on the internal status of program",
+   'help'           , 'h', 0, "logical"  ,"gives instructions on how to retrieve information on how to use the program",
+   'MeanMin'        , 'm', 1, "double"   ,"the threshold for a minimal expression level that the trait should have to be selected for display (as a dot on the plot)",
+   'LODmin'         , 'l', 1, "double"   ,"the minimal LOD score the expression QTL should have reached",
+   'LODmax'         , 'L', 1, "double"   ,"the maximal LOD score the expression QTL allowed in (defaults to THRESHOLD)",
+   'PvalueMax'      , 'p', 1, "double"   ,"the maximal P value the expression QTL may have reached to be considered significant",
+   'PvalueMin'      , 'P', 1, "double"   ,"the minimal P value the expression QTL may have reached to leave out the most significant eQTL",
+   'interactive'    , 'i', 0, "logical"  ,"indication that this script is run from the UNIX shell",
+   'format'         , 'f', 1, "character","the format of the image that should present the plot",
+   'covariates'     , 'c', 1, "character","covariates the plot shall be run for",
+   'output'         , 'o', 1, "character","name of output file",
+   'qtls'           , 'q', 2, "character","list of QTLs (their IDs in the database) that shall be represented on the plot",
+   'display'        , 'd', 2, "character","defaults to lod, alternatives are rank and p.value",
+   'main'           , 'M', 1, "character","main title of the plot",
+   'sub'            , 'S', 1, "character","sub title of the plot",
+   'imagewidth'     , 'W', 1, "integer"  ,"width of image, represented in dependency on the format",
+   'imageheight'    , 'H', 1, "integer"  ,"height of image, represented in dependency on the format",
+   'linecolour'     , 'a', 1, "character","colour of lines separating the chromosomes",
+   'linewidth'      , 'w', 1, "double"   ,"width of lines separating the chromosomes",
+   'linetype'       , 't', 1, "integer"  ,"type of lines separating the chromosomes",
+   'axescolour'     , 'b', 1, "character","colour of axes",
+   'axeswidth'      , 'x', 1, "double"   ,"width of axes",
+   'axestype'       , 'y', 1, "integer"  ,"line type of axes",
+   'legendshow'     , 'e', 2, "logical"  ,"set to add a legend",
+   'legendmincolour', 'A', 1, "character","colour to chose for QTL representations with minimal significance",
+   'legendmaxcolour', 'B', 1, "character","colour to chose for QTL representations with maximal significance",
+   'legendscheme'   , 's', 1, "character","set to 'custom' to have the legend interpolate between legendmincolour and legendmaxcolour, or 'yellowbrown'"
    ),ncol=5,byrow=TRUE),
    debug=TRUE)
 
@@ -239,6 +258,9 @@ if (is.null(opt$imageheight)) {
 	q(status=1);
    }
 }
+
+if (is.null(opt$legendmincolour)) opt[["legendmincolour"]] <- "yellow"
+if (is.null(opt$legendmaxcolour)) opt[["legendmaxcolour"]] <- "red"
 
 if (!is.null(opt$verbose)) cat("I was here 2.\n")
 
@@ -412,7 +434,7 @@ for(cov in covariates) {
 
   par.mar.orig<-par("mar")
 
-  if (!is.null(opt$legend)) {
+  if (!is.null(opt$legendshow)) {
      if (!is.null(opt$verbose)) cat("Prepared split for legend.\n")
      #nf <- layout(matrix(c(1,2), 1, 2, byrow=TRUE), widths=c(6,lcm(4)),heights=c(1),respect=FALSE)
      nf <- layout(matrix(c(2,0,1,3),2,2,byrow=TRUE), widths=c(3.5,lcm(1.75)), heights=c(lcm(6),3.5), TRUE)
@@ -448,7 +470,21 @@ for(cov in covariates) {
   selected.qtl.min<-NULL
 
   YlOrBr <- c("#FFFFD4", "#FED98E", "#FE9929", "#D95F0E", "#993404")
-  color.palette = colorRampPalette(YlOrBr, space = "Lab",bias = 0.5)
+  #color.palette <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+  color.palette <- NULL
+  if (is.null(opt$legendscheme) || is.na(opt$legendscheme) || "yellowbrown" == opt$legendscheme) {
+    color.palette <- colorRampPalette(YlOrBr, space = "Lab", bias = 0.5)
+  } else if ("custom" == opt$legendscheme) {
+    a<-opt$legendmincolour
+    b<-opt$legendmaxcolour
+    if (is.null(a) || is.null(b)) stop("Either opt$legendmincolour or opt$legendmaxcolour is null.")
+    color.palette <- colorRampPalette(c(a,b), space = "Lab", bias = 0.5)
+  } else {
+    warning("Unknown value of --legendscheme option: ",opt$legendscheme)
+    color.palette <- colorRampPalette(YlOrBr, space = "Lab", bias = 0.5)
+  }
+  if (is.null(color.palette)) stop("Something went wrong with the specification of the colour palette.")
+
   #FIXME: the ranking should be separated from the value selected
   if ("rank"==opt$display) {
           if (!is.null(opt$verbose)) cat("displaying rank-based data.\n")
@@ -507,7 +543,7 @@ for(cov in covariates) {
   #in.green<-selected.qtl[,"LOD"]>=8
   #points(pos.linear.cM[in.green],pos.linear.bp[in.green],col="green")
 
-  if (!is.null(opt$legend)) {
+  if (!is.null(opt$legendshow)) {
      if (!is.null(opt$verbose)) cat("displaying legend.\n")
      steps<-45
      p<-par.mar.orig
