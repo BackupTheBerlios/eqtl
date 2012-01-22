@@ -145,15 +145,20 @@ height.inch<-width.inch
 
 opt = getopt(matrix(c(
     'verbose'    , 'v', 2, "integer",
-    'debug'    , 'd', 2, "integer",
+    'debug'      , 'd', 2, "integer",
     'help'       , 'h', 0, "logical",
     'MeanMin'    , 'm', 1, "double",
+    'MeanMax'    , 'M', 1, "double",
+    'SdMin'      , 's', 1, "double",
+    'SdMax'      , 'S', 1, "double",
     'LODmin'     , 'l', 1, "double",
-    'cisDistMax' , 's', 1, "integer",
-    'cistrans'   , 'a', 1, "character",
+    'cisDistMax' , 'C', 1, "integer",
+    'cistrans'   , 'T', 1, "character",
     'interactive', 'i', 0, "logical",
     'format'     , 'f', 1, "character",
     'covariates' , 'c', 1, "character",
+    'PvalueMin'  , 'p', 1, "double",
+    'PvalueMax'  , 'P', 1, "double",
     'output'     , 'o', 1, "character"
    ),ncol=4,byrow=TRUE), debug=TRUE)
 
