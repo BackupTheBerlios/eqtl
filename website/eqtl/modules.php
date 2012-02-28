@@ -236,11 +236,17 @@ function showMe (it, box) {
 
   if (!empty($modcolour) and !empty($clinical)) {
 
+    require_once("func_public_qtl.php");
+    require_once("func_conversion_58.php");
+    $public_qtls=get_public_qtls($linkLocali,"name");
+    print_r($public_qtls);
+
     echo "<p><a href=\"networks/presentModule.php?modcolour=$modcolour\">"
             ."<b>Click to open gene network for module with Cytoscape</i>)</b>"
 	    ."</a>"
 	."</p>\n";
     $query = "SELECT module_trait_moduleMembership.trait_id as trait_id"
+                   .",trait.gene_name as gene_name"
                    .",trait.chromosome as chromosome"
 		   .",round((trait.start+trait.stop)/2)/1000000 as pos"
 		   .",trait.mean as mean"
@@ -299,10 +305,12 @@ function showMe (it, box) {
 	
     $prevTrait="";
     while ($row1 = mysqli_fetch_assoc($rec_query)) {
-	if (empty($prevTrait)) print_r($row_1);
+        //print_r($row1);
+	if (empty($prevTrait)) print_r($row1);
         if (!empty($prevTrait) and $prevTrait != $row1["trait_id"]) echo "</td></tr>\n";
         if ($prevTrait != $row1["trait_id"]) {
             echo "<tr>";
+	    echo "<td valign=top>".$row1["trait_id"]."<br />".$row1["gene_name"]."</td>";
             foreach ($row1 as $n => $v) {
 		if ("chromosome" == "$n") {
 		    $pos=$row1["pos"];
@@ -317,6 +325,8 @@ function showMe (it, box) {
                 } else if
 		   ("$n" != "pos" and 
 		    "$n" != "sd" and 
+		    "$n" != "trait_id" and 
+		    "$n" != "gene_name" and 
 		    "$n" != "qtl_cMorgan_Peak" and 
 		    "$n" != "qtl_Chromosome" and 
 		    "$n" != "qtl_covariates" and 
@@ -325,6 +335,11 @@ function showMe (it, box) {
                     echo "<td valign=top>".(empty($v)?"&nbsp;":"$v")."</td>";
                 }		
             }
+	    /*
+	    echo "<td nowrap>";
+	    echo "<!-- QTL known to overlap with gene location -->\n";
+	    echo "</td>\n";
+	    */
             echo "<td nowrap>";
         }
 		  
@@ -335,6 +350,17 @@ function showMe (it, box) {
         if ($row1["qtl_Chromosome"]==$row1["chromosome"]) $col="red";
         echo "<font color='$col'>";
         echo $row1["qtl_Chromosome"].":".$row1["qtl_cMorgan_Peak"]." ".(empty($row1["qtl_covariates"])?"none":$row1["qtl_covariates"]).":".$row1["qtl_lod"];
+	if (!empty($row1["qtl_Chromosome"]) and isset($row1["qtl_cMorgan_Peak"]) and "" != $row1["qtl_cMorgan_Peak"]) {
+		$bp=cM2bp($row1["qtl_Chromosome"],$row1["qtl_cMorgan_Peak"]);
+		//echo("!!!bp=$bp!!!");
+		$overlapping_qtl = withinthefollowingqtls($row1["qtl_Chromosome"],$bp,$public_qtls,FALSE);
+		if (!empty($overlapping_qtl) and 0 < count($overlapping_qtl)) {
+			echo " (<font color='green'><b>";
+			echo join(",",$overlapping_qtl);
+			echo "</b></font>)";
+		}
+		//print_r($overlapping_qtl);
+	}
         echo "</font>";
         $prevTrait=$row1["trait_id"];
     }

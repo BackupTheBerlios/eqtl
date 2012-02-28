@@ -268,8 +268,7 @@ function select_covariates($dbh,$covariatesToShow,$maxPerLine=6) {
 			}
 		}
 		else {
-			foreach($c as $v) 
-			{
+			foreach($c as $v) {
 				echo "<input type=checkbox name='covariates[]' value='".$n."_".$v."'";
 				#print_r($covariates);
 				if ((!empty($covariates)) and is_array($covariates)) {
