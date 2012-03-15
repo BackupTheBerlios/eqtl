@@ -31,11 +31,23 @@ use strict;
 use func_conversion_55;
 
 print "Now some tests.\n";
-foreach my $chr (keys %conv) {
+foreach my $chr (sort keys %conv) {
 	print "***************\n";
 	print "** $chr : cm\tbp\tbp2cM\tcM2bp\n";
 	print "***************\n";
+	print "\t-1.5 cM\t".cM2bp($chr,-1.5)."bp\n";
+	print "\t-0.5 cM\t".cM2bp($chr,-0.5)."bp\n";
+
+	if (!exists($conv{$chr})) {
+		print STDERR "Could not convert for chromosome '$chr'.\n";
+		next;
+	}
+
 	my $aref=$conv{$chr};
+	if (!defined($conv{$chr})) {
+		print STDERR "Could not convert for chromosome '$chr' (undefined).\n";
+		next;
+	}
 	my @a=@$aref;
 	my $bppref=undef;
 	my $cmpref=undef;
@@ -51,5 +63,5 @@ foreach my $chr (keys %conv) {
 		print "\n";
 		($cmpref,$bppref)=@{$k};
 	}
-	last;
+	#last;
 }

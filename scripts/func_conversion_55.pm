@@ -198,7 +198,7 @@ if (!exists($conv{"Y"})) {
 # for increased compatibility with PHP code
 sub empty($) {
 	my $v=shift;
-	return(defined($v) or 0 == $v);
+	return(defined($v) or "" eq "$v"or 0 == $v);
 }
 sub round($) {
 	my $v=shift;
@@ -214,7 +214,14 @@ sub cM2bp($$) {
 
 	my @chrconv;
 	if (exists($conv{$chr})) {
-		@chrconv=@{$conv{$chr}};
+		$a = $conv{$chr};
+		if (defined($a)) {
+			@chrconv=@{$conv{$chr}};
+		} 
+		else {
+			print STDERR "func_conversion.pm: No information for chromosome '$chr' (undefined).\n";
+			return (-2);
+		}
 	}
 	else {
 		print STDERR "func_conversion.pm: No information for chromosome '$chr'.\n";
@@ -233,17 +240,22 @@ sub cM2bp($$) {
 	} else {
 		foreach my $k (@chrconv) {
 			my ($cMorgan,$bp) = @$k;
+
+			#next if empty($cMorgan); # empty routine does not work
+			#next if empty($bp);
+
 			#print "Learning ($chr): cMorgan: $cMorgan, bp:$bp\n" if $debug;
 			if (-1 == $cMmin) {
-				$cMmin=$cMmax=$cMorgan;
-				$bpmin=$bpmax=$bp;
+				$prevcM=$cMmin=$cMmax=$cMorgan;
+				$prevbp=$bpmin=$bpmax=$bp;
+				next;
 			}
 			else {
-				if (-1 == $secondCM && !empty($cMorgan)) {
+				if (-1 == $secondCM) {
 					$secondCM=$cMorgan;
 					$secondBP=$bp;
 				}
-				if ($bp>$bpmax) {
+				if (-1 == $bpmax or $bp>$bpmax) {
 					$bpmax=$bp;
 					$cMmax=$cMorgan;
 				}
@@ -261,7 +273,7 @@ sub cM2bp($$) {
 						$lastcM=$prevcM;
 						$lastbp=$prevbp;
 					}
-					last;
+					last if -1 != $secondCM;
 					next;
 				}
 				else {
@@ -276,6 +288,7 @@ sub cM2bp($$) {
 
 		if ($cm<=$cMmin) {
 			# cM requested upstream of first marker
+			#print STDERR "Applying 'min' rule for cM=$cm, to yield $bpmin+($cm-$cMmin)/($secondCM-$cMmin)*($secondBP-$bpmin)  \n" if $debug;
 			$ret=$bpmin+($cm-$cMmin)/($secondCM-$cMmin)*($secondBP-$bpmin);
 		} elsif (-1 != $actcM) {
 			$ret=$lastbp+($cm-$lastcM)/($actcM-$lastcM)*($actbp-$lastbp);
@@ -329,18 +342,23 @@ sub bp2cM($$) {
 	} else {
 		foreach my $k (@chrconv) {
 			my ($cMorgan,$bp) = @$k;
+			
+			#next if empty($cMorgan); # empty does not work
+			#next if empty($bp);
+
 			if (-1 == $cMmin) {
 				# first time this loop was entered
 				# this will also be the minimal value
-				$cMmin=$cMmax=$cMorgan;
-				$bpmin=$bpmax=$bp;
+				$prevcM=$cMmin=$cMmax=$cMorgan;
+				$prevbp=$bpmin=$bpmax=$bp;
+				next;
 			}
 			else {
-				if (-1 == $secondCM && !empty($cMorgan)) {
+				if (-1 == $secondCM) {
 					$secondCM=$cMorgan;
 					$secondBP=$bp;
 				}
-				if ($bp>$bpmax) {
+				if (-1 == $bpmax or $bp>$bpmax) {
 					$bpmax=$bp;
 					$cMmax=$cMorgan;
 				}
@@ -364,7 +382,7 @@ sub bp2cM($$) {
 						$lastcM=$prevcM;
 						$lastbp=$prevbp;
 					}
-					last;
+					last if -1 != $secondCM;
 					next;
 				}
 			}
