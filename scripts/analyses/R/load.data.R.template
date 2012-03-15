@@ -71,7 +71,7 @@ retrieveIndividualIds<-function(IndividualIds) {
 }
 
 
-load.data <- function(data.type,verbose=FALSE) {
+load.data <- function(data.type,verbose=F, debug=T) {
   cat("load.data.R: Reading ",data.type," data\t",sep="")
   rootdir <- paste("BASEDIR","CSVDATABASE",sep="/")
   if ("expression" == data.type) {
@@ -79,12 +79,16 @@ load.data <- function(data.type,verbose=FALSE) {
   } else if ("genotypes" == data.type) {
     filename <- paste(rootdir, "GENOFILE", sep="/")
   } else if ("scores" == data.type) {
-    filename <- paste(rootdir, "SCOREFILE", sep="/")
+    if (CLINICALPHENOTYPESWITHGENOTYPES) {
+       filename <- "ignore";
+    } else {
+       filename <- paste(rootdir, "SCOREFILE", sep="/")
+    }
   } else {
     cat(" [failed]\n",sep="")
     stop(paste("Don't know how to read data of type '",data.type,"'.\n",sep=""))
   }
-  if (!file.exists(filename)) {
+  if ("ignore" != filename && !file.exists(filename)) {
     cat(" [failed]\n",sep="")
     stop(paste("load.data.R: Failed to find file '",filename,"' to read ",data.type," data.\n",sep=""))
   }
@@ -114,8 +118,7 @@ load.data <- function(data.type,verbose=FALSE) {
     }
     d<-read.table(filename, header=T, dec="PHENOFIELDDEC", sep="PHENOFIELDSEP",
    	          row.names=PHENOROWNAMES, skip=PHENOLINESSKIPNO, stringsAsFactors=F, colClasses=colClasses)
-
-    # Allowing colnames to start with numbers
+    ## Allowing colnames to start with numbers
     d.numeric<-d[,col.numeric,drop=F]
     d.numeric.colnames<-colnames(d.numeric)
     d.numeric.colnames.orig<-d.numeric.colnames
@@ -132,6 +135,26 @@ load.data <- function(data.type,verbose=FALSE) {
 	    d.numeric.colnames<-sub("INDIVIDUALIDSUFFIX$","",d.numeric.colnames)
     }
     colnames(d.numeric) <- d.numeric.colnames
+
+    cat("colnames(d):"); print(colnames(d))
+    neg.list<-c("transcript_cluster_id"         , "probeset_id.1",
+	    "seqname"                       , "strand",
+	    "start"                         , "stop",
+	    "total_probes"                  , "gene_assignment",
+	    "first_representative_public_id", "first_symbol",
+	    "first_name"                    , "first_location",
+	    "entrez_gene_ID"                , "mrna_assignments",
+	    "swissprot_ID"                  , "swissprot_link",
+	    "unigene"                       , "unigene_link" ,
+	    "GO_biological_process"         , "GO_cellular_component",
+	    "GO_molecular_function"         , "pathway"      ,
+	    "protein_domains"               , "crosshyb_type",
+	    "category")
+    pos.pos<-which(!(colnames(d) %in% neg.list))
+    cat("pos.pos: "); print(pos.pos)
+    d.numeric <- d.numeric[,pos.pos]
+    cat("Geschafft\n")
+
 
     d.character<-NULL
     if (any(!col.numeric)) {
@@ -154,8 +177,18 @@ load.data <- function(data.type,verbose=FALSE) {
     d.chr<-as.character(d[1,d.chr.first:ncol(d)])
     d.morgan<-rep(NA,length(d.chr))
     if (is.na(d[2,1])) d.morgan<-as.numeric(d[2,d.chr.first:ncol(d),drop=F])
+    
     d.clinical<-rep(NA,length(d.chr))
-    if ((d.chr.first-1)>0) d.clinical<-d[3:nrow(d),1:(d.chr.first-1),drop=F]
+    if ((d.chr.first-1)>0) {
+    	d.clinical<-d[3:nrow(d),1:(d.chr.first-1),drop=F]
+	if (is.null(rownames(d.clinical))) {
+            rownames(d.clinical)<-rownames(d)[1:(d.chr.first-1)]
+	}
+	if (is.null(colnames(d.clinical))) {
+            colnames(d.clinical)<-d[3:nrow(d),1]
+	}
+    }
+    
     d.genotypes<-d[3:nrow(d),d.chr.first:ncol(d),drop=F]
     cat(paste(" [ok]  Read ",ncol(d.clinical)," classical phenotypes ",
               "and ", ncol(d.genotypes)," genotypes for ",
@@ -183,21 +216,23 @@ load.data <- function(data.type,verbose=FALSE) {
        # expression data, but it is not for the moment, presuming
        # them already ordered accordingly
        l.genotypes<-load.data("genotypes")
-       return(l.genotypes[["clinical"]])
-    }
+       r<-l.genotypes[["clinical"]]
+       if (debug) {cat("clinical data returned from genotypes:"); print(r)}
+       return(r)
+    } else {
 
-    # expecting a separate file only for the phenotypes
-    d.m<-read.table(file=filename,dec="SCOREFIELDDEC",sep="SCOREFIELDSEP",header=TRUE,
-    		    skip=SCORELINESSKIPNO,row.names=SCOREROWNAMES,na.strings=c("-","X","x"))
+        # expecting a separate file only for the phenotypes
+        d.m<-read.table(file=filename,dec="SCOREFIELDDEC",sep="SCOREFIELDSEP",header=TRUE,
+    		        skip=SCORELINESSKIPNO,row.names=SCOREROWNAMES,na.strings=c("-","X","x"))
    
-    clinical.score.individuals<-retrieveIndividualIds(rownames(d.m))
-    if (any(duplicated(clinical.score.individuals))) {
+        clinical.score.individuals<-retrieveIndividualIds(rownames(d.m))
+        if (any(duplicated(clinical.score.individuals))) {
         stop(paste("Found duplicated identifiers for individuals: ",
                     paste(clinical.score.individuals[!duplicated(clinical.score.individuals)],collapse=","),
 			   "\n",sep=""))
+        }
+        return(d.m)
     }
-    return(d.m)
-
 
   } else {
     stop(paste("Don't know how to read data of type '",data.type,"'.\n",sep=""))
@@ -228,15 +263,27 @@ adjust.individuals.data.to.expressionData <- function(expressionData, individual
 
   individuals.names<-rownames(individualsData)
   individuals.expression<-colnames(expressionData)
-  expressionData.matched <- t(sapply(individuals.expression,function(n) {
-     if (n %in% individuals.names) {
-     	return(individualsData[n,])
+  if (!any(individuals.names %in% individuals.expression)) {
+     if (length(individuals.names) == length(individuals.expression)) {
+	     warning("Not matching any individual's name to that of expression data. Dimentions are right, trusting it.\n")
+	     return(individualsData)
      } else {
-        return(rep(NA,ncol(individualsData)))
+        cat("individuals.names: "); print(individuals.names)
+	cat("individuals.expression: "); print(individuals.expression)
+     	stop(paste("Individuals names don't match (length(individuals.names)==",length(individuals.names)," != ",
+                    length(individuals.expression),"==length(individuals.expression). ",
+                    "Not bringing those files together.",sep=""))
      }
-  }))
-  return(expressionData.matched)
-
+  } else {
+     expressionData.matched <- t(sapply(individuals.expression,function(n) {
+        if (n %in% individuals.names) {
+           return(individualsData[n,])
+        } else {
+           return(rep(NA,ncol(individualsData)))
+        }
+     }))
+     return(expressionData.matched)
+  }
 }
 
 test.me <- function() {
