@@ -166,7 +166,7 @@ draw is a boolean and activates the graphical output
 
 "
 
-get.data.of.type.and.filter <- function(t,f,value_xaxis=NULL,value_yaxis=NULL,selection_xaxis="trait",selection_yaxis="trait", verbose=T, debug=F) {
+get.data.of.type.and.filter <- function(t,f,value_xaxis=NULL,value_yaxis=NULL,selection_xaxis="trait",selection_yaxis="trait", verbose=T, debug=T) {
 	if (missing(t) || is.null(t)) {
 		stop("Value for data type to retrieve is null.\n")
 	}
@@ -177,7 +177,8 @@ get.data.of.type.and.filter <- function(t,f,value_xaxis=NULL,value_yaxis=NULL,se
 				    verbose=FALSE,selection_xaxis=selection_xaxis,selection_yaxis=selection_xaxis,
 				    selection_evaluation=t)
 		} else {
-			stop("get.data.of.type.and.filter: did not receive all information required for determining the best separating. Make sure, value_xaxis and value_yaxis are set.\n")
+			stop("get.data.of.type.and.filter: did not receive all information required for determining the best separating. ",
+			     "Make sure, value_xaxis and value_yaxis are set.\n")
 		}
 		if (is.null(f)) {
 			cat("get.data.of.type.and.filter(",t,",",f,"): could not identify any best ",t,".\n")
@@ -190,7 +191,7 @@ get.data.of.type.and.filter <- function(t,f,value_xaxis=NULL,value_yaxis=NULL,se
 		r<-as.numeric(expr[f,,drop=T])
 		names(r)<-colnames(expr)
 	} else if ("phen" == t) {
-		#cat("clinical: "); print(clinical)
+		if (debug) cat("clinical: "); print(clinical)
 		if (f %in% rownames(clinical)) {
 			r <- unlist(clinical[f,,drop=T])
 		} else if (tolower(f) %in% tolower(rownames(clinical))) {
@@ -199,6 +200,8 @@ get.data.of.type.and.filter <- function(t,f,value_xaxis=NULL,value_yaxis=NULL,se
 					paste(rownames(clinical),collapse=","),").\n")
 			}
 			r <- unlist(clinical[tolower(f) == tolower(rownames(clinical)),,drop=T])
+		} else {
+			warning("Can not find ",t,"=",f," in ",paste(rownames(clinical),collapse=","),".\n",sep="")
 		}
 	} else if ("marker" == t) {
 		if (f %in% rownames(marker)) {
