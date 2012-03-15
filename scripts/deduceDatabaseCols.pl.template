@@ -49,7 +49,9 @@ sets for every locus interaction the locusCombination attribution, informing abo
 
 =item qtlPos
 
-Transforms information on centiMorgan into Megabasepairs.
+Transforms information on centiMorgan into Megabasepairs. This is the
+only way to store the physical position for eQTL, i.e. there is no
+separate notion of basepairs.
 
 =item all
 
