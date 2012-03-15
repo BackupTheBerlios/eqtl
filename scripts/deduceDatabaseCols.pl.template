@@ -91,7 +91,7 @@ use LWP::Simple;
 use Pod::Usage;
 
 
-use func_conversion_55;
+use func_conversion_ENSEMBLSPECIESSEARCHURL_55;
 
 my $dbh = DBI->connect( DATABASECON ) or die "Database connection not made: $DBI::errstr";
 

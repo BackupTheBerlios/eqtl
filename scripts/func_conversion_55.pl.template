@@ -28,7 +28,7 @@ BEGIN {
 
 
 use strict;
-use func_conversion_55;
+use func_conversion_ENSEMBLSPECIESSEARCHURL_55;
 
 print "Now some tests.\n";
 foreach my $chr (sort keys %conv) {
