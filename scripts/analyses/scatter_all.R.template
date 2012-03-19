@@ -128,14 +128,17 @@ width.pixel<-3*480
 width.inch<-11
 height.pixel<-width.pixel
 height.inch<-width.inch
-bp.offset.extra<-0.15*10^8
-cM.offset.extra<-8
+#bp.offset.extra<-0.15*10^8
+#cM.offset.extra<-8
+bp.offset.extra<-0
+cM.offset.extra<-0
 
 # indication of percentage separation betweeen
 # chromosomes
 offset.percent<-2
 
 library(RMySQL)
+library(graphics)
 library(getopt)
 
 # cat("I was here 0.\n")
@@ -268,20 +271,22 @@ con <- dbConnect(MySQL(),host="DATABASEHOSTLOCAL",password="DATABASEEQTLPASSWORD
 
 if (!is.null(opt$verbose)) cat("I was here 3.\n")
 
-# find maximal cM for every chromosome
+#
+#  Retrieve classical QTL to show
+#
 
-q <- "SELECT locus.chr, MAX(cMorgan_Peak) as max FROM qtl JOIN locus on qtl.Locus=locus.Name GROUP BY locus.chr HAVING max IS NOT NULL;"
-chromosomal.length.cM<-dbGetQuery(con,q)
-rownames(chromosomal.length.cM)<-chromosomal.length.cM[,1]
-if (!is.null(opt$verbose)) {
-	cat("chromosomal.length.cM:\n")
-	print(chromosomal.length.cM)
-}
-cM.offset<-c(0,cumsum(chromosomal.length.cM[c(1:(POSITIONOFXCHROMOSOME-1),"X"),"max"]+cM.offset.extra))
-names(cM.offset)<-c(1:(POSITIONOFXCHROMOSOME-1),"X" #,"Y"
-)
+cQTLs<-NULL
+cQTLs.query <- paste("select name,chr,start_bps,stop_bps,species from qtl.eae_qtl where species='","ENSEMBLSPECIESSEARCHURL","' and stop_bps-start_bps>0;",sep="")
+cQTLs<-dbGetQuery(con,cQTLs.query)
+cat("<p>These are the classical QTL available for the organism ENSEMBLSPECIESSEARCHURL:</br><pre>\n")
+print(cQTLs)
+cat("</pre></p>\n")
 
-if (!is.null(opt$verbose)) cat("I was here 4.\n")
+#
+# Specify array of functions to translate between cM and bp
+#
+
+source("BASEDIR/scripts/analyses/R/map.R")
 
 # find maximal bp for every chromosome
 
@@ -299,6 +304,41 @@ names(bp.offset)<-c(1:(POSITIONOFXCHROMOSOME-1),"X" #,"Y"
 )
 
 if (!is.null(opt$verbose)) cat("I was here 5.\n")
+
+# find maximal cM for every chromosome
+
+q <- "SELECT locus.chr, MAX(cMorgan_Peak) as max FROM qtl JOIN locus on qtl.Locus=locus.Name GROUP BY locus.chr HAVING max IS NOT NULL;"
+chromosomal.length.cM<-dbGetQuery(con,q)
+rownames(chromosomal.length.cM)<-chromosomal.length.cM[,1]
+if (!is.null(opt$verbose)) {
+	cat("chromosomal.length.cM:\n")
+	print(chromosomal.length.cM)
+}
+
+# Transform bp to cM and find max of the trait's cM and the QTL's
+for(chr in rownames(chromosomal.length.bp)) {
+	interpolating.function<-rs.map.bp2cM[[chr]]
+	if (is.null(interpolating.function)) {
+		cat("Could not find chr '",chr,"' for interpolation, only have: ",paste(names(rs.map.bp2cM),collapse=","),"\n",sep="")
+		next;
+	}
+	converted.cM<-interpolating.function(chromosomal.length.bp[chr,"max"])
+	cat("bp:",chromosomal.length.bp[chr,"max"]," orig.cM:",chromosomal.length.cM[chr,"max"]," converted.cM:",converted.cM,sep="")
+	if (chromosomal.length.cM[chr,"max"]<converted.cM) {
+		chromosomal.length.cM[chr,"max"] <- converted.cM
+		cat(" [update]\n")
+	} else {
+		cat("\n")
+	}
+}
+
+
+cM.offset<-c(0,cumsum(chromosomal.length.cM[c(1:(POSITIONOFXCHROMOSOME-1),"X"),"max"]+cM.offset.extra))
+names(cM.offset)<-c(1:(POSITIONOFXCHROMOSOME-1),"X" #,"Y"
+)
+
+if (!is.null(opt$verbose)) cat("I was here 4.\n")
+
 
 # Find covariates to work on
 
@@ -452,12 +492,55 @@ for(cov in covariates) {
   if (!is.null(opt$verbose)) {
 	cat("ylim: "); print(ylim.value)
   }
-  plot(bp.offset.extra + pos.linear.cM,
-       cM.offset.extra + pos.linear.bp,
+  #plot(cM.offset.extra + pos.linear.cM,
+  #     bp.offset.extra + pos.linear.bp,
+  plot(pos.linear.cM,
+       pos.linear.bp,
      xlim=xlim.value,ylim=ylim.value,
      axes=FALSE,main=opt$main,sub=opt$sub)
   abline(v=cM.offset, col=opt$linecolour, lty=opt$linetype, lwd=opt$linewidth)
   abline(h=bp.offset, col=opt$linecolour, lty=opt$linetype, lwd=opt$linewidth)
+
+  #
+  cat("bp.offset: "); print(bp.offset); cat("<br />\n")
+  cat("cM.offset: "); print(cM.offset); cat("<br />\n")
+
+  # Vertically drawing classical QTL
+  apply(cQTLs,1,function(cQTL) {
+        # cQTL - name,chr,start_bps,stop_bps,species
+	cat("cQTL: "); print(cQTL)
+	name<-cQTL[1]
+	chr<-cQTL[2]
+	if ("X"==chr) chr<-POSITIONOFXCHROMOSOME
+
+	bps.start <- as.numeric(cQTL[3])
+	bps.end   <- as.numeric(cQTL[4])
+	interpolating.function<-rs.map.bp2cM[[chr]]
+	if (is.null(interpolating.function)) {
+		t<-paste("Not displaying classical QTL '",name,"' on chromosome '",chr,"' because of problem with cM<->bp conversion.\n",sep="")
+		cat("Not displaying classical QTL '",name,"' on chromosome '",chr,"' because of problem with cM<->bp conversion.\n",sep="")
+		warning(t)
+	} else {
+		cM.start  <- rs.map.bp2cM[[chr]](bps.start)
+		cM.end    <- rs.map.bp2cM[[chr]](bps.end)
+
+		chr<-as.numeric(chr)
+		if (0 == chr) stop("Somehow reached chromosome with value 0.\n")
+		chr.bps.accumulated <- bp.offset[chr]
+		chr.cM.accumulated <- cM.offset[chr]
+
+	
+		#graphics::rect(xleft=0,xright=max(cM.offset),ybottom=chr.bps.accumulated+bps.start,ytop=chr.bps.accumulated+bps.end,density=2,angle=45,color="red")
+		#text(x=0,y=chr.bps.accumulated+mean(bps.start,bps.end,na.rm=T),label=name,adj = c(1, 0.5))
+
+		cat("Drawing square from cM ",cM.start," to ",cM.end,".<br/>\n")
+
+		graphics::rect(xleft=chr.cM.accumulated+cM.start,xright=chr.cM.accumulated+cM.end,ybottom=0,ytop=max(bp.offset),density=2,angle=-45,color="green")
+		#text(y=0,x=chr.cM.accumulated+mean(cM.start,cM.end,na.rm=T),label=name,adj = c(0.5, 1))
+		text(y=0,x=chr.cM.accumulated+cM.start,label=paste(name,"A",sep=""),adj = c(1,0),srt=90)
+		#text(y=0,x=chr.cM.accumulated+cM.end,label=paste(name,"B",sep=""),adj = c(0.5, 1),srt=-90)
+	}
+  })
 
   if (!is.null(opt$verbose)) {
     cat("Colnames(selected.qtl) : " , paste(colnames(selected.qtl),collapse=",",sep=""),"\n")

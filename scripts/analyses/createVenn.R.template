@@ -332,25 +332,9 @@ if(is.null(opt$interactive)) {
 }
 
 
-# retrieving marker data
-rs.map<-dbGetQuery(con, "SELECT marker, cmorgan_rqtl, chr, bp FROM map ORDER BY chr,cmorgan_rqtl")
-rs.map.cM2bp <- sapply(unique(rs.map[,"chr"]),function(X){
-				#print(paste("Chr:",X))
-				subset<-(rs.map[,"chr"]==X)
-				#print(which(subset))
-				data.pairs.relevant<-rs.map[subset,c("cmorgan_rqtl","bp")]
-				#print(data.pairs.relevant)
-				approxfun(data.pairs.relevant)
-			},USE.NAMES=TRUE)
 
-rs.map.bp2cM <- sapply(unique(rs.map[,"chr"]),function(X){
-				#print(paste("Chr:",X))
-				subset<-(rs.map[,"chr"]==X)
-				#print(which(subset))
-				data.pairs.relevant<-rs.map[subset,c("bp","cmorgan_rqtl")]
-				#print(data.pairs.relevant)
-				approxfun(data.pairs.relevant)
-			},USE.NAMES=TRUE)
+# retrieving marker data
+source("BASEDIR/scripts/analyses/R/map.R")
 
 
 # formerly
@@ -362,7 +346,7 @@ rs.map.bp2cM <- sapply(unique(rs.map[,"chr"]),function(X){
 disease_qtl<-dbGetQuery(con, paste("SELECT name, chr, start_bps, stop_bps, species",
 				   "FROM qtl.eae_qtl",
 				   "WHERE species='ENSEMBLSPECIESSEARCHURL'",
-				     "AND start_bps IS NOT NULL and stop_bps IS NOT NULL",sep=" "));
+				     "AND start_bps IS NOT NULL and stop_bps IS NOT NULL and stop_bps-start_bps>0",sep=" "));
 isInQTL<-function(pos,chr) {
 	s<-disease_qtl[,"chr"]==chr;
 	a<-(disease_qtl[,"start_bps"]<=pos)

@@ -132,15 +132,15 @@ University of LE<uuml>beck, Germany, 2009
 		echo "<th colspan=2>Image</th>";
 		echo "<th colspan=2>Field</th>";
 		echo "<th colspan=2>Axes</th></tr>\n";
-		echo "<td>image width:</td>  <td><input type=text size=4 name=imagewidth  value=\"".    (empty($imagewidth)?"":$imagewidth)."\"></td>\n";
-		echo "<td>line width:</td>   <td><input type=text size=4 name=linewidth   value=\"".    (empty($linewidth)?1:$linewidth).   "\"></td>\n";
-		echo "<td>axes width:</td>   <td><input type=text size=4 name=axeswidth   value=\"".    (empty($axeswidth)?3:$axeswidth).   "\"></td></tr>\n";
-		echo "<td>image height:</td> <td><input type=text size=4 name=imageheight value=\"".    (empty($imageheight)?"":$imageheight)."\"></td>\n";
-		echo "<td>line type:</td>    <td><input type=text size=4 name=linetype    value=\"".    (empty($linetype)?3:$linetype).     "\"></td>\n";
-		echo "<td>axes type:</td>    <td><input type=text size=4 name=axestype    value=\"".    (empty($axestype)?"":$axestype).    "\"></td></tr>\n";
+		echo "<td align=right>image width:</td>  <td><input type=text size=4 name=imagewidth  value=\"".    (empty($imagewidth)?"":$imagewidth)."\"></td>\n";
+		echo "<td align=right>line width:</td>   <td><input type=text size=4 name=linewidth   value=\"".    (empty($linewidth)?1:$linewidth).   "\"></td>\n";
+		echo "<td align=right>axes width:</td>   <td><input type=text size=4 name=axeswidth   value=\"".    (empty($axeswidth)?3:$axeswidth).   "\"></td></tr>\n";
+		echo "<td align=right>image height:</td> <td><input type=text size=4 name=imageheight value=\"".    (empty($imageheight)?"":$imageheight)."\"></td>\n";
+		echo "<td align=right>line type:</td>    <td><input type=text size=4 name=linetype    value=\"".    (empty($linetype)?3:$linetype).     "\"></td>\n";
+		echo "<td align=right>axes type:</td>    <td><input type=text size=4 name=axestype    value=\"".    (empty($axestype)?"":$axestype).    "\"></td></tr>\n";
 		echo "<td colspan=2></td>";
-		echo "<td>line colour:</td>  <td><input type=text size=4 name=linecolour  value=\""  .(empty($linecolour)?"red":$linecolour)."\"></td>\n";
-		echo "<td>axes colour:</td>  <td><input type=text size=4 name=axescolour  value=\"".(empty($axescolour)?"black":$axescolour)."\"></td></tr>\n";
+		echo "<td align=right>line colour:</td>  <td><input type=text size=4 name=linecolour  value=\""  .(empty($linecolour)?"red":$linecolour)."\"></td>\n";
+		echo "<td align=right>axes colour:</td>  <td><input type=text size=4 name=axescolour  value=\"".(empty($axescolour)?"black":$axescolour)."\"></td></tr>\n";
 
 		echo "<tr><td valign=top>Display variable:</td>  <td>";
 		if (empty($display)) $display="pvalue";
@@ -149,7 +149,7 @@ University of LE<uuml>beck, Germany, 2009
 		}
 		echo "</td>";
 
-		echo "<td>";
+		echo "<td valign=top>";
 		echo "Output format:";
 		echo "</td>";
 		echo "<td>";
@@ -157,7 +157,7 @@ University of LE<uuml>beck, Germany, 2009
 		foreach (array("pdf"=>"PDF","png"=>"PNG","jpg"=>"JPG","svg"=>"SVG","eps"=>"EPS") as $v=>$vv) {
 			echo "<input type=\"radio\" name=\"format\" value=\"$v\"  " . (($v==$format)?"checked":"")  .">$vv<br/>";
 		}
-		echo "<td align=left>"; echo "Legend scheme:</td>";
+		echo "<td align=right valign=top>"; echo "Legend scheme:</td>";
 		echo "<td nowrap>";
 		echo "<input type=radio name=legendscheme value=yellowbrown checked>Yellow-Brown</input> &nbsp; <br />\n";
 		echo "<input type=radio name=legendscheme value=custom>Custom Legend Colour</input><br />\n";
