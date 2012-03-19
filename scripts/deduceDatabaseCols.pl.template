@@ -51,7 +51,15 @@ sets for every locus interaction the locusCombination attribution, informing abo
 
 Transforms information on centiMorgan into Megabasepairs.
 
+=item markerPos
+
+Take the names of markers and find them in Ensembl to update for a particular version of Ensembl. The genetic distances
+observed are not effected. 
+
 =item all
+
+Perform everything except the update of marker physical posisitons. Perform that separately to then derive all the Perl and
+PHP scripts that are working with that data.
 
 =item --help
 
@@ -105,7 +113,8 @@ my %toDo = 	(
 			'locComb' => 0,
 			'ratGenes' => 0,
 			'all' => 0,
-			'qtlPos' => 0
+			'qtlPos' => 0,
+			'markerPos' => 0
 		);
 
 if( @ARGV ) {
@@ -117,13 +126,13 @@ if( @ARGV ) {
 		}
 	}
 } else {
-	die "USAGE: ".$0." [ qtlCis | qtlCisDist | liCis | liCisDist | locComb | ratGenes | qtlPos | all ]*\n";
+	die "USAGE: ".$0." [ qtlCis | qtlCisDist | liCis | liCisDist | locComb | ratGenes | qtlPos | markerPos | all ]*\n";
 }
 
 my $start = time;
 
 # Update cis information in table locus
-if( $toDo{'qtlCis'}==1 or $toDo{'all'}==1 ) {
+if ( $toDo{'qtlCis'}==1 or $toDo{'all'}==1 ) {
 	print "\tUPDATING: cis informations (qtl):\t\t\t\t";
 	#my $sth = $dbh->prepare("UPDATE qtl as l JOIN (SELECT qtl.No, TRAITSDETAILSCHIPDATA.seqname, qtl.Locus FROM locus JOIN qtl ON qtl.Locus=locus.Name JOIN TRAITSDETAILSCHIPDATA on qtl.Trait=TRAITSDETAILSCHIPDATA.probeset_id) AS x ON (x.No=l.No) SET cis=(l.Chromosome=x.seqname)")
 	my $sth = $dbh->prepare("UPDATE qtl as l JOIN (SELECT qtl.No, trait.Chromosome, qtl.Locus"
@@ -135,7 +144,34 @@ if( $toDo{'qtlCis'}==1 or $toDo{'all'}==1 ) {
 	print "\t\t[DONE]\n";
 }
 
-if( $toDo{'qtlPos'}==1 or $toDo{'all'}==1){
+if ( $toDo{'markerPos'} ) {
+	print "\tRETRIEVING bp positions for all markers\n";
+        my $ensembl_dbh = DBI->connect( DATABASEENSEMBLCON ) or die "Database connection to Ensembl not made: $DBI::errstr\n";
+	my $ensembl_sth_retrieve = $ensembl_dbh->prepare(
+		"SELECT marker_synonym.name as marker,seq_region.name AS chromosome,round((marker_feature.seq_region_start+marker_feature.seq_region_end)/2) AS bp "
+		. "FROM marker_synonym join marker using(marker_id) JOIN marker_feature using(marker_id) JOIN seq_region USING(seq_region_id) JOIN coord_system using(coord_system_id) "
+		."WHERE marker_synonym.name=? AND seq_region.name=? and coord_system.name='chromosome'");
+
+	my $sth_update = $dbh->prepare("UPDATE map SET bp=?,Mbp=? WHERE marker=?") or die "Couldn't prepare update query.\n";
+	my $sth_select = $dbh->prepare("SELECT marker,chr FROM map") or die "Couldn't prepare select query.\n";
+	$sth_select->execute() or die "Couldn\'t execute statement: ".$sth->errstr;
+	while(my @data = $sth_select->fetchrow_array() ) {
+		#print "Updating marker ".$data[0]." on chromosome ".$data[1]."\n";
+		$ensembl_sth_retrieve->execute($data[0],$data[1]) or die "Couldn't execute Ensembl retrieval of QTL features.\n";
+		if (my @bpArray=$ensembl_sth_retrieve->fetchrow_array()) {
+			my $bp=$bpArray[2];
+			print STDERR "I: Found marker '$data[0]' as expected on chromosome '$data[1]' at position $bp.\n";
+			$sth_update->execute($bp,$bp/1000/1000,$data[0]) or die "Could not update marker data for '$data[0]': ". $sth_update->errstr."\n";
+		} else {
+			print STDERR "E: Could not find marker '$data[0]' expected on chromosome '$data[1]'.\n";
+		}
+	}
+	$sth_select->finish();
+	$sth_update->finish();
+
+}
+
+if ( $toDo{'qtlPos'}==1 or $toDo{'all'}==1) {
 	print "\tCALCULATING Mbp positions for table locus:\t\t\t\t";
 	my $sth = $dbh->prepare("SELECT No, Name, Chr, cMorgan FROM locus ORDER BY Name")
 		or die "Couldn\'t prepare statement: " . $dbh->errstr;
