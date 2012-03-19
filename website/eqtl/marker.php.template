@@ -789,15 +789,16 @@ function bp2cM($chr,$bpInput=0) {
 			if (-1 == $cMmin) {
 				# first time this loop was entered
 				# this will also be the minimal value
-				$cMmin=$cMmax=$cMorgan;
-				$bpmin=$bpmax=$bp;
+				$prevcM=$cMmin=$cMmax=$cMorgan;
+				$prevbp=$bpmin=$bpmax=$bp;
+				next;
 			}
 			else {
-				if (-1 == $secondCM && !empty($cMorgan)) {
+				if (-1 == $secondCM and !empty($cMorgan)) {
 					$secondCM=$cMorgan;
 					$secondBP=$bp;
 				}
-				if ($bp>$bpmax) {
+				if (-1 == $bpmax or $bp>$bpmax) {
 					$bpmax=$bp;
 					$cMmax=$cMorgan;
 				}
@@ -821,7 +822,7 @@ function bp2cM($chr,$bpInput=0) {
 						$lastcM=$prevcM;
 						$lastbp=$prevbp;
 					}
-					break;
+					if (-1 != $secondCM) break;
 				}
 			}
 			$prevcM=$cMorgan;

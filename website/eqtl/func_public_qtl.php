@@ -59,7 +59,7 @@ an index by chromosome, "name" otherise (default).
 		global $species_name_ensembl_core;
 		global $qtlsCache,$qtlsCacheByChromosome;
 
-		if ("" != $qtlsCache) {
+		if (!empty($qtlsCache) and is_array($qtlsCache) and 0<count($qtlsCache)) {
 			echo "<p>get_public_qtls: Returning cached value.</p>";
 			if ("chromosome"=="$order") {
 				return($qtlsCacheByChromosome);
@@ -162,7 +162,7 @@ peak basepair position that should be covered by the QTL
 
 =item qtlsSelection
 
-the list of QTLs from which the fitting ones shall be selected
+the list of QTL identifiers from which the fitting ones shall be selected
 
 =back
 
@@ -190,11 +190,42 @@ the list of QTLs from which the fitting ones shall be selected
 		$qs=array();
 		foreach($qtlsSelection as $n=>$q) {
 			$chrqtl=$q["chr"];
+			if (empty($chrqtl)) {
+				echo "withinthefollowingqtls: Problem with array attributes: ";
+				print_r($q);
+				next;
+			}
 			#echo "<p>$chrqtl, $chr</p>";
-			if ($q["chr"]==$chr) {
-				if ($peakbp>=$q["start_bps"] && $peakbp<=$q["stop_bps"]) {
+			if ($chrqtl == $chr) {
+				if ($verbose) {
+					if (!array_key_exists("start_bps",$q)) {
+						echo "start_bps attrib not set for '$n'.\n";
+						next;
+					}
+					if (!array_key_exists("stop_bps",$q)) {
+						echo "stop_bps array attrib not set for '$n'.\n";
+						next;
+					}
+					if (empty($q["stop_bps"])) {
+						echo "stop_bps empty '$n'.\n";
+					}
+					if (empty($q["start_bps"]) and 0 != $q["start_bps"]) {
+						echo "start_bps empty '$n'.\n";
+					}
+				}
+				//if ($verbose) echo "withinthefollowingqtls: Chrs fit on '$chrqtl'.\n";
+				if ($peakbp <  $q["start_bps"]) {
+					if ($verbose) echo "&lt;";
+				}
+				if ($peakbp >  $q["stop_bps"]) {
+					if ($verbose) echo "&gt;";
+				}
+				else if ($peakbp >= $q["start_bps"] && $peakbp<=$q["stop_bps"]) {
+					if ($verbose) echo "=";
 					array_push($qs,$n);
 				}
+			} else if ($verbose) {
+				//if ($verbose) echo "withinthefollowingqtls: Chrs do not fit: '$chrqtl' != '$chr'.\n";
 			}
 		}
 		return($qs);
