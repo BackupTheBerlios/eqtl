@@ -307,8 +307,14 @@ if (!is.null(opt$verbose)) cat("I was here 5.\n")
 
 # find maximal cM for every chromosome
 
-q <- "SELECT locus.chr, MAX(cMorgan_Peak) as max FROM qtl JOIN locus on qtl.Locus=locus.Name GROUP BY locus.chr HAVING max IS NOT NULL;"
+q <- "SELECT locus.chr, MAX(cMorgan_Peak) as max FROM qtl JOIN locus on qtl.Locus=locus.Name GROUP BY locus.chr HAVING max IS NOT NULL ORDER BY locus.chr,cMorgan_Peak;"
 chromosomal.length.cM<-dbGetQuery(con,q)
+if (is.null(chromosomal.length.cM)) {
+	err<-dbGetException(con);
+	print(err);
+	stop(err$errMsg);
+}
+
 rownames(chromosomal.length.cM)<-chromosomal.length.cM[,1]
 if (!is.null(opt$verbose)) {
 	cat("chromosomal.length.cM:\n")
@@ -505,16 +511,24 @@ for(cov in covariates) {
   cat("bp.offset: "); print(bp.offset); cat("<br />\n")
   cat("cM.offset: "); print(cM.offset); cat("<br />\n")
 
+  cat("cQTLs:\n"); print(cQTLs)
+
   # Vertically drawing classical QTL
-  apply(cQTLs,1,function(cQTL) {
+  alt.pos<-rep(c(0,1),nrow(cQTLs))
+  for(i in 1:nrow(cQTLs)) {
+
+	cQTL<-cQTLs[i,,drop=T]
+
         # cQTL - name,chr,start_bps,stop_bps,species
 	cat("cQTL: "); print(cQTL)
-	name<-cQTL[1]
-	chr<-cQTL[2]
+	name<-cQTL[["name"]]
+	chr<-cQTL[["chr"]]
 	if ("X"==chr) chr<-POSITIONOFXCHROMOSOME
 
-	bps.start <- as.numeric(cQTL[3])
-	bps.end   <- as.numeric(cQTL[4])
+	bps.start <- as.numeric(cQTL[["start_bps"]])
+	bps.end   <- as.numeric(cQTL[["stop_bps"]])
+	cat("chr:"); print(chr)
+	cat("chr:",chr,"\n",sep="") 
 	interpolating.function<-rs.map.bp2cM[[chr]]
 	if (is.null(interpolating.function)) {
 		t<-paste("Not displaying classical QTL '",name,"' on chromosome '",chr,"' because of problem with cM<->bp conversion.\n",sep="")
@@ -533,14 +547,20 @@ for(cov in covariates) {
 		#graphics::rect(xleft=0,xright=max(cM.offset),ybottom=chr.bps.accumulated+bps.start,ytop=chr.bps.accumulated+bps.end,density=2,angle=45,color="red")
 		#text(x=0,y=chr.bps.accumulated+mean(bps.start,bps.end,na.rm=T),label=name,adj = c(1, 0.5))
 
-		cat("Drawing square from cM ",cM.start," to ",cM.end,".<br/>\n")
+		#if (debug) cat("Drawing square from cM ",cM.start," to ",cM.end,".<br/>\n")
 
-		graphics::rect(xleft=chr.cM.accumulated+cM.start,xright=chr.cM.accumulated+cM.end,ybottom=0,ytop=max(bp.offset),density=2,angle=-45,color="green")
+		#graphics::rect(xleft=chr.cM.accumulated+cM.start,xright=chr.cM.accumulated+cM.end,ybottom=0,ytop=max(bp.offset),density=2,angle=-45,color="green")
+
+		sapply(bp.offset,function(chrBoundary) {
+			lines(x=c(chr.cM.accumulated+cM.start,chr.cM.accumulated+cM.end),
+			      y=c(chrBoundary,chrBoundary), lwd=3, col="blue")
+		})
+		text(y=0,x=chr.cM.accumulated+cM.start,label=paste(" ",name," ",sep=""),adj = c(alt.pos[i],0.5),srt=90,col="blue",cex=0.8)
+
 		#text(y=0,x=chr.cM.accumulated+mean(cM.start,cM.end,na.rm=T),label=name,adj = c(0.5, 1))
-		text(y=0,x=chr.cM.accumulated+cM.start,label=paste(name,"A",sep=""),adj = c(1,0),srt=90)
-		#text(y=0,x=chr.cM.accumulated+cM.end,label=paste(name,"B",sep=""),adj = c(0.5, 1),srt=-90)
+		#text(y=0,x=chr.cM.accumulated+cM.end,label=paste(name,"",sep=""),adj = c(0.5, 1),srt=-90)
 	}
-  })
+  }
 
   if (!is.null(opt$verbose)) {
     cat("Colnames(selected.qtl) : " , paste(colnames(selected.qtl),collapse=",",sep=""),"\n")
