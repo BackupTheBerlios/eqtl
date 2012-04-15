@@ -248,11 +248,12 @@ function showMe (it, box) {
     $query = "SELECT module_trait_moduleMembership.trait_id as trait_id"
                    .",trait.gene_name as gene_name"
                    .",trait.chromosome as chromosome"
-		   .",round((trait.start+trait.stop)/2)/1000000 as pos"
-		   .",trait.mean as mean"
-		   .",trait.sd as sd"
-		   .",trait.name as name"
-             #      .",BEARatChip.first_name,module_trait_pheno_geneSignificance.GS_".$cli.","
+                   .",round((trait.start+trait.stop)/2)/1000000 as pos"
+                   .",trait.mean as mean"
+                   .",trait.sd as sd"
+                   .",trait.name as name"
+             #      .",BEARatChip.first_name,"
+                   .",module_trait_pheno_geneSignificance.GS_".$cli
                    .",module_trait_moduleMembership.MM_".$modcolour
                    .",qtl.Chromosome as qtl_Chromosome"
                    .",qtl.cMorgan_Peak as qtl_cMorgan_Peak"
@@ -261,12 +262,12 @@ function showMe (it, box) {
                    #.",BEARatChip.pathway "
 	     ." FROM module_trait_moduleMembership "
 	     #     ." LEFT JOIN BEARatChip ON module_trait_moduleMembership.trait_id=BEARatChip.probeset_id "
-                  ." LEFT JOIN module_trait_pheno_geneSignificance USING(trait_id) "
-                  ." LEFT JOIN trait USING(trait_id) "
-                  ." LEFT JOIN qtl on module_trait_moduleMembership.trait_id=qtl.Trait "
+                   ." LEFT JOIN module_trait_pheno_geneSignificance USING(trait_id) "
+                   ." LEFT JOIN trait USING(trait_id) "
+                   ." LEFT JOIN qtl on module_trait_moduleMembership.trait_id=qtl.Trait "
              ." WHERE module_trait_moduleMembership.moduleColor='$modcolour' "
                 #  ."AND name != '' "
-	        ."";
+                   ."";
 
     if (!empty($mm)) {
         $query .= "AND module_trait_moduleMembership.MM_".$modcolour." >= ".$mm;
@@ -300,7 +301,10 @@ function showMe (it, box) {
     echo "<th nowrap>Expression<br />mean +- sd</th>";
     echo "<th>Function</th><th>Gene Significane<br />($clinical)</th>";
     echo "<th>Module Membership<br />($modcolour)</th>";
-    echo "<th>Pathway</th><th>Chromosome:Peak (cM):Covariates:LOD</th></tr></thead>\n";
+    if (! FALSE === strpos($query,"athway")) {
+        echo "<th>Pathway</th>";
+    }
+    echo "<th>Chromosome:Peak (cM):Covariates:LOD</th></tr></thead>\n";
     echo "<tbody>";
 	
     $prevTrait="";
