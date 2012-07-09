@@ -101,6 +101,8 @@ $analyses[]=array("href"=>"trait_summary.php", "title"=>"Differential analysis o
 		"description" => "The researcher is presented all the combinatons of covariates for a given trait. This allows for a comparative analysis of the change in the LOD score that the addition of an additive or interacting covariate brings.");
 $analyses[]=array("href"=>"xyplot.php",        "title"=>"Two traits/phenotypes plotted against each other",
 		"description" => "Investigation for loci that influence the correlation of two traits.");
+$analyses[]=array("href"=>"PvalueVsLod.php",   "title"=>"Plotting eQTL by LOD score and P-value",
+		"description" => "Ever wondered what P-value or LOD score to trust? This graph shows how the two relate.");
 $analyses[]=array("href"=>"modules.php",      "title"=>"Networks",       
                "description"=>"Specification of modules and their significance based on co-expression analysis by WGCNA");
 echo "<table>\n";

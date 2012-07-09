@@ -261,6 +261,7 @@ function print_selection_form($dbh,$properties) {
 			break;
 
 		 case "figure_scatter":
+		 case "figure_PvalueVsLod":
 			$properties = array(
 						"LOD", "pvalue", "mean", "sd", "median", "variance" ,
 						#, "number_of_chromosomes_per_trait"
