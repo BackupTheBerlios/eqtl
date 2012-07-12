@@ -156,6 +156,7 @@ opt = getopt(matrix(c(
    'covariates'     , 'c', 1, "character","covariates the plot shall be run for",
    'output'         , 'o', 1, "character","name of output file",
    'qtls'           , 'q', 2, "character","list of QTLs (their IDs in the database) that shall be represented on the plot",
+   'qtlsLabels'     , 'Q', 0, "character","set if label of classical QTL should appear",
    'display'        , 'd', 2, "character","defaults to lod, alternatives are rank and p.value",
    'main'           , 'M', 1, "character","main title of the plot",
    'sub'            , 'S', 1, "character","sub title of the plot",
@@ -555,7 +556,12 @@ for(cov in covariates) {
 			lines(x=c(chr.cM.accumulated+cM.start,chr.cM.accumulated+cM.end),
 			      y=c(chrBoundary,chrBoundary), lwd=3, col="blue")
 		})
-		text(y=0,x=chr.cM.accumulated+cM.start,label=paste(" ",name," ",sep=""),adj = c(alt.pos[i],0.5),srt=90,col="blue",cex=0.8)
+		if (!is.null(opt$qtlsLabels)) {
+			text(y=0,
+			     x=chr.cM.accumulated+cM.start,
+			     label=paste(" ",name," ",sep=""),
+			     adj = c(alt.pos[i],0.5),srt=90,col="blue",cex=0.8)
+		}
 
 		#text(y=0,x=chr.cM.accumulated+mean(cM.start,cM.end,na.rm=T),label=name,adj = c(0.5, 1))
 		#text(y=0,x=chr.cM.accumulated+cM.end,label=paste(name,"",sep=""),adj = c(0.5, 1),srt=-90)
