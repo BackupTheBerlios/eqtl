@@ -154,7 +154,10 @@ University of LE<uuml>beck, Germany, 2009
 			}
 			else {
 				if ("WHERE" != "$where") $where .= " AND ";
-				$where .= " covariates in ('".join("','",$qtl_covariates)."') ";
+				$where .= " covariates in "
+				         ."("
+				         .preg_replace("/'none'/","''",("'".join("','",$qtl_covariates)."'"))
+					 .") ";
 			}
 		}
 
