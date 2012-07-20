@@ -142,7 +142,7 @@ University of LE<uuml>beck, Germany, 2009
 		echo "<td align=right>line colour:</td>  <td><input type=text size=4 name=linecolour  value=\""  .(empty($linecolour)?"red":$linecolour)."\"></td>\n";
 		echo "<td align=right>axes colour:</td>  <td><input type=text size=4 name=axescolour  value=\"".(empty($axescolour)?"black":$axescolour)."\"></td></tr>\n";
 
-		echo "<tr><td valign=top>Display variable:</td>  <td>";
+		echo "<tr><td valign=top>Display variable:</td><td valign=top>";
 		if (empty($display)) $display="pvalue";
 		foreach (array("rank"=>"LOD score by rank","pvalue"=>"P-value","lod"=>"LOD") as $v=>$vv) {
 			echo "<input type=\"radio\" name=\"display\" value=\"$v\"  " . (($v==$display)?"checked":"")  .">$vv<br/>";
@@ -152,13 +152,13 @@ University of LE<uuml>beck, Germany, 2009
 		echo "<td valign=top>";
 		echo "Output format:";
 		echo "</td>";
-		echo "<td>";
+		echo "<td nowrap valign=top>";
 		if (empty($format)) $format="png";
 		foreach (array("pdf"=>"PDF","png"=>"PNG","jpg"=>"JPG","svg"=>"SVG","eps"=>"EPS") as $v=>$vv) {
 			echo "<input type=\"radio\" name=\"format\" value=\"$v\"  " . (($v==$format)?"checked":"")  .">$vv<br/>";
 		}
 		echo "<td align=right valign=top>"; echo "Legend scheme:</td>";
-		echo "<td nowrap>";
+		echo "<td nowrap valign=top>";
 		echo "<input type=radio name=legendscheme value=yellowbrown checked>Yellow-Brown</input> &nbsp; <br />\n";
 		echo "<input type=radio name=legendscheme value=custom>Custom Legend Colour</input><br />\n";
 		echo "&nbsp; &nbsp; Min:<input type=text name=legendmincolour size=5 /> &nbsp; Max:<input type=text name=legendmaxcolour size=5 />\n";
