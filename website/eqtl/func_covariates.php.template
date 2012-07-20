@@ -254,6 +254,16 @@ function select_covariates($dbh,$covariatesToShow,$maxPerLine=6) {
 
 	echo "<table border=1><tr>";
 	$numPerLine=0;
+
+	/*
+	# preparation for sorting, never used.
+	$ns=array();
+	foreach($cov as $n=>$c) {
+	   $ns[]=$n;
+	}
+	#print_r($ns);
+	*/
+
 	foreach($cov as $n=>$c) {
 
 		echo "<td valign=top>";
@@ -278,7 +288,7 @@ function select_covariates($dbh,$covariatesToShow,$maxPerLine=6) {
 			}
 		}
 		echo " </td></tr></table>";
-		echo "</td>";
+		echo "</td>\n";
 		$numPerLine++;
 		if ($numPerLine>=$maxPerLine) {
 			echo "</tr>\n<tr>";
@@ -304,7 +314,8 @@ function select_covariates_combinations($dbh,$ncol=2,$htmlFieldName="qtl_covaria
 	echo "<b>Covariates:</b><br>";
 	global $linkLocal;
 	$covars = get_covars_on_your_own_from_qtl($dbh,FALSE);
-	//print_r($covars);
+	#print_r($covars);
+	sort($covars);
 	echo "<table border=0><tr>";
 	foreach($covars as $n=>$covar) {
 		if (0 == $n % $ncol) echo "</tr><tr>";
