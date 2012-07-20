@@ -182,7 +182,7 @@ University of LE<uuml>beck, Germany, 2010
 
 		echo "<table>\n";
 
-		print_selection_form("figure_effectplot");
+		print_selection_form($linkLocal,"figure_effectplot");
 		print_covariates_selection($linkLocali,"effectplot");
 		echo "<tr><td>&nbsp;</td><td></td></tr>\n";
 		echo "<tr><td align=right><input type=submit></td>";
