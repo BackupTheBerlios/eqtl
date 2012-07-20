@@ -61,6 +61,7 @@ ENDOFDOCUMENTATION
 	require_once("func_connecti.php");
 	require_once("func_covariates.php");
 	require_once("func_selection.php"); // prints parts of the HTML for forms
+	require_once("class_Trait.php");
 
 	show_small_header("Selection of eTraits",TRUE);
 
@@ -167,6 +168,104 @@ ENDOFDOCUMENTATION
 	if (empty($limit)) {
 		$limit=10;
 	}
+
+
+function presentRhoInTableElement($rho) {
+	echo "<td>".round($rho,2)."</td>";
+}
+
+function presentTraitInTableElement($traitid,$something,$connection) {
+	$t = new tiqsTrait;
+	$n = $t->retrieveFromDBviaTraitID($traitid,$connection);
+	
+	echo "<td>";
+	if (empty($n)) {
+		echo "unassigned $traitid";
+	}
+	else {
+		// the return value will always be non-empty because of the hyperlink wrapped around it
+		echo "$n";
+	}
+	echo "</td>";
+}
+
+/*
+
+=head2
+
+The function wraps Trait -> retrieveFromDBviaTraitID to return to transform the trait_id into a genename.
+
+=cut
+
+*/
+
+
+function traitid2genename ($traitid,$connection) {
+	$t = new tiqsTrait();
+	$t->retrieveFromDBviaTraitID($traitid,$connection);
+	return $t->genename;
+}
+
+
+function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesToShow,$connection) {
+	$corQuery  = "SELECT ";
+	$corQuery .= "traits_${posOrNeg}_cor";
+	$corQuery .= ", traits_${posOrNeg}_cor_rho, gene_name";
+	$corQuery .= " FROM trait";
+	$corQuery .= " WHERE trait_id = '$traitid';";
+	$resultCor = mysqli_query($connection,$corQuery);
+	if (empty($resultCor)) {
+		echo "<p>Problem with query '$corQuery': "
+			.mysqli_error($connection)."</p>";
+		mysqli_close($connection);
+		exit;
+	}
+	$traits=""; $traitsRho="";
+	if ($lineCor = mysqli_fetch_array($resultCor,
+					MYSQL_ASSOC)) {
+		$traits   =preg_split("/,/",$lineCor["traits_${posOrNeg}_cor"]);
+		if (count($traits) > $maxNumCorrGenesToShow) {
+			$traits = array_slice($traits,0,$maxNumCorrGenesToShow);
+		}
+		$traitsRho=preg_split("/,/",$lineCor["traits_${posOrNeg}_cor_rho"]);
+		if (count($traitsRho) > $maxNumCorrGenesToShow) {
+			$traitsRho = array_slice($traitsRho,0,$maxNumCorrGenesToShow);
+		}
+		if ("horizontal"=="$orientation") {
+			echo "<small>";
+			echo "<table border=1>\n";
+			echo "<tr><th rowspan=2>$posOrNeg</th><th>Gene</th>";
+			array_walk($traits,"presentTraitInTableElement",$connection);
+			echo "</tr>\n";
+			echo "<tr><th>Rho</th>";
+			array_walk($traitsRho,"presentRhoInTableElement");
+			echo "</tr>\n";
+			echo "</table>\n";
+			echo "</small>";
+		}
+		else {
+		   foreach($traits as $tp=>$tv) {
+			if (0 < $tp) echo ", ";
+			$genename=traitid2genename($tv,$connection);
+			if ($genename) {
+				echo $genename;
+			}
+			else {
+				echo "*<a href=\"trait.php?traits=$tv\">$tv</a>";
+			}
+
+			echo " (".round($traitsRho[$tp],2).")";
+			if ($maxNumCorrGenesToShow < $tp) break;
+		   }
+		}
+	}
+	else {
+		echo "Could not find any correlations for trait '$traitid'.\n";
+	}
+	mysqli_free_result($resultCor);
+}
+
+
 		
 	if (empty($direct) and empty($submitted)) {
 ?>
@@ -233,7 +332,6 @@ ENDOFDOCUMENTATION
 		require_once("func_species.php");
 		require_once("func_conversion_ENSEMBLVERSION.php");
 		require_once("func_covariates.php");
-		require_once("class_Trait.php");
 
 		if (empty($innerOrder)) {
 			$innerOrder = "locus.Chr,locus.cMorgan";
@@ -262,101 +360,6 @@ ENDOFDOCUMENTATION
 			$attribsSelect .= " AS trait_$s";
 			$attribsGroup  .= ", trait_$s";
 		}
-
-
-function presentRhoInTableElement($rho) {
-	echo "<td>".round($rho,2)."</td>";
-}
-
-function presentTraitInTableElement($traitid,$something,$connection) {
-	$t = new Trait();
-	$n = $t->retrieveFromDBviaTraitID($traitid,$connection);
-
-	echo "<td>";
-	if (empty($n)) {
-		echo "unassigned $traitid";
-	}
-	else {
-		// the return value will always be non-empty because of the hyperlink wrapped around it
-		echo "$n";
-	}
-	echo "</td>";
-}
-
-/*
-
-=head2
-
-The function wraps Trait -> retrieveFromDBviaTraitID to return to transform the trait_id into a genename.
-
-=cut
-
-*/
-
-function traitid2genename ($traitid,$connection) {
-	$t = new Trait();
-	$t->retrieveFromDBviaTraitID($traitid,$connection);
-	return $t->genename;
-}
-
-
-function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesToShow,$connection) {
-	$corQuery  = "SELECT ";
-	$corQuery .= "traits_${posOrNeg}_cor";
-	$corQuery .= ", traits_${posOrNeg}_cor_rho, gene_name";
-	$corQuery .= " FROM trait";
-	$corQuery .= " WHERE trait_id = '$traitid';";
-	$resultCor = mysqli_query($connection,$corQuery);
-	if (empty($resultCor)) {
-		echo "<p>Problem with query '$corQuery': "
-			.mysqli_error($connection)."</p>";
-		mysqli_close($connection);
-		exit;
-	}
-	$traits=""; $traitsRho="";
-	if ($lineCor = mysqli_fetch_array($resultCor,
-					MYSQL_ASSOC)) {
-		$traits   =preg_split("/,/",$lineCor["traits_${posOrNeg}_cor"]);
-		if (count($traits) > $maxNumCorrGenesToShow) {
-			$traits = array_slice($traits,0,$maxNumCorrGenesToShow);
-		}
-		$traitsRho=preg_split("/,/",$lineCor["traits_${posOrNeg}_cor_rho"]);
-		if (count($traitsRho) > $maxNumCorrGenesToShow) {
-			$traitsRho = array_slice($traitsRho,0,$maxNumCorrGenesToShow);
-		}
-		if ("horizontal"=="$orientation") {
-			echo "<small>";
-			echo "<table border=1>\n";
-			echo "<tr><th rowspan=2>$posOrNeg</th><th>Gene</th>";
-			array_walk($traits,"presentTraitInTableElement",$connection);
-			echo "</tr>\n";
-			echo "<tr><th>Rho</th>";
-			array_walk($traitsRho,"presentRhoInTableElement");
-			echo "</tr>\n";
-			echo "</table>\n";
-			echo "</small>";
-		}
-		else {
-		   foreach($traits as $tp=>$tv) {
-			if (0 < $tp) echo ", ";
-			$genename=traitid2genename($tv,$connection);
-			if ($genename) {
-				echo $genename;
-			}
-			else {
-				echo "*<a href=\"trait.php?traits=$tv\">$tv</a>";
-			}
-
-			echo " (".round($traitsRho[$tp],2).")";
-			if ($maxNumCorrGenesToShow < $tp) break;
-		   }
-		}
-	}
-	else {
-		echo "Could not find any correlations for trait '$traitid'.\n";
-	}
-	mysqli_free_result($resultCor);
-}
 
 		foreach ($a as $n=>$v) {
 			$showname="show_$n";

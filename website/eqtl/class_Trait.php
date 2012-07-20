@@ -32,7 +32,7 @@ Universities of Rostock and LE<uuml>beck, 2010
 
 */
 
-class Trait
+class tiqsTrait
 {
     public $trait_id;
     public $genename;
