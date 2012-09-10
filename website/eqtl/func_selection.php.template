@@ -217,24 +217,29 @@ function print_selection_form($dbh,$properties) {
 	if (!is_array($properties)) {
 		switch($properties) {
 		 case "all_qtl":
-			$properties = array("groups", "locus", 
+			$properties = array_merge(
+				         (SHOWGROUPS)?array("groups"):array(),
+					 array("locus", 
 					    "chromosome", "peakInMbp",
 					    "peakInCentiMorgan", "flanks",
 					    "trait","TraitChromosome",
 					    "gene_name",
 					    "LOD", "quantile", "LODdiff",
 					    "pvalue",
-					    "mean", "sd");
+					    "mean", "sd"
+                                         ));
 			break;
 		 case "all_interaction":
-			$properties = array("groups", "locus", 
+			$properties = array_merge(
+				         (SHOWGROUPS)?array("groups"):array(),
+					 array("locus", 
 					    "chromosome", "peakInMbp",
 					    "peakInCentiMorgan", "flanks",
 					    "trait","TraitChromosome",
 					    "gene_name",
 					    "LOD", "quantile", "LODdiff",
 					    "pvalue",
-					    "mean", "sd");
+					    "mean", "sd"));
 		 	break;
 		 case "all_qtl_groups":
 			$properties = array("mean", "sd", "LOD");

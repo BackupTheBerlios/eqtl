@@ -34,6 +34,7 @@ University of LE<uuml>beck, Germany, 2009
 =cut
 
 */
+	global $verbose;
 
 	require_once("header.php");
 	require_once("func_covariates.php");
@@ -148,8 +149,10 @@ University of LE<uuml>beck, Germany, 2009
 		# invocation of external R script
 		#
 
-		echo "cwd: " . getcwd() . "<br>\n";
-		#print_r($_SERVER);
+		if (!empty($verbose)) {
+			echo "cwd: " . getcwd() . "<br>\n";
+			#print_r($_SERVER);
+		}
 
 		$attributes=array();
 
@@ -211,13 +214,13 @@ University of LE<uuml>beck, Germany, 2009
 		array_push($attributes,"--output",'"'.$outputfilename.'"');
 		$cmd = "$rscript ".join(" ",$attributes);
 		
-		if ($verbose) {
+		if (!empty($verbose)) {
 			echo "<p>executing '$cmd'</p><br />\n";
 		}
 		
 		$t =  shell_exec($cmd);
 
-		if ($verbose) {
+		if (!empty($verbose)) {
 			echo "<p>";
 			#print_r($attributes);
 			echo "<small>$t</small>\n";

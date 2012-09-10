@@ -45,16 +45,22 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2010
   echo FOOTERLOGOLEFT;
   echo '</td><td align=center>';
   foreach (array(
-		 array("Interactions"=>"interaction.php", "Interactions(collapsed)"=>"interaction_collapsed.php",
-			 "Loci"=>"locus.php", "Markers"=>"marker.php",
-			 "QTL"=>"qtl.php", "QTL-Groups"=>"qtl_groups.php",
-			 "Traits"=>"trait.php", "Phens"=>"phen.php"
+                 array_merge(
+			 array("Interactions"=>"interaction.php", "Interactions(collapsed)"=>"interaction_collapsed.php",
+				 "Loci"=>"locus.php", "Markers"=>"marker.php",
+				 "QTL"=>"qtl.php",),
+			 (SHOWGROUPS)?array("QTL-Groups"=>"qtl_groups.php"):array(),
+			 array(
+				 "Traits"=>"trait.php", "Phens"=>"phen.php"
+			 )
 		 ),
-		 array("Overview"=>"overview.php",
-			"Scatter"=>"scatter.php", "Venn"=>"venn.php",
-			"EffectPlot"=>"effectplot.php",
-			"Manual-Groups"=>"db_characterisation.php",
-			"Intergenomics"=>"../intergenomics/index.php"
+                 array_merge(
+			 array("Overview"=>"overview.php",
+				"Scatter"=>"scatter.php", "Venn"=>"venn.php",
+				"EffectPlot"=>"effectplot.php",
+			 ),
+			 (SHOWGROUPS)?array("Manual-Groups"=>"db_characterisation.php"):array(),
+			 (SHOWINTERGENOMICS)?array("Intergenomics"=>"../intergenomics/index.php"):array()
 		 ),
 		 array("Home"=>"index.php", "Help"=>"help.php", "Contact"=>"mailto:MAINTAINEREMAIL")
 	   ) as $n => $block)

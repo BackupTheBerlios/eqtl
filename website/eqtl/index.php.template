@@ -54,8 +54,10 @@ probe of the chip.
 
 <?php
 $forms=array();
-$forms[]=array("href"=>"qtl_groups.php",  "title"=>"QTL Groups",   
+if (SHOWGROUP) {
+	$forms[]=array("href"=>"qtl_groups.php",  "title"=>"QTL Groups",   
                "description"=>"Characterisation of loci assigned to classical QTL or any self-selected groups of loci.");
+}
 $forms[]=array("href"=>"qtl.php",         "title"=>"QTL",          
                "description"=>"Filter for single loci influencing the expression of at least one gene.");
 $forms[]=array("href"=>"interaction.php", "title"=>"Interactions", 
@@ -71,9 +73,11 @@ $forms[]=array("href"=>"xyplot.php",      "title"=>"XYplot",
                "description"=>"See how markers affect the relation of two molecular or phenotypic traits to each other.");
 $forms[]=array("href"=>"marker.php",      "title"=>"Marker",       
                "description"=>"Link the cMorgan positions assigned to markers to base pairs.");
-$forms[]=array("href"=>"URLWEBSITE/intergenomics/index.php",
+if (SHOWINTERGENOMICS) {
+	$forms[]=array("href"=>"URLWEBSITE/intergenomics/index.php",
 	       "title"=>"Intergenomics",       
                "description"=>"Compare findings with xQTL from other projects - soon to be released.");
+}
 if (file_exists("parental_expression.php")) 
 	$forms[]=array("href"=>"parental_expression.php", "title"=>"Expression data", "description"=>"See expression level of genes 30 days post immunisation.");
 if (file_exists("expression_trait_correlation.php"))

@@ -25,6 +25,7 @@ University Clinics Schleswig-Holstein, Germany, 2010
 =cut
 
 */
+	global $verbose;
 
 	require_once("header.php");
 	require_once("func_covariates.php");
@@ -246,6 +247,7 @@ University Clinics Schleswig-Holstein, Germany, 2010
 		#
 
 		if (isset($_POST["debug"]) or isset($_GET["debug"])) {
+			$verbose=1;
 			echo "cwd: " . getcwd() . "<br>\n";
 			#print_r($_SERVER);
 		}
@@ -331,10 +333,10 @@ University Clinics Schleswig-Holstein, Germany, 2010
 			    }
 			    echo "</p>";
 			}
-			elseif ($verbose) {
+			elseif (!empty($verbose)) {
 			    echo "<p>Could not find any prior existing file '$outputfilename'.</p>\n";
 			}
-			if ($verbose) echo "executing '$cmd'<br>\n";
+			if (!empty($$verbose)) echo "executing '$cmd'<br>\n";
 			#print_r($attributes);
 			echo "<small><pre>";
 			echo shell_exec($cmd);

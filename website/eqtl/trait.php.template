@@ -208,6 +208,8 @@ function traitid2genename ($traitid,$connection) {
 
 
 function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesToShow,$connection) {
+	global $verbose;
+
 	$corQuery  = "SELECT ";
 	$corQuery .= "traits_${posOrNeg}_cor";
 	$corQuery .= ", traits_${posOrNeg}_cor_rho, gene_name";
@@ -627,7 +629,7 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 			$query .= " LIMIT ".$limit.";";
 		}
 
-		echo "<p><pre>query: $query</pre></p>";
+		if (!empty($verbose)) echo "<p><pre>query: $query</pre></p>";
 
 		$result = mysqli_query($linkLocali, $query);
 		if (empty($result)) {

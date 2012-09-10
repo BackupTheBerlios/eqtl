@@ -184,7 +184,9 @@ the list of QTL identifiers from which the fitting ones shall be selected
 		}
 		
 		if (count($e)>0) {
-			errorMessage($e,TRUE,"func_public_qtl.php/withinthefollowingqtls");
+			if ($verbose) {
+				errorMessage($e,TRUE,"func_public_qtl.php/withinthefollowingqtls");
+			}
 		}
 
 		$qs=array();

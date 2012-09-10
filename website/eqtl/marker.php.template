@@ -696,6 +696,7 @@ if (empty($submitted)) {
 	echo '
 function cM2bp($chr,$cm=0) {
 	global $conv;
+        global $verbose;
 	$chrconv=$conv[$chr];
 	$cMmin=$bpmin=-1;
 	$cMmax=$bpmax=-1;
@@ -705,7 +706,9 @@ function cM2bp($chr,$cm=0) {
 	$prevcM=$secondCM=-1;
 	$prevbp=$secondBP=-1;
 	if (empty($chrconv)) {
-		echo "&lt;p>marker.php: No information for chromosome \'$chr\'.&lt;/p>\n";
+                if (!empty($verbose)) {
+			echo "&lt;p>marker.php: No information for chromosome \'$chr\'.&lt;/p>\n";
+                }
 		return (-2);
 	} elseif (!is_array($chrconv)) {
 		echo "&lt;p>func_conversion_ENSEMBLVERSION.php: Internal error. (chr \'$chr\').&lt;/p>\n";

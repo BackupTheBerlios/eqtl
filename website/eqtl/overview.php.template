@@ -206,7 +206,7 @@ University of LE<uuml>beck, Germany, 2009
 			$query .= " GROUP BY covariates,locus.chr ";
 		}
 
-		echo "<p>Query All:"; print_r($query); echo "</p>\n";
+		if (!empty($verbose)) echo "<p>Query All:"; print_r($query); echo "</p>\n";
 
 		$result = mysqli_query($linkLocali,$query);
 		if (empty($result)) {
@@ -318,8 +318,10 @@ University of LE<uuml>beck, Germany, 2009
 			if ("WHERE" != "$where") $queryDiseaseLoci .= " $where ";
 			$queryDiseaseLoci .= " GROUP BY covariates,locus.chr ";
 
-			echo "<p>cqtl: "; if (empty($cqtl)) {echo "empty";} else {print_r($cqtl);} echo "</p>\n";
-			echo "<p>Query DiseaseLoci:"; print_r($queryDiseaseLoci); echo "</p>\n";
+			if (!empty($verbose)) {
+				echo "<p>cqtl: "; if (empty($cqtl)) {echo "empty";} else {print_r($cqtl);} echo "</p>\n";
+				echo "<p>Query DiseaseLoci:"; print_r($queryDiseaseLoci); echo "</p>\n";
+			}
 
 			$result2 = mysqli_query($linkLocali,$queryDiseaseLoci);
 			if (empty($result2)) {

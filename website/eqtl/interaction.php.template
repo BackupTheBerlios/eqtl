@@ -490,9 +490,11 @@ set in the configuration.
 				$ca = $line["Chr_A"];
 			}
  			if (!isset($ca)) {
- 				echo "<br>Could not retrieve value for Chromosome A, line is '";
- 				echo "4; "; print_r($line);
- 				echo "'<br>\n";
+				if (!empty($verbose)) {
+					echo "<br>Could not retrieve value for Chromosome A, line is '";
+					echo "4; "; print_r($line);
+					echo "'<br>\n";
+				}
  				//exit;
  			}
 			else if (!empty($_POST["debug"])) {
@@ -507,9 +509,11 @@ set in the configuration.
 				$cb = $line["Chr_B"];
 			}
  			if (!isset($cb)) {
- 				echo "<br>Could not retrieve value for Chromosome B, line is '";
- 				print_r($line);
- 				echo "'<br>\n";
+				if (!empty($verbose)) {
+					echo "<br>Could not retrieve value for Chromosome B, line is '";
+					print_r($line);
+					echo "'<br>\n";
+				}
  				//exit;
  			}
 

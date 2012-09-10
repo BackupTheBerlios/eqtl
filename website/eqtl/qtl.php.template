@@ -376,7 +376,7 @@ ENDOFDOCUMENTATION
 
 			$query .= ", covariates"; # we always need to know the covariates
 
-			if (!empty($show_Groups)) {
+			if (SHOWGROUPS and !empty($show_Groups)) {
 				$query .= ", qtl_groups.group_id";
 			}
 			#, l.Name as lName, 
@@ -417,7 +417,7 @@ ENDOFDOCUMENTATION
 
 		$query  .= " FROM qtl ";
 
-		if (!empty($show_Groups) or !empty($groups)) {
+		if (SHOWGROUPS and (!empty($show_Groups) or !empty($groups))) {
 			if (empty($groups)) {
 				# every QTL shall be inspected
 				$query .= " left ";
@@ -507,7 +507,7 @@ ENDOFDOCUMENTATION
 		# W H E R E 
 		#
 
-		if (!empty($groups)) {
+		if (SHOWGROUPS and !empty($groups)) {
 			if (is_array($groups)) {
 				$g=$groups;
 			}
@@ -916,7 +916,7 @@ ENDOFDOCUMENTATION
 				echo "<tr bgcolor=yellow>";
 				echo "<th class=c>#</th>";
 				foreach($line as $n=>$l) {
-					if ("group_id"=="$n") $n = "Groups"; #FIXME: attribute name needs to be adjusted
+					if (SHOWGROUPS and "group_id"=="$n") $n = "Groups"; #FIXME: attribute name needs to be adjusted
 					$f="show_".$n;
 					if (!empty($$f)) {
 						if ("cMorgan_Peak" == "$n") {
@@ -952,7 +952,7 @@ ENDOFDOCUMENTATION
 			}
 			echo "<tr><td>$rowno</td>";
 			foreach($line as $n=>$l) {
-				if ("group_id"=="$n") $n = "Groups"; #FIXME: attribute name needs to be adjusted
+				if (SHOWGROUPS and "group_id"=="$n") $n = "Groups"; #FIXME: attribute name needs to be adjusted
 				$f="show_".$n;
 				if (!empty($$f)) {
 					#echo "not empty: \$$f\n";
@@ -1024,13 +1024,15 @@ ENDOFDOCUMENTATION
 							echo "<td class=small>".displayCovariates($l,",<BR>")."</td>";
 							break;
 						case "Groups":
-							# only one group per eQTL in current implementation
-							# needs adjustment to look up names of group
-							echo "<td>";
-							if (!empty($l)) {
-							     echo "<a href=\"http:qtl.php?groups=$l\">$l</a>";
+							if (SHOWGROUPS) {
+								# only one group per eQTL in current implementation
+								# needs adjustment to look up names of group
+								echo "<td>";
+								if (!empty($l)) {
+								     echo "<a href=\"http:qtl.php?groups=$l\">$l</a>";
+								}
+								echo "</td>";
 							}
-							echo "</td>";
 							break;
 						default:
 							if (!isset($l)||""==$l) echo "<td>&nbsp;</td>";

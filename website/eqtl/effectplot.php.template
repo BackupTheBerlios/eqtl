@@ -53,6 +53,8 @@ University of LE<uuml>beck, Germany, 2010
 */
 
 	global $individuals_group_id;
+        global $verbose;
+
 	require_once("header.php");
 	require_once("func_covariates.php");
 	require_once("func_dbconfig.php"); // errorMessage
@@ -273,8 +275,10 @@ University of LE<uuml>beck, Germany, 2010
 			# invocation of external R script
 			#
 
-			echo "cwd: " . getcwd() . "<br>\n";
-			#print_r($_SERVER);
+			if (!empty($verbose) {
+				echo "cwd: " . getcwd() . "<br>\n";
+				#print_r($_SERVER);
+			}
 
 			if ($n>0) echo "<hr>";
 
