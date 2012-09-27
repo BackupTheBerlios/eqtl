@@ -260,7 +260,7 @@ University Clinics Schleswig-Holstein, Germany, 2010
 
 		if (empty($format)) $format="png";
 
-		$outputfilename = "tmp_images/xyplot_output";
+		$outputfilename = "";
 
 		$errors=array();
 		$attributes=array();
@@ -311,16 +311,21 @@ University Clinics Schleswig-Holstein, Germany, 2010
 			}
 			else {
 				if ($verbose) echo " ... setting to " . $$pa . "<br>\n";
-					array_push($attributes,"--$pa",'"'.$$pa.'"');
+				array_push($attributes,"--$pa",escapeshellarg($$pa));
 				$cmd .= " --$pa \"".$$pa."\"";
-				$outputfilename .= "_".$pa."_".$$pa;
+				if ("main" != "$pa" && "sub" != "$pa") {
+					$outputfilename .= "_".$pa."_".$$pa;
+				}
 			}
 		}
 
 		$outputfilename .= ".$format";
+		$outputfilename = str_replace("/","",$outputfilename);
 
+                $outputfilename = "tmp_images/xyplot_output$outputfilename";
 		$cmd .= " --output $outputfilename";
-		array_push($attributes,"--output",$outputfilename);
+		
+		array_push($attributes,"--output","'$outputfilename'");
 
 		$cmd = "$rscript ".join(" ",$attributes);
 
@@ -336,7 +341,7 @@ University Clinics Schleswig-Holstein, Germany, 2010
 			elseif (!empty($verbose)) {
 			    echo "<p>Could not find any prior existing file '$outputfilename'.</p>\n";
 			}
-			if (!empty($$verbose)) echo "executing '$cmd'<br>\n";
+			if (!empty($verbose)) echo "executing '$cmd'<br>\n";
 			#print_r($attributes);
 			echo "<small><pre>";
 			echo shell_exec($cmd);
