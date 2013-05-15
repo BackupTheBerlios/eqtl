@@ -38,7 +38,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 
 	require_once("header.php");
 	//require_once("func_dbconfig.php");
-	//require_once("func_covariates.php");
+	require_once("func_covariates.php");
 	$database=$databaseeqtl;
 	require_once("func_connecti.php");
 	show_small_header("Selection of eLoci",TRUE);
@@ -48,7 +48,6 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 	$show_interactionLod=0;
 
 	$dataSelectionFieldsQTL = array(
-			"Name",
 			"direct",
 			"submitted",
 			"traitlist",
@@ -62,7 +61,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 	$BASEPATH = "http://".$_SERVER['SERVER_NAME'].$tmp[0];
 
 	$a=array(
-	   "Name"=>1,"Chr"=>1,"cMorgan"=>1,
+	   "locus"=>1,"Chr"=>1,"cMorgan"=>1,
 	   // Organism"=>0,
 	   "qtlNumber"=>0,"locusInteractionNumber"=>0,
 	   "qtlLod"=>0, "interactionLod"=>0,
@@ -121,52 +120,22 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 	}
 
 	if (empty($direct) and empty($submitted)) {
+		include_once("func_public_qtl.php");
+		print_cQTL_javascript_section();
 ?>
-		<form action=locus.php method=get>
+		<form id="mainform" action=locus.php method=get>
 		<input type=hidden name=submitted value=1>
 		<table width=100%><tr><td valign=top>
 			<table>
-			<tr><th class=r>Locus Name:</th>
-			    <td><input type=text name=Name length=70
 <?php
-				if (!empty($Name)) {
-					echo "value=";
-					if (is_array($Name)) {
-						echo "\"".join(",",$Name)."\"";
-					}
-					else {
-						echo "\"$Name\"";
-						$locus = preg_split("/[ ,;\t\n]+/",$Name);
-					}
-				}
+			require_once("func_selection.php");
+			print_selection_form($linkLocali,"all_locus");
 ?>
-			    >
-			    </td>
-			</tr>
-			<tr><th class=r>Chromosomes of interest:</th><td><input type=text name=chrlist size=30 maxsize=70
-<?php
-			if (!empty($chrlist)) {
-				echo "value=";
-				if (is_array($chrlist)) {
-					echo "\"".join(",",$chrlist)."\"";
-				}
-				else {
-					echo "\"$chrlist\"";
-				}
-			}
-?>
-			></td></tr>
-			<tr><th class=r>centiMorgan span:</th>
-						<td>
-						<input type=text name=cMmin size=4>
-						-
-						<input type=text name=cMmax size=4>
-						</td></tr>
 			<tr><th class=h align=center colspan=2>Information on traits assigned to loci</th>
 
 <?php
 	echo "<tr><th align=right valign=top>Covariates:</th><td>";
-	select_covariates($linkLocali,"both"); ?>
+	select_covariates($linkLocali,"both");
 	echo "</td></tr>";
 	echo "<tr><th class=r>Trait names:</th><td><input type=text name=traitlist length=70";
 	if (!empty($traitlist)) {
@@ -221,18 +190,10 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 			</small></small>
 		</td><td valign=top>
 			<table border=0>
-			<tr bgcolor="red"><th colspan=4>QTLs - Select Locus</th></tr>
-			<tr bgcolor="orange"><th>Name</th><th>Chr</th><th><small>bp From</small></th><th><small>bp To</small></th></tr>
+			<tr bgcolor="red"><th colspan=4 class=c>QTLs - Select Locus</th></tr>
+			<tr bgcolor="orange"><th>Name</th><th>Chromosome</th><th><small>bp From</small></th><th><small>bp To</small></th></tr>
 <?php
-		require_once("func_public_qtl.php");
-		$qtls = get_public_qtls($linkLocali);
-		foreach ($qtls as $q) {
-			echo "<tr><td><small>".$q["name"]."</small></td>";
-			echo "<td align=right><small><a href=locus.php?chrlist=".$q["chr"].">".$q["chr"]."</a></small></td>";
-			echo "<td align=right><small><small>".$q["start_bps"]."</small></small></td>";
-			echo "<td align=right><small><small>".$q["stop_bps"]."</small></small></td>";
-			echo "</tr>\n";
-		}
+		select_from_public_qtls($linkLocali);
 ?>
 			</table>
 		</td>
@@ -249,11 +210,12 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 
 		$numberOfQtlPerLocusTxt="select count(*) from qtl where Locus=?";
 		$numberOfQtlPerLocusStmt = mysqli_stmt_init($linkLocali);
-		if (empty($numberOfQtlPerLocusStmt)) {
-			echo("<p>Could not initialise statement for QTL count. \n".mysqli_error($linkLocali)."</p>");
-		} else if (!mysqli_prepare($numberOfQtlPerLocusStmt,$numberOfQtlPerLocusTxt)) {
+		//if (empty($numberOfQtlPerLocusStmt)) {
+		//	echo("<p>Could not initialise statement for QTL count. \n".mysqli_error($linkLocali)."</p>");
+		//} else
+		if (! mysqli_stmt_prepare($numberOfQtlPerLocusStmt,$numberOfQtlPerLocusTxt)) {
 			echo("<p>Could not prepare statement for QTL count like '$numberOfQtlPerLocusTxt'. \n"
-				#.mysqli_error($linkLocali)
+				."Error: ".mysqli_error($linkLocali)
 				."</p>");
 			#mysqli_close($linkLocali);
 			#exit;
@@ -264,7 +226,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 		if (empty($numberOfInteractionsPerLocusStmt)) {
 			echo("<p>Could not initialise statement for Interaction count. \n".mysqli_error($linkLocali)."</p>");
 			print_r($numberOfInteractionPerLocusStmt);
-		} else if (!mysqli_prepare($numberOfInteractionsPerLocusStmt,$numberOfInteractionsPerLocusTxt)) {
+		} else if (!mysqli_stmt_prepare($numberOfInteractionsPerLocusStmt,$numberOfInteractionsPerLocusTxt)) {
 			print_r($numberOfInteractionsPerLocusStmt);
 			echo("Could not prepare statement for Interaction count like '$numberOfInteractionsPerLocusTxt'.\n".mysqli_error($linkLocali));
 			#mysqli_close($linkLocali);
@@ -317,13 +279,13 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 		if (!is_numeric($cMinDist)) { array_push($err,"Minimum distance is not numeric ($cMinDist)"); }
 		if (!is_numeric($cMaxDist)) { array_push($err,"Maximum distance is not numeric ($cMaxDist)"); }
 
-		if (!empty($Name)) {
-			if (is_array($Name)) {
-				$names=$Name;
+		if (!empty($locus)) {
+			if (is_array($locus)) {
+				$names=$locus;
 			}
 			else {
 				// should not be reached
-				$names=preg_split("/[;\t \n,]+/",$Name);
+				$names=preg_split("/[;\t \n,]+/",$locus);
 			}
 			if (count($names)>0) {
 				if ( $whereB ) $query .= " AND ";
@@ -406,7 +368,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 			$query .= " LIMIT ".$limit." ";
 		}
 
-		echo "<p>$query</p>";
+		if (isset($debug) and !empty($debug)) echo "query: $query<br>";
 
 		if (0<count($err)) {
 			echo "<p>Please address the following error".(1<count($err)?"s":"").":<br>";

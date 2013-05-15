@@ -104,7 +104,7 @@ University of LE<uuml>beck, Germany, 2009
 		#   S E T T I N G  O F  P A R A M E T E R S 
 		#
 
-		echo "<form action=venn.php method=post>\n";
+		echo "<form id=mainform action=venn.php method=post>\n";
 		echo "<input type=hidden name=submitted value=1>\n";
 
 		echo "<table><tr>"; # the table has only a single row

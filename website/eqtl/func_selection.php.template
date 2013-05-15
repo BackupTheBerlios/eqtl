@@ -258,6 +258,10 @@ function print_selection_form($dbh,$properties) {
 			);
 			break;
 
+		case "all_locus":
+			$properties = array("locus","chromosome","peakInMbp","peakInCentiMorgan");
+			break;
+
 		 case "table_overview_scanone":
 			$properties = array(
 						"LOD", "pvalue", "mean", "sd", "median", "variance" ,"split_chromosomes"

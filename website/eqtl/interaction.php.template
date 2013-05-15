@@ -36,10 +36,6 @@ set in the configuration.
 	$database="DATABASEEQTLNAME";
 	require_once("func_connecti.php");
 
-	require_once("func_public_qtl.php"); // get_public_qtls, withinthefollowingqtls
-	$qtls = get_public_qtls($linkLocali);
-
-
 	$conditionList=array(
 		"Equal Chromosomes" => "(cis=1)",
 		"Unequal Chromosomes" => "(cis=0)"
@@ -134,9 +130,12 @@ set in the configuration.
 		}
 	}
 
-	if (empty($direct) and empty($submitted)) {
+	if (empty($direct) and empty($submitted))
+	{
+		include_once("func_public_qtl.php");
+		print_cQTL_javascript_section();
 ?>
-		<form action=interaction.php method=get>
+		<form id="mainform" action=interaction.php method=get>
 		<input type=hidden name=submitted value=1>
 		<table>
 		<tr><td valign=top>
@@ -210,18 +209,10 @@ set in the configuration.
 		</small></small>
 		</td><td valign=top>
 			<table border=0>
-			<tr bgcolor="black"><th class=c colspan=4><font color=red>QTLs - Select Locus</font></th></tr>
-			<tr><th class=sub><small>Name</small></th><th class=sub><small>Chr</small></th><th class=sub><small>bp From</small></th><th class=sub><small>bp To</small></th></tr>
+			<tr bgcolor="red"><th colspan=4 class=c>QTLs - Select Locus</th></tr>
+			<tr bgcolor="orange"><th>Name</th><th>Chromosome</th><th><small>bp From</small></th><th><small>bp To</small></th></tr>
 <?php
-
-		foreach ($qtls as $q) {
-			echo "<tr><td><small>".$q["name"]."</small></td>";
-			echo "<td class=r><small><a href=interaction.php?chrlist=".$q["chr"].">"
-			                 .$q["chr"]."</a></small></td>";
-			echo "<td class=r><small><small>".$q["start_bps"]."</small></small></td>";
-			echo "<td class=r><small><small>".$q["stop_bps"]."</small></small></td>";
-			echo "</tr>\n";
-		}
+		select_from_public_qtls($linkLocali);
 ?>
 			</table>
 		</td>

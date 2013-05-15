@@ -143,7 +143,7 @@ ENDOFDOCUMENTATION
 		}
 	}
 
-	echo '<form action="phen.php" method="post">'."\n";
+	echo '<form id=mainform action="phen.php" method="post">'."\n";
 	echo '<input type=hidden name=submitted value=1>'."\n";
 
 	echo "<table>";

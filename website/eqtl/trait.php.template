@@ -271,7 +271,7 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 		
 	if (empty($direct) and empty($submitted)) {
 ?>
-		<form action=trait.php method=get>
+		<form id=mainform action=trait.php method=get>
 		<input type=hidden name=submitted value=1>
 		<table><tr><td valign=top>
 			<table cellspacing=5>

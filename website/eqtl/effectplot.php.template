@@ -175,7 +175,7 @@ University of LE<uuml>beck, Germany, 2010
 		threshold.</p>";
 		echo "<h2>Currently adding MQMscan</h2>\n";
 
-		echo "<form action=effectplot.php method=post>\n";
+		echo "<form id=mainform action=effectplot.php method=post>\n";
 		echo "<input type=hidden name=submitted value=1>\n";
 
 		echo "<table><tr>"; # the table has only a single row
@@ -275,7 +275,7 @@ University of LE<uuml>beck, Germany, 2010
 			# invocation of external R script
 			#
 
-			if (!empty($verbose) {
+			if (!empty($verbose)) {
 				echo "cwd: " . getcwd() . "<br>\n";
 				#print_r($_SERVER);
 			}

@@ -46,9 +46,13 @@ Universities of Rostock and LE<uuml>beck, Germany, 2001-2010
   echo '</td><td align=center>';
   foreach (array(
                  array_merge(
-			 array("Interactions"=>"interaction.php", "Interactions(collapsed)"=>"interaction_collapsed.php",
-				 "Loci"=>"locus.php", "Markers"=>"marker.php",
-				 "QTL"=>"qtl.php",),
+			 array(
+				 "QTL"=>"qtl.php",
+				 "Interactions"=>"interaction.php",
+				// "Interactions(collapsed)"=>"interaction_collapsed.php",
+				 "Loci"=>"locus.php",
+				 "Markers"=>"marker.php"
+			 ),
 			 (SHOWGROUPS)?array("QTL-Groups"=>"qtl_groups.php"):array(),
 			 array(
 				 "Traits"=>"trait.php", "Phens"=>"phen.php"
