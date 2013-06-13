@@ -249,19 +249,18 @@ ENDOFDOCUMENTATION
 				 ." FROM trait_phen_cor "
 				 ." right join trait using(trait_id) "
 				 ." $where "
-				 ." ORDER BY rho $o " ."LIMIT $limit";
+				 ." ORDER BY rho $o " ."LIMIT $limit"
+				 ." ; "
 			;
-
 
 			if (false and $verbose) {
 				echo "Query: '$queryAllCorrelations'<br>";
 			}
 
-			$result = mysqli_query($queryAllCorrelations,$linkLocali);
-			if (empty($result)) {
+			if (! $result = mysqli_query($linkLocali,$queryAllCorrelations)) {
+				#print_r($result);
 				errorMessage(mysqli_error($linkLocali)."</p><p>".$queryAllCorrelations."</p>");
 				mysqli_close($linkLocali);
-				//echo "LinkLocal: "; print_r($linkLocali);
 				exit;
 			}
 			echo "<table border=1 width=100%>";
