@@ -118,7 +118,7 @@ opt = getopt(matrix(c(
     'marker1'    , 'a', 2, "double","",
     'marker2'    , 'b', 2, "double","",
     'findmarker' , 'z', 2, "character","",
-    'LODmin'     , 'l', 1, "double","minimal LOD score for QTLs to list in table",
+    'LODmin'     , 'l', 1, "double","minimal LOD score for QTLs to list in table, given to scantwo as rep(5,LODmin)",
     'interactive', 'i', 0, "logical","",
     'individuals', 'I', 0, "character","",
     'format'     , 'f', 1, "character","",
@@ -487,7 +487,7 @@ if (is.null(m) & (is.null(cM) | is.null(chr))) {
 
 		my.work <- scantwo( my.cross, pheno.col=PHENOCOL, method=opt$method,
                                     verbose=FALSE, addcovar=ac, intcovar=ic)
-		m<-as.matrix(summary(my.work,thr=opt$LODmin)) # LODmin is always set
+		m<-as.matrix(summary(my.work,thr=rep(opt$LODmin,5))) # LODmin is always set
 		cat(file=txtname,"<h2>MQMscan</h2>\n")
 		cat(file=txtname,
                     paste("<table><tr><th>",paste(colnames(m),collapse="</th><th>",sep=""),
