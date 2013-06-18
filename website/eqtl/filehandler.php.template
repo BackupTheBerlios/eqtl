@@ -34,7 +34,7 @@ ENDOFDOCUMENATION
 
 	header("Content-Type: text/plain");
 
-	include_once("func_dbconfig.php");
+	include_once("func_connecti.php");
 
 	$accessible_fields_in_POST_or_GET = array(
 							"chromosome",
@@ -104,6 +104,7 @@ ENDOFDOCUMENATION
 			
 			$query = "SELECT Chr, cMorgan FROM locus WHERE Name=\"".$locus."\"";
 	
+			/*
 			if (0<count($err)) {
 				echo "<p>Please address the following error".(1<count($err)?"s":"").":<br>";
 				foreach ($err as $e) {
@@ -113,9 +114,11 @@ ENDOFDOCUMENATION
 				mysqli_close($linkLocali);
 				exit;
 			}
+			*/
 	
+			/*
 			$database=$databaseLocal;
-			/*if (!mysql_select_db("$database",$linkLocali)) {
+			if (!mysql_select_db("$database",$linkLocali)) {
 				echo "Could not select database '$database'. "
 				. "Please report to <a href=\"mailto:MAINTAINEREMAIL\""
 				. ">MAINTAINEREMAIL</a><br>";
@@ -153,6 +156,7 @@ ENDOFDOCUMENATION
 			
 			$query = "SELECT DISTINCT qtl.Locus,  bea.gene_stable_id_rat FROM ((SELECT Trait, Locus FROM qtl WHERE Locus=\"".$locus."\") UNION (SELECT Trait, A AS Locus FROM locusInteraction WHERE A=\"".$locus."\") UNION (SELECT Trait, B AS Locus FROM locusInteraction WHERE B=\"".$locus."\")) AS qtl LEFT JOIN (SELECT gene_stable_id_rat, probeset_id FROM BEARatChip) AS bea ON (bea.probeset_id=qtl.Trait)";
 	
+			/*
 			if (0<count($err)) {
 				echo "<p>Please address the following error".(1<count($err)?"s":"").":<br>";
 				foreach ($err as $e) {
@@ -162,6 +166,7 @@ ENDOFDOCUMENATION
 				mysqli_close($linkLocali);
 				exit;
 			}
+			*/
 	
 			/*
 			$database=$databaseLocal;
@@ -171,7 +176,7 @@ ENDOFDOCUMENATION
 				exit;
 			}
 	
-			/*
+			*/
 
 			$result = mysqli_query($linkLocali,$query);
 			if (empty($result)) {

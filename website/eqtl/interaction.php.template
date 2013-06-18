@@ -226,6 +226,7 @@ set in the configuration.
 		require_once("func_dbconfig.php");
 		require_once("func_conversion_".$ensemblversionLocal.".php");
 		require_once("func_connecti.php");
+		require_once("func_public_qtl.php");
 
 		$where = "WHERE ";
 		$from  = " FROM locusInteraction  AS li ";
@@ -521,7 +522,7 @@ set in the configuration.
 						case "No":
 						case "Name_A":
 						case "Name_B":
-							echo "<td><a href=\"locus.php?Name=$l\">$l</a></td>";
+							echo "<td><a href=\"locus.php?locus=$l\">$l</a></td>";
 							break;
 						case "AlNo":
 						case "BlNo":

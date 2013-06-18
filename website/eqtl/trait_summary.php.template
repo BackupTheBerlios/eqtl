@@ -147,7 +147,9 @@ University of LE<uuml>beck, Germany, 2010
 			while ($qtls_none_result = mysqli_fetch_array($qtls_query_none,MYSQL_ASSOC)) {
 				$LodForNone["".$qtls_none_result["chromosome"]] = $qtls_none_result["lod"];
 			}
-			echo "LodForNone: "; print_r($LodForNone);
+			if (!empty($verbose)) {
+				echo "LodForNone: "; print_r($LodForNone); echo "<br />\n";
+			}
 
 			$query = "SELECT chromosome,"
 				       ."min(LOD) as minLod, max(LOD) as maxLod, "
@@ -162,8 +164,10 @@ University of LE<uuml>beck, Germany, 2010
 				$maxP["".$qtls_min_max_result["chromosome"]]   = $qtls_min_max_result["maxP"];
 			}
 
-			echo("minLOD:");print_r($minLod);echo("maxLOD:");print_r($maxLod);
-			echo("minP=");print_r($minP);echo("maxP=");print_r($maxP);
+			if (!empty($verbose)) {
+				echo("minLOD:");print_r($minLod);echo("maxLOD:");print_r($maxLod); echo "<br />\n";
+				echo("minP=");print_r($minP);echo("maxP=");print_r($maxP); echo "<br />\n";
+			}
 
 			$query="SELECT * FROM qtl WHERE Trait='$trait_id';";
 			$qtls_query = mysqli_query($linkLocali,$query) or die("Query '$query' failed: " . mysqli_error($linkLocali));
@@ -175,7 +179,7 @@ University of LE<uuml>beck, Germany, 2010
 			# There is only a single QTL for a covariate set on one chromosome
 			# The chromosomes need to be treated separately
 	 
-			echo "Reading in data from database.";
+			if ($verbose) echo "Reading in data from database.";
 
 			while ($qtls_result = mysqli_fetch_array($qtls_query,MYSQL_ASSOC)) {
 				#print_r($qtls_result);

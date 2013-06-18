@@ -136,14 +136,14 @@ ENDOFDOCUMENTATION
 		"Mbp_Peak_Min","Mbp_Peak_Max",
 		"MeanMin","MeanMax","SdMin","SdMax",
 		"locus","chrlist", "condition",
-		"traits","traitlist","gene_name","TraitChromosome"
+		"traits","traitlist","gene_name","trait_chromosome"
 	);
 
 	# fields offered to be optionally deselected from being presented as columns
 	$a=array("Trait"=>1, "Groups"=>1, "LocusOfGene"=>1, "ExpressionOfGene" => 1, "Locus"=>1,
 		"LOD"=>1,"LODdiff"=>1,"pvalue" => 1, "Quantile"=>1,
 		"covariates"=>1,
-		"Chromosome"=>1, "TraitChromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>0, "cMorgan_Max"=>0,
+		"Chromosome"=>1, "trait_chromosome"=>1, "cMorgan_Peak"=>1, "cMorgan_Min"=>0, "cMorgan_Max"=>0,
 		"Gid"=>0, "gene_name"=>1, "name"=>1, "ensembl_stable_gene_id"=>1, "mean"=>1, "sd"=>1 
 	);
 			
@@ -441,12 +441,12 @@ ENDOFDOCUMENTATION
 		# These extra joins are not needed for every kind of query, some optimisation
 		# would help to speed things up!
 
-		if (!(empty($show_LocusOfGene) and empty($show_Chromosome) and empty($show_TraitChromosome)
+		if (!(empty($show_LocusOfGene) and empty($show_Chromosome) and empty($show_trait_chromosome)
 			and empty($MeanMin) and empty($MeanMax)
 			and empty($SdMin) and empty($SdMax) and empty($show_ExpressionOfGene)
 			and empty($show_gene_assignment)
 			and empty($gene_name)
-			and empty($TraitChromosome)))
+			and empty($trait_chromosome)))
 		{
 			$query .= " join trait on Trait=trait.trait_id ";
 		}
@@ -548,10 +548,10 @@ ENDOFDOCUMENTATION
 			$where .= " in ('".join("','",preg_split("/[, ;]+/",$chrlist))."') ";
 		}
 
-		if (!empty($TraitChromosome)) {
+		if (!empty($trait_chromosome)) {
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " trait.chromosome";
-			$where .= " in ('".join("','",preg_split("/[, ;]+/",$TraitChromosome))."') ";
+			$where .= " in ('".join("','",preg_split("/[, ;]+/",$trait_chromosome))."') ";
 		}
 
                 if (!empty($traitlist)) {
@@ -701,7 +701,7 @@ ENDOFDOCUMENTATION
 			$where .= " pvalue <= ".$PvalueMax." ";
 		}
 		// LODdiff = LOD - Quantile
-		if (!isset($LODdiffmin) and "" != "$LODdiffmin") {
+		if (isset($LODdiffmin) and "" != "$LODdiffmin") {
 			if (!is_numeric($LODdiffmin)) {
 				array_push($err, "LOD score difference must be numeric.\n");
 			}
@@ -855,7 +855,7 @@ ENDOFDOCUMENTATION
 					echo "<td>$s + $s_unassigned</td>";
 					echo "<td>";
 					if ("trait.chromosome" == "$onlyNumbersGrouped") {
-						echo "<a href=\"qtl.php?TraitChromosome=".$line[0]."\">qtl</a>";
+						echo "<a href=\"qtl.php?trait_chromosome=".$line[0]."\">qtl</a>";
 					} else if ("qtl.Chromosome" == "$onlyNumbersGrouped") {
 						echo "<a href=\"qtl.php?chrlist=".$line[0]."\">qtl</a>";
 					} else {
@@ -964,7 +964,7 @@ ENDOFDOCUMENTATION
 							echo "<small>";
 							echo "["
 							."<a href=\"qtl.php?direct=1&traitlist=$l\">qtls</a>,"
-							."<a href=\"effectplot.php?direct=1&traitlist=$l&chromosome=$c&cM=$cMpeak&verbose=1\">eff</a>,"
+							."<a href=\"effectplot.php?direct=1&traitlist=$l&chromosome=$c&cM=$cMpeak&verbose=0&inlineImages=1\">eff</a>,"
 							."<a href=\"interaction.php?direct=1&traitlist=$l&direct=1&LODmin=0\">int</a>"
 							."]";
 							echo "</small>";
@@ -989,7 +989,7 @@ ENDOFDOCUMENTATION
 							echo " <a href=\"http://www.ensembl.org/$ensemblorganism/syntenyview?otherspecies=Homo_sapiens&chr=$c\">Hs</a></td>";
 							break;
 						case "Locus":
-							echo "<td><a href=\"locus.php?Name=$l\">$l</a></td>";
+							echo "<td><a href=\"locus.php?locus=$l\">$l</a></td>";
 							break;
 						case "cMorgan_Peak":
 							$bpPeak = cM2bp($c,$cMpeak);

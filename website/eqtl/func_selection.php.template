@@ -198,7 +198,7 @@ function print_selection_form($dbh,$properties) {
 	       $chromosome2, $cM2, $marker2, 
 	       $gene_name, $individuals_group_id,
 	       $LODdiffmin, $LODdiffmax, $cM_Peak_Min, $cM_Peak_Max, $Mbp_Peak_Min, $Mbp_Peak_Max,
-	       $cM_within, $groups, $locus, $chrlist,$TraitChromosome,
+	       $cM_within, $groups, $locus, $chrlist, $trait_chromosome, $trait_start, $trait_stop,
 	       $MeanMin, $MeanMax, 
 	       $NumberChromosomesPerTraitMin,$NumberChromosomesPerTraitMax,
                $PvalueMax,$PvalueMin,
@@ -222,7 +222,8 @@ function print_selection_form($dbh,$properties) {
 					 array("locus", 
 					    "chromosome", "peakInMbp",
 					    "peakInCentiMorgan", "flanks",
-					    "trait","TraitChromosome",
+					    "trait",
+					    #"TraitGeneLocation",
 					    "gene_name",
 					    "LOD", "quantile", "LODdiff",
 					    "pvalue",
@@ -235,7 +236,8 @@ function print_selection_form($dbh,$properties) {
 					 array("locus", 
 					    "chromosome", "peakInMbp",
 					    "peakInCentiMorgan", "flanks",
-					    "trait","TraitChromosome",
+					    "trait",
+					    #"TraitGeneLocation",
 					    "gene_name",
 					    "LOD", "quantile", "LODdiff",
 					    "pvalue",
@@ -251,10 +253,11 @@ function print_selection_form($dbh,$properties) {
 		 
 		 case "all_qtl_trait":
 			$properties = array(	"trait",
-						"gene_name",
+						"gene_name", "locus",
+						"TraitGeneLocation",
 						"correlation and loci", "phen_analysis",
 						"mean", "sd", "median", "variance" , "LOD", "pvalue",
-						"number_of_chromosomes_per_trait"
+						"number_of_chromosomes_per_trait",
 			);
 			break;
 
@@ -383,22 +386,26 @@ function print_selection_form($dbh,$properties) {
 <?php
 				break;
 
-
-			case "TraitChromosome":
+			case "TraitGeneLocation":
 ?>
-			<tr><th class=r>Chromosome of Trait:</th><td colspan=3><input type=text name=TraitChromosome size=40 maxsize=700
+			<tr><th class=r rowspan=1>Trait's coding region:</th><td colspan=3>Chromosome: <input type=text name=trait_chromosome size=3 maxsize=10
 <?php
-			if (!empty($TraitChromosome)) {
+			if (!empty($trait_chromosome)) {
 				echo "value=";
-				if (is_array($TraitChromosome)) {
-					echo "\"".join(",",$TraitChromosome)."\"";
+				if (is_array($trait_chromosome)) {
+					echo "\"".join(",",$Trait_chromosome)."\"";
 				}
 				else {
-					echo "\"$TraitChromosome\"";
+					echo "\"$trait_chromosome\"";
 				}
 			}
 ?>
-			></td></tr>
+			>
+			 &nbsp; &nbsp; Mbp:
+			<?php print_input_text("trait_start",$trait_start,FALSE,5,7); ?>
+			- 
+			<?php print_input_text("trait_stop",$trait_start,FALSE,5,7); ?>
+			</td></tr>
 <?php
 				break;
 

@@ -245,7 +245,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 		$whereB=FALSE;
 		$where;
 		$from = ' FROM locus AS l ';
-		$query = "SELECT l.Name, l.Chr, l.cMorgan ";
+		$query = "SELECT l.Name as locus, l.Chr, l.cMorgan ";
 
 		if (!empty($debug)) { echo "\$order: "; print_r($order); echo "<br />\n";}
 
@@ -427,7 +427,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 						echo "<th>Genes at locus</th>";
 					}
 					if( !empty($show_genes_effected) ) {
-						echo "<th>Genes effected</th>";
+						echo "<th>Genes effected (expression QTL)</th>";
 					}
 					if( !empty($show_VennLink) ) {
 						echo "<th>Select Group (VennDiagramm)</th>";
@@ -439,7 +439,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 				foreach($line as $n=>$l) {
 					$f="show_".$n;
 					$c=$line["Chr"];
-					$locus = $line["Name"];
+					$locus = $line["locus"];
 					$cMorgan=$line["cMorgan"];
 					if (!empty($$f)) {
 						if (!isset($l)||""==$l) {
@@ -453,12 +453,13 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 							echo "<td align=right>".round($cMorgan,4)."</td>\n";
 							break;
 						case "Chr":
-							echo "<td><a href=\"http://www.ensembl.org/Rattus_norvegicus/mapview?chr=$c\">$l";
-							echo " <a href=\"http://www.ensembl.org/Rattus_norvegicus/syntenyview?otherspecies=Homo_sapiens&chr=$c\">Hs</a></td>\n";
+							echo "<td><a href=\"http://www.ensembl.org/ENSEMBLSPECIESSEARCHURL/mapview?chr=$c\">$l";
+							echo " <a href=\"http://www.ensembl.org/ENSEMBLSPECIESSEARCHURL/syntenyview?otherspecies=Homo_sapiens&chr=$c\">Hs</a></td>\n";
 							break;
 						case "Name":
+						case "locus":
 							echo "<td>"
-							."<a href=\"http://www.ensembl.org/Rattus_norvegicus/contigview?chr=$c&vc_start="
+							."<a href=\"http://www.ensembl.org/ENSEMBLSPECIESSEARCHURL/contigview?chr=$c&vc_start="
 		    					.(cM2bp($c,$cMorgan)-100000).'&vc_end='.(cM2bp($c,$cMorgan)+100000);
 							echo "\">$l</a></td>\n";
 							break;
@@ -525,29 +526,39 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 				}
 				$bp=cM2bp($line["Chr"],$line["cMorgan"]);
 				echo "<td align=right><small><small>$bp</small></small></td>";
-				$from = $bp-10000;
-				$to = $bp+10000;
+				$from = $bp-50000;
+				$to = $bp+50000;
 				if( !empty($show_Genes_in_locus) ) {
- 					$content = file_get_contents($BASEPATH."filehandler.php?genes_within=on&chromosome=".$line["Chr"]."&begin_bp=".$from."&end_bp=".$to );
-					$arr = split("\n", $content);
-					$link = $line["Chr"]."_".$from."_".$to;
-					$arr = file($BASEPATH."filehandler.php?genes_within=on&chromosome=".$line["Chr"]."&begin_bp=".$from."&end_bp=".$to);
-					$size = sizeof($arr);
-					if( $size <= 5 ) {
-						echo "<td align=\"center\"><small><small>";
-						$first=true;
-						foreach ($arr as $x) {
-							if( $first ) {echo $x; $first=false;}
-							else { echo "<br>".$x; }
-						}
-						echo "</small></small></td>";
-					} else {
-						echo "<td align=\"center\"><small><small>".$size." ".$link."</small></small></td>";
+					echo "<td align=\"center\"><small><small>";
+					echo "<a href=\"trait.php?trait_chromosome=".$line["Chr"]
+						."&trait_start=".(round($from/1000)/1000)
+						."&trait_stop=".(round($to/1000)/1000)."\">direct link</a>";
+					echo "<br>";
+					foreach(array(1,5,10,20,30) as $x) {
+						echo " &nbsp; <a href=\"trait.php?direct=1&trait_chromosome=".$line["Chr"]."&trait_start=";
+						echo round($bp/1000)/1000-$x;
+						echo "&trait_stop=";
+						echo round($bp/1000)/1000+$x;
+						echo "\">+/- $x Mbp</a>";
 					}
+					echo "</small></small></td>";
 				}
 				if( !empty($show_genes_effected) ) {
 					echo "<td align=\"center\"><small><small>";
-					echo "<a href=\"filehandler.php?trait_genes=on&locus=".$line["Name"]."\">link</a>";
+					echo "<a href=\"qtl.php?locus=".$line["locus"]."\">direct link</a>";
+					echo "<br>";
+					echo "<a href=\"qtl.php?chrlist=".$line["Chr"]."&Mbp_Peak_Min=";
+					echo round($from/1000)/1000;
+					echo "&Mbp_Peak_Max=";
+					echo round($to/1000)/1000;
+					echo "\">left and right</a>";
+					foreach(array(1,5,10,20,30) as $x) {
+						echo " &nbsp; <a href=\"qtl.php?direct=1&chrlist=".$line["Chr"]."&Mbp_Peak_Min=";
+						echo round($bp/1000)/1000-$x;
+						echo "&Mbp_Peak_Max=";
+						echo round($bp/1000)/1000+$x;
+						echo "\">+/- $x Mbp</a>";
+					}
 					echo "</small></small></td>";
 				}
 				if( !empty($show_VennLink) ) {

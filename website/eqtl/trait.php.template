@@ -84,7 +84,8 @@ ENDOFDOCUMENTATION
 			"PvalueMin","PvalueMax",
 			"SdMin","SdMax",
 			"traitlist", "traits",
-			"gene_name",
+			"gene_name", "locus", 
+			"trait_chromosome", "trait_start", "trait_stop",
 			"limit","order","innerOrder");
 
 	// specification of attributes to be shown in table
@@ -382,6 +383,9 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 					$attribsSelect .= ", gene_name ";
 					$attribsGroup  .= ", gene_name ";
 					break;
+				case "locus":
+					$attribsSelect .= ", locus";
+					break;
 				case "transcript":
 					$attribsSelect .= ", gene_assignment AS transcript ";
 					$attribsGroup  .= ", transcript ";
@@ -522,6 +526,26 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 			$where .= " gene_name IN ('".join("','",preg_split("/[, ;\t\n]+/",$gene_name))."') ";
 		}
 
+		if (!empty($locus)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " qtl.Locus='$locus' ";
+		}
+
+		if (!empty($trait_chromosome)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " trait.chromosome = '$trait_chromosome'";
+		}
+
+		if (!empty($trait_start)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " trait.stop >= $trait_start*1000*1000";
+		}
+
+		if (!empty($trait_stop)) {
+			if ("WHERE " != $where) $where .= " AND ";
+			$where .= " trait.start <= $trait_stop*1000*1000";
+		}
+
 		if( !empty($NumberChromosomesPerTraitMin) ) {
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " number_of_chromosomes_per_trait >= $NumberChromosomesPerTraitMin ";
@@ -603,6 +627,7 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 		if (!empty($trait_phen_analysis_id) or !empty($trait_phen_analysis_analysis)
 		 or !empty($trait_phen_analysis_value_min) or !empty($trait_phen_analysis_value_max)) {
 			require_once("trait_helper.php");
+			if (!isset($trait_phen_analysis_analysis)) $trait_phen_analysis_analysis="";
 			$from .= " join trait_phen_analysis_value using(trait_id) ";
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .=  add_sql_where_for_phen_analysis(
@@ -798,16 +823,20 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 					case "Trait":
 						$traitid=$l;
 						echo "<td align=left nowrap valign=top rowspan=$numberOfLociToShow>"
+						.$line["trait_name"] . " &nbsp; "
+					/*
 						."<a href=\"".probe2ensemblUrl($l,$species_name_ensembl_core)
-						."\">$l</a>";
-						echo "<ul>"
-						."<li>Singular Effects"
+						."\">$l</a>"
+					*/
+					;
+						echo ""
+						."<h5>Singular Effects</h5>"
 						."<ul>"
 						."<li><a href=\"qtl.php?traitlist=$l\">QTL form - entry mask</a>"
-						."<li><a href=\"qtl.php?traitlist=$l\">QTL form - show all</a>"
+						."<li><a href=\"qtl.php?direct=1&traitlist=$l\">QTL form - show all</a>"
 						."<li><a href=\"trait_summary.php?traitlist=$l\">Tabular overview</a>"
 						."</ul>"
-						."<li><a href=\"interaction.php?traitlist=$l&direct=1&LODmin=0\">Interactions</a>"
+						."<h5><a href=\"interaction.php?traitlist=$l&direct=1&LODmin=0\">Interactions</a></h5>"
 					/*
 						."<li>Interactions"
 						."<ul>"
@@ -816,18 +845,14 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 						."</ul>"
 					*/
 
-						."<li>Plots"
+						."<h5>Plots</h5>"
 						."<ul>"
 						."<li><a href=\"effectplot.php?traitlist=$l\">Effectplot</a>"
-						."</ul>"
 						."</ul>";
-						echo "<br>";
-						echo "<a href=\""
-						    .probe2ensemblSearchUrl($l,$species_name_ensembl_core)
-						    ."\">Ensembl Search</a>";
-						$line["trait_name"];
-						echo "<br>";
-						echo $line["trait_name"];
+					/*
+						echo "<h5><a href=\"".probe2ensemblSearchUrl($l,$species_name_ensembl_core)
+						    ."\">Ensembl Search</a></h5>";
+					*/
 						echo "</td>";
 							break;
 					case "Rat_gene_associated":
@@ -916,6 +941,7 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 					echo "<i>No trait specified in query.</i>";
 				}
 				else {
+					if (!isset($trait_phen_analysis_analysis)) $trait_phen_analysis_analysis="";
 					$phenanalysisquery  = "SELECT";
 					$phenanalysisquery .= " analysis";
 					$phenanalysisquery .= ",value";
@@ -1063,6 +1089,9 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 		echo "</table></small>";
 		mysqli_free_result($result);
 		mysqli_close($linkLocali);
+		if (0==$lineno) {
+			echo "<p>No traits founds.</p>\n";
+		}
 	}
 	include("footer.php");
 ?>
