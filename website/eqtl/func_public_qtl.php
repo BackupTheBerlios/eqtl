@@ -21,9 +21,11 @@ pages.
 
 */
 
-	require_once("func_dbconfig.php");
-	global $databaseqtl;
-	require_once("func_species.php");
+	if (FALSE) {
+	//require_once("func_dbconfig.php");
+	////global $databaseqtl;
+	}
+	include_once("func_species.php");
 
 	# variable to store results and thus possibly reduce database IS
 	$qtlsCache="";
@@ -171,6 +173,7 @@ the list of QTL identifiers from which the fitting ones shall be selected
  */
 
 	function withinthefollowingqtls($chr,$peakbp,$qtlsSelection,$verbose=FALSE) {
+		$qs=array();
 		$e = array();
 		if (!is_array($qtlsSelection)) {
 			$e[] = "qtlsSelection is not an array: '$qtlsSelection'.";
@@ -187,9 +190,9 @@ the list of QTL identifiers from which the fitting ones shall be selected
 			if ($verbose) {
 				errorMessage($e,TRUE,"func_public_qtl.php/withinthefollowingqtls");
 			}
+			return($qs);
 		}
 
-		$qs=array();
 		foreach($qtlsSelection as $n=>$q) {
 			$chrqtl=$q["chr"];
 			if (empty($chrqtl)) {

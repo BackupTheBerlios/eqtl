@@ -625,7 +625,7 @@ ENDOFDOCUMENTATION
 			#echo "\$_POST:" ; print_r($_POST); echo "\n";
 			echo "</pre>\n";
 		}
-		if ("selected" == $covariate_selection_type) {
+		if (!empty($covariate_selection_type) && "selected" == $covariate_selection_type) {
 			if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
 				if ("WHERE " != $where) $where .= " AND ";
 				if (empty($covariates) or 0==count($covariates)) {
@@ -670,7 +670,7 @@ ENDOFDOCUMENTATION
 			}
 		}
 
-		if (!empty($cM_within)||"0"==$cM_within) {
+		if (isset($cM_within) && "" != $cM_within) {
 			if (!is_numeric($cM_within)) array_push($err,"The position to be within a QTL must be numeric ($cM_within).\n");
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .= " ($cM_within between cMorgan_Min and cMorgan_Max) ";

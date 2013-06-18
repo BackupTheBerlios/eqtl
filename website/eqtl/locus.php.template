@@ -39,7 +39,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 	require_once("header.php");
 	//require_once("func_dbconfig.php");
 	require_once("func_covariates.php");
-	$database=$databaseeqtl;
+	#$database=$databaseeqtl;
 	require_once("func_connecti.php");
 	show_small_header("Selection of eLoci",TRUE);
 	$err=array();
@@ -65,7 +65,8 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 	   // Organism"=>0,
 	   "qtlNumber"=>0,"locusInteractionNumber"=>0,
 	   "qtlLod"=>0, "interactionLod"=>0,
-	   "VennLink"=>0, "Genes_in_locus" =>1, /*"trait"=>0, */ "genes_effected"=>1
+	   #"VennLink"=>0, // needs extra debugging
+	   "Genes_in_locus" =>1, /*"trait"=>0, */ "genes_effected"=>1
 	);
 
 	# Conversion of array keys to values to be checked as being parameter names
@@ -267,9 +268,6 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 
 		if (!empty($show_interactionLod)) {
 			$query .= ", min(locusInteraction.pvalue_full) as interactionPvalue, max(locusInteraction.lod_full) as interactionLod";
-		}
-
-		if (!empty($show_interactionLod)) {
 			$from .= " LEFT JOIN locusInteraction ON (l.Name=locusInteraction.A or l.Name=locusInteraction.B) ";
 		}
 		
@@ -398,7 +396,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 
 		$rowno=0;
 		if ("html"==$format) {
-			if( $show_VennLink ) {
+			if( !empty($show_VennLink) ) {
 				echo "<form action=\"venn.php\" method=\"get\">";
 				echo 	"<p align=\"center\"><table align=\"center\"><tr><th bgcolor=\"yellow\" colspan=\"2\" align=\"center\">Venn Diagram options:<br>creating this diagram may take several minutes!</th></tr><tr>
 						<td><input type=\"submit\" value=\"create diagram\"></td>
@@ -514,7 +512,7 @@ Universities of LE<uuml>beck and Rostock, 2003-2009
 								."</td>";
 							break;
 						case "interactionLod":
-							echo "<td>".round($l,2)."</td>";
+							echo "<td><a href=\"interaction.php?locus=$locus\">".round($l,2)."</a></td>";
 							break;
 						default:
 							echo "<td>$l</td>";

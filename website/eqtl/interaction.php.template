@@ -36,6 +36,8 @@ set in the configuration.
 	$database="DATABASEEQTLNAME";
 	require_once("func_connecti.php");
 
+	include_once("func_public_qtl.php");
+
 	$conditionList=array(
 		"Equal Chromosomes" => "(cis=1)",
 		"Unequal Chromosomes" => "(cis=0)"
@@ -132,7 +134,6 @@ set in the configuration.
 
 	if (empty($direct) and empty($submitted))
 	{
-		include_once("func_public_qtl.php");
 		print_cQTL_javascript_section();
 ?>
 		<form id="mainform" action=interaction.php method=get>
@@ -222,11 +223,10 @@ set in the configuration.
 <?php
 	}
 	else {
-
-		require_once("func_dbconfig.php");
+		include_once("func_species.php");
 		require_once("func_conversion_".$ensemblversionLocal.".php");
 		require_once("func_connecti.php");
-		require_once("func_public_qtl.php");
+		include_once("func_public_qtl.php");
 
 		$where = "WHERE ";
 		$from  = " FROM locusInteraction  AS li ";
@@ -327,7 +327,7 @@ set in the configuration.
 
 		if (DATABASEISUSINGSETSTOREPRESENTCOVARIATES) {
 			if ("WHERE " != $where) $where .= " AND ";
-			if (0==count($covariates)) {
+			if (empty($covariates) || 0==count($covariates)) {
 				$where .= " covariates='' ";
 			}
 			else {
@@ -429,7 +429,7 @@ set in the configuration.
 			$query .= " LIMIT ".$limit." ";
 		}
 
-		if ($debug) {
+		if (!empty($debug)) {
 			echo "query: $query<br>";
 		}
 
@@ -439,6 +439,8 @@ set in the configuration.
 			mysqli_close($linkLocali);
 			exit;
 		}
+
+		$qtls = get_public_qtls($linkLocali);
 
 		$rowno=0;
 		echo "<small><table border=1>\n<thead>\n";
@@ -474,12 +476,12 @@ set in the configuration.
 
 
 // 			echo "3; "; print_r($line); echo "<br>";
-			$ca=$line["AChr"];
- 			if (isset($ca)) {
- 				$ca = $line["AlChr"];
- 			}
-			if (!isset($ca)) {
+			if (array_key_exists("Chr_A",$line)) {
 				$ca = $line["Chr_A"];
+			} elseif (array_key_exists("AChr",$line)) {
+				$ca=$line["AChr"];
+			} elseif (array_key_exists("AlChr",$line)) {
+				$ca=$line["AlChr"];
 			}
  			if (!isset($ca)) {
 				if (!empty($verbose)) {
@@ -493,12 +495,12 @@ set in the configuration.
 				echo "ca=$ca<br>\n";
 			}
 
-			$cb=$line["BChr"];
- 			if (!isset($cb)) {
- 				$cb = $line["BlChr"];
- 			}
-			if (!isset($cb)) {
+			if (array_key_exists("Chr_B",$line)) {
 				$cb = $line["Chr_B"];
+			} elseif (array_key_exists("BChr",$line)) {
+				$cb=$line["BChr"];
+			} elseif (array_key_exists("BlChr",$line)) {
+ 				$cb = $line["BlChr"];
 			}
  			if (!isset($cb)) {
 				if (!empty($verbose)) {
@@ -641,7 +643,8 @@ set in the configuration.
 				}
 			}
 			#print_r($line);
-			foreach (
+			if (empty($qtls)) { echo "<td>N/A</td><td>N/A</td>"; } 
+			else foreach (
 				array("Chr_A"=>"cMorgan_A","Chr_B"=>"cMorgan_B")
 				#array("AlChr"=>"AcMorgan","BlChr"=>"BcMorgan")
 				as $a1=>$a2)
@@ -664,22 +667,27 @@ set in the configuration.
 			echo "<a href=\"effectplot.php?traitlist=".$line["Trait"]."&cM=".$line["cMorgan_A"]."&cM2=".$line["cMorgan_B"]
 							."&chromosome=".$line["Chr_A"]."&chromosome2=".$line["Chr_B"]
 							."&work=scantwo&unit=cM&inlineImages=1"
+							."&method=hk"
 							."&direct=1\">effectplot</a>";
 			echo " (<a href=\"effectplot.php?traitlist=".$line["Trait"]."&cM=".$line["cMorgan_A"]
 							."&chromosome=".$line["Chr_A"]
 							//."&work=scanone"
 							."&unit=cM&inlineImages=1"
+							."&method=hk"
 							."&direct=1\">locus A</a>";
 			echo ", <a href=\"effectplot.php?traitlist=".$line["Trait"]."&cM=".$line["cMorgan_B"]
 							."&chromosome=".$line["Chr_B"]
 							//."&work=scanone"
 							."&unit=cM&inlineImages=1"
+							."&method=hk"
 							."&direct=1\">locus B</a>)";
 			echo ", <a href=\"effectplot.php?traitlist=".$line["Trait"]
 							."&work=scantwo&unit=cM&inlineImages=1"
+							."&method=hk"
 							."&direct=1\">scantwo</a>";
 			echo ", <a href=\"effectplot.php?traitlist=".$line["Trait"]
 							."&work=scanone&unit=cM&inlineImages=1"
+							."&method=hk"
 							."&direct=1\">scanone</a>";
 			echo "</small></td>";
 			// }

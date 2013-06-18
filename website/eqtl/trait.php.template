@@ -628,13 +628,15 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 		 or !empty($trait_phen_analysis_value_min) or !empty($trait_phen_analysis_value_max)) {
 			require_once("trait_helper.php");
 			if (!isset($trait_phen_analysis_analysis)) $trait_phen_analysis_analysis="";
+			if (!isset($trait_phen_analysis_value_max)) $trait_phen_analysis_value_max="";
+			if (!isset($trait_phen_analysis_value_min)) $trait_phen_analysis_value_min="";
 			$from .= " join trait_phen_analysis_value using(trait_id) ";
 			if ("WHERE " != $where) $where .= " AND ";
 			$where .=  add_sql_where_for_phen_analysis(
 					$trait_phen_analysis_id,$trait_phen_analysis_analysis,
 					$trait_phen_analysis_value_min,$trait_phen_analysis_value_max
 				   );
-		} else if ("trait_phen_analysis_value.value ASC" == "$order" ) {
+		} else if (!empty($order) && "trait_phen_analysis_value.value ASC" == "$order" ) {
 			errorMessage("Need to specify phen analysis to order for it.");
 			exit;
 		}
@@ -941,7 +943,10 @@ function retrieveCorrelations($traitid,$posOrNeg,$orientation,$maxNumCorrGenesTo
 					echo "<i>No trait specified in query.</i>";
 				}
 				else {
-					if (!isset($trait_phen_analysis_analysis)) $trait_phen_analysis_analysis="";
+					if (!isset($trait_phen_analysis_analysis))  $trait_phen_analysis_analysis="";
+					if (!isset($trait_phen_analysis_id))        $trait_phen_analysis_id="";
+					if (!isset($trait_phen_analysis_value_max)) $trait_phen_analysis_value_max="";
+					if (!isset($trait_phen_analysis_value_min)) $trait_phen_analysis_value_min="";
 					$phenanalysisquery  = "SELECT";
 					$phenanalysisquery .= " analysis";
 					$phenanalysisquery .= ",value";
